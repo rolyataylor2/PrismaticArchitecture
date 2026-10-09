@@ -1,0 +1,67 @@
+{
+  "id": "skill_0b0772cb-2577-47a8-b9ea-1cfe31b88bc7",
+  "agentId": "agent_0473a004-4238-4c6c-a29c-eaff9d6b7f72",
+  "version": 2,
+  "name": "Exact fixture procedure",
+  "conditions": [
+    "Exact recorded fixture inputs and criterion"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact selected arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "error",
+        "argumentsJson": "{}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_f948c9f4-ffda-4154-b19b-7c18a24df29b",
+    "cycleId": "cycle_2635e315-d025-4cd1-b5c0-0a618cc35da6",
+    "bidId": "bid_c60167f7-7eb5-438e-984b-bea3bde26039",
+    "partId": "part_6aa63022-78e8-4288-8682-05b249731e07",
+    "instruction": "Prescribed instruction fixture, not a model observation"
+  },
+  "validations": [
+    {
+      "executionId": "execution_3236520b-7397-43de-846f-6507f16f3fd2",
+      "at": "2026-10-09T16:40:12.790Z",
+      "result": "failed",
+      "traceRefs": [
+        "mcp_trace_7e8aa7fd-61f4-491f-a252-79e398a06e4d"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: failed",
+    "restoredVersion": null,
+    "at": "2026-10-09T16:40:12.790Z"
+  }
+}

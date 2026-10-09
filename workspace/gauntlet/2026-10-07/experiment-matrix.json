@@ -1,0 +1,272 @@
+[
+  {
+    "mechanism": "novelty/orientation",
+    "invokedCycles": [
+      1,
+      2
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846"
+    ],
+    "status": "observed",
+    "assessment": "Fallback formed, optional prediction/scaffold; coverage sufficient then investigate",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "prediction ambiguity/delay",
+    "invokedCycles": [
+      3
+    ],
+    "evidence": [
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8"
+    ],
+    "status": "observed",
+    "assessment": "Incomplete outcomes retained",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "prediction confirmation/contradiction",
+    "invokedCycles": [
+      2,
+      4,
+      5
+    ],
+    "evidence": [
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8"
+    ],
+    "status": "observed_with_defect",
+    "assessment": "Cycle 2 reflection omitted evidence; after repair cycle 4 recognized contrary outcome",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "subjective memory formation/recall",
+    "invokedCycles": [
+      2,
+      4,
+      5,
+      6
+    ],
+    "evidence": [
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "observed",
+    "assessment": "Nine episodes; actual recall IDs in cycles 5 and 6",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "subjective memory semantic reconsolidation",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "unverified",
+    "assessment": "Versions changed references, not content/gist; no sleep",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "disposition activation/temporary lifecycle",
+    "invokedCycles": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "evidence": [
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "observed",
+    "assessment": "Later-cycle independent scored scopes, closure/history",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "durable structural consolidation",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "unverified",
+    "assessment": "Token stop before sleep",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "Self/Identity/arbitration/deliberation",
+    "invokedCycles": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "observed",
+    "assessment": "World-blind contexts; bounded inquiry cycle 3; supplied bids selected",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "enduring Identity development",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "unverified",
+    "assessment": "Identity unchanged; no mediated development established",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "interpersonal familiarity/boundaries",
+    "invokedCycles": [
+      1,
+      3,
+      5
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8"
+    ],
+    "status": "partially_observed",
+    "assessment": "Rowan returns and boundary bid selected; relationship mechanism not independently isolated",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "emotional/motivational dynamics",
+    "invokedCycles": [
+      1,
+      4,
+      5
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8"
+    ],
+    "status": "partially_observed",
+    "assessment": "Language-first affect/products captured; no phenomenology inferred",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "adaptation/generalization",
+    "invokedCycles": [
+      4,
+      6
+    ],
+    "evidence": [
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "inconclusive",
+    "assessment": "Changed interpretations, transfer may reflect context; packet-name anomaly",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "context-independent temporal continuity",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "unverified",
+    "assessment": "Persistent store/checkpoints established; no new-thread/restart inference",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "embodiment/environment variation",
+    "invokedCycles": [
+      6
+    ],
+    "evidence": [
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "partially_observed",
+    "assessment": "Symbolic telemetry communicated as simulated speech; no direct physical sensor",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "primitive participation",
+    "invokedCycles": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "absent_by_design",
+    "assessment": "Current ADR 0133 removes online primitives",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "authoritative testimony/therapy durability",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "unverified",
+    "assessment": "User long-term target; two new sourced runnable definitions registered",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "structural stability",
+    "invokedCycles": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "evidence": [
+      "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+      "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+      "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+      "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+      "cycle_cb83e723-3626-404e-b4e0-a937f276f04a"
+    ],
+    "status": "bounded_observation",
+    "assessment": "13 temporary dispositions, seven ended; no durable creation or recursive same-cycle participation; long-term growth unverified",
+    "learningObserved": "see record; no blanket success",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  },
+  {
+    "mechanism": "comparison baseline",
+    "invokedCycles": [],
+    "evidence": [],
+    "status": "established_unexercised",
+    "assessment": "Fresh untouched comparison branch, same initial configuration; no inference before budget stop",
+    "learningObserved": "not established",
+    "survivedRetest": "DEF-001 rendering and live outcome retest only; general durability unverified"
+  }
+]

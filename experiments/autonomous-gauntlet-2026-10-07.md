@@ -1,0 +1,11 @@
+# Autonomous Cognitive Gauntlet — 2026-10-07
+
+Protocol: researcher attachment `e5aa9713-f801-4e9a-9a4e-0b7bf969cef2/pasted-text-1.txt`. Research artifacts and local isolated state: `workspace/gauntlet/2026-10-07/`. Complete report: `reports/final-report.md`; external-review archive: `gauntlet-review-bundle.tar.gz` (excludes SQLite and encrypted credentials).
+
+Six ordinary simulated interactions accumulated on a fresh configured Grok/Jev Agent. A clean comparison Agent was established and preserved. The actual browser inspector was examined; every pre/post state, available cycle trace, conversation and version history was retained. One verified prompt defect omitted factual outcomes from constructed prediction reflection; the minimal template repair passed its failing regression and a live subsequent-outcome retest. No theory or architecture changed.
+
+The 250,000 measured generative-token limit was exceeded during cycle 6 (262,136 total); further inference stopped. Nine subjective episodes, twelve predictions and thirteen temporary dispositions were recorded, with seven scopes ended. Actual recall occurred; semantic memory reconsolidation, offline institutionalization, comparison-branch behavior and context-independent development remain unverified. This is a bounded experimental observation, not a passing psychological validity claim.
+
+Full local regression: 209/209 tests pass, zero failures/skips, including build and Chrome checks. Current sourced registry workflow tests pass, strict TypeScript and dependency lint pass. Four new gauntlet Simulation Tests include longitudinal evidence, source/boundary variation, Agent-judged authoritative testimony and talk-therapy durability. Fixtures verify execution/reporting only; these new semantic hypotheses require configured-model follow-up.
+
+Researcher steering: prioritize prompt modifications for inference problems; record architecture suggestions and obtain explicit approval before implementing them; legacy compatibility is unnecessary but replacements must be verified. Ultimate target: durable authority-sensitive conversational learning and sufficiently human-like psyche mechanisms for meaningful assessment and therapeutic development. This run does not establish that target. Follow-up queue is in the artifact report and `theory-review-queue.md`.

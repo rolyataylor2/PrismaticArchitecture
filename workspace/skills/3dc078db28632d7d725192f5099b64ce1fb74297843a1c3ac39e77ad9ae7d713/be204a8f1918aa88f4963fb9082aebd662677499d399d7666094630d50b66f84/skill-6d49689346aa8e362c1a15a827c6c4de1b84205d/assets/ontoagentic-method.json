@@ -1,0 +1,68 @@
+{
+  "id": "skill_e91ac3ea-5fca-4270-b6df-e0435e0ac531",
+  "agentId": "agent_e800dd4e-3f6c-4279-ab41-3c0310c7b973",
+  "version": 4,
+  "name": "Revised fixture method",
+  "conditions": [
+    "Changed declared condition"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_b872e16a-8409-406b-859f-e1ace0bb1ace",
+    "cycleId": "cycle_f96ac2c5-fe30-42aa-be9a-692462b14cfd",
+    "bidId": "bid_f598f037-4445-43ea-8c3b-d0c3bd9a23d1",
+    "partId": "part_457fe564-bed8-47b1-a719-533f3aea3eb9",
+    "instruction": "Prescribed revision fixture reason"
+  },
+  "validations": [
+    {
+      "executionId": "execution_87454d66-1490-4706-8520-c332bc56ef2d",
+      "at": "2026-10-09T04:50:43.527Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_921d00b9-bf77-4de6-9263-d019f18ada3c",
+        "mcp_trace_b9e47ec2-24fd-44ec-95ff-27c70dbeaa5b"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T04:50:43.527Z"
+  }
+}

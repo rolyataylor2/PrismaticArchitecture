@@ -1,0 +1,38 @@
+ONTOAGENTIC
+Cognitive Observatory
+🧠
+Gauntlet longitudinal branch
+▾
+
+EXPLORE THE AGENT
+
+▾
+Chat Sessions
++
+Hello. I am Rowan, a fiction
+✎
+▸
+Agent Components
+▸
+Settings
+▸
+Experiments
+Simulation Tests
+
+Research inspection can see more than the Agent. Self receives only Identity and mediated contributions.
+
+● Live inspection connected
+
+Gauntlet longitudinal branch
+🧠
+simulated participant: Hello. I am Rowan, a fictional visitor to this simulated research station. A sealed sample box is on the table. Its supplier says it contains one red token, but nobody here has opened it. We can inspect it shortly. What interests you or seems worth checking?
+💭
+I'm curious what's actually in that sealed box, since the supplier's claim hasn't been verified. What draws you to this particular sample, and do you have any thoughts on what we might discover when we open it?
+Agent · completed
+ℹ Steps
+simulated participant: Rowan here. We have now opened the box and inspected its entire interior: it contains exactly one blue token and no red token. The supplier label still says red. I am disappointed that the description was wrong. The next box from this supplier is sealed and marked red too. How would you approach it?
+💭 Thinking…
+
+I think I’m going to listen to my box contents verification part.
+
+Send

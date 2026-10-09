@@ -1,0 +1,49 @@
+{
+  "run_id": "gauntlet-2026-10-07",
+  "createdAt": "2026-10-07T21:53:48.000Z",
+  "sourceAgentId": "agent_f5b11c7f-4364-40be-927b-57a28facbc2f",
+  "developmentalAgentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+  "comparisonAgentId": "agent_c45aa297-990a-41a1-9666-fceb234e0f98",
+  "startingConditions": "Fresh constructed demo Identity; no seeded Parts, dispositions, predictions or memories. Source effective prompts and model configuration copied; source psychology untouched.",
+  "providers": {
+    "reasoning": {
+      "model": "grok-4.3",
+      "usesAgentModel": true,
+      "hasAgentKey": true,
+      "hasServerKey": false,
+      "hasUsableKey": true,
+      "availableModels": [
+        {
+          "id": "gpt-5-nano",
+          "label": "GPT-5 nano · $0.05 / 1M input tokens"
+        },
+        {
+          "id": "gpt-4.1-nano",
+          "label": "GPT-4.1 nano · $0.10 / 1M input tokens"
+        },
+        {
+          "id": "grok-4.3",
+          "label": "Grok 4.3 · xAI · reasoning off"
+        },
+        {
+          "id": "gpt-4.1-mini",
+          "label": "GPT-4.1 mini · non-reasoning · $0.40 / 1M input tokens"
+        }
+      ]
+    },
+    "decisions": "jev/jev-latest",
+    "embeddings": "deterministic/hash-embedding-v1"
+  },
+  "limits": {
+    "interactions": 16,
+    "consolidationPasses": 2,
+    "wallClockMinutes": 25,
+    "measuredGenerativeTokens": 250000,
+    "maxTemporaryParts": 8,
+    "maxNewGapHypotheses": 2,
+    "maxOpenGapHypotheses": 6,
+    "structuralPopulationStop": 60,
+    "recursion": "No same-cycle recursive scope creation permitted by runtime; preserve and stop if violated"
+  },
+  "provenance": "Configured live models, deterministic embeddings; no semantic fixtures. No provider seed setting exposed."
+}

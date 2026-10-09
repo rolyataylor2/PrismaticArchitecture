@@ -1,0 +1,65 @@
+{
+  "id": "skill_8e8ccacd-a8d7-4c2e-b89d-d7d9abbf7944",
+  "agentId": "agent_1c472cab-6ec4-4605-b74c-a77baf40f69d",
+  "version": 1,
+  "name": "Reviewed fixture procedure",
+  "conditions": [
+    "Exact fixture"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Separate read returns 42",
+    "constraints": [
+      "Preserve original inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "hold",
+        "argumentsJson": "{\"durationMs\":2000}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 4,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_22934aa6-4acc-4be5-8b9c-27fba6d661cb",
+    "cycleId": "cycle_bf4131a6-21bb-487b-a1d1-4af5d7dfb4f7",
+    "bidId": "bid_31e35143-05eb-454c-a068-6f5717733cb1",
+    "partId": "part_574e7e4f-f033-490b-9373-f02089764f6d",
+    "instruction": "Prescribed execution strategy"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T16:49:55.195Z"
+  }
+}

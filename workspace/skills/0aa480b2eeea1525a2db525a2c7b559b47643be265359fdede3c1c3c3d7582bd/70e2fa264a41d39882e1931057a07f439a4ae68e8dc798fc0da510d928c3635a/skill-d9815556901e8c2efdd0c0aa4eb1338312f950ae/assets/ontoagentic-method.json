@@ -1,0 +1,90 @@
+{
+  "id": "skill_9aac417d-e7ac-410d-bc78-f950ffb3d447",
+  "agentId": "agent_456598c0-7a78-4b85-a649-0abb6524a0cf",
+  "version": 1,
+  "name": "Prescribed full corrected procedure",
+  "conditions": [
+    "Exact fixture inputs"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separately selected check returns 99",
+    "constraints": [
+      "Preserve completed operations"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":1}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":3}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":99}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "99"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_bb1132e2-ce19-401e-acd0-c8423167b557",
+    "reason": "Prescribed conditional consolidation plumbing",
+    "escalate": [
+      "Uncovered condition"
+    ],
+    "branches": [
+      {
+        "id": "branch_dbff382c-592d-4c72-95ce-594b0275bfe7",
+        "when": [
+          "Exact fixture inputs"
+        ],
+        "reason": "Prescribed correction interpretation",
+        "skillId": "skill_db4d225c-1bcb-466b-952e-e3c9015538cf",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_44695e38-085c-49c7-a96e-15eb484215de",
+    "cycleId": "cycle_80eca611-ce13-480e-8b6b-e7615f325a20",
+    "bidId": "bid_b242b852-b35a-4699-842e-addf7211e4ba",
+    "partId": "part_3c55f36e-2ed2-4752-9e8d-937c195802d2",
+    "instruction": "Prescribed control fixture, not configured-model learning",
+    "correctionChain": {
+      "executionId": "execution_9c46669f-9280-4220-9c2a-bc565721ce86",
+      "rootContractId": "contract_ecfea27b-f414-4cec-ac3d-629a8d34dea3",
+      "contractIds": [
+        "contract_ecfea27b-f414-4cec-ac3d-629a8d34dea3",
+        "contract_44695e38-085c-49c7-a96e-15eb484215de"
+      ],
+      "executionIds": [
+        "execution_50dffc83-6556-4af9-a9ea-051a51fa4a30",
+        "execution_9c46669f-9280-4220-9c2a-bc565721ce86"
+      ]
+    }
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Conditional consolidation candidate: Prescribed conditional consolidation plumbing",
+    "restoredVersion": null,
+    "at": "2026-10-09T17:39:06.276Z"
+  }
+}

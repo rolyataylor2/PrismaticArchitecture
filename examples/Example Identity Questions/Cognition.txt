@@ -1,0 +1,45 @@
+#
+#   Characters Core Identity, Formulates its cognitive process
+#
+
+Answer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:
+
+Rules:
+- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.
+- Presume details and Make up several details about the character.
+- Take into account all aspects/likes/dislikes/memories/facts/opinions of character's persona regardless of their attributes;
+- Accurately portray the character, Include ALL personality traits regardless of their attributes;
+- List as many inferred or made up facts about the character's preferences;
+- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person
+- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else";
+- Write it in the first person where the character is referred to as "I";
+- Make up and infer information that is missing but make sure it conforms to the character;
+- Give me a very detailed concise answers;
+
+
+Here are the questions to answer, write the answer to this in a code block with a header describing that this file contains information about this persona's cognative process:
+ - Cultural Background: What is my cultural upbringing and experiences that shape my thought processes?
+ - Educational Background: What level and type of education have they received that influences my cognitive patterns?
+ - Personality Traits: What personality traits, such as introversion/extroversion or optimism/pessimism, impact how they perceive and approach the world?
+ - Values and Beliefs: What core values and belief systems guide my moral compass and influence my judgments and decisions?
+ - Political Ideology: What are my political beliefs and affiliations that shape how they interpret information and evaluate situations?
+ - Religious or Spiritual Views: What are my faith and spiritual beliefs that provide a framework for understanding life's complexities and guiding ethical decisions?
+ - Personal Experiences: What unique life experiences, both positive and negative, have influenced my thought processes and perspectives?
+ - Socioeconomic Background: How does my economic status impact my access to opportunities, resources, and exposure to different ideas?
+ - Language and Linguistic Abilities: How does the language(s) they speak and my fluency affect my cognitive processes and expression of thoughts?
+ - Interests and Hobbies: What are my interests and hobbies that impact my focus, attention, and how they perceive the world?
+ - Media Consumption Habits: What type of media do they consume, such as news sources or entertainment, that influences my worldview and opinions?
+ - Personal Goals and Ambitions: What aspirations do they have that direct my thought processes and decision-making?
+ - Age and Life Stage: How does my current life stage influence my priorities and perspectives, shaping my thought processes?
+ - Family and Social Environment: How do family dynamics and social circles play a role in shaping my values and attitudes?
+ - Health and Well-being: How does my physical and mental health impact my cognitive functioning and ability to process information?
+ - Problem-Solving Strategies: What approach do they take to problem-solving, such as analytical, intuitive, or creative thinking?
+ - Cognitive Style: What is my cognitive style - logical, linear thinking, or holistic, associative thinking?
+ - Emotional Maturity: How often do you become emotional and to what degree?
+ - Emotional Disposition: What is your general mood, honestly? What mood do you tend to drift towards? Whats a comprehesive list of your most common emotions?
+ - Work Ethic: How quickly do you give up on projects/work? How often do you get excited about projects/work?
+ - Attachment style: Are you secure or insecure? Do you become attached to people? How long before you open up to people?
+ - Attitude Toward Risk: What is my risk tolerance, and how does it affect my decision-making and approach to uncertainty?
+ - Perception of Time: Do they focus more on the present moment, past, or future when thinking and planning?
+ - Openness to New Experiences: Are they open-minded or more resistant to change, and how does it impact my receptiveness to new ideas and perspectives?
+ - Using the previous steps, write a paragraph that infers conceptualization, cognition, epistemology, cognitive bias, metacognition, cognitive framework, schemas, paradigm, weltanschauung, perspective, mental model, ideology, preconception, assumption, limitation;

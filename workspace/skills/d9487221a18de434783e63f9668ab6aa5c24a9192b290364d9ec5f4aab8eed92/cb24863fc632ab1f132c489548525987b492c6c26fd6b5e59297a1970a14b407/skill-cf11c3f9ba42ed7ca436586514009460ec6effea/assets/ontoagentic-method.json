@@ -1,0 +1,80 @@
+{
+  "id": "skill_4b7876d1-ee8c-4299-ab60-630176938eb4",
+  "agentId": "agent_73ccdea8-a0c4-4497-8c98-88e6e49d686e",
+  "version": 3,
+  "name": "Exact fixture method",
+  "conditions": [
+    "Use the identical recorded input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "An independent check returns 42",
+    "constraints": [
+      "Keep the selected exact input"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_e20676a9-3906-4ae1-8ae2-53402f32e002",
+    "cycleId": "cycle_d9ed3b4b-7876-460e-b461-477e1f4af771",
+    "bidId": "bid_383eba08-6533-49e0-98d9-56fad7077828",
+    "partId": "part_8fe4e31b-e84c-4d79-bb53-9c73aa44df20",
+    "instruction": "Prescribed teaching plumbing fixture, not configured-model learning evidence"
+  },
+  "validations": [
+    {
+      "executionId": "execution_a03d183a-da8c-48ad-8fe6-346491074829",
+      "at": "2026-10-09T19:15:26.061Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_d1389d09-7335-46c5-a5d7-b3dfe881f472",
+        "mcp_trace_1748e096-0f6d-49a4-8ab9-f6d1b862d68e"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    },
+    {
+      "executionId": "execution_ddc5c9e6-18ed-466e-9a13-1feb34f213b0",
+      "at": "2026-10-09T19:15:26.109Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_a9200792-d6dd-4b71-b213-7c6742782606",
+        "mcp_trace_237d7d4e-44ac-4960-b786-bc7a54d77dfd"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T19:15:26.109Z"
+  }
+}

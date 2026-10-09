@@ -1,0 +1,55 @@
+{
+  "id": "skill_040f0ebb-d366-4354-bf1f-b55d13df503e",
+  "agentId": "agent_334b2a1a-8bd7-42d7-9b2a-01cb11ec5126",
+  "version": 3,
+  "name": "Revised fixture method",
+  "conditions": [
+    "Changed declared condition"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_e5a3aca3-0a1b-4919-b3dd-ddb70db11538",
+    "cycleId": "cycle_bbd15351-41c0-4f77-b0b8-58002d75aed4",
+    "bidId": "bid_af9e614b-3aa1-49f5-b317-e9167f96600c",
+    "partId": "part_38bac8bc-f1d2-4362-96c7-10d15d8cc886",
+    "instruction": "Prescribed revision fixture reason"
+  },
+  "validations": [],
+  "change": {
+    "kind": "revision",
+    "reason": "Revise procedure from a new recorded selected instruction",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:08:12.147Z"
+  }
+}

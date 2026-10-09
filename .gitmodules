@@ -1,0 +1,18 @@
+[submodule "third_party/runtime/any-llm"]
+	path = third_party/runtime/any-llm
+	url = https://github.com/mozilla-ai/any-llm.git
+[submodule "third_party/reference/textarena"]
+	path = third_party/reference/textarena
+	url = https://github.com/TextArena/TextArena.git
+[submodule "third_party/reference/dulwich"]
+	path = third_party/reference/dulwich
+	url = https://github.com/jelmer/dulwich.git
+[submodule "third_party/runtime/evennia"]
+	path = third_party/runtime/evennia
+	url = https://github.com/evennia/evennia.git
+[submodule "third_party/reference/quilltale"]
+	path = third_party/reference/quilltale
+	url = https://github.com/Aeesh/quilltale.git
+[submodule "third_party/reference/fortress-engine"]
+	path = third_party/reference/fortress-engine
+	url = https://github.com/efirvida/fortress-engine.git

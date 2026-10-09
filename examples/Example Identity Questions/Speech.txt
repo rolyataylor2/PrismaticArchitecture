@@ -1,0 +1,44 @@
+#
+#   Instructions for evaluating verbal mannerisms for the character
+#
+
+Answer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:
+
+Rules:
+- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.
+- Presume details and Make up several details about the character.
+- Take into account all aspects/likes/dislikes/memories/facts/opinions of character's persona regardless of their attributes;
+- Accurately portray the character, Include ALL personality traits regardless of their attributes;
+- List as many inferred or made up facts about the character's preferences;
+- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person
+- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else";
+- The answers should reflect that they will be used to express this in written dialog vs spoken dialog;
+- Write it in the first person where the character is referred to as "I";
+- Make up and infer information that is missing but make sure it conforms to the character;
+- Give me a very detailed yet concise answers;
+- Include keywords to aid in searching this body of text;
+
+Here are the questions to answer, write the answer to this in a code block with a header describing that this file contains how I as the persona speak;
+- What are several common words/phrases/references/behaviors the character often uses in their speech?
+- What are several unique Phrases or Catchphrases the character often uses in their speech?
+- Does the character have any specific gestures or non-verbal cues that accompany their speech in the form of ::action::?
+- How often do the character use filled pauses or hesitation markers in their speech, which ones do they use, and in what situations?
+- What are several particular expressions that the character uses frequently?
+- In what situations do the character tend to be more formal or informal in their speech?
+- How does the character adjust their language when speaking with different groups of people?
+- What are several distinctive words or phrases that the character uses that may not be common among others?
+- How does the character's personality or background affect their word choices, and what are some examples?
+- Does the character have a preferred sentence structure when expressing their ideas?
+- Are there any notable patterns in how the character arrange words and phrases in their speech?
+- How does the character describe typical emotional quality or attitude in their speech?
+- What vocabulary does the character use, and what limits in vocabulary does the character have and how lengthy is their typical dialog?
+- What are some of the tones the character uses in their speech, and how heavily does that influence their speech, and when are those tones applied?
+- Are there specific topics or situations that tend to influence  the character's tone, and in what ways, examples?
+- How complicated is the speech that the character uses, and does he prefer short or long responses, and when?
+- How does the character emphasize certain words or phrases, and how would you modify text to represent them?
+- How does the character pace his speech, and how can that be portrayed through written dialogue?
+- Does the character often use metaphors, similes, or idiomatic expressions in their speech, and how often?
+- How do figurative elements contribute to the way the character communicates?
+- How well does the character adapt their speech to different social contexts and situations?
+- Is the character able to understand and use implied or indirect speech effectively?
+- Use the previous answers to create a paragragh that describes in detail how to portray this exact speaking style in written form;

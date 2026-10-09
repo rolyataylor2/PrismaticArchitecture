@@ -1,0 +1,23 @@
+# ADR 0104: Continuous primitive appraisal with shared activation scoring
+
+Status: Accepted
+Date: 2026-10-01
+Supersedes the fallback-only rule in ADR 0103 and expands ADR 0096 activation-scorer access.
+
+## Decision
+
+Primitives always appraise; they do not always speak. Every cognitive cycle includes all configured primitives and vector-filtered/sticky candidate Parts in one shared-state decision request. Each contributor receives its own independent 0–4 Score. There is no ranking, softmax or winner-take-all activation. Jev uses its typed Score interface; the runtime validates complete, unique coverage across both populations before cognition. Provider failures remain failures.
+
+The ordered rubric is Dormant, Stirred, Active, Strong, Dominant. A primitive is an immediate appraisal (Novel, Unexpected, Pleasant, Aversive, Agent caused this, Uncertain) or action tendency (Repeat this, Stop this, Look closer, Seek interaction), not a learned Part. Per-primitive activation instructions and thresholds live in Agent Components → Primitives with thought/bid prompts and aspects. Default surfacing threshold is 2/4; researcher configuration may calibrate it. The default Part policy is also 2/4 and remains replaceable. Previous activation and delta are inspection context; a score of 4 is not automatically an activation spike, emotion, authority or stickiness.
+
+Identity remains question-and-answer self-definition. Explicit temperament Traits are selected by sensitivity keywords or question wording (novelty_sensitivity, negative_reactivity, positive_reactivity, approach_bias, attention_persistence, soothing_rate, social_orientation, uncertainty_tolerance). No numeric temperament database, generated sensitivity estimate or Identity mutation is introduced. These self-definition Traits contextualize primitive Score questions only. Higher/lower sensitivity can change the graded primitive response and therefore whether it crosses its configured threshold. Missing Traits imply no supplied modulation. Identity must not suppress activated Parts by judging alignment, rationality, moral appropriateness or correctness. Part maturity must not discount activation; plasticity remains a distinct, unresolved developmental mechanism.
+
+The activation scorer receives the exact WorldState plus candidate Part snapshots, previous per-thread activation, at most three current owning-Part memories and the owning Part’s open prediction, alongside primitive definitions and temperament Traits. This is scorer-only access, never shared Part inference context or Self context. Primitive questions must ignore learned Part beliefs, memories and forecasts as authorities over immediate appraisal. Immediately preceding facts and retained subjective thoughts remain inside the one immutable snapshot.
+
+Only threshold-crossing contributors generate cognition. Activated Parts reason with their existing private context and prediction path; surfaced primitives reason with only the same WorldState and their own definition. Their attributed thoughts and bids join learned contributions in existing world-blind Self selection/debate. Primitives have no memories, relationships, ancestry, stickiness, predictions, adaptation or consolidation lifecycle. Low scores remain implicit and are inspectable without producing thoughts/bids. If nobody surfaces, Self has no invented action or automatic winner.
+
+## Learning and inspection
+
+All scores, probabilities when supplied, thresholds and previous levels are recorded. Brain Monitor and cycle inspection distinguish Parts and primitives, including implicit primitive appraisals. Existing Self debate may mediate disagreement. Owning-Part offline consolidation may receive recorded primitive appraisal traces from the cycles in which that Part was activated; these are subjective context, not objective truth, proof a Part is wrong or commands to mutate. Existing prediction outcome reflection and conservative development retain authority over memory, update and formation proposals. Primitives do not consolidate themselves. Primitive-only automatic Part formation and permanent plasticity policy remain open.
+
+Existing primitive definitions gain activation fields through a read-time projection; saved custom names, aspects, icons and prompts and all prior configuration history remain preserved. Previous audit events remain immutable. Existing edited task prompt overrides are preserved; the new context variables remain available and factory reset exposes the updated instructions. Protocol question instructions still identify every target and its role even if an older custom template omits new fields.

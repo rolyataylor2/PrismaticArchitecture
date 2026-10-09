@@ -1,0 +1,10 @@
+✔ every sourced simulation runs ordinary cognition on an isolated Agent and preserves honest fixture outcomes (8097.395947ms)
+✔ configured tests copy routing configuration and report live progress and infrastructure failure separately from hypothesis outcomes (45.978399ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8669.38871

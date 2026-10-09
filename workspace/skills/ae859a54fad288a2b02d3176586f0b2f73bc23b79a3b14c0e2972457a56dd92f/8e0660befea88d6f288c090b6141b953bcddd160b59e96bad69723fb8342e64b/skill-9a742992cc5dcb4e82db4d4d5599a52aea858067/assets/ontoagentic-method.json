@@ -1,0 +1,68 @@
+{
+  "id": "skill_a52f14d3-520a-435d-a498-63c2d32b5517",
+  "agentId": "agent_f1e6db04-9e53-4733-aae9-3ffc25cdca05",
+  "version": 4,
+  "name": "Revised exact fixture method",
+  "conditions": [
+    "Use the identical recorded input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "An independent check returns 42",
+    "constraints": [
+      "Keep the selected exact input"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 2,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_43713c23-d22d-479d-86f5-0c8a67312bf9",
+    "cycleId": "cycle_a9cd934d-acae-42a2-b5f9-4ddcee428c89",
+    "bidId": "bid_f3c97552-4722-4181-bd16-204e5f23e038",
+    "partId": "part_d2c4018e-5f38-4cc6-ad4e-1232503249da",
+    "instruction": "Prescribed teaching plumbing fixture, not configured-model learning evidence"
+  },
+  "validations": [
+    {
+      "executionId": "execution_762edd6a-8853-40df-a2ab-31ccacdb6b67",
+      "at": "2026-10-09T18:23:47.284Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_1f84c9a5-e275-403a-8f9d-d90e9a388156",
+        "mcp_trace_dbe0206e-3a72-4b5f-b047-e46ed0963068"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:23:47.284Z"
+  }
+}

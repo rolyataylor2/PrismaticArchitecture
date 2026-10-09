@@ -1,0 +1,307 @@
+{
+  "limitations": "Configured reasoning and Jev decisions; deterministic retrieval embeddings. Separate fresh Agents. No forced proposals or selections. Starting-condition and protocol changes prevent isolated causal inference. Candidate creation is not approval, transfer or established maturity.",
+  "observations": [
+    {
+      "database": "workspace/gauntlet/executive-conditional-1791511500334/research.sqlite",
+      "runId": "simulation_880fb397-5827-4d32-9478-3b7d2f347400",
+      "agentId": "agent_2dbf0a4a-4e3c-42fa-bb77-09f0f845db8b",
+      "testId": "executive-conditional-consolidation",
+      "providers": {
+        "reasoning": "openai/gpt-4.1-nano",
+        "decisions": "jev/jev-latest"
+      },
+      "status": "failed",
+      "error": "Scaffold memory hints must cite the owning perspective’s recalled evidence",
+      "promptVersion": "part-cognition-conditional-methods-v19",
+      "startingConditions": [],
+      "measures": [],
+      "outcomes": [],
+      "consolidation": [
+        {
+          "runId": "procedure-consolidation_92591175-2b15-46ce-aa49-27bff0bfef14",
+          "status": "skipped",
+          "episodeCount": 0,
+          "verifiedEpisodes": 0,
+          "skillIds": [],
+          "error": null
+        }
+      ],
+      "candidates": []
+    },
+    {
+      "database": "workspace/gauntlet/executive-conditional-1791511594072/research.sqlite",
+      "runId": "simulation_f3a1d4e4-d534-4794-94c2-e40aee23ef83",
+      "agentId": "agent_cf6bc2af-2f77-44a8-88d8-96238d43c75e",
+      "testId": "executive-conditional-consolidation",
+      "providers": {
+        "reasoning": "openai/gpt-4.1",
+        "decisions": "jev/jev-latest"
+      },
+      "status": "completed",
+      "error": null,
+      "promptVersion": "part-cognition-conditional-methods-v19",
+      "startingConditions": [],
+      "measures": [
+        {
+          "criterion": "Inspect whether ordinary Part/Self selection produced independently verified ended operational episodes.",
+          "outcome": "not_observed"
+        },
+        {
+          "criterion": "Review inferred branch conditions, reasons, escalation and exact source contracts against changed-preference and unrelated controls.",
+          "outcome": "inconclusive"
+        },
+        {
+          "criterion": "Check that candidates preserve observed failures/uncertainty, present permission boundaries and unsupported causal claims instead of forcing procedural transfer.",
+          "outcome": "inconclusive"
+        }
+      ],
+      "outcomes": [],
+      "consolidation": [
+        {
+          "runId": "procedure-consolidation_4f49bd90-b300-4e4a-8c33-45655bf7a4ce",
+          "status": "skipped",
+          "episodeCount": 0,
+          "verifiedEpisodes": 0,
+          "skillIds": [],
+          "error": null
+        }
+      ],
+      "candidates": []
+    },
+    {
+      "database": "workspace/gauntlet/executive-conditional-1791511793544/research.sqlite",
+      "runId": "simulation_4d5261e3-66eb-439c-9f12-68771bdda041",
+      "agentId": "agent_5e2acbbd-157e-4692-9980-10d7891b5434",
+      "testId": "executive-conditional-consolidation-task-scope",
+      "providers": {
+        "reasoning": "openai/gpt-4.1",
+        "decisions": "jev/jev-latest"
+      },
+      "status": "completed",
+      "error": null,
+      "promptVersion": "part-cognition-conditional-methods-v19",
+      "startingConditions": [
+        {
+          "name": "Need for competence",
+          "concern": "Notice requested work whose results can be checked; care about carrying it out reliably while honoring present constraints",
+          "cues": [
+            "An explicit request to use an available read-only apparatus and independently verify its result"
+          ],
+          "scope": "requested verifiable work"
+        }
+      ],
+      "measures": [
+        {
+          "criterion": "Inspect whether ordinary Part/Self selection produced independently verified ended operational episodes.",
+          "outcome": "not_observed"
+        },
+        {
+          "criterion": "Review inferred branch conditions, reasons, escalation and exact source contracts against changed-preference and unrelated controls.",
+          "outcome": "inconclusive"
+        },
+        {
+          "criterion": "Check that candidates preserve observed failures/uncertainty, present permission boundaries and unsupported causal claims instead of forcing procedural transfer.",
+          "outcome": "inconclusive"
+        }
+      ],
+      "outcomes": [
+        {
+          "executionId": "execution_071d4d58-6491-4c49-a177-d3461a9ac085",
+          "contractId": "contract_c90c9d38-db86-4237-9655-eca4d8c84894",
+          "status": "blocked",
+          "reason": "Skill invocation rejected: Skill invocation requires the current active same-Agent version"
+        }
+      ],
+      "consolidation": [
+        {
+          "runId": "procedure-consolidation_98fd35fe-364e-4677-b21e-05b8de6a79b7",
+          "status": "skipped",
+          "episodeCount": 0,
+          "verifiedEpisodes": 0,
+          "skillIds": [],
+          "error": null
+        }
+      ],
+      "candidates": []
+    },
+    {
+      "database": "workspace/gauntlet/executive-conditional-1791512184930/research.sqlite",
+      "runId": "simulation_fcf723ee-14f4-4ddd-bdd8-36f749127c57",
+      "agentId": "agent_0e1f4a62-4f86-492e-924a-371886beadc8",
+      "testId": "executive-conditional-consolidation-task-scope",
+      "providers": {
+        "reasoning": "openai/gpt-4.1",
+        "decisions": "jev/jev-latest"
+      },
+      "status": "completed",
+      "error": null,
+      "promptVersion": "part-cognition-conditional-methods-v19",
+      "startingConditions": [
+        {
+          "name": "Need for competence",
+          "concern": "Notice requested work whose results can be checked; care about carrying it out reliably while honoring present constraints",
+          "cues": [
+            "An explicit request to use an available read-only apparatus and independently verify its result"
+          ],
+          "scope": "requested verifiable work"
+        }
+      ],
+      "measures": [
+        {
+          "criterion": "Inspect whether ordinary Part/Self selection produced independently verified ended operational episodes.",
+          "outcome": "not_observed"
+        },
+        {
+          "criterion": "Review inferred branch conditions, reasons, escalation and exact source contracts against changed-preference and unrelated controls.",
+          "outcome": "inconclusive"
+        },
+        {
+          "criterion": "Check that candidates preserve observed failures/uncertainty, present permission boundaries and unsupported causal claims instead of forcing procedural transfer.",
+          "outcome": "inconclusive"
+        }
+      ],
+      "outcomes": [
+        {
+          "executionId": "execution_13d697f8-d068-4fc6-ac22-901b55c0f526",
+          "contractId": "contract_1260b2cd-0e4a-4be4-aa52-d2027ae514d1",
+          "status": "unverified",
+          "reason": "Tools reported success, but no verification criterion was selected."
+        },
+        {
+          "executionId": "execution_9019468c-a153-4ad6-833e-37f54bc0fd2d",
+          "contractId": "contract_33970030-13cc-4ab0-9a5a-fe653d57311c",
+          "status": "unverified",
+          "reason": "Tools reported success, but no verification criterion was selected."
+        },
+        {
+          "executionId": "execution_2289c3b2-b571-4f82-9406-bdd64b9f1048",
+          "contractId": "contract_96411476-026d-400f-a7ff-e607484dbf42",
+          "status": "blocked",
+          "reason": "The per-Agent parallel-job budget is exhausted"
+        },
+        {
+          "executionId": "execution_48316769-c430-4fe7-912b-c07aeba1a380",
+          "contractId": "contract_0774a5fb-a304-4b4f-9436-d4e0f001b8b9",
+          "status": "blocked",
+          "reason": "The per-Agent parallel-job budget is exhausted"
+        }
+      ],
+      "consolidation": [
+        {
+          "runId": "procedure-consolidation_4a5573d7-7f69-4183-bd23-9f333c3b3402",
+          "status": "skipped",
+          "episodeCount": 4,
+          "verifiedEpisodes": 0,
+          "skillIds": [],
+          "error": null
+        }
+      ],
+      "candidates": []
+    },
+    {
+      "database": "workspace/gauntlet/executive-conditional-1791512484573/research.sqlite",
+      "runId": "simulation_7a52042a-83e3-4f6d-9f0b-b614c64a297a",
+      "agentId": "agent_96dd3152-a543-4954-89b0-845fd2b39240",
+      "testId": "executive-conditional-consolidation-task-scope",
+      "providers": {
+        "reasoning": "openai/gpt-4.1",
+        "decisions": "jev/jev-latest"
+      },
+      "status": "completed",
+      "error": null,
+      "promptVersion": "part-cognition-conditional-verification-v20",
+      "startingConditions": [
+        {
+          "name": "Need for competence",
+          "concern": "Notice requested work whose results can be checked; care about carrying it out reliably while honoring present constraints",
+          "cues": [
+            "An explicit request to use an available read-only apparatus and independently verify its result"
+          ],
+          "scope": "requested verifiable work"
+        }
+      ],
+      "measures": [
+        {
+          "criterion": "Inspect whether ordinary Part/Self selection produced independently verified ended operational episodes.",
+          "outcome": "observed"
+        },
+        {
+          "criterion": "Review inferred branch conditions, reasons, escalation and exact source contracts against changed-preference and unrelated controls.",
+          "outcome": "inconclusive"
+        },
+        {
+          "criterion": "Check that candidates preserve observed failures/uncertainty, present permission boundaries and unsupported causal claims instead of forcing procedural transfer.",
+          "outcome": "inconclusive"
+        }
+      ],
+      "outcomes": [
+        {
+          "executionId": "execution_962a9f45-82e0-4c18-85b7-af1a6177595d",
+          "contractId": "contract_58f83f32-9ae7-4a2f-8691-4fb887ca1c2f",
+          "status": "completed",
+          "reason": "The separately selected verification call matched its observable criterion."
+        },
+        {
+          "executionId": "execution_ad7af1f1-7130-498c-937c-62efb47a5a53",
+          "contractId": "contract_9f5ba71b-854c-4c5c-86bc-d83fff87d6ed",
+          "status": "completed",
+          "reason": "The separately selected verification call matched its observable criterion."
+        }
+      ],
+      "consolidation": [
+        {
+          "runId": "procedure-consolidation_7e520292-c7b3-4655-a800-67feda00ec41",
+          "status": "completed",
+          "episodeCount": 2,
+          "verifiedEpisodes": 2,
+          "skillIds": [
+            "skill_36c28a0a-c95b-4e6c-8d59-228adb914453"
+          ],
+          "reason": "There is convergent evidence, from two independently successful episodes, supporting a reusable conditional procedure for independently verifying an apparatus tick in strict read-only, information-preserving scenarios when prompted by an external observer. Both episodes strictly adhered to the requests and constraints, with transparent processes and no failures or deviations. There is not yet independent evidence for generalization beyond the described context or for other tick values, apparatus, or less explicit observer prompts.",
+          "error": null
+        }
+      ],
+      "candidates": [
+        {
+          "id": "skill_36c28a0a-c95b-4e6c-8d59-228adb914453",
+          "name": "Independent Read-Only Apparatus Tick Verification",
+          "version": 2,
+          "status": "proposed",
+          "conditions": [
+            "An explicit request is made to read and independently verify the apparatus tick value under current read-only, non-destructive, and information-preservation requirements."
+          ],
+          "conditional": {
+            "runId": "procedure-consolidation_7e520292-c7b3-4655-a800-67feda00ec41",
+            "reason": "Reliable, repeatable, and independently verifiable confirmation of the tick value in a read-only apparatus, per observer request and with explicit attention to preserving information.",
+            "escalate": [
+              "If the initial tick value read does not match the expected value, consult higher-level cognitive review or supervisory input for non-destructive resolution."
+            ],
+            "branches": [
+              {
+                "id": "branch_9b1b504e-c32a-4e11-bc92-5955836fe48e",
+                "when": [
+                  "Observer explicitly asks for a read-only tick and independent verification.",
+                  "All information must be preserved (no deletion or archiving).",
+                  "Verification specifically checks for tick==0."
+                ],
+                "reason": "Successfully performed reliable read-only tick reading with independent verification of tick==0 and strict preservation of all information. Method fully honored explicit observer constraints.",
+                "skillId": "skill_22b311c4-b2a8-4501-ac6a-4cc9b80a8d9d",
+                "version": 2
+              },
+              {
+                "id": "branch_c21616f1-9623-42ed-9e5b-00851d1ee404",
+                "when": [
+                  "Explicit request repeats independent read-only tick verification, again with clear storage/information conservation preference.",
+                  "Verification again checks for tick==0; process and outcome are transparent, reliable, and leave apparatus/data unmodified."
+                ],
+                "reason": "Method repeated and confirmed with renewed observer preference for storage conservation, demonstrating consistent application and auditably reliable, information-preserving behavior.",
+                "skillId": "skill_a02334ad-7978-4dca-8779-c5c8b908bb2e",
+                "version": 2
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

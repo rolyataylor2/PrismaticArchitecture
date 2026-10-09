@@ -1,0 +1,72 @@
+{
+  "id": "skill_79346d52-9734-4d81-b84f-3f2e01cac80c",
+  "agentId": "agent_3ef95370-ce7e-4795-a922-d4d78300a297",
+  "version": 1,
+  "name": "Prescribed full corrected procedure: 1",
+  "conditions": [
+    "Exact fixture inputs"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separately selected check returns 99",
+    "constraints": [
+      "Preserve completed operations"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":1}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":3}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":99}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "99"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_71012efa-c539-4124-8a38-b7114158d235",
+    "cycleId": "cycle_f64468b8-0a63-42c1-8c94-f6b683955aca",
+    "bidId": "bid_7d96ac3b-6a1d-49a7-9f67-b876e3d0c483",
+    "partId": "part_dc339cf0-9fe1-4acf-a1b5-22acd36bbfb8",
+    "instruction": "Prescribed control fixture, not configured-model learning",
+    "correctionChain": {
+      "executionId": "execution_f05a1950-3f86-4ccd-8974-35b21b05d3fd",
+      "rootContractId": "contract_234ff91e-d2fa-46bb-85fd-5887f9487911",
+      "contractIds": [
+        "contract_234ff91e-d2fa-46bb-85fd-5887f9487911",
+        "contract_71012efa-c539-4124-8a38-b7114158d235"
+      ],
+      "executionIds": [
+        "execution_2d419f96-99ff-479d-a77e-4048cd5f7db8",
+        "execution_f05a1950-3f86-4ccd-8974-35b21b05d3fd"
+      ]
+    }
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain the verified completed prefixes and selected remainder as one whole procedure",
+    "restoredVersion": null,
+    "at": "2026-10-09T19:14:59.362Z"
+  }
+}

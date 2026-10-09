@@ -1,0 +1,55 @@
+{
+  "id": "skill_29d742b1-5426-437d-b103-8a481e295823",
+  "agentId": "agent_36085bc6-9f4e-44a7-a742-fb52d9a78620",
+  "version": 1,
+  "name": "Inspectable fixture method",
+  "conditions": [
+    "Original exact condition"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_e85cf9d9-8339-4f2a-b9fe-93a1845c68e7",
+    "cycleId": "cycle_e97a4d7b-d3ad-4a05-a62e-dc5a9e2b8eb3",
+    "bidId": "bid_1344b016-c63c-4c5e-a921-c8f9563c6576",
+    "partId": "part_79bbd696-d14a-4715-8330-e0a8794e1ae0",
+    "instruction": "Prescribed original fixture reason"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:11:13.142Z"
+  }
+}

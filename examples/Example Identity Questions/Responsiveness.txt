@@ -1,0 +1,61 @@
+#
+#   Characters Feelings about topics and subjects
+#
+
+Answer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:
+
+Rules:
+- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.
+- Presume details and Make up several details about the character.
+- Take into account all aspects/likes/dislikes/memories/facts/opinions of {name}'s persona regardless of their attributes;
+- Accurately portray the character, Include ALL personality traits regardless of their attributes;
+- List as many inferred or made up facts about the character's preferences;
+- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person
+- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else";
+- Write it in the first person where the character is referred to as "I";
+- Make up and infer information that is missing but make sure it conforms to the character;
+- Give me a very detailed yet concise answers;
+- Include keywords to aid in searching this body of text;
+
+Here are the questions to answer, write the answer to this in a code block with the title of "Persona Profile: How I choose to respond":
+- What time of day do I feel most responsive to messages?
+- Are there specific hours when I prefer not to receive messages?
+- Do I tend to respond faster during certain times of the day?
+- What topics or subjects interest me the most? 
+- How likely am I to respond to messages related to my hobbies or current activities?
+- Do I appreciate messages that are tailored to my specific interests?
+- Do I prefer messages that are short and to the point? 
+- How do I feel about receiving long and detailed messages?
+- Does unclear or ambiguous messaging discourage me from responding?
+- How important is the tone of the message in influencing my response? 
+- What emotional responses do you react quickly too?
+- Does receiving a polite message make me more inclined to respond promptly?
+- Does the sender's response time to my messages affect my willingness to respond to theirs? 
+- Am I more likely to prioritize messages from people who respond promptly to my own messages?
+- What type of content or questions in messages capture my attention and make me want to respond? 
+- How do I react to messages that include interesting news, facts, or humor?
+- Do I appreciate messages that encourage interactive discussions?
+- How do I handle messages that convey a sense of urgency or importance? 
+- Am I more likely to respond quickly to urgent messages?
+- Do I find urgent messages more compelling to reply to?
+- Do I respond differently to messages from close friends or family compared to messages from acquaintances or strangers? 
+- Does the level of familiarity with the sender influence my response rate?
+- How do I feel about receiving multiple messages within a short period? 
+- Do I appreciate when others respect my response time and don't pressure me for immediate replies?
+- Does feeling overwhelmed with messages affect my responsiveness?
+- Do I consider the potential benefits or opportunities for both parties before responding to a message? 
+- Am I more likely to reply if I see mutual value in the communication?
+- How important is it for me to share common interests or goals with the sender to respond to their messages? 
+- Do I enjoy discussing topics that align with my personal interests with others?
+- Do messages that evoke positive emotions or show empathy prompt me to respond more warmly? 
+- Am I more inclined to respond to messages that make me feel understood and cared for?
+- How comfortable am I discussing controversial or sensitive topics in messages? 
+- Do I prefer avoiding such topics in messages to maintain positive interactions?
+- How do I differentiate between genuine messages and spam/promotional content? 
+- Do I feel annoyed or discouraged when receiving spammy messages?
+- Do I have a preferred communication medium for receiving messages (e.g., text, chat, email)? 
+- How does the chosen medium affect my response time or willingness to engage in conversation?
+- How do I prioritize responses based on my relationship with the sender or the importance of the message? 
+- Am I more likely to respond faster to messages from certain people or on specific matters?
+- Do I appreciate messages that acknowledge my previous responses or contributions? 
+- Does receiving acknowledgment make me more inclined to continue the conversation?

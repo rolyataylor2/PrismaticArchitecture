@@ -1,0 +1,29 @@
+✔ prediction outcome correct controls reflection and preserves history (252.519605ms)
+✔ prediction outcome incorrect controls reflection and preserves history (64.669072ms)
+✔ prediction outcome incomplete controls reflection and preserves history (87.289139ms)
+✔ prediction outcome irrelevant controls reflection and preserves history (110.637388ms)
+✔ a no gate skips generation and outcome-provider failure preserves an open prediction (116.692381ms)
+✔ Jev gates map bounded choices to boolean and outcome without cognitive authority (66.863595ms)
+✔ prompt catalog groups processes and exposes separate schemas (4.187854ms)
+✔ outcome evidence excludes facts recorded before prediction formation (65.27904ms)
+✔ prediction reflection supplies later facts, capsule and memories to constructed and legacy owners (18.726623ms)
+✔ Partless gap hypothesis scaffolds investigate on later original-thread cycles and preserve closed history (551.868668ms)
+✔ coverage and hypothesis tasks are inspectable and reject private cognitive inputs (7.185005ms)
+✔ online evidence attachment schema excludes direct persistent formation (0.505607ms)
+✔ coverage revises and expires existing hypotheses at the open budget without rewriting earlier scaffolds (131.802804ms)
+✔ ordinary Part predictions use the same persisted temporary relevance pathway (83.558525ms)
+✔ temporary investigation budget limits Part admission without normalizing independent activation (32.891893ms)
+✔ task prompt edits replace per-Agent or global overrides and resets remove them (58.455533ms)
+✔ prompt fallback and task resolution are explicit, stable factory defaults (0.180933ms)
+✔ Self factory prompts render frozen context without changing Identity or exposing WorldState (11.062947ms)
+✔ Settings exposes the full Part cognition factory template and its guides render private Part context (11.591127ms)
+✔ all Part development templates expose the motivated relational authoring guidance (0.225034ms)
+✔ prompt saves reject invalid Twig and preserve the current override (23.334909ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1878.77345

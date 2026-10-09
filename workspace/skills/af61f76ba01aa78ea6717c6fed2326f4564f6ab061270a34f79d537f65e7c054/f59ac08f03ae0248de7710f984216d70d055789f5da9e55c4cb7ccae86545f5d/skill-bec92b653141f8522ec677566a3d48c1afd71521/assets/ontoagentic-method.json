@@ -1,0 +1,69 @@
+{
+  "id": "skill_576c7098-c8a4-4184-8a7e-ad43b60f344f",
+  "agentId": "agent_22ff463f-6b5b-451e-9094-6a3a0266c6d9",
+  "version": 3,
+  "name": "Review fixture method",
+  "conditions": [
+    "Exact authored fixture"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_cf900324-6502-4360-82cf-b883b75883a8",
+    "cycleId": "cycle_8db6f07b-f2fd-48a9-a41e-b5e1f385e985",
+    "bidId": "bid_63108b2d-97e0-413e-9ce7-44a7a0ea8a39",
+    "partId": "part_424a0b62-4751-428a-899a-738c56078d49",
+    "instruction": "Deterministic plumbing fixture; not evidence of model learning"
+  },
+  "validations": [
+    {
+      "executionId": "execution_78b2902a-c39d-413c-9d20-f7a07b0bbae5",
+      "at": "2026-10-09T18:18:44.504Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_38c75478-d9e8-487b-9004-278efd4eb12d",
+        "mcp_trace_9c4a6d12-2d53-4d10-94c0-3346f1d2c9af"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "approval",
+    "reviewContractId": "contract_bcd33890-f665-462a-8721-97baa2e6645c",
+    "reason": "Prescribed review reason",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:18:44.775Z"
+  }
+}

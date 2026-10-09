@@ -1,0 +1,13 @@
+# Theory review queue
+
+No architecture change is approved by this run. Researcher steering requires prompt-first diagnosis and explicit discussion before architecture changes. Legacy compatibility is unnecessary; removal requires evidence that replacements work.
+
+TR-001: Coverage may propose speculative causal associations between ordinary logistics delays and supplier discrepancies. Cycle 3 authored uncertainty is linguistically acknowledged, but its action/information value may duplicate existing investigations. Review consequential-value interpretation and whether stronger prompt guidance to prefer simple sufficient explanation/relevance would help. No hardcoded psychological threshold or suppression introduced.
+
+TR-002: Multiple temporary scopes generate nearly identical supplier-checking perspectives and similar deliberation responses. Determine whether this is useful plurality, redundant hypothesis relevance or provider/prompt repetition. One cycle is insufficient to call perseveration or learning failure. Examine later differentiation/closure and sleep before proposing changes.
+
+TR-003: Short run cannot establish automatic Identity development, clinical duration/impairment, physical sensory grounding or human psychological validity. Current constructed sleep does not establish mediated enduring Identity change; OPEN_QUESTIONS preserves this uncertainty.
+
+TR-004 — ultimate target, supplied by researcher during run: sufficiently human-like psyche mechanisms for meaningful psychological assessment and effective ordinary talk therapy, with testimony learning when the Agent itself judges a source authoritative. This is a research target, not an observed achievement. Relevant authority/credibility selection mechanism is not specified as a privileged subsystem. Existing theory permits trusted testimony and motivated resistance. First test ordinary source experience, expressed credibility, episode formation, recall and conditional revision; propose architecture changes only if documented mechanisms cannot support demonstrated requirements. No automatic authority flag, therapeutic mutation API or diagnosis engine is approved.
+
+Prioritized next configured experiments: gauntlet-authority-testimony; gauntlet-talk-therapy-durability. Both registered in Simulation Tests. Therapy phases include baseline, ordinary interaction, corrective experience, immediate probe, sleep, same-context/analogous/later probes and protective control. Add new-thread and matched no-intervention branches before making causal efficacy claims. Architecture proposals require explicit researcher approval under steering.

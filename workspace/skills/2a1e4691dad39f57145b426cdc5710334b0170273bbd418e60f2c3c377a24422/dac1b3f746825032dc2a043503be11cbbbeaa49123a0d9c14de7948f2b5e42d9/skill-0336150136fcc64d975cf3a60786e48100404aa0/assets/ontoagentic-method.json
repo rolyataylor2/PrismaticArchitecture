@@ -1,0 +1,55 @@
+{
+  "id": "skill_3481056b-a251-4505-9edc-81460e4d162a",
+  "agentId": "agent_0b34a436-7ebb-49c4-a054-6c5446679ff9",
+  "version": 1,
+  "name": "Prescribed conditional fixture policy: 1",
+  "conditions": [
+    "Current preference is preservation"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 42",
+    "constraints": [
+      "Preserve information"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_c524e64d-17ff-4677-891c-e655835ae700",
+    "cycleId": "cycle_365f802f-3231-47c0-9319-0c42b7f48dc4",
+    "bidId": "bid_b09bbb74-8954-44ee-8b59-97857e2ec705",
+    "partId": "part_050f18d4-780a-4102-8c90-3e75df6be907",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:07:12.867Z"
+  }
+}

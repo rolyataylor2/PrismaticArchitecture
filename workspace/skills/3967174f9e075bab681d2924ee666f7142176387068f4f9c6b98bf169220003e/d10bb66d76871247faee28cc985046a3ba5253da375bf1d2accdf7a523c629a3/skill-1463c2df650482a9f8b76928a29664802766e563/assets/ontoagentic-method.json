@@ -1,0 +1,73 @@
+{
+  "id": "skill_838f712b-d665-4d4b-9ac9-1567c382ef24",
+  "agentId": "agent_ef04c77a-516b-41ed-b08f-86bbe2665c36",
+  "version": 1,
+  "name": "Prescribed conditional fixture policy",
+  "conditions": [
+    "Current explicit preference and exact recorded input"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 42",
+    "constraints": [
+      "Preserve information"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_4574c3b2-c871-4667-9430-a43417f582e8",
+    "reason": "Prescribed inferred conditions for plumbing only",
+    "escalate": [
+      "Unknown input or incompatible current permission"
+    ],
+    "branches": [
+      {
+        "id": "branch_1f2134e6-5939-45e6-969a-9aa2c5480fdc",
+        "when": [
+          "Current preference is preservation"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_91312228-9a2c-43c7-bdb8-bc5621866279",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_4c065106-fcfb-48bf-99aa-f54fda03a952",
+    "cycleId": "cycle_5a2d8a4b-4911-4973-8e4e-00ede8023737",
+    "bidId": "bid_7e5c6122-cb6e-4bf1-98d9-85d0a739b260",
+    "partId": "part_8019cfad-1c6f-48d9-9501-20db3f422f2e",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Conditional consolidation candidate: Prescribed inferred conditions for plumbing only",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:13:43.471Z"
+  }
+}

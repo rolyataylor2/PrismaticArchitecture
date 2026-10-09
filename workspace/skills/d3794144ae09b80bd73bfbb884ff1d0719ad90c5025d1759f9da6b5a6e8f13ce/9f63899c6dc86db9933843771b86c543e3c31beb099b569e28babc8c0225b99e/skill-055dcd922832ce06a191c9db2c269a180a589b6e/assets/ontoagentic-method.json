@@ -1,0 +1,65 @@
+{
+  "id": "skill_226a9ce9-83ec-4f17-b30a-ef3d9d7b1e2f",
+  "agentId": "agent_94fc6148-5fe5-4ab9-8a91-bb692b62c6cf",
+  "version": 2,
+  "name": "Exact fixture method",
+  "conditions": [
+    "Use the identical recorded input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "An independent check returns 42",
+    "constraints": [
+      "Keep the selected exact input"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_a973048f-bd35-4bba-8f86-59a958802c32",
+    "cycleId": "cycle_a979c2f1-7cac-4396-909c-696bdc618e5a",
+    "bidId": "bid_72fdd8ad-ef87-429e-b2a3-9c72a387b012",
+    "partId": "part_19a5c595-b614-4850-85c3-da0806e1308e",
+    "instruction": "Prescribed teaching plumbing fixture, not configured-model learning evidence"
+  },
+  "validations": [
+    {
+      "executionId": "false_completion",
+      "at": "2026-10-09T19:15:28.931Z",
+      "result": "inconclusive",
+      "traceRefs": [],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: inconclusive",
+    "restoredVersion": null,
+    "at": "2026-10-09T19:15:28.931Z"
+  }
+}

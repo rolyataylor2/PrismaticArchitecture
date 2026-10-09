@@ -1,0 +1,5 @@
+# Bidding
+
+Bidding carries relevant Part advocacy to Self. A bid may contain a proposed action, an optional ordered strategy/execution sequence, argument, emotional perspective, relevant forecasts, expected time to impact, uncertainty, and supporting subjective evidence. Not every proposal is sequential and not every activated Part submits a behavioral bid: it may contribute recognition, context, a question, supporting evidence, or an association cue. Behavioral bidding applies when a Part has an action proposal relevant to current control of the Agent. Bidding owns representation and handling, not motivation. It does not arbitrate, normalize conflicting perspectives, or choose behavior; Self selects. An ordered sequence is part of its Part's strategy, not a global plan or continuing authority.
+
+For example, a proposal to finish a report may include an order to finish the results, write the conclusion, proofread, and submit, alongside predictions about what may happen if selected or not selected and when consequences are expected. These are possible proposal contents, not required fields.

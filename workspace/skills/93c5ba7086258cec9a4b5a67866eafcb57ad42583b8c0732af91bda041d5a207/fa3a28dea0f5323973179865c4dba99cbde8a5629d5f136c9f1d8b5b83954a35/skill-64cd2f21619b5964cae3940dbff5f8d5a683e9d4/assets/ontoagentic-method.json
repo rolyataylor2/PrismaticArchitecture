@@ -1,0 +1,68 @@
+{
+  "id": "skill_63f76ef2-66b9-4865-b649-f18a04945e79",
+  "agentId": "agent_59beaffc-b94f-4f08-8b2e-7e61923b7cd1",
+  "version": 2,
+  "name": "Second candidate",
+  "conditions": [
+    "Exact fixture only"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_c0f68e9e-689b-4388-ae7a-9ad0d1bd659c",
+    "cycleId": "cycle_43a538fb-ff16-40b5-8cb9-7a968c06b69c",
+    "bidId": "bid_3f233f85-3959-4933-9f93-00bb878beb78",
+    "partId": "part_441e1a50-ac14-4ed4-afdf-6fdcd6db14e4",
+    "instruction": "Deterministic plumbing fixture; not evidence of model learning"
+  },
+  "validations": [
+    {
+      "executionId": "execution_ec83ed69-216a-4503-9968-93aafb60d214",
+      "at": "2026-10-09T18:21:30.912Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_bc4f0b3c-ac13-4d82-b1c0-e96ae8c3381f",
+        "mcp_trace_6fe467ef-a5c2-4cf2-bf77-4f82880dab12"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:21:30.912Z"
+  }
+}

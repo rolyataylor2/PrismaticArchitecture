@@ -1,0 +1,68 @@
+{
+  "id": "skill_69281afc-2711-4665-b2d5-0bf06fa43627",
+  "agentId": "agent_5b806dcc-ee8b-4f09-82f3-90be01ab0189",
+  "version": 2,
+  "name": "Inspectable fixture method",
+  "conditions": [
+    "Original exact condition"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_55f323ff-a934-4a90-a88b-973c6c163728",
+    "cycleId": "cycle_8eb89d05-73a7-4cc3-94cf-a887b34faf2f",
+    "bidId": "bid_867a6595-dc47-4615-9e19-bca975aca8ef",
+    "partId": "part_074ad258-9c38-413f-a2c4-23a0e0f5981b",
+    "instruction": "Prescribed original fixture reason"
+  },
+  "validations": [
+    {
+      "executionId": "execution_758d8ee3-40ef-4629-bd13-04f882795954",
+      "at": "2026-10-09T16:51:02.952Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_6b87ad68-2f3e-4b85-990f-ef164d165723",
+        "mcp_trace_88090d32-4bb5-4e36-8b2e-91fb2d27b34b"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T16:51:02.952Z"
+  }
+}

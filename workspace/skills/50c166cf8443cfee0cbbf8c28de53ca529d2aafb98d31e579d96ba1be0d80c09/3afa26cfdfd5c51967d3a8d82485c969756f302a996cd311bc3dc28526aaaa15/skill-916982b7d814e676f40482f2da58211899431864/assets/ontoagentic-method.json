@@ -1,0 +1,53 @@
+{
+  "id": "skill_ac784fd6-628e-4069-8f26-9b7f22319551",
+  "agentId": "agent_ac68c610-7e24-43e6-8884-ae31de5639fa",
+  "version": 1,
+  "name": "Conditional browser method: 1",
+  "conditions": [
+    "The current fixture calls for value 42"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_3da51446-c35a-423c-9730-cd70c8857e97",
+    "cycleId": "cycle_c9feb0f4-ae29-49a6-94c2-558075f9f691",
+    "bidId": "bid_cffe1638-330e-4c23-a6b9-d56ff01c4a48",
+    "partId": "part_5dbb8754-72eb-491e-94ff-fabda6103e93",
+    "instruction": "Prescribed plumbing fixture, not psychological validation"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T04:42:07.684Z"
+  }
+}

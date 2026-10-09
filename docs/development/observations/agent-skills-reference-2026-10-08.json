@@ -1,0 +1,814 @@
+{
+  "source": "https://github.com/agentskills/agentskills/tree/69ef37e9424c0a7ea9dd2293b559e43ec8176379/skills-ref",
+  "revision": "69ef37e9424c0a7ea9dd2293b559e43ec8176379",
+  "count": 129,
+  "packages": [
+    {
+      "path": "workspace/skills/18d031da6babc93bb93db3276e4b8b71466ab3919509b238238848bf1a1b0e10/66ed61043b478e4d89bc5f1a9bd01a7cb98210de1aa8fab64b0131c1cd804374/skill-ceb3dacf01558cacf9d75f6d8941e35ffb3c2116",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "e531ae517db244085343567f6b6ed7e32ae6ea0683c1869dc5ecfd17155f8d66"
+    },
+    {
+      "path": "workspace/skills/18d031da6babc93bb93db3276e4b8b71466ab3919509b238238848bf1a1b0e10/79955012a39b0f51fb6f329aacfc35483ee1d4ecedecafd9cef57cd3582f5085/skill-ceb3dacf01558cacf9d75f6d8941e35ffb3c2116",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "763e916ee507bf4a133638ac94cd112064b0f67b53531d062a477240e759b1d1"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/00a4a87c0a7102799c4eb8161dc888108383ed91a9146761883e146d526de45b/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 6,
+      "kind": "exact",
+      "skillMdSha256": "b605cd531119f2a3d14cce3549c5647714879ca47cfd4456828e64231b18d4c4"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/03d1ef97b82aa050c06260c5096683339da7939478e0a3195bcb908b09ec29b8/skill-c15fb1f38678565202964cb89516ea7bd2f93b5d",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "73f000adf61fc77aa5163456a418aa2935d03c2746b4838a88af942e377ec269"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/12810399be6b1c26ff9a8bd05c95096e04d5447f8df821ffdb2b64d76c02495f/skill-1da1c82aee6d0001cd7ca3cac432fed5e156543f",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "86d36f404227a928a4cadb8a19064f2c87d92ad2135fd10772c3f24a0498e720"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/1b1ca685cb6d5ef28efd692ea06113a672dc0942e88e514015953ec665b04e47/skill-c15fb1f38678565202964cb89516ea7bd2f93b5d",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "d1630327950bf662f0a891a4ddea9ceecbf66dbf302f31b28cdb6c28adb52f7c"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/201e046051b6cac0617d5ac7a80b3cd3fb94a4d7818e04867d8c81c24edb93df/skill-c15fb1f38678565202964cb89516ea7bd2f93b5d",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "5d6a9eaa41fd9108ff96efe13a7f35cb1a850fefef02e4b8cccd54b1c255abb6"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/44b85ce9dc7a2b7834f76b882b7bf3d3041191bc93e8f1c8517738359ea10406/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "667d5a96920cf24352a1d559eeb4d0309380303e75b97aa8c533df415f294ad7"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/8e8e4e0e8144fc87c5a9abb19391bb588574d077134dc853090534ce03ad50a2/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "5e104eb88ccee804979a6713c9ad0e8d64e0a451647f49624be4a88b2cf607d2"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/a5b09c49211e79d7c3b5b9837dfcf2b7a995819e4555167b300adcefbd513628/skill-c15fb1f38678565202964cb89516ea7bd2f93b5d",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "95842349b3858d60acd3b7cdf9ff0033ca88277d065176bf637f37f2dd5ced45"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/edd58681086e860e18273132c2e53ff80f2e82ccfd046c32eea9a4943619aa5f/skill-c15fb1f38678565202964cb89516ea7bd2f93b5d",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "473b3edafefc3e97cb4f58424149b868ccc530136e1780613ea3b0a2beea6bb3"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/eea548ee09a8b9f7837a23476d1cbc593f976e8e8ef131a85dc25bfef33a36a1/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "df1a8d4b75d055d5a7fb8ee95d53d36e648aeab1184378c4d828a070cde30758"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/f0a0297b832b9edb861c02385922f569b1c50e97f6ac4bb4d890656f8ace2f29/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "12be52c0be97a6982de1378587ab5283667480a275c6d0f3b99f03773bd21bb8"
+    },
+    {
+      "path": "workspace/skills/298e0fb27a8c511cade3d9200eab18ef8f530c2cb37dc3500da0825a1a5c37f2/f552964b470a83031919dd6cd236f797114b1642f15c6d34e2937bdacb32934b/skill-6ded77ec8100a8abc1ea1ea14d31d6f14036a726",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "6acd3239e6f6bb3342b61e63986c20c4ecda8debe0c849734ccb98bb4c3664be"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/26c2fda3d87b4efc61a7b05d167c545dd9abb7581fbefa0035f69a90190a0f9f/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "74040a5611138b4ab7bba0bcdfe63690818f89cf71016e950a6f2734328be570"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/3e024464d46206718d3132116499b95cef8f73c7848f704288218ac2c07091ee/skill-6f234d4d74702c06fa3e6ea3687a83183f30bd7c",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "a92a89f1aa7a5e82d8fbf4c4f68c961c4885cbb236ae11ca1f88a9be01beffed"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/4f6992c45a9bed7a4688c963987b0dd234ef806c2976577218fea2f0f60c35bf/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "277bd5ee94d9b1f84dce3615954d8bf017b0bcba98d4e5915789447b71007177"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/58fcb850049574f85a9973f39d97fb9f64ff4a72c5aea69158f17b228b86e686/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "172f554782a77734517fc0a1b386985b82f94b1012aff7b812d520e63cc6bd05"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/6597e0e42490fe169ffe09d11f5c55641ced2313cdb57c0bf07faa2f22e4fa17/skill-6dfca99d1d85f02f4e1ef48dd789b61357749ff9",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "1527020062a0e859168239984718a2731755d1e325d6c245a224b44550d62e8c"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/80ed9e3ed3cfaae577472015c49c4420305e8ed655147be6af84a17602bf3d5d/skill-6f234d4d74702c06fa3e6ea3687a83183f30bd7c",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "7904f165919b5cf5b1574c67d19ad4dfc7e77408846b5ef3b2ae949ce2b9f15f"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/91252cadf8af54e3866d1ad96e90a3091db7b4d37e2db87d82149ed65a942312/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 6,
+      "kind": "exact",
+      "skillMdSha256": "2d87020a0f2861e66d6cff562f8d3bb09aa749112f7f328dd91b38988870c9e0"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/aa7b7c3804cdfb7856cd0f72778c97da5d6bb614e9518922ff4ac9a56b73bc95/skill-6f234d4d74702c06fa3e6ea3687a83183f30bd7c",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "93cf15b4be692570e5d0dfefa96bd5bd6c22d1ef8e0bb90e608a58977e568292"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/c95b3016569baca82e969ee1c82916fa3d2f606013ed5539b921db77c202dc92/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "fedd0d6631b7508c22eadb9457558eba9a38fdaaa3e0903c9826050c003e34da"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/de0ea1efe680f3cf84d5c308ea3d19cf619f8b1cd49116c1f8a281ac01e2199c/skill-edfea1888f0adf757ef4ab77d30e0aab2ee30d36",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "373683fe1487eb5a8d089a28363875768280052bbd2d2259d0d3b8235aea446e"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/decae7d8db3f45e68a52e1cb86df55a782efeee19a6178a5ab7c26f527000a82/skill-6f234d4d74702c06fa3e6ea3687a83183f30bd7c",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "5b42ab318c41b484745760fa3771451910ef4e240cd7d38b90d2bb4bb9e76cb0"
+    },
+    {
+      "path": "workspace/skills/3116dad6122014e11f4e39df9860b59d47b0b288c513a5c7219b6467cd60e3f1/e9d6f423b9313ff48bf79074be53d31691cff769f0c378d7b561dff45c331828/skill-6f234d4d74702c06fa3e6ea3687a83183f30bd7c",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "1877f032c04d18cb8e2afdd6adc62db1de13df2ce71d2e05536fc7b042721b60"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/27c16a5359a4e93cbff3dfb295e6f05bcbe67747be7b0d9b3666041c38d2b84a/skill-bd86e8b4a4cfb7d9ce1a277e6fafad542fbf7e5d",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "810fa596bfed6590aed7cd47682ed9c97cd5d7479e400f09d2e621d9536d49d9"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/4a07f7d7101af447e356ef78713afa4701aa8385a6c12c34330dabb532bf1cf5/skill-bd86e8b4a4cfb7d9ce1a277e6fafad542fbf7e5d",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "638f4004bf47550d3cbf1ac384f7a10d55449b529a3b5274c19a5e02ee1ed9c9"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/5ed5f585bec838c6f2a9c5c8abb54d066ba006550cbbc2dc615786168698edb4/skill-6723652892a32ead09e3cdcf52c4efb844266784",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "12ced0a8e42f2e7fd4406afc0b0fb75c9990e837ac92b71caccd56a9feb6644b"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/723ea3c47b5c058ef622ce9e67209d65a64a3630da32dad7a07f37c5db4a714a/skill-7aeb74339d8bb1c0fbc9f8d88a895eff96c515ce",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "f00dfa42ab0cd6f37b1683d96cfac137960fe2887ec87f400ae9fa467813f276"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/817ace4f3a4d06f948322a33a631a13cc9dfb8521aa2a354356e655745a4fefc/skill-bd86e8b4a4cfb7d9ce1a277e6fafad542fbf7e5d",
+      "version": 3,
+      "kind": "conditional",
+      "skillMdSha256": "541dc3b436841eac9480195f476743053cc9611cfcab2c7a72244581d790941d"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/8477376f09582cf48b22207686e45326ab15d480790e7df21a65322e6c141933/skill-6723652892a32ead09e3cdcf52c4efb844266784",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "ee6066f3a89437cf65fa52ef231dcebf55f0e733f6ffda110027829186e318bc"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/a634028d7c9ea1a028c8e93c09a3a4faaab1a776941b0ba564bcad1dc9a79bfe/skill-7aeb74339d8bb1c0fbc9f8d88a895eff96c515ce",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "b9f0cb98213b823333a9b010cc80dbe41f60b981f0d8ef5a59444fc2fa9d42a2"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/b6231245253b8ae26a71c5ef073b51bc8b7267a5acccbd608936945de0edb82d/skill-bd86e8b4a4cfb7d9ce1a277e6fafad542fbf7e5d",
+      "version": 4,
+      "kind": "conditional",
+      "skillMdSha256": "d1761a84754bcc41fb0fc17623a770460fe2f8fa7fff60908f18b4c2480d1c3b"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/c4c6fc1d4a92505637bc6e00aa74b41a783e03792b0c8a47b8dadb7d36c2611b/skill-7aeb74339d8bb1c0fbc9f8d88a895eff96c515ce",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "e7ccc8b0405f0ed496529c9e87df113f3fc7fc382fed9a40feaa95f7abe23694"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/d96315a298965a39a7f561e1acec94390fe046555037d839db8cd98b3295889c/skill-6723652892a32ead09e3cdcf52c4efb844266784",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "85b7af9bcd34c2be83df3a19938cff16094bb2cebc7e3a84d0e6f284d548ba22"
+    },
+    {
+      "path": "workspace/skills/3c1daf5a70257c26758d19a41f7b7ae712fd7649f7afb21fa76b4e16be7f187c/efe5ff68fa93c1a8b64633ec68f4c9228e026a83555d4ecc16ac1a43e90478bb/skill-bd86e8b4a4cfb7d9ce1a277e6fafad542fbf7e5d",
+      "version": 5,
+      "kind": "conditional",
+      "skillMdSha256": "e21e144353e87a464a57c17b8ec15c21c35cd8513ee701aba8806dea51d2456c"
+    },
+    {
+      "path": "workspace/skills/46bdaca2fb304c4e6a4ca8455d75de396c42072307871958e64ebf07139f686a/0afc3e20b7cd2fd0ff1690a000adaccf17943dabab7beffe939a1bb991f1bc24/skill-a42ba2d52a715a81d607eb0cb10661abeed2eba9",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "278930ed1ee2c97c35c09289595466eb59b0d63c0a06e1844bc8f1e9ae785f72"
+    },
+    {
+      "path": "workspace/skills/46bdaca2fb304c4e6a4ca8455d75de396c42072307871958e64ebf07139f686a/1838a00987eec43e3f1a6f99080057843e8df011bf494492ba9b9fdcd28a9752/skill-489dda261110a3ac5b8a730f149833dd097ad19b",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "d7a1a280ea4f0f4375f4a0c24dff4580c0baf95d7bf58d4cd0cee97f19215a9a"
+    },
+    {
+      "path": "workspace/skills/46bdaca2fb304c4e6a4ca8455d75de396c42072307871958e64ebf07139f686a/804d271463b7692da7e21680c9f2d3b039fdb7ce7637ac32070d45b281fa6485/skill-489dda261110a3ac5b8a730f149833dd097ad19b",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "21838b749873848c225b7b40643972b51100ba6e52754e63abc7072874cbd570"
+    },
+    {
+      "path": "workspace/skills/46bdaca2fb304c4e6a4ca8455d75de396c42072307871958e64ebf07139f686a/a97f4b973ae14c3982f4117a8fa131c43106d047326b556bc0ceb6eedbb746b5/skill-a42ba2d52a715a81d607eb0cb10661abeed2eba9",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "5e7cc379d2c32688be37eada638cf90cb3cc617d28b09429a0b77446f3d83cf0"
+    },
+    {
+      "path": "workspace/skills/4f11527794ec8b9e735565de77ca657e261ce73aafe5c4e73be0a769955d1249/0f7fa2cb89b7d5f2e4af1f1043caa0db0a2bc1bc2d8a9828dc6af0c0eaf65ffd/skill-16eb3b4f44b7078d845b0e84a9fb60791efe7ed7",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "a3fc6993d4fded9622e0a46010bab1bbd5e1bd93ad0f06193705670a17a76554"
+    },
+    {
+      "path": "workspace/skills/4f11527794ec8b9e735565de77ca657e261ce73aafe5c4e73be0a769955d1249/24655bb368d4a4efb2e4946ac7e2fc5ad7eb7d1d4050a4e91c458548c52b3514/skill-16eb3b4f44b7078d845b0e84a9fb60791efe7ed7",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "96f06d94815836d96e5f2ed60d1869a8f93bcd7c1e99b164af6a3e10c9a07e8f"
+    },
+    {
+      "path": "workspace/skills/4f11527794ec8b9e735565de77ca657e261ce73aafe5c4e73be0a769955d1249/43345ae94547ac1eedb4cf4ee869df6ef0f52612a134e505ed802743dc638cfd/skill-2fe5891486a8dc9da66bc1f3ccd133a594e8893c",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "484b6db1bba292003ab7cd4e7fa16ddf44e4683b3a4f9538fbefa44f6b487e06"
+    },
+    {
+      "path": "workspace/skills/4f11527794ec8b9e735565de77ca657e261ce73aafe5c4e73be0a769955d1249/f50d490d32d341911fed9e2815a9403cfe1c191005b9cd5eb9adc719ad9aa01e/skill-2fe5891486a8dc9da66bc1f3ccd133a594e8893c",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "eeb6c47c2ddbee15c2a494c14e8a570c6a6472ef1df5522f2712211b4c217cc4"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/1eb909967743c2c724bccc99b585fc17a217a8ed0397c0e131592efd99f2b01b/skill-eeffb7074d5afec068b5a6fea9ed8644c5dcdef6",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "a910f9f0c5f3aca5bb53d9f52304a6d703546fb880fb6a827d6d2405ebfa4c9f"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/3afa26cfdfd5c51967d3a8d82485c969756f302a996cd311bc3dc28526aaaa15/skill-916982b7d814e676f40482f2da58211899431864",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "c9a5b7aaa7d17e4ff086f26ee469ffa2e1783a118698e46c38fbbbdb99bed2c4"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/3b2117180fa27276bc5b56cec4b201ef6fc02ff0158d8f787b2c8f4052b838ad/skill-916982b7d814e676f40482f2da58211899431864",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "fb9299eb363ed56c6349c90aff1b6b5fff9fc6b1bb114c2ca114e28d142d32dc"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/71ac6934d457ec2dccbf3da9f1a0533409bce265540348af50b6310a588df3bc/skill-2df4a96641c38ea873b3e7257bbec49436a77ed2",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "48c906e40c50665af3050e2468a670c8c62aab0a7251d82d17752344b1ce046a"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/758fd9dc8485b5985548a4c1cd3049d06731c452b155de930798f88f06fa536b/skill-e44dd3d5a5866020ba999d8b58ca62c36edcc5d5",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "1b81cdfefdb724ccd59bbaa73496bc2ef5262316c7e688856d3a091f253836df"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/8c721ae8d90377f694091f882bedd865c7b816a7404df432a7039e38d2d7e8a1/skill-e44dd3d5a5866020ba999d8b58ca62c36edcc5d5",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "a5a63839af0d96c925e767c5f7f750b6ab95d745aca264b4fa37ee7ba79753b4"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/9b4613ceb434b0da5451af4d9e3858c4e773ce73a056841ee5fd411ac68be8c3/skill-e44dd3d5a5866020ba999d8b58ca62c36edcc5d5",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "066fbd0d7a12b3f02609eaebcce04462ca4aad1338b22c36cd1af0198505196e"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/dd1f09cf41b72aa244fdf735c63bac01780367a4c266ea58bdb5c1b3121660f8/skill-e44dd3d5a5866020ba999d8b58ca62c36edcc5d5",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "835b360cd89ec7059ebb12b4f2d684a7f75a63ee520f453d2af7b139c1ef8d43"
+    },
+    {
+      "path": "workspace/skills/50c166cf8443cfee0cbbf8c28de53ca529d2aafb98d31e579d96ba1be0d80c09/f018f056dd841788ff47ac0717f0113c95158d6d267f55ef9f7dd529b178c7f3/skill-2df4a96641c38ea873b3e7257bbec49436a77ed2",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "80f4a7a89f09a771d58cdfb7f226e8d600fe08d30430a832c84a633e8a94f883"
+    },
+    {
+      "path": "workspace/skills/55848aea5e422513281c157916928c4345cd7db159069fa470e7de39c67ae097/259005324b46f806614c96f89645402896d087cb2fbc9a6f5b0014130f690155/skill-9d8fe50068b41fc8a0c124bf7f95a25b00f24cb5",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "758e645901f0b87843d37164d8cb90862c2f8d8ff83fec3a5c50e628cfbf51ab"
+    },
+    {
+      "path": "workspace/skills/55848aea5e422513281c157916928c4345cd7db159069fa470e7de39c67ae097/a7444bf9c3f8fa2f7109803a761b6edfc2d01d2bfc53a2a0642e8c6a9836318b/skill-9d8fe50068b41fc8a0c124bf7f95a25b00f24cb5",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "611de8364b97d6e02c2801a4d25bde1b1606e49075abc763a8cc6b403960f2aa"
+    },
+    {
+      "path": "workspace/skills/5cb8919a95c637459a9e15b22925d2a5b1d5664faaf9ef4394f95980cb3dace9/35c946398e886e584fdf90d0ca729e08d97e0bc0acb6958c32153df8dbaa3a99/skill-1ad3d1ee8225f1c47173dcbbf9bdc9a162e291e3",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "47a56357fab7ab5e1e458ef593d83eb5ce28ed44fff9f1ff4df55204913cfc00"
+    },
+    {
+      "path": "workspace/skills/5cb8919a95c637459a9e15b22925d2a5b1d5664faaf9ef4394f95980cb3dace9/961bb8dd31202509b46e3969b7ffd9b658af0af341bca70b280a86b4a24d531e/skill-1ad3d1ee8225f1c47173dcbbf9bdc9a162e291e3",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "7a4928e0a0e7e98dac972bb3605f4dfdf2495cc5db02efe5a27c0a3dcbd9f61f"
+    },
+    {
+      "path": "workspace/skills/6149cf5e8cb5141cb0436cbf5e3d342f11dcdf357ffb9f047d9b6c41736c6046/5f8c82b546bf7bb7e2a1bd07b10f467216699efd70d5533c3bcf0a766736e9e6/skill-619486440f25597e7059df2a65b852d011b9105b",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "a216f283c3465c83dbb9fea252affbf6c6bcaa63f7562e67c235a2f6140b294c"
+    },
+    {
+      "path": "workspace/skills/6149cf5e8cb5141cb0436cbf5e3d342f11dcdf357ffb9f047d9b6c41736c6046/9cd4715d28752f183af127ae857d790976c0737ceddc3a33973ea9c9132bfbe9/skill-619486440f25597e7059df2a65b852d011b9105b",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "cfcb0237f5416ffea80b7a2ea72012f6c00adbd7f65c61f9941b3adcb8d667e8"
+    },
+    {
+      "path": "workspace/skills/67642b7f3f953dfd5891d79b153243b132ca8c7e14f53b5f77d827bf5938d9ae/bf65f5529686193871215ef0155e060ac3f05d795141b631adc2790100c0f460/skill-e097c9422ded3602ecb0ab506137709f76aed0c4",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "d4f79ff35064a756764b0dcb4d20ca16c7f7791fd3b63eccb92c81ae3e302de6"
+    },
+    {
+      "path": "workspace/skills/6e369aaa408c68e2040c28f7e25e1389cc2ccd0cab6ae98bddf834c2db4cf5fb/1ed60a097d60d066c14e6bcb0f9bd54045a1d67e53d3b3c3488b8dd2510e2c11/skill-b22cea09402ae585cdedbc087f871e8265c4c290",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "f1affd60fe78bf456fb529eed838f6ade4117a32b6fee43477f867c2edc862f5"
+    },
+    {
+      "path": "workspace/skills/6e369aaa408c68e2040c28f7e25e1389cc2ccd0cab6ae98bddf834c2db4cf5fb/47e68caba65d7894c0efbdcdccc72e0fb938fbd6ff7efdb6293fe6a517ed7f30/skill-b22cea09402ae585cdedbc087f871e8265c4c290",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "4c06c3f4a53a43564dddaa8afae608c234d79ef9379f6179c80b9e90f3a3c9e0"
+    },
+    {
+      "path": "workspace/skills/6e369aaa408c68e2040c28f7e25e1389cc2ccd0cab6ae98bddf834c2db4cf5fb/a9225f7f5593a2361ab5f6a102ada7b3b661a9e649fbf3092e1a62e85f1c290e/skill-b22cea09402ae585cdedbc087f871e8265c4c290",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "f4206b95e85364aef36ce3c785841e5bd05e9f89f9c98f1ed79d35e5682777d8"
+    },
+    {
+      "path": "workspace/skills/6e369aaa408c68e2040c28f7e25e1389cc2ccd0cab6ae98bddf834c2db4cf5fb/cbde3bcd4b40c6c88144e149fa1a3265f43159ba2d5ab7bdfe7786dbb572a48f/skill-b22cea09402ae585cdedbc087f871e8265c4c290",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "7ffa6c0dd6f6d15cfb70b5bfd3be8745b5a8eee9313cfd7dfe332152ce20dcc6"
+    },
+    {
+      "path": "workspace/skills/76f011c14d9ff9e15f46ad747299a3015c1aa7b9f2d88825f82352107d92ba0f/54f6c9754cb936fd69471898f1ec29158d73e82bbd98ed0c9738a2a156acad42/skill-8d4ddc9c265b0cb0ea900e13d2a42b6dbcb4ab1b",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "70b1b39674d7414dee0d12c0615eb4647297934919da4ec3654a7dd7b7ba8514"
+    },
+    {
+      "path": "workspace/skills/76f011c14d9ff9e15f46ad747299a3015c1aa7b9f2d88825f82352107d92ba0f/6894435ea776eea6789d6979ed9f33727597da77f1763980b5487977f7b7d4c4/skill-8d4ddc9c265b0cb0ea900e13d2a42b6dbcb4ab1b",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "fca92d9f2b828c05ab7c0ba6822dff10c839b118522d816b7150dd92d6d23c0f"
+    },
+    {
+      "path": "workspace/skills/8e9581e0e828fbe7d6ef36563c69571afe465663e4094b355e5c249b860f1e21/097f5c7c05c9d72343f74a1f167bea945c95c957c538014a1e2abe34a7fe3235/skill-2bd36b01763dd0e07184e01031053d4d176a44bd",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "e30a7e120680752a2c6b607b08548b7bf2c3b0c25c12946f39a34c383155a237"
+    },
+    {
+      "path": "workspace/skills/8e9581e0e828fbe7d6ef36563c69571afe465663e4094b355e5c249b860f1e21/4df107c6518d768a38557f4efa64cd01388b1438f334059cf7178cf8544edcbc/skill-0aa0ac3f692fbedc2b64bcde21c721fe1747cafb",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "456a5b5ebb5bd248f33fc4168f4fd00c56bd142aef1017d311250af96be913fb"
+    },
+    {
+      "path": "workspace/skills/8e9581e0e828fbe7d6ef36563c69571afe465663e4094b355e5c249b860f1e21/9d742de55d206295b8680c00dfa12fbf22188748dadc082fc6d3508e4a133466/skill-0aa0ac3f692fbedc2b64bcde21c721fe1747cafb",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "c7ee7c435f0fbad55c60e6af67eefa9131d0d593ee6e1b3102b3946e985bb338"
+    },
+    {
+      "path": "workspace/skills/8e9581e0e828fbe7d6ef36563c69571afe465663e4094b355e5c249b860f1e21/ab086162372403764b8b1ea55c2b524ec5d06af087204d3768ed5bf1a0e459c3/skill-2bd36b01763dd0e07184e01031053d4d176a44bd",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "f402d34673339a5c4c15e5e9afd2c1554160bb15799e9f24f0a89dce358e710d"
+    },
+    {
+      "path": "workspace/skills/94cf0ffa5f56dea867985797257b2e92d0fd8a18f4b5fc2eda453703cd58f7f8/394ea2b4594862aa87644e9bb28e9136dacd8aafff5fbd077f2303a61c7e59f6/skill-e947996baccfbc21f665e1b2b6b7edaa1701dce3",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "bcc4c853cf0c47833f07fac9d214ed83e74d5a5eb464abd86d7dc308611f7ecf"
+    },
+    {
+      "path": "workspace/skills/94cf0ffa5f56dea867985797257b2e92d0fd8a18f4b5fc2eda453703cd58f7f8/6b9e18aa352799b911d0a040bceb8510fea8b301937602e173094f9db0a2138e/skill-e947996baccfbc21f665e1b2b6b7edaa1701dce3",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "44c739c3fd5d58eb2008b60547d846ea7246751b658151253d8c40befb2a1b60"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/043f1182d4a943fc9cdb808e29a606ff602463153d5aae556bc40d4b59e7386f/skill-b3130346f179e89fc5f59e34aab44029eb915c27",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "139ab69f0d27be9e744cf438d988b11a2fb4ac1c422b35c577cb9b0b8db67906"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/0b117c0f094d4d25e1707afa1647e9aa6cc0bc215175f53815d488c19282defa/skill-b3130346f179e89fc5f59e34aab44029eb915c27",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "ed39db5d899a23e49e8311a58d496aba9856c5a1a3f4310637d35378f500cf2c"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/26d2723c4d7986ef0825bd2c03468a17e5a9a839cd037b55bd519b714236bc69/skill-0bc8506f3e838c52808fe3c70cf23c7977673cd1",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "69d8f19a3d276887930c4fd784207b2fc41aa1a3c6fa07420d23749ab45cabf7"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/7342925c04c277cc5f492a3a86eda26c131ad60177c330f8adf67c6dd42ada4c/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "5f0d4447758323242dad0da9a531ff12ee6bdcfef24bdd902ed5838791708250"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/74fc8b3708af7f79a735abbfb8b5610aff116ad88f05bd567a58bd3825ab03cb/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "525c1ee8113815285858325eda0cced41b538abd3c6a784d508ba34b19e3c76a"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/8488640aa0816906805b3d749828338cd861c628e6a74ed4f06b1d9688197577/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 6,
+      "kind": "exact",
+      "skillMdSha256": "4e4ec5a6a21716e4076f61f01a5e16fa58ffe58f839b3c81a930e5209bb9886f"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/ab44dec70e815ab3f0fb1f192e53b033e528bc91094510d538d1e01ae7b11735/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "04e5f54246ed517e8f7f633a9de7fb72b481e4311b57aa336561215fe087e996"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/acb70325ec537c76e41040d1ab4bb4d2595d0d923ab3f960e2c75d1998ef9ba4/skill-b3130346f179e89fc5f59e34aab44029eb915c27",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "fec35a99f798b85e6c1b684eb919d04265732ccbf787132b897924337a6b2824"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/cfddbb3164a21b10db50dc52979fdaac3a95f61c0df815c185bc20505a1ca851/skill-b3130346f179e89fc5f59e34aab44029eb915c27",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "177b07aaa4cb69057e50f7a82a31bd879c44130ab431ce4e39484a42a18fe7eb"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/d7548115b673c91471baf2445f3ee6a42c0a3f396872ed110e259e31f16c5ef3/skill-b3130346f179e89fc5f59e34aab44029eb915c27",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "3e4700792fcf5e05f4499a7dc12a539b83322fe0a63f063be92d90edac22413d"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/dd2e485da07cfc49d971315a7d1f0e50552748b9a9821578760bfa530679cd65/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "21a09051143380ef653a65a4c5d55ef0edd29f93b3dd8f36eff0ad6c1d334c77"
+    },
+    {
+      "path": "workspace/skills/9bd8eb6b98b3b65f6c16ad7954a12034cd173409079471c450000d63e8df0791/efe024263b15a225be7d296b3063561c1c5f18ac1fed2462b203c5e438a81249/skill-a43ddb1acfd61ea198702388790d157dd684652c",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "0c359373fc75c90dd129335f7edf33f8747da67cebec261bbba6425e8522c0a2"
+    },
+    {
+      "path": "workspace/skills/ae6dfa4eda06766ed5bb52dc3312d85d0c205d279ba669b771ce713258504a0e/5ee992dcbaaed04a3c66ce88612b7b6c8f125f27754bb4b850385f269968a34a/skill-a815d1f05b6d45a883a0d35c1f40562ed6a13e71",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "4ff8c706d06b2c50ca734f51de4a2fa8d0d73283b6ab21aeccc66f97da00adbf"
+    },
+    {
+      "path": "workspace/skills/ae6dfa4eda06766ed5bb52dc3312d85d0c205d279ba669b771ce713258504a0e/c6d69424fd955173c2f41b71a5b68a83f9cee85016bdc8e0b521de3ae89f5c4a/skill-a815d1f05b6d45a883a0d35c1f40562ed6a13e71",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "45ef42e71824705092c371983e8469429c9b56619198bcbf20a061cc9ffb8e5e"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/1cd596dca5a1a43810d9056026241a9798bf31c800c42087d588fe74e6be880f/skill-3ff94a47a5de2983d621fdd53c5912aefa07345a",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "5fc08c91ab623ea8fff7142ff5437c072371c64977357d277899608a2e6e16cb"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/318b96387027eaa54c5a013b5ca9829e0f9dc37ca8becf7ab9d8c9e48a7de20a/skill-d088f9c0a0c7a2c6142533184a02b356c29a593c",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "fcfe3e516ad3b4d79880a47e6788771cf719b50dff7496c6c2ed0e5a10345dbc"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/681b77c1f18f320575ffec4f4877deeed93fa1c3e4611544225e9b3ef4daec6d/skill-d088f9c0a0c7a2c6142533184a02b356c29a593c",
+      "version": 3,
+      "kind": "conditional",
+      "skillMdSha256": "d1d2035ec84c310394a54a3bbb7afa23f7a050f1dab9d6c0bd8898c3d00b01c7"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/7a3ca2ca69dcd4585d1981c8ad55912313b75cd7c653725761234a56469580e3/skill-d088f9c0a0c7a2c6142533184a02b356c29a593c",
+      "version": 5,
+      "kind": "conditional",
+      "skillMdSha256": "3a8c504b3e79d26510b7e2cfc4847fecd829071842638e3f5dbb234d80ff3f95"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/a50bf7644ef89e8162daa1ddb33bb14376cc60d7cfa9244ab4bc00ba6982e103/skill-959d11c9a21e7c6b8402b9b7dd21dbc958db1893",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "896d058d0935bc62df25b517a068f7eaa495b6d73e8abbc8cec31f75b6d09dfa"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/af51bb974599412ef480f164c18345702f2950f08d761b0851146fcdc84f1170/skill-959d11c9a21e7c6b8402b9b7dd21dbc958db1893",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "85021f4943ae47f9eea8de769a25a68f3d7462554d8b26ecb0f20aee643f61a4"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/bcf2bd0883e2f0fb7119f213d131a9defb0a6d5d1ccb0dd51d3854e617d46466/skill-d088f9c0a0c7a2c6142533184a02b356c29a593c",
+      "version": 4,
+      "kind": "conditional",
+      "skillMdSha256": "88f4bfa484251d9dc2b682415101bf441fa63c325da3da12316c763392e3566d"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/caa9c3ae73736c5115199eceb57f9adfee5a5c3577b51c3d7fb75f2545d426c8/skill-3ff94a47a5de2983d621fdd53c5912aefa07345a",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "4f399f82f77b15fb7bc0037140174a8b1515c84a6eb4d68b10749c75076066d1"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/d452b563377a36c32fd0814f78490d6fa137d5162561072e5e1915da89dc4c53/skill-3ff94a47a5de2983d621fdd53c5912aefa07345a",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "135602b24a45d612900284453396764eb3ae0e6d0ace0aa4bc85013cf61ba58e"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/e23dbd55e00d8165cd8e30aed0d6447eba888e8d406ea049cd71490007e4902f/skill-959d11c9a21e7c6b8402b9b7dd21dbc958db1893",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "2453a58a95e81b235c38e55c4680fa533d1c7bf9e8b072a25e3773e44f433ac3"
+    },
+    {
+      "path": "workspace/skills/b5810e7fcf9aa132c73e5f3ed2fb4e372600047245f15211d01b4e409ac4ea78/f7d7b9a03e8d3ecfa978f571fd7f8378eb6b7d591721ef5ba9cf3df13a2c3f72/skill-d088f9c0a0c7a2c6142533184a02b356c29a593c",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "5fe722ddc4ba245a0b836305efede5a5eaca4788da144831d6672006d4a8ada0"
+    },
+    {
+      "path": "workspace/skills/bd188c79e9cbafdf5060bbf1a4407ce4066b3f1d7dc4f99c75f8f45ddb07eb67/4bb905d9a3e7d0c78caac7628c29dfc46d209620ea58f8268b54d34c678f76ef/skill-77524da155885d495c40de3a0f3fa046fd2cf4aa",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "5aee2c2e572fecf4e0fef62b5439a783cf67a6108c628d768136153054dccba4"
+    },
+    {
+      "path": "workspace/skills/bd188c79e9cbafdf5060bbf1a4407ce4066b3f1d7dc4f99c75f8f45ddb07eb67/57e6f0040d0d2a59bf11992d2e44df99678619e0b212364e0584061bfe698e9a/skill-77524da155885d495c40de3a0f3fa046fd2cf4aa",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "1c3d40d51d9a2f97f6418ca6e26ce16b98bc666b25efd3994046e414aeee5cb5"
+    },
+    {
+      "path": "workspace/skills/be7158044ef1b5f826fe89ad7a1c17f810bbe54ea35bf4725f5b2fc85d2910b0/9a5477db00d5798dc1fd86bd313193cb2747c31debc11124c44591eb317576f1/skill-5e7c67fd74fc7b8720430b58642d05affcf3fadb",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "dc227565437b83307496147795d64a0b0a1ad116573f6f08baa42fe8af714aef"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/045699726386be8e9ee950ae802a608986e6ceb094c78c70ffd8901c4c1dbf14/skill-acd8772ad341959a0300b843f37381436b1dee57",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "0129db69e035371e177f7187f39b581e17b2fadb507e2832a4801fa6c96ab064"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/0be309742ab88e0aa788fd8a2a5639a8986a13e5b24f5e3242870829b6465b98/skill-4677efb825f1b4fe78889c4945e0f1403e02325c",
+      "version": 3,
+      "kind": "conditional",
+      "skillMdSha256": "c5a2cde59d33d285543dc24cb66446dc66f41e5c4e056398282ff105b5596c01"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/1ffd03ff2a3c247f92c9c8f6ecb6ff9c324700c49da2a4ce21f1f7f9b933a27f/skill-4031432d727660d92d642f35a8c39cf35824b794",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "c82b9227854f3c175eae0043052279fc6ef3b56b614673dca07769c6ecd9dc1d"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/24238267bc2759ef7b901ddc3d5a6dec68cefc45e1d829fdf109299751ad8448/skill-4031432d727660d92d642f35a8c39cf35824b794",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "2fb0f870465485c98e1e775f36ca62920c03e2198815d5346d00d5c1f6ba9b4f"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/33877df08e48bcb75950e1c78911cba1ac649e9b0e2fad319475b4fdd634692b/skill-acd8772ad341959a0300b843f37381436b1dee57",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "54d4681597ffc1279b855b0169b6c9fa96252d59639d17f9f41ae13cb059ee0d"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/3a58d8ca79124e5c32dfaf1b69b8582c9171568d7ca67306a71bdc525430eaf9/skill-4677efb825f1b4fe78889c4945e0f1403e02325c",
+      "version": 2,
+      "kind": "conditional",
+      "skillMdSha256": "5e7b5632fe30a44a0bb17bbb70f88ac5bb6e0d5c64973e6d1f70caa240780294"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/55263a283ef04fc220ca53e3265ff09208e3954d9d4d07cb718835fdd59bf176/skill-4677efb825f1b4fe78889c4945e0f1403e02325c",
+      "version": 4,
+      "kind": "conditional",
+      "skillMdSha256": "f5aa5bfc55fc037f68c0d26af0b6003416dfeafb23bf385386bf7cade25d1a72"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/90ec5702f6536f9c3b56cdf92e53737954404619a23e83dbe6cd8f4755e33aa5/skill-4677efb825f1b4fe78889c4945e0f1403e02325c",
+      "version": 5,
+      "kind": "conditional",
+      "skillMdSha256": "770bbb7ab41e5d04f88699cce50471598368f03619c8d99fef7f0b66a5a5e168"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/98af7286711ef367a5779045e1e51f1c22586371f9329b5d762e6d6ebe08fc35/skill-acd8772ad341959a0300b843f37381436b1dee57",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "62a5ec24b69a042c068d219bedc3ef0afc1edbdc64b5d34ebf5995df11996fae"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/d24ba44b42c72a5c33da693995d2d3d9d62bff15d139fc7d2b2c3357539b0d16/skill-4031432d727660d92d642f35a8c39cf35824b794",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "88b1a1c0cde706b3bb854706dfdc6024fd4b30fb3388dddacdb5a79ac3a239e9"
+    },
+    {
+      "path": "workspace/skills/bf0d6af061d6c929698b74b5fd0c61c46d6fd65428194dfa8de795673edcd2ff/df725e6d02206076bc089d0b4b61e9a7ccc52d7ff1357d1800046181845d98ea/skill-4677efb825f1b4fe78889c4945e0f1403e02325c",
+      "version": 1,
+      "kind": "conditional",
+      "skillMdSha256": "e4ce4d9754d4399f6cbff5295886efe252e4c55dad3a54fb842a55bef0af630b"
+    },
+    {
+      "path": "workspace/skills/c7c474927aa47734bbe63af298b5db7bc04688560c57fe160378c3682435bc06/737ba0a4c0ee224401abebc1e0a2a26906c660c85930fb1ea0b81035409f83d8/skill-96c2920fff2589f5ce86b25c5fdddd524ca72ec6",
+      "version": 5,
+      "kind": "exact",
+      "skillMdSha256": "8b16bcb95a051c09d9d0c945b2b7c8b7d5adb9e1b19f1421bb59dbe5340ba51b"
+    },
+    {
+      "path": "workspace/skills/c7c474927aa47734bbe63af298b5db7bc04688560c57fe160378c3682435bc06/8ee2f1994a2300da5db62e1a7962dcc51a7a3f7686415531253361419a9bdf40/skill-96c2920fff2589f5ce86b25c5fdddd524ca72ec6",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "4d6e5f967d92d210f0ac5888067023c1640361cea8c06a836515610ebc8c43e4"
+    },
+    {
+      "path": "workspace/skills/c7c474927aa47734bbe63af298b5db7bc04688560c57fe160378c3682435bc06/9c1379e63f6120beeaeb349e4e88e827497285adfa231fd1f50d6e0fc9493aa0/skill-96c2920fff2589f5ce86b25c5fdddd524ca72ec6",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "48d8e93e77fc7aaeda802e593324b0f7f205d9e479fe2a57d38fdbaa371621dd"
+    },
+    {
+      "path": "workspace/skills/c7c474927aa47734bbe63af298b5db7bc04688560c57fe160378c3682435bc06/a16c92007fdc21399f9bd753dfbba5c529d7348a96c5c2e2f91c262e0438671c/skill-96c2920fff2589f5ce86b25c5fdddd524ca72ec6",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "196d5fa520e32696895fcd53756462989021bd39f3455a6a3ad9c561da2e90df"
+    },
+    {
+      "path": "workspace/skills/c7c474927aa47734bbe63af298b5db7bc04688560c57fe160378c3682435bc06/b1e3d4d786bf7492732dc23afa75b1743d98b11f175b75e8d807ec3457125d90/skill-96c2920fff2589f5ce86b25c5fdddd524ca72ec6",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "aa25001c5c7a722dc0f4434a7a9900f2a3e110e3fecad59e60b98319db9497fb"
+    },
+    {
+      "path": "workspace/skills/d18fd4ba6d77c7e071565e9e2a64e228980f3026ca6d3f38ea17660f75dc1d29/6966ad5775e116508858208e975215da602d23522d2a1ca297576a16e5f721e6/skill-98059fb5ea90097692b5e77fe3f660da28f2664f",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "df82823f47f36e77d5d08e1f06881ce37dcf7d245a0f9a1f8c8f8254f3ee20e4"
+    },
+    {
+      "path": "workspace/skills/d18fd4ba6d77c7e071565e9e2a64e228980f3026ca6d3f38ea17660f75dc1d29/c10d8de583dd816cfd434a2f9d7dc05f8cccc11b0ab47b7f822b56743016b363/skill-98059fb5ea90097692b5e77fe3f660da28f2664f",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "49914eadaece9017cab8354c40a4f58142b379aa1a75e7bb30d6f07aca6da186"
+    },
+    {
+      "path": "workspace/skills/d7ae46271eda3545eba9a66b8aa888e77bdcbf5ed7c4feda05cfc4e1140c509f/29c5ba83d2dfcda2935a988a4ee62ca56195578af3aca3333b8b3128ae131c4d/skill-e76ced90b9dc7fd2edbb086a9dba7b27febe7c46",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "77a06df3e6203533a94d5c2b4af89c045544478d44bf65f51b8aaf030bcf5ffc"
+    },
+    {
+      "path": "workspace/skills/d7ae46271eda3545eba9a66b8aa888e77bdcbf5ed7c4feda05cfc4e1140c509f/96bbb54a6881f78b63981e56a3f03cd47cf56b31612b886409afe95d41e047e8/skill-e76ced90b9dc7fd2edbb086a9dba7b27febe7c46",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "2a9580694d42ddf72cc702d60c90ce0de195e047a0b8773e1fd88fbf60b25653"
+    },
+    {
+      "path": "workspace/skills/dde892115de2041295720f1c6ee7f400d3db09d57e0b6a585b65313371d69f12/470d85c127ba3b539f3455f0aff6f092dcde305db1448039e0562e0758da1d04/skill-586c90326d8ed0f153ea450f09afc5776db00f4b",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "e134f4bc6ee465b0a98577ea7dcfd7a5c607a6ebce829a360c4d2544479d787d"
+    },
+    {
+      "path": "workspace/skills/dde892115de2041295720f1c6ee7f400d3db09d57e0b6a585b65313371d69f12/d3e18274d762bb31da961781a56747cf6b35e6040a2c4f11a119be9e7f7a4453/skill-586c90326d8ed0f153ea450f09afc5776db00f4b",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "515b950c08b966b9dc68aca1483e9b526e5bad233b425fa56d80eed124e27bf2"
+    },
+    {
+      "path": "workspace/skills/e23d87eddbbb312d502300bb80326f7f10e1b6f45d0e23f640b29fc0c0683844/718e66dd58c938093da723c0b9d6db5760b44bcaa44af1e84cacbe91c29be73a/skill-0856c423ef00c9b76d880d09e32a6e988a26a3c5",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "f54c6ab08df4f2ea17f26b2dd23c266fe431da87eb15f9b233624cced644fe1f"
+    },
+    {
+      "path": "workspace/skills/e23d87eddbbb312d502300bb80326f7f10e1b6f45d0e23f640b29fc0c0683844/8dae35a0b833a8fe19b86585ebb7f51d5dc0969cb99077462e9517c8071e26b8/skill-0856c423ef00c9b76d880d09e32a6e988a26a3c5",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "933e2887e1be2124d318bf087b643a80b64fb547dc63a28b936ccd961a7a8834"
+    },
+    {
+      "path": "workspace/skills/f76bcd9663b3dac23a4017e1bf4d90d75c89f4807cc3c0cc1cd744f1469469ee/04a48665768c7843c80d8cb9aad240f2a459056afdac13c1f5efc8e9804e235b/skill-35bf04c52d0f3dcface298d2d619a273844010a8",
+      "version": 1,
+      "kind": "exact",
+      "skillMdSha256": "d313c1523b21af1683fd945978703d69af58430b48572bca6c416b92f9a2e372"
+    },
+    {
+      "path": "workspace/skills/f76bcd9663b3dac23a4017e1bf4d90d75c89f4807cc3c0cc1cd744f1469469ee/44d7269b5c619e67aef4c3f1f45039fed371170325698666d2486e790f1e8cc9/skill-35bf04c52d0f3dcface298d2d619a273844010a8",
+      "version": 3,
+      "kind": "exact",
+      "skillMdSha256": "f81c024185b835f545094452ce3b9ce8d097292c45fedce39a78732b58afd7fe"
+    },
+    {
+      "path": "workspace/skills/f76bcd9663b3dac23a4017e1bf4d90d75c89f4807cc3c0cc1cd744f1469469ee/84045ba5272f06abf35d8f09bab13d6c8e9eb59ec1aa0d2586899c2d0b7907ae/skill-35bf04c52d0f3dcface298d2d619a273844010a8",
+      "version": 4,
+      "kind": "exact",
+      "skillMdSha256": "a009f381c4f4ba9332251b4ff2bf95aacff0c0fb4abff2536af36b18beb320bc"
+    },
+    {
+      "path": "workspace/skills/f76bcd9663b3dac23a4017e1bf4d90d75c89f4807cc3c0cc1cd744f1469469ee/d458d7eaf5ebee60a6727c4480f64e023786b6d45e5e8f7125e7cbf0cee2b1ad/skill-35bf04c52d0f3dcface298d2d619a273844010a8",
+      "version": 2,
+      "kind": "exact",
+      "skillMdSha256": "9829319f1d90ef762f19395023c9960f5841e1f516a4cecbd6b022e0a347bf64"
+    }
+  ],
+  "exitCode": 0,
+  "scope": "Stored generated packages only; no generic import, runtime adoption, authority or cognitive learning proof.",
+  "negativeControls": [
+    {
+      "case": "invalid-name",
+      "exitCode": 1,
+      "reportedFailure": true
+    },
+    {
+      "case": "missing-description",
+      "exitCode": 1,
+      "reportedFailure": true
+    },
+    {
+      "case": "nonstring-metadata",
+      "exitCode": 1,
+      "reportedFailure": true
+    },
+    {
+      "case": "numeric-metadata",
+      "exitCode": 1,
+      "reportedFailure": true
+    },
+    {
+      "case": "missing-validator",
+      "exitCode": 1,
+      "reportedFailure": true
+    }
+  ],
+  "referenceLimitations": [
+    "Pinned skills-ref coerces metadata values to strings, including nested values; the repository command validates the original YAML scalar types independently."
+  ],
+  "supplementedExitCode": 0
+}

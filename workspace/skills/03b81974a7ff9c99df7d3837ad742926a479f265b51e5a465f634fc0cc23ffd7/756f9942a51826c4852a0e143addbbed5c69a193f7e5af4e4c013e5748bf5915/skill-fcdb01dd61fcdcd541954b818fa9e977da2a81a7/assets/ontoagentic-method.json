@@ -1,0 +1,66 @@
+{
+  "id": "skill_c7ff08e6-2465-42f3-b4b2-44c37dbe6700",
+  "agentId": "agent_d94dcac1-3058-43ad-9a0d-ff9ba796a796",
+  "version": 2,
+  "name": "Recorded browser procedure",
+  "conditions": [
+    "Exact recorded input and verification criterion"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_356fbe7c-340d-4d56-82c0-675a63f23837",
+    "cycleId": "cycle_5c8d719c-4cb1-4253-8ab0-fb9f02c63f9c",
+    "bidId": "bid_c676236c-3cf6-4df5-bef6-f8ae0c5a918e",
+    "partId": "part_f847a88b-7767-4cae-b146-d0143730b98f",
+    "instruction": "Prescribed plumbing fixture, not psychological validation"
+  },
+  "validations": [
+    {
+      "executionId": "execution_28572eb1-3f97-479b-a46d-77190a651bbd",
+      "at": "2026-10-09T16:40:02.759Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_cc6a6d81-35ab-4581-8980-27cb8da9501b",
+        "mcp_trace_35737db6-6518-4849-95d0-9f19ea74d144"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T16:40:02.759Z"
+  }
+}

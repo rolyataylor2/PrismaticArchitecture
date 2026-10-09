@@ -1,0 +1,71 @@
+{
+  "id": "skill_a42a4a99-7713-4e53-b050-a60cadb0d600",
+  "agentId": "agent_1dc33250-3d7c-4bc2-8f9b-8afcc8a6ba87",
+  "version": 1,
+  "name": "Conditional browser method",
+  "conditions": [
+    "Exact browser fixture"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_55e40179-5d93-4801-845f-9451e14154b6",
+    "reason": "Prescribed consolidation reason, not psychological validation",
+    "escalate": [
+      "Unexpected input"
+    ],
+    "branches": [
+      {
+        "id": "branch_cf334ece-6788-40be-acef-66b3e6573223",
+        "when": [
+          "The current fixture calls for value 42"
+        ],
+        "reason": "The recorded instruction used and verified this input",
+        "skillId": "skill_aa94ceb8-4847-4fc4-bb97-78a40c2ab9a1",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_b7300f8d-9e69-45ae-95d9-9b52f89c6b87",
+    "cycleId": "cycle_77f2b1e9-b879-4650-9aa4-e60015124d65",
+    "bidId": "bid_cf8e5862-4144-4e6b-a2fc-2f097cc22cfa",
+    "partId": "part_6d418ff8-e88d-4b9e-ae16-5d4665957a56",
+    "instruction": "Prescribed plumbing fixture, not psychological validation"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Conditional consolidation candidate: Prescribed consolidation reason, not psychological validation",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:46:11.871Z"
+  }
+}

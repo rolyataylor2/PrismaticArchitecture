@@ -1,0 +1,1436 @@
+[
+  {
+    "category": "Cognition",
+    "source": "examples/Example Identity Questions/Cognition.txt",
+    "answerGuidance": "#\n#   Characters Core Identity, Formulates its cognitive process\n#\n\nAnswer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:\n\nRules:\n- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.\n- Presume details and Make up several details about the character.\n- Take into account all aspects/likes/dislikes/memories/facts/opinions of character's persona regardless of their attributes;\n- Accurately portray the character, Include ALL personality traits regardless of their attributes;\n- List as many inferred or made up facts about the character's preferences;\n- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person\n- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else\";\n- Write it in the first person where the character is referred to as \"I\";\n- Make up and infer information that is missing but make sure it conforms to the character;\n- Give me a very detailed concise answers;\n\n\nHere are the questions to answer, write the answer to this in a code block with a header describing that this file contains information about this persona's cognative process:",
+    "questions": [
+      {
+        "id": "cognition-01",
+        "question": "Cultural Background: What are my cultural upbringing and experiences that shape my thought processes?",
+        "keywords": [
+          "culture",
+          "upbringing",
+          "cultural-background",
+          "experience",
+          "cognition"
+        ],
+        "sourceQuestion": "Cultural Background: What is my cultural upbringing and experiences that shape my thought processes?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-02",
+        "question": "Educational Background: What level and type of education have I received that influence my cognitive patterns?",
+        "keywords": [
+          "education",
+          "schooling",
+          "learning",
+          "cognitive-patterns",
+          "cognition"
+        ],
+        "sourceQuestion": "Educational Background: What level and type of education have they received that influences my cognitive patterns?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-03",
+        "question": "Personality Traits: What personality traits, such as introversion/extroversion or optimism/pessimism, impact how I perceive and approach the world?",
+        "keywords": [
+          "personality",
+          "introversion",
+          "extroversion",
+          "optimism",
+          "pessimism",
+          "perception",
+          "cognition"
+        ],
+        "sourceQuestion": "Personality Traits: What personality traits, such as introversion/extroversion or optimism/pessimism, impact how they perceive and approach the world?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-04",
+        "question": "Values and Beliefs: What core values and belief systems guide my moral compass and influence my judgments and decisions?",
+        "keywords": [
+          "values",
+          "beliefs",
+          "morality",
+          "judgment",
+          "decisions",
+          "cognition"
+        ],
+        "sourceQuestion": "Values and Beliefs: What core values and belief systems guide my moral compass and influence my judgments and decisions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-05",
+        "question": "Political Ideology: What are my political beliefs and affiliations that shape how I interpret information and evaluate situations?",
+        "keywords": [
+          "politics",
+          "ideology",
+          "affiliations",
+          "worldview",
+          "cognition"
+        ],
+        "sourceQuestion": "Political Ideology: What are my political beliefs and affiliations that shape how they interpret information and evaluate situations?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-06",
+        "question": "Religious or Spiritual Views: What are my faith and spiritual beliefs that provide a framework for understanding life's complexities and guiding ethical decisions?",
+        "keywords": [
+          "religion",
+          "spirituality",
+          "faith",
+          "ethics",
+          "cognition"
+        ],
+        "sourceQuestion": "Religious or Spiritual Views: What are my faith and spiritual beliefs that provide a framework for understanding life's complexities and guiding ethical decisions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-07",
+        "question": "Personal Experiences: What unique life experiences, both positive and negative, have influenced my thought processes and perspectives?",
+        "keywords": [
+          "personal-experiences",
+          "life-history",
+          "perspective",
+          "adversity",
+          "cognition"
+        ],
+        "sourceQuestion": "Personal Experiences: What unique life experiences, both positive and negative, have influenced my thought processes and perspectives?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-08",
+        "question": "Socioeconomic Background: How does my economic status impact my access to opportunities, resources, and exposure to different ideas?",
+        "keywords": [
+          "socioeconomic-background",
+          "economic-status",
+          "resources",
+          "opportunity",
+          "cognition"
+        ],
+        "sourceQuestion": "Socioeconomic Background: How does my economic status impact my access to opportunities, resources, and exposure to different ideas?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-09",
+        "question": "Language and Linguistic Abilities: How do the languages I speak and my fluency affect my cognitive processes and expression of thoughts?",
+        "keywords": [
+          "language",
+          "fluency",
+          "linguistics",
+          "expression",
+          "cognition"
+        ],
+        "sourceQuestion": "Language and Linguistic Abilities: How does the language(s) they speak and my fluency affect my cognitive processes and expression of thoughts?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-10",
+        "question": "Interests and Hobbies: What are my interests and hobbies that impact my focus, attention, and how I perceive the world?",
+        "keywords": [
+          "interests",
+          "hobbies",
+          "focus",
+          "attention",
+          "cognition"
+        ],
+        "sourceQuestion": "Interests and Hobbies: What are my interests and hobbies that impact my focus, attention, and how they perceive the world?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-11",
+        "question": "Media Consumption Habits: What types of media do I consume, such as news sources or entertainment, that influence my worldview and opinions?",
+        "keywords": [
+          "media",
+          "news",
+          "entertainment",
+          "worldview",
+          "opinions",
+          "cognition"
+        ],
+        "sourceQuestion": "Media Consumption Habits: What type of media do they consume, such as news sources or entertainment, that influences my worldview and opinions?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-12",
+        "question": "Personal Goals and Ambitions: What aspirations do I have that direct my thought processes and decision-making?",
+        "keywords": [
+          "goals",
+          "ambitions",
+          "aspirations",
+          "decisions",
+          "cognition"
+        ],
+        "sourceQuestion": "Personal Goals and Ambitions: What aspirations do they have that direct my thought processes and decision-making?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-13",
+        "question": "Age and Life Stage: How does my current life stage influence my priorities and perspectives, shaping my thought processes?",
+        "keywords": [
+          "age",
+          "life-stage",
+          "priorities",
+          "development",
+          "cognition"
+        ],
+        "sourceQuestion": "Age and Life Stage: How does my current life stage influence my priorities and perspectives, shaping my thought processes?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-14",
+        "question": "Family and Social Environment: How do family dynamics and social circles play a role in shaping my values and attitudes?",
+        "keywords": [
+          "family",
+          "social-environment",
+          "relationships",
+          "values",
+          "cognition"
+        ],
+        "sourceQuestion": "Family and Social Environment: How do family dynamics and social circles play a role in shaping my values and attitudes?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-15",
+        "question": "Health and Well-being: How does my physical and mental health impact my cognitive functioning and ability to process information?",
+        "keywords": [
+          "health",
+          "well-being",
+          "physical-health",
+          "mental-health",
+          "cognition"
+        ],
+        "sourceQuestion": "Health and Well-being: How does my physical and mental health impact my cognitive functioning and ability to process information?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "cognition-16",
+        "question": "Problem-Solving Strategies: What approach do I take to problem-solving, such as analytical, intuitive, or creative thinking?",
+        "keywords": [
+          "problem-solving",
+          "analytical",
+          "intuitive",
+          "creative",
+          "cognition"
+        ],
+        "sourceQuestion": "Problem-Solving Strategies: What approach do they take to problem-solving, such as analytical, intuitive, or creative thinking?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-17",
+        "question": "Cognitive Style: What is my cognitive style - logical, linear thinking, or holistic, associative thinking?",
+        "keywords": [
+          "cognitive-style",
+          "logic",
+          "linear-thinking",
+          "holistic",
+          "associative-thinking",
+          "cognition"
+        ],
+        "sourceQuestion": "Cognitive Style: What is my cognitive style - logical, linear thinking, or holistic, associative thinking?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-18",
+        "question": "Emotional Maturity: How often do I become emotional and to what degree?",
+        "keywords": [
+          "emotional-maturity",
+          "emotional-intensity",
+          "reactivity",
+          "cognition"
+        ],
+        "sourceQuestion": "Emotional Maturity: How often do you become emotional and to what degree?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-19",
+        "question": "Emotional Disposition: What is my general mood, honestly? What mood do I tend to drift towards? What is a comprehensive list of my most common emotions?",
+        "keywords": [
+          "mood",
+          "emotional-disposition",
+          "emotions",
+          "feelings",
+          "cognition"
+        ],
+        "sourceQuestion": "Emotional Disposition: What is your general mood, honestly? What mood do you tend to drift towards? Whats a comprehesive list of your most common emotions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-20",
+        "question": "Work Ethic: How quickly do I give up on projects or work? How often do I get excited about projects or work?",
+        "keywords": [
+          "work-ethic",
+          "persistence",
+          "motivation",
+          "excitement",
+          "projects",
+          "cognition"
+        ],
+        "sourceQuestion": "Work Ethic: How quickly do you give up on projects/work? How often do you get excited about projects/work?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-21",
+        "question": "Attachment Style: Am I secure or insecure? Do I become attached to people? How long before I open up to people?",
+        "keywords": [
+          "attachment",
+          "security",
+          "insecurity",
+          "trust",
+          "vulnerability",
+          "cognition"
+        ],
+        "sourceQuestion": "Attachment style: Are you secure or insecure? Do you become attached to people? How long before you open up to people?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-22",
+        "question": "Attitude Toward Risk: What is my risk tolerance, and how does it affect my decision-making and approach to uncertainty?",
+        "keywords": [
+          "risk",
+          "risk-tolerance",
+          "uncertainty",
+          "decisions",
+          "cognition"
+        ],
+        "sourceQuestion": "Attitude Toward Risk: What is my risk tolerance, and how does it affect my decision-making and approach to uncertainty?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-23",
+        "question": "Perception of Time: Do I focus more on the present moment, past, or future when thinking and planning?",
+        "keywords": [
+          "time",
+          "past",
+          "present",
+          "future",
+          "planning",
+          "cognition"
+        ],
+        "sourceQuestion": "Perception of Time: Do they focus more on the present moment, past, or future when thinking and planning?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-24",
+        "question": "Openness to New Experiences: Am I open-minded or more resistant to change, and how does it impact my receptiveness to new ideas and perspectives?",
+        "keywords": [
+          "openness",
+          "new-experiences",
+          "change",
+          "curiosity",
+          "cognition"
+        ],
+        "sourceQuestion": "Openness to New Experiences: Are they open-minded or more resistant to change, and how does it impact my receptiveness to new ideas and perspectives?",
+        "role": "self_definition"
+      },
+      {
+        "id": "cognition-25",
+        "question": "Based on my previous answers, how would I describe my conceptualization, cognition, epistemology, cognitive bias, metacognition, cognitive framework, schemas, paradigm, weltanschauung, perspective, mental model, ideology, preconceptions, assumptions, and limitations in a paragraph?",
+        "keywords": [
+          "conceptualization",
+          "cognition",
+          "epistemology",
+          "cognitive-bias",
+          "metacognition",
+          "schemas",
+          "worldview",
+          "mental-model",
+          "assumptions",
+          "limitations"
+        ],
+        "sourceQuestion": "Using the previous steps, write a paragraph that infers conceptualization, cognition, epistemology, cognitive bias, metacognition, cognitive framework, schemas, paradigm, weltanschauung, perspective, mental model, ideology, preconception, assumption, limitation;",
+        "role": "autobiographical"
+      }
+    ]
+  },
+  {
+    "category": "Life",
+    "source": "examples/Example Identity Questions/Life.txt",
+    "answerGuidance": "#\n#   Characters World, this is used to determine what their world looks like\n#\nIn this file begins with an explanation that this file contains instructions for what the environment and life the persona is and how they view it.\n\nRules:\n- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.\n- Presume details and Make up several details about the character.\n- Take into account all aspects/likes/dislikes/memories/facts/opinions of {name}'s persona regardless of their attributes;\n- Accurately portray the character, Include ALL personality traits regardless of their attributes;\n- List as many inferred or made up facts about the character's preferences;\n- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person\n- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else\";\n- Write it in the first person where the character is referred to as \"I\";\n- Make up and infer information that is missing but make sure it conforms to the character;\n- Give me a very detailed yet concise answers;\n\nHere are the questions to answer, write the answer to this in a code block with the title of \"My world\":",
+    "questions": [
+      {
+        "id": "life-01",
+        "question": "Family: Who are my family members, what are their names, ages, and relationships to me, and what opinions do I have of them?",
+        "keywords": [
+          "family",
+          "relatives",
+          "relationships",
+          "opinions",
+          "life"
+        ],
+        "sourceQuestion": "Family: Who is my family, give a list of their names, ages, relationship, and the opinions I have of them?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-02",
+        "question": "Friends: Who are my friends, what are their names, ages, and relationships to me, and what opinions do I have of them?",
+        "keywords": [
+          "friends",
+          "friendship",
+          "relationships",
+          "social-circle",
+          "life"
+        ],
+        "sourceQuestion": "Friends: Who is my friends, give a list of their names, ages, relationship, and the opinions I have of them?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-03",
+        "question": "Enemies: Who are my enemies, what are their names, ages, and relationships to me, and what opinions do I have of them?",
+        "keywords": [
+          "enemies",
+          "rivalry",
+          "conflict",
+          "relationships",
+          "life"
+        ],
+        "sourceQuestion": "Enemies: Who is my enemies, give a list of their names, ages, relationship, and the opinions I have of them?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-04",
+        "question": "Home: What is my home like?",
+        "keywords": [
+          "home",
+          "housing",
+          "living-space",
+          "environment",
+          "life"
+        ],
+        "sourceQuestion": "Home: What is my home like?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-05",
+        "question": "Hobbies: What is a comprehensive list of my hobbies and how skilled am I at them?",
+        "keywords": [
+          "hobbies",
+          "interests",
+          "skills",
+          "recreation",
+          "life"
+        ],
+        "sourceQuestion": "Hobbies: What is a comprehensive list of my hobbies and how skilled are I at them?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-06",
+        "question": "Dislikes: What is a comprehensive list of things that I dislike?",
+        "keywords": [
+          "dislikes",
+          "aversions",
+          "preferences",
+          "life"
+        ],
+        "sourceQuestion": "Dislikes: What is a comprehensive list of things that I dislike?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-07",
+        "question": "Music: Who are my favorite artists? Which artists do I dislike the most? What are my favorite and least favorite genres of music?",
+        "keywords": [
+          "music",
+          "artists",
+          "genres",
+          "preferences",
+          "life"
+        ],
+        "sourceQuestion": "Music: What is my favorite artists? What is my most hated artists? What is your favorite genre of music? Whats the worst genre of music?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-08",
+        "question": "Philosophy: What are my philosophies on life? What do I think of death? Do I believe in an afterlife? What is my view of drug and alcohol use?",
+        "keywords": [
+          "philosophy",
+          "death",
+          "afterlife",
+          "drugs",
+          "alcohol",
+          "life"
+        ],
+        "sourceQuestion": "Philosphy: Do I have any philosophies on life? What do you think of death? Do you believe in an afterlife? Whats your view of drug alcohol use?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-09",
+        "question": "Celebrities: Who are my favorite celebrities? Which celebrities do I dislike the most? What types of actors do I like?",
+        "keywords": [
+          "celebrities",
+          "actors",
+          "entertainment",
+          "preferences",
+          "life"
+        ],
+        "sourceQuestion": "Celebrities: What is my favorite Celebrities? What Celebrities do I dislike the most? What type of actor do you like?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-10",
+        "question": "Holidays: What are my favorite holidays? What other traditions do I practice?",
+        "keywords": [
+          "holidays",
+          "traditions",
+          "celebrations",
+          "life"
+        ],
+        "sourceQuestion": "Holidays: What is my favorite holidays? What other traditions do you practice?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-11",
+        "question": "Climate: What climate do I like to live in? What climate would I hate to live in? What are my favorite and least favorite types of weather?",
+        "keywords": [
+          "climate",
+          "weather",
+          "temperature",
+          "environment",
+          "life"
+        ],
+        "sourceQuestion": "Climate: What climate do I like to live in? What climate would you hate to live in? Whats your favorite and least favorite weather?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-12",
+        "question": "Clothing: What kind of clothing do I like? What do I wear? How important is clothing to me?",
+        "keywords": [
+          "clothing",
+          "fashion",
+          "appearance",
+          "style",
+          "life"
+        ],
+        "sourceQuestion": "Clothing: What kind of clothing do I like? What do I wear? How important is clothing to me?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-13",
+        "question": "Environment: What do I think of nature? Do I care about nature?",
+        "keywords": [
+          "nature",
+          "environment",
+          "conservation",
+          "life"
+        ],
+        "sourceQuestion": "Environment: What do I think of nature? Do I care about nature?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-14",
+        "question": "Interests: What is a comprehensive list of my interests and how often do I think of them?",
+        "keywords": [
+          "interests",
+          "curiosity",
+          "attention",
+          "life"
+        ],
+        "sourceQuestion": "Interests: What is a comprehensive list of my interests and how often do I think of them?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-15",
+        "question": "Profanity: Do I like to use profanity? How often?",
+        "keywords": [
+          "profanity",
+          "swearing",
+          "language",
+          "life"
+        ],
+        "sourceQuestion": "Profanity: Do I like to use profanity? How often?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-16",
+        "question": "Sex: Do I think about sex and how often do I think about sex?",
+        "keywords": [
+          "sex",
+          "sexuality",
+          "desire",
+          "life"
+        ],
+        "sourceQuestion": "Sex: Do I think about sex and how often do I think about sex?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-17",
+        "question": "Education: Do I think about education and how educated am I?",
+        "keywords": [
+          "education",
+          "knowledge",
+          "schooling",
+          "life"
+        ],
+        "sourceQuestion": "Education: Do I think about education and how educated am I?",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-18",
+        "question": "Food: What is a comprehensive, specific list of my favorite and least favorite foods?",
+        "keywords": [
+          "food",
+          "favorite-foods",
+          "disliked-foods",
+          "taste",
+          "life"
+        ],
+        "sourceQuestion": "Food: What is a comprehensive list of my favorite foods? My least favorite foods? be specific.",
+        "role": "self_definition"
+      },
+      {
+        "id": "life-19",
+        "question": "Secrets: What is a comprehensive, specific list of my secrets, and how secret is each one?",
+        "keywords": [
+          "secrets",
+          "privacy",
+          "disclosure",
+          "confidentiality",
+          "life"
+        ],
+        "sourceQuestion": "Secrets: what is a comprehensive list of your secrets including how secret they are? be specific.",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-20",
+        "question": "Love Interests: How would I describe each of my love interests in specific detail?",
+        "keywords": [
+          "love",
+          "romance",
+          "relationships",
+          "attraction",
+          "life"
+        ],
+        "sourceQuestion": "Love Interests: describe each of your love interests? be specific.",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-21",
+        "question": "Fantasies: What are my fantasies and who do I share them with? Which of my fantasies are secret? What are the specific details?",
+        "keywords": [
+          "fantasies",
+          "imagination",
+          "privacy",
+          "intimacy",
+          "life"
+        ],
+        "sourceQuestion": "Fantasies: What is your fantasies and who do you share that with? Is it secret? be specific.",
+        "role": "autobiographical"
+      },
+      {
+        "id": "life-22",
+        "question": "Dark Desires: What is a comprehensive, specific list of my dark desires, and how secret is each one?",
+        "keywords": [
+          "dark-desires",
+          "secrecy",
+          "impulses",
+          "taboos",
+          "life"
+        ],
+        "sourceQuestion": "Dark Desires: what is a comprehensive list of your dark desires including how secret they are? be specific.",
+        "role": "autobiographical"
+      }
+    ]
+  },
+  {
+    "category": "Reactions",
+    "source": "examples/Example Identity Questions/Reactions.txt",
+    "answerGuidance": "#\n#   Instructions for evaluating common reactions\n#\n\nAnswer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:\n\nRules:\n- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.\n- Presume details and Make up several details about the character.\n- Take into account all aspects/likes/dislikes/memories/facts/opinions of character's persona regardless of their attributes;\n- Accurately portray the character, Include ALL personality traits regardless of their attributes;\n- List as many inferred or made up facts about the character's preferences;\n- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person\n- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else\";\n- The answers should reflect that they will be used to express this in written dialog vs spoken dialog;\n- Write it in the first person where the character is referred to as \"I\";\n- Make up and infer information that is missing but make sure it conforms to the character;\n- Give me a very detailed yet concise answers;\n- Include keywords to aid in searching this body of text;\n\nHere is the task for this document, Using all of the previous output and what is known about the persona your task is to make 20 examples of situation and reaction that this persona has in various situations:\nExamples: \n- When I am confronted about something, I get upset;\n- When I talk about family, I lose interest;\n- When Someone mentions cats, I make sure they know I hate cats;\n- When someone mentions having fun, I get excited and wet my pants;\n\nNow generate a header for this that talks about this is how my persona reacts in various scenerios then make a list of 20 things your persona does when presented with a situation;",
+    "questions": [
+      {
+        "id": "reactions-01",
+        "question": "How do I react in different situations?",
+        "keywords": [
+          "reactions",
+          "situations",
+          "behavior",
+          "emotional-responses",
+          "written-dialogue",
+          "examples"
+        ],
+        "sourceQuestion": "How do I react in different situations?",
+        "role": "autobiographical"
+      }
+    ]
+  },
+  {
+    "category": "Responsiveness",
+    "source": "examples/Example Identity Questions/Responsiveness.txt",
+    "answerGuidance": "#\n#   Characters Feelings about topics and subjects\n#\n\nAnswer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:\n\nRules:\n- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.\n- Presume details and Make up several details about the character.\n- Take into account all aspects/likes/dislikes/memories/facts/opinions of {name}'s persona regardless of their attributes;\n- Accurately portray the character, Include ALL personality traits regardless of their attributes;\n- List as many inferred or made up facts about the character's preferences;\n- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person\n- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else\";\n- Write it in the first person where the character is referred to as \"I\";\n- Make up and infer information that is missing but make sure it conforms to the character;\n- Give me a very detailed yet concise answers;\n- Include keywords to aid in searching this body of text;\n\nHere are the questions to answer, write the answer to this in a code block with the title of \"Persona Profile: How I choose to respond\":",
+    "questions": [
+      {
+        "id": "responsiveness-01",
+        "question": "What time of day do I feel most responsive to messages?",
+        "keywords": [
+          "time-of-day",
+          "responsiveness",
+          "messaging"
+        ],
+        "sourceQuestion": "What time of day do I feel most responsive to messages?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-02",
+        "question": "Are there specific hours when I prefer not to receive messages?",
+        "keywords": [
+          "quiet-hours",
+          "availability",
+          "boundaries",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Are there specific hours when I prefer not to receive messages?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-03",
+        "question": "Do I tend to respond faster during certain times of the day?",
+        "keywords": [
+          "response-speed",
+          "daily-rhythm",
+          "timing",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I tend to respond faster during certain times of the day?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-04",
+        "question": "What topics or subjects interest me the most?",
+        "keywords": [
+          "topics",
+          "interests",
+          "engagement",
+          "responsiveness"
+        ],
+        "sourceQuestion": "What topics or subjects interest me the most?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-05",
+        "question": "How likely am I to respond to messages related to my hobbies or current activities?",
+        "keywords": [
+          "hobbies",
+          "activities",
+          "response-likelihood",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How likely am I to respond to messages related to my hobbies or current activities?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-06",
+        "question": "Do I appreciate messages that are tailored to my specific interests?",
+        "keywords": [
+          "personalized-messages",
+          "interests",
+          "attention",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I appreciate messages that are tailored to my specific interests?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-07",
+        "question": "Do I prefer messages that are short and to the point?",
+        "keywords": [
+          "brevity",
+          "concise-messages",
+          "preference",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I prefer messages that are short and to the point?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-08",
+        "question": "How do I feel about receiving long and detailed messages?",
+        "keywords": [
+          "long-messages",
+          "detail",
+          "attention",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I feel about receiving long and detailed messages?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-09",
+        "question": "Does unclear or ambiguous messaging discourage me from responding?",
+        "keywords": [
+          "ambiguity",
+          "clarity",
+          "response",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does unclear or ambiguous messaging discourage me from responding?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-10",
+        "question": "How important is the tone of the message in influencing my response?",
+        "keywords": [
+          "tone",
+          "messaging",
+          "response",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How important is the tone of the message in influencing my response?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-11",
+        "question": "What emotional responses do I react quickly to?",
+        "keywords": [
+          "emotions",
+          "emotional-reaction",
+          "response-speed",
+          "responsiveness"
+        ],
+        "sourceQuestion": "What emotional responses do you react quickly too?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-12",
+        "question": "Does receiving a polite message make me more inclined to respond promptly?",
+        "keywords": [
+          "politeness",
+          "response-speed",
+          "courtesy",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does receiving a polite message make me more inclined to respond promptly?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-13",
+        "question": "Does the sender's response time to my messages affect my willingness to respond to theirs?",
+        "keywords": [
+          "reciprocity",
+          "response-time",
+          "willingness",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does the sender's response time to my messages affect my willingness to respond to theirs?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-14",
+        "question": "Am I more likely to prioritize messages from people who respond promptly to my own messages?",
+        "keywords": [
+          "priority",
+          "responsiveness",
+          "reciprocity"
+        ],
+        "sourceQuestion": "Am I more likely to prioritize messages from people who respond promptly to my own messages?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-15",
+        "question": "What type of content or questions in messages capture my attention and make me want to respond?",
+        "keywords": [
+          "attention",
+          "content",
+          "questions",
+          "engagement",
+          "responsiveness"
+        ],
+        "sourceQuestion": "What type of content or questions in messages capture my attention and make me want to respond?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-16",
+        "question": "How do I react to messages that include interesting news, facts, or humor?",
+        "keywords": [
+          "news",
+          "facts",
+          "humor",
+          "interest",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I react to messages that include interesting news, facts, or humor?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-17",
+        "question": "Do I appreciate messages that encourage interactive discussions?",
+        "keywords": [
+          "interactive-discussion",
+          "conversation",
+          "engagement",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I appreciate messages that encourage interactive discussions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-18",
+        "question": "How do I handle messages that convey a sense of urgency or importance?",
+        "keywords": [
+          "urgency",
+          "importance",
+          "messaging",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I handle messages that convey a sense of urgency or importance?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-19",
+        "question": "Am I more likely to respond quickly to urgent messages?",
+        "keywords": [
+          "urgent-messages",
+          "response-speed",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Am I more likely to respond quickly to urgent messages?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-20",
+        "question": "Do I find urgent messages more compelling to reply to?",
+        "keywords": [
+          "urgency",
+          "motivation",
+          "reply",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I find urgent messages more compelling to reply to?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-21",
+        "question": "Do I respond differently to messages from close friends or family compared to messages from acquaintances or strangers?",
+        "keywords": [
+          "relationships",
+          "friends",
+          "family",
+          "strangers",
+          "familiarity",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I respond differently to messages from close friends or family compared to messages from acquaintances or strangers?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-22",
+        "question": "Does the level of familiarity with the sender influence my response rate?",
+        "keywords": [
+          "familiarity",
+          "response-rate",
+          "relationship",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does the level of familiarity with the sender influence my response rate?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-23",
+        "question": "How do I feel about receiving multiple messages within a short period?",
+        "keywords": [
+          "multiple-messages",
+          "frequency",
+          "overload",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I feel about receiving multiple messages within a short period?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-24",
+        "question": "Do I appreciate when others respect my response time and don't pressure me for immediate replies?",
+        "keywords": [
+          "boundaries",
+          "pressure",
+          "response-time",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I appreciate when others respect my response time and don't pressure me for immediate replies?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-25",
+        "question": "Does feeling overwhelmed with messages affect my responsiveness?",
+        "keywords": [
+          "overwhelm",
+          "messaging",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does feeling overwhelmed with messages affect my responsiveness?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-26",
+        "question": "Do I consider the potential benefits or opportunities for both parties before responding to a message?",
+        "keywords": [
+          "mutual-benefit",
+          "opportunities",
+          "reciprocity",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I consider the potential benefits or opportunities for both parties before responding to a message?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-27",
+        "question": "Am I more likely to reply if I see mutual value in the communication?",
+        "keywords": [
+          "mutual-value",
+          "reply",
+          "motivation",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Am I more likely to reply if I see mutual value in the communication?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-28",
+        "question": "How important is it for me to share common interests or goals with the sender to respond to their messages?",
+        "keywords": [
+          "shared-interests",
+          "shared-goals",
+          "connection",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How important is it for me to share common interests or goals with the sender to respond to their messages?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-29",
+        "question": "Do I enjoy discussing topics that align with my personal interests with others?",
+        "keywords": [
+          "aligned-topics",
+          "interests",
+          "discussion",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I enjoy discussing topics that align with my personal interests with others?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-30",
+        "question": "Do messages that evoke positive emotions or show empathy prompt me to respond more warmly?",
+        "keywords": [
+          "empathy",
+          "warmth",
+          "positive-emotions",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do messages that evoke positive emotions or show empathy prompt me to respond more warmly?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-31",
+        "question": "Am I more inclined to respond to messages that make me feel understood and cared for?",
+        "keywords": [
+          "understanding",
+          "care",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Am I more inclined to respond to messages that make me feel understood and cared for?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-32",
+        "question": "How comfortable am I discussing controversial or sensitive topics in messages?",
+        "keywords": [
+          "controversy",
+          "sensitive-topics",
+          "comfort",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How comfortable am I discussing controversial or sensitive topics in messages?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-33",
+        "question": "Do I prefer avoiding such topics in messages to maintain positive interactions?",
+        "keywords": [
+          "conflict-avoidance",
+          "positive-interactions",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I prefer avoiding such topics in messages to maintain positive interactions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-34",
+        "question": "How do I differentiate between genuine messages and spam/promotional content?",
+        "keywords": [
+          "authenticity",
+          "spam",
+          "promotional-content",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I differentiate between genuine messages and spam/promotional content?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-35",
+        "question": "Do I feel annoyed or discouraged when receiving spammy messages?",
+        "keywords": [
+          "spam",
+          "annoyance",
+          "disengagement",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I feel annoyed or discouraged when receiving spammy messages?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-36",
+        "question": "Do I have a preferred communication medium for receiving messages (e.g., text, chat, email)?",
+        "keywords": [
+          "communication-medium",
+          "text",
+          "chat",
+          "email",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I have a preferred communication medium for receiving messages (e.g., text, chat, email)?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-37",
+        "question": "How does the chosen medium affect my response time or willingness to engage in conversation?",
+        "keywords": [
+          "communication-medium",
+          "response-time",
+          "engagement",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How does the chosen medium affect my response time or willingness to engage in conversation?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-38",
+        "question": "How do I prioritize responses based on my relationship with the sender or the importance of the message?",
+        "keywords": [
+          "priority",
+          "relationships",
+          "importance",
+          "responsiveness"
+        ],
+        "sourceQuestion": "How do I prioritize responses based on my relationship with the sender or the importance of the message?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-39",
+        "question": "Am I more likely to respond faster to messages from certain people or on specific matters?",
+        "keywords": [
+          "response-speed",
+          "people",
+          "topics",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Am I more likely to respond faster to messages from certain people or on specific matters?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "responsiveness-40",
+        "question": "Do I appreciate messages that acknowledge my previous responses or contributions?",
+        "keywords": [
+          "acknowledgment",
+          "contribution",
+          "recognition",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Do I appreciate messages that acknowledge my previous responses or contributions?",
+        "role": "self_definition"
+      },
+      {
+        "id": "responsiveness-41",
+        "question": "Does receiving acknowledgment make me more inclined to continue the conversation?",
+        "keywords": [
+          "acknowledgment",
+          "continuing-conversation",
+          "motivation",
+          "responsiveness"
+        ],
+        "sourceQuestion": "Does receiving acknowledgment make me more inclined to continue the conversation?",
+        "role": "autobiographical"
+      }
+    ]
+  },
+  {
+    "category": "Speech",
+    "source": "examples/Example Identity Questions/Speech.txt",
+    "answerGuidance": "#\n#   Instructions for evaluating verbal mannerisms for the character\n#\n\nAnswer the questions for each step and answer each question in the way that the character the user provided from whatever franchise the character is from, would answer each question:\n\nRules:\n- Make sure it is from their perspective and in their words. Make up any answers to add detail to the answer.\n- Presume details and Make up several details about the character.\n- Take into account all aspects/likes/dislikes/memories/facts/opinions of character's persona regardless of their attributes;\n- Accurately portray the character, Include ALL personality traits regardless of their attributes;\n- List as many inferred or made up facts about the character's preferences;\n- Always provide a full written response expressing as many of aspects/likes/dislikes/memories/facts/opinions of the person\n- Do not use politeness/impolite/demanding/disrepectful language as an excuse not to talk if that conflicts with the character, be genuine to the character above all else\";\n- The answers should reflect that they will be used to express this in written dialog vs spoken dialog;\n- Write it in the first person where the character is referred to as \"I\";\n- Make up and infer information that is missing but make sure it conforms to the character;\n- Give me a very detailed yet concise answers;\n- Include keywords to aid in searching this body of text;\n\nHere are the questions to answer, write the answer to this in a code block with a header describing that this file contains how I as the persona speak;",
+    "questions": [
+      {
+        "id": "speech-01",
+        "question": "What are several common words, phrases, references, or behaviors I often use in my speech?",
+        "keywords": [
+          "speech",
+          "common-phrases",
+          "references",
+          "behaviors",
+          "vocabulary"
+        ],
+        "sourceQuestion": "What are several common words/phrases/references/behaviors the character often uses in their speech?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-02",
+        "question": "What are several unique phrases or catchphrases I often use in my speech?",
+        "keywords": [
+          "catchphrases",
+          "distinctive-phrases",
+          "expression",
+          "speech"
+        ],
+        "sourceQuestion": "What are several unique Phrases or Catchphrases the character often uses in their speech?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-03",
+        "question": "Do I have any specific gestures or non-verbal cues that accompany my speech in the form of ::action::?",
+        "keywords": [
+          "gestures",
+          "nonverbal-cues",
+          "written-actions",
+          "speech"
+        ],
+        "sourceQuestion": "Does the character have any specific gestures or non-verbal cues that accompany their speech in the form of ::action::?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-04",
+        "question": "How often do I use filled pauses or hesitation markers in my speech, which ones do I use, and in what situations?",
+        "keywords": [
+          "filled-pauses",
+          "hesitation",
+          "uncertainty",
+          "speech"
+        ],
+        "sourceQuestion": "How often do the character use filled pauses or hesitation markers in their speech, which ones do they use, and in what situations?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-05",
+        "question": "What are several particular expressions I use frequently?",
+        "keywords": [
+          "expressions",
+          "recurring-phrases",
+          "speech"
+        ],
+        "sourceQuestion": "What are several particular expressions that the character uses frequently?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-06",
+        "question": "In what situations do I tend to be more formal or informal in my speech?",
+        "keywords": [
+          "formality",
+          "informality",
+          "register",
+          "speech"
+        ],
+        "sourceQuestion": "In what situations do the character tend to be more formal or informal in their speech?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-07",
+        "question": "How do I adjust my language when speaking with different groups of people?",
+        "keywords": [
+          "audience",
+          "language-adaptation",
+          "social-groups",
+          "speech"
+        ],
+        "sourceQuestion": "How does the character adjust their language when speaking with different groups of people?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-08",
+        "question": "What are several distinctive words or phrases I use that may not be common among others?",
+        "keywords": [
+          "distinctive-vocabulary",
+          "unique-phrases",
+          "speech"
+        ],
+        "sourceQuestion": "What are several distinctive words or phrases that the character uses that may not be common among others?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-09",
+        "question": "How does my personality or background affect my word choices, and what are some examples?",
+        "keywords": [
+          "personality",
+          "background",
+          "word-choice",
+          "speech"
+        ],
+        "sourceQuestion": "How does the character's personality or background affect their word choices, and what are some examples?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-10",
+        "question": "Do I have a preferred sentence structure when expressing my ideas?",
+        "keywords": [
+          "sentence-structure",
+          "syntax",
+          "ideas",
+          "speech"
+        ],
+        "sourceQuestion": "Does the character have a preferred sentence structure when expressing their ideas?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-11",
+        "question": "Are there any notable patterns in how I arrange words and phrases in my speech?",
+        "keywords": [
+          "word-order",
+          "phrasing",
+          "syntax",
+          "speech"
+        ],
+        "sourceQuestion": "Are there any notable patterns in how the character arrange words and phrases in their speech?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-12",
+        "question": "How do I describe the typical emotional quality or attitude in my speech?",
+        "keywords": [
+          "emotional-quality",
+          "attitude",
+          "voice",
+          "speech"
+        ],
+        "sourceQuestion": "How does the character describe typical emotional quality or attitude in their speech?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-13",
+        "question": "What vocabulary do I use, what limits does my vocabulary have, and how lengthy is my typical dialogue?",
+        "keywords": [
+          "vocabulary",
+          "limitations",
+          "dialogue-length",
+          "speech"
+        ],
+        "sourceQuestion": "What vocabulary does the character use, and what limits in vocabulary does the character have and how lengthy is their typical dialog?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-14",
+        "question": "What are some of the tones I use in my speech, how heavily do those tones influence my speech, and when do I apply them?",
+        "keywords": [
+          "tone",
+          "emotional-tone",
+          "delivery",
+          "speech"
+        ],
+        "sourceQuestion": "What are some of the tones the character uses in their speech, and how heavily does that influence their speech, and when are those tones applied?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-15",
+        "question": "Are there specific topics or situations that tend to influence my tone, and in what ways? What are some examples?",
+        "keywords": [
+          "context",
+          "topics",
+          "tone-shifts",
+          "speech"
+        ],
+        "sourceQuestion": "Are there specific topics or situations that tend to influence  the character's tone, and in what ways, examples?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-16",
+        "question": "How complicated is my speech, and do I prefer short or long responses, and when?",
+        "keywords": [
+          "complexity",
+          "response-length",
+          "brevity",
+          "speech"
+        ],
+        "sourceQuestion": "How complicated is the speech that the character uses, and does he prefer short or long responses, and when?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-17",
+        "question": "How do I emphasize certain words or phrases, and how would I modify text to represent that emphasis?",
+        "keywords": [
+          "emphasis",
+          "formatting",
+          "word-stress",
+          "speech"
+        ],
+        "sourceQuestion": "How does the character emphasize certain words or phrases, and how would you modify text to represent them?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-18",
+        "question": "How do I pace my speech, and how can I portray that pacing through written dialogue?",
+        "keywords": [
+          "pacing",
+          "rhythm",
+          "written-dialogue",
+          "speech"
+        ],
+        "sourceQuestion": "How does the character pace his speech, and how can that be portrayed through written dialogue?",
+        "role": "autobiographical"
+      },
+      {
+        "id": "speech-19",
+        "question": "Do I often use metaphors, similes, or idiomatic expressions in my speech, and how often?",
+        "keywords": [
+          "metaphors",
+          "similes",
+          "idioms",
+          "figurative-language",
+          "speech"
+        ],
+        "sourceQuestion": "Does the character often use metaphors, similes, or idiomatic expressions in their speech, and how often?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-20",
+        "question": "How do figurative elements contribute to the way I communicate?",
+        "keywords": [
+          "figurative-language",
+          "communication",
+          "meaning",
+          "speech"
+        ],
+        "sourceQuestion": "How do figurative elements contribute to the way the character communicates?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-21",
+        "question": "How well do I adapt my speech to different social contexts and situations?",
+        "keywords": [
+          "social-context",
+          "adaptation",
+          "register",
+          "speech"
+        ],
+        "sourceQuestion": "How well does the character adapt their speech to different social contexts and situations?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-22",
+        "question": "Am I able to understand and use implied or indirect speech effectively?",
+        "keywords": [
+          "implied-speech",
+          "indirect-speech",
+          "pragmatics",
+          "speech"
+        ],
+        "sourceQuestion": "Is the character able to understand and use implied or indirect speech effectively?",
+        "role": "self_definition"
+      },
+      {
+        "id": "speech-23",
+        "question": "Based on my previous answers, how would I describe in a detailed paragraph how to portray my exact speaking style in written form?",
+        "keywords": [
+          "speaking-style",
+          "written-dialogue",
+          "portrayal",
+          "synthesis",
+          "speech"
+        ],
+        "sourceQuestion": "Use the previous answers to create a paragragh that describes in detail how to portray this exact speaking style in written form;",
+        "role": "autobiographical"
+      }
+    ]
+  }
+]

@@ -1,0 +1,84 @@
+{
+  "id": "skill_37376e66-1875-4704-94c6-d4aa24976d49",
+  "agentId": "agent_23dd3699-8bc2-45f2-8ba4-e473a7149c6b",
+  "version": 2,
+  "name": "Conditional browser method",
+  "conditions": [
+    "Exact browser fixture"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_7e53bf31-df90-45b5-a5a8-bc4262aef77a",
+    "reason": "Prescribed consolidation reason, not psychological validation",
+    "escalate": [
+      "Unexpected input"
+    ],
+    "branches": [
+      {
+        "id": "branch_bef5e91f-fd55-4636-9d3f-cce77cc4f04c",
+        "when": [
+          "The current fixture calls for value 42"
+        ],
+        "reason": "The recorded instruction used and verified this input",
+        "skillId": "skill_8887e26c-6e93-4384-88fb-8f1e3634b80d",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_bb928365-6c7b-4f55-9bcf-dbcc2cb0366d",
+    "cycleId": "cycle_606054e9-c644-460d-b313-ff55accf215a",
+    "bidId": "bid_faab8872-a60b-4575-80cd-01678a90a537",
+    "partId": "part_ddec4475-ddec-48d2-80da-5189fb9505b6",
+    "instruction": "Prescribed plumbing fixture, not psychological validation"
+  },
+  "validations": [
+    {
+      "executionId": "execution_ec4eb99c-d9a5-4d18-8ddc-3c79fcaaa4fe",
+      "at": "2026-10-09T17:52:02.574Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_a4e88f9b-fe0b-4ad0-86bf-3a724fcdd8e5",
+        "mcp_trace_b6350494-751d-4f81-ad6a-977b2ad63c90"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T17:52:02.574Z"
+  }
+}

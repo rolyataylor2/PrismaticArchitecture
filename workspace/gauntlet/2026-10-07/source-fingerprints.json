@@ -1,0 +1,1618 @@
+{
+  "gitHead": "HEAD",
+  "files": [
+    {
+      "path": "packages/.DS_Store",
+      "sha256": "ac91d64b1f6f7f5f9698676c4b34260275ce52502aa42ff05236cb37c4c004b7"
+    },
+    {
+      "path": "packages/README.md",
+      "sha256": "fa1c0e68847b9634818b23a7d46859f184c5795926b5f7d34f339bc9b7c34293"
+    },
+    {
+      "path": "packages/core/README.md",
+      "sha256": "b20a1d9ab6f7fb16560bcb7d541d7c54709840e3a2ee03d0d5a9e3982ae407ff"
+    },
+    {
+      "path": "packages/core/package.json",
+      "sha256": "4ac79619afdb64a3e28b7615f0266858805f3893adc0a1be238b0580c18ec998"
+    },
+    {
+      "path": "packages/core/src/self-scoring.ts",
+      "sha256": "94e77b341087fadc4b17bcad663cca3fb66f7f0bb1c36f3a6a876ce0b1ac03d2"
+    },
+    {
+      "path": "packages/core/src/disposition-reconciliation.ts",
+      "sha256": "0b329df57e70dac646d281a7e81e34a7b46ede36f4a5933b16705508d87799eb"
+    },
+    {
+      "path": "packages/core/src/constructed-domain.ts",
+      "sha256": "52eb8590b4206c0dacd0ea94b787dc20f76075210f508cb292efeef8f1d5b7d3"
+    },
+    {
+      "path": "packages/core/src/speech.ts",
+      "sha256": "047b8a42af10648d43380ef914f787a9c67f272e420a9fcc8c131478f66660fe"
+    },
+    {
+      "path": "packages/core/src/contracts.ts",
+      "sha256": "3297258b9f08da0c857dfba4cca715391fe8e82f9febd39f88f306d71a3b82ed"
+    },
+    {
+      "path": "packages/core/src/constructed.ts",
+      "sha256": "4335319756e6654ee4a05993b7f4a4038e279ee6ec8774f9f026f8767a237fe7"
+    },
+    {
+      "path": "packages/core/src/context.ts",
+      "sha256": "335c251c5033a33b360a3f628daf094965dccfd08a22837d0a9bb03040359eee"
+    },
+    {
+      "path": "packages/core/src/activation.ts",
+      "sha256": "265d2daefde5afd7e52042685869b8ace55bb884394a0fd7cf8d34379ef0c705"
+    },
+    {
+      "path": "packages/core/src/inspection.ts",
+      "sha256": "745c3c1d33104af7c321700895cf3c33dcd20cd2cc80e4d7c829eeb62f17c472"
+    },
+    {
+      "path": "packages/core/src/self.ts",
+      "sha256": "c7cc6835283e1fdc090ad3f1b700f33c4df1987bcc59c9af5d327b9a96173a31"
+    },
+    {
+      "path": "packages/core/src/experiential-formation.ts",
+      "sha256": "2646d815a811a90f2b424636e7137f6f5c46d6186014992416d3ee5fd15982c9"
+    },
+    {
+      "path": "packages/core/src/runtime.ts",
+      "sha256": "7c8bb7c30277287c864006e8801d6c2dceea3ed28118998c2f2804e391caac9c"
+    },
+    {
+      "path": "packages/core/src/consolidation-domain.ts",
+      "sha256": "18f2c6f121b8c9b3ca1e8d86a9115f3ae60ac925289f9bdff9d542ff19931dfb"
+    },
+    {
+      "path": "packages/core/src/consolidation.ts",
+      "sha256": "ce346cf94c8b90c587091c9ea051689e46daa969ab62d4e575df7dff38190971"
+    },
+    {
+      "path": "packages/core/src/primitives.ts",
+      "sha256": "74c950e6736447d1f8f2ef4b0f09341834b5cd4d58ff673a2bacc1f3904f8498"
+    },
+    {
+      "path": "packages/core/src/reconciliation-commit.ts",
+      "sha256": "ddaf39dc6ab150da941ac70360a0b0cacf6195da71223e0592abcb04c0ab2d5d"
+    },
+    {
+      "path": "packages/core/src/mutations.ts",
+      "sha256": "9c1d90b92829e1a40e516b3dcf21182c92148eb321a70bdc6ef423cf5f53d24f"
+    },
+    {
+      "path": "packages/core/src/domain.ts",
+      "sha256": "b295c5324341a1c54e65948b8ac075b1102a2178f04604426ee9e83483dedc54"
+    },
+    {
+      "path": "packages/core/src/memory-recall.ts",
+      "sha256": "a6516d3b6249f665274f59d155dcb564e4cd0a66556fe4eb1a36ce306d867905"
+    },
+    {
+      "path": "packages/core/src/predictions.ts",
+      "sha256": "97c31b3243a61181cb73a2b697a8b2086db7dd47ea9e7dba5ea950c19af41d4e"
+    },
+    {
+      "path": "packages/core/src/experienced.ts",
+      "sha256": "b3cc70a6a03b1cc98ff197bef46c91d7d33bf03caf51326806af163fc179f7e0"
+    },
+    {
+      "path": "packages/core/src/cognition-coverage.ts",
+      "sha256": "3769b278a7113e8755b1dd7f078e31f468c50de3602637907ce05db34b0c0f8b"
+    },
+    {
+      "path": "packages/providers/.DS_Store",
+      "sha256": "6a091329b9fc7195077e211d9d1e8c6097335f231fbd0463c806c71391364fc0"
+    },
+    {
+      "path": "packages/providers/README.md",
+      "sha256": "f649602513e97988ff8851d2d22260a2d71c881f55a5cbebdd98372c7ca2eb2e"
+    },
+    {
+      "path": "packages/providers/package.json",
+      "sha256": "3371b14cb36bd40da15f617a246cda33338f2ae51a958e8267ef51828f0dabd3"
+    },
+    {
+      "path": "packages/providers/src/mock.ts",
+      "sha256": "31f6f81c4baf232dc2f8e06250c655f66f490cefac79a8e1d201f2c08b33a995"
+    },
+    {
+      "path": "packages/providers/src/prompt.part_cognition.md",
+      "sha256": "048a1b3ea657ac48a4a8fc41f95a93a4a8f601443d13de66b771ffe876116c0a"
+    },
+    {
+      "path": "packages/providers/src/prompt.deliberation.md",
+      "sha256": "7ba94945d417e57b9e095bc29bc6190ed633feb1be1055ef6fcb3daddd4d2b62"
+    },
+    {
+      "path": "packages/providers/src/ollama.ts",
+      "sha256": "d342c49a2b059368d8c5a4734db2371e9cacdba51ddeee2c2ec1bb61e3d06f17"
+    },
+    {
+      "path": "packages/providers/src/.DS_Store",
+      "sha256": "d65165279105ca6773180500688df4bdc69a2c7b771752f0a46ef120b7fd8ec3"
+    },
+    {
+      "path": "packages/providers/src/prompt.prediction_outcome.md",
+      "sha256": "092e3ec992e007c74da661e066a10755d8299feace49b9343565e664db021a59"
+    },
+    {
+      "path": "packages/providers/src/prompt.reconsolidation.md",
+      "sha256": "5d3fbdd5db7ed376a851b6fb6bd78149feb3a6b5679cf5a6dc942af50af2d7c7"
+    },
+    {
+      "path": "packages/providers/src/prompt.consolidation.md",
+      "sha256": "313c1a6d403af4519c498291526c96b788b0278b4d379b5fa4d8abc2996fca90"
+    },
+    {
+      "path": "packages/providers/src/prompt.cognition_coverage.md",
+      "sha256": "3118a6fb6154ba202c4a396f828bcb150e606cabe15a32b8d6f492cea14aadaa"
+    },
+    {
+      "path": "packages/providers/src/environment.ts",
+      "sha256": "479b74abd429320adde7833f3c101b60d47892b2d303a3a93298aad58823b66b"
+    },
+    {
+      "path": "packages/providers/src/xai.ts",
+      "sha256": "1a195cf37d19e4989f0b574214b636a1754ab6b4dc7254d6866a573114470a1e"
+    },
+    {
+      "path": "packages/providers/src/prompt.memory_accessibility.md",
+      "sha256": "de5c5d4875eef06aef7fbeec9ee2084a8a06fcc7cde9909610abd2b68c51a48a"
+    },
+    {
+      "path": "packages/providers/src/prompt.answer.md",
+      "sha256": "b1bb3cca0923ab05ef50c07bcb59adcc15c627c2a7880ba29a1506bbb6c710c0"
+    },
+    {
+      "path": "packages/providers/src/prompt.experiential_formation.md",
+      "sha256": "4760044115221436c7591a790514ab45b59adde765088638f7b74f24a24700e2"
+    },
+    {
+      "path": "packages/providers/src/prompt.arbitration.md",
+      "sha256": "d143a42e61818614fbaef777ae07ec7eeef1c63c5661572d7d47b4127e6840a1"
+    },
+    {
+      "path": "packages/providers/src/openai.ts",
+      "sha256": "ede617a234fb0f338fefe6d984386cf532d08dd8a1d24559b15e3debc99d91d3"
+    },
+    {
+      "path": "packages/providers/src/prompt.activation.md",
+      "sha256": "f1a70097be7d25bf30a4d41ac29fcd8b083842700e87ed84e95233de7e20eb19"
+    },
+    {
+      "path": "packages/providers/src/prompt.memory_relevance.md",
+      "sha256": "3e1dcf105d2f7603be254af9f657b59d1df2813b6de2b3ec85fdb904fd96dc38"
+    },
+    {
+      "path": "packages/providers/src/prompt.memory_reinterpretation.md",
+      "sha256": "ac579c439264a631455e54274ab0ba11e0485367c441fad71c76db0333263457"
+    },
+    {
+      "path": "packages/providers/src/agent-reasoning.ts",
+      "sha256": "5a59aa41a17579ff08ae2ed07583ad5008fa0aca8e2e0ce0e5018cf9ccd770c3"
+    },
+    {
+      "path": "packages/providers/src/navigation-schema.ts",
+      "sha256": "6ab44b3f5cd007ff4a4a47009cb6729f3b363fa26f08b3de4a1b41b4aa9f9aa1"
+    },
+    {
+      "path": "packages/providers/src/prompt.prediction.md",
+      "sha256": "762eeac43e636c5aba740c0e234d852ca17570d5d47de734dbc7e864e227f2ab"
+    },
+    {
+      "path": "packages/providers/src/prompt.hypothesis_outcome.md",
+      "sha256": "545dce93360d398032da1e6c643b754e0a8c87b18e0544ca20500213199a8a44"
+    },
+    {
+      "path": "packages/providers/src/prompts.ts",
+      "sha256": "78cdaa44e0b2075d24e884427bfcd65e7aa19cd32c5df5cc3d5bb430bf3202bc"
+    },
+    {
+      "path": "packages/providers/src/component-authoring.ts",
+      "sha256": "29abdf4c346793ebf6e71706955e664592c220214e4c4e2ab7b4df784b0bf68f"
+    },
+    {
+      "path": "packages/providers/src/prompt.formation.md",
+      "sha256": "ec0ce57942f34bfeb6e802fcd5e0707469e54f116cfa9b5e703d5ac37cce9ffe"
+    },
+    {
+      "path": "packages/providers/src/prompt.researcher_authoring.md",
+      "sha256": "bb626bca56ab0d1e75365cd1718a1add0b6b0536de67c93460b87045024f68f1"
+    },
+    {
+      "path": "packages/providers/src/prompt.prediction_gate.md",
+      "sha256": "59cf209967f07fa0b384ca2c9dddbe9c1d700c6cf9c9b075ed381bf4a1b696a3"
+    },
+    {
+      "path": "packages/providers/src/prompt.identity_clarification.md",
+      "sha256": "e6f50c13ef4ef65662445fb5394d07a6aa2c6668c2227a673acc1bf8b54e4a70"
+    },
+    {
+      "path": "packages/providers/src/prompt.speech.md",
+      "sha256": "506680502ab02b34df7cac77d3b1cbdd47c3180e46cc990d9832b6ef0eea8ddb"
+    },
+    {
+      "path": "packages/providers/src/prompt.evaluation.md",
+      "sha256": "004af6047f6afeb29c3c3a57228acfca00489293ed610bbe43e6531149bb99f4"
+    },
+    {
+      "path": "packages/providers/src/prompt.cognition.md",
+      "sha256": "97516ed0c343c8761b1aa2df614564e52123cc6867790be0e30d3913b9a0c660"
+    },
+    {
+      "path": "packages/providers/src/prompt.effortful_recall.md",
+      "sha256": "7f483c260b2fec68cec894298cbed45a27a5e5f3e78a8d3a23e36d37aa1bbee7"
+    },
+    {
+      "path": "packages/providers/src/constructed-schema.ts",
+      "sha256": "db76355f1bc2eaaec0fda7fcef72104ac5b194b6a081d701c999224b520309cd"
+    },
+    {
+      "path": "packages/providers/src/prompt.disposition_learning.md",
+      "sha256": "da5eb6de0cd2efb70d7285372727331c00facde32b4239e83d5efd12d69c997d"
+    },
+    {
+      "path": "packages/providers/src/jev-http.ts",
+      "sha256": "de786cd2ea60fcf92555677a3314e4c71c7dc5179199e2848860c47c5103057f"
+    },
+    {
+      "path": "packages/providers/src/config.ts",
+      "sha256": "6022b58e6e1181bd7b81535f49ff1762788eb49d7b8f32fd382e1b7bddc28d1a"
+    },
+    {
+      "path": "packages/providers/src/prediction-evaluation-schema.ts",
+      "sha256": "1344109cc3a1dd2d7db15a43dadadc1e594a5920cfee794ea19f9378fbfd481f"
+    },
+    {
+      "path": "packages/providers/src/identity-authoring.ts",
+      "sha256": "ef369e8efb4b7e19bbe6eb6a6577fde9ed9e4481ac057aa4f9d53ca06eca5501"
+    },
+    {
+      "path": "packages/providers/src/prompt.disposition_activation.md",
+      "sha256": "bcc964a68e9702e4216983bc1e5260d04d732e635b816b77bbbefa07dd1ae4bc"
+    },
+    {
+      "path": "packages/providers/src/primitive-prompt.ts",
+      "sha256": "bce036d8a7a05f208c070df25bf9947fa7eb66d641b90dd6db584beff3ba5a24"
+    },
+    {
+      "path": "packages/providers/src/prompt-inspection.ts",
+      "sha256": "87a775936f3f47fc56b6763dde4609fab87ddd5a410f5f3718c7dc03b6b55769"
+    },
+    {
+      "path": "packages/providers/src/deliberation-schema.ts",
+      "sha256": "7cf952570fc80dde3ecd2731ac2301528663e313557774b9b44679ee6233bd08"
+    },
+    {
+      "path": "packages/providers/src/prompt.identity_answers.md",
+      "sha256": "5ad7547648cb3edbda406ce0edc8498a109d5a8826d1ed9e912a65a8c9000cdf"
+    },
+    {
+      "path": "packages/providers/src/secret-vault.ts",
+      "sha256": "5984d761939d7ee6bc380ed0a38676771a85716fc9c9c213f32ba0c222f68834"
+    },
+    {
+      "path": "packages/providers/src/jev.ts",
+      "sha256": "af2cabf4cba509d559b531b4b678d9d7af297dcbf5ebf8dc7ca42452d98b26ac"
+    },
+    {
+      "path": "packages/providers/src/prompt.replay.md",
+      "sha256": "83daafac578c4c34c3e21c81cb1df01758d886c20718864e42fe0981ac313f95"
+    },
+    {
+      "path": "packages/providers/src/prompt.hypothesis_reflection.md",
+      "sha256": "8a442344191bd8aa7e94246451ee0352edd557322f6b5002ef2aa21eeb72f802"
+    },
+    {
+      "path": "packages/simulation/README.md",
+      "sha256": "b06e97ccf37898f895b242bd683e47b94ce81be5bac5bd091de4294d027bc411"
+    },
+    {
+      "path": "packages/simulation/package.json",
+      "sha256": "7781a42eb62491481b07a4fb138938ff914da60849ff7acedb68b10215f17414"
+    },
+    {
+      "path": "packages/simulation/src/encounter.ts",
+      "sha256": "c0b08aab21df86b0d4087c99982b975375a50548b7985dcf45ec43bca0f49a18"
+    },
+    {
+      "path": "packages/storage/README.md",
+      "sha256": "464f28e96b729262c6471869fdc0cd452cde6bb09c918c66a5a3e4c7d8588bfb"
+    },
+    {
+      "path": "packages/storage/package.json",
+      "sha256": "30c29c788b7d0175ca3ddfbcf0da3d4cca69f7ddf63e64745d2f46ee804e340b"
+    },
+    {
+      "path": "packages/storage/src/migrations.ts",
+      "sha256": "1d2fe50420493a7c1061e2b3ebeed1498b9412b1dc633931209196f4619bf0b3"
+    },
+    {
+      "path": "packages/storage/src/sqlite.ts",
+      "sha256": "ebdd6df817f419761b5cc1d7fff3052d4ff12eb784297807ada5b77e232d5059"
+    },
+    {
+      "path": "packages/sdk/README.md",
+      "sha256": "94c5b024a39513bc0f9f2581d5bbad27256efcc18afca341439a8ee445c1736d"
+    },
+    {
+      "path": "packages/sdk/package.json",
+      "sha256": "60235ecdf48db3ab98df21eb22d6d633f6bf06df1d8465d7fbd651303f50bbd7"
+    },
+    {
+      "path": "packages/sdk/src/identity-questions.ts",
+      "sha256": "81b386223abcda272ba3d781e936b588ad5b471c4478a54fb58499044b4e1e47"
+    },
+    {
+      "path": "packages/sdk/src/demo.ts",
+      "sha256": "f9e1c7f2ae51be5be93ba73a44298c08d1ed26db833d07e8b6c1670d613fd24f"
+    },
+    {
+      "path": "packages/sdk/src/chat-executor.ts",
+      "sha256": "1d5398388c620c2671609ca2b641e6d929c61a6e5a49da1c8eaffc03c00392ca"
+    },
+    {
+      "path": "packages/sdk/src/conversation-starters.ts",
+      "sha256": "66cace9c48c71c315283468f1074c790334ff16b03f14699e4bcbefd72883bf6"
+    },
+    {
+      "path": "packages/sdk/src/prompt-preview.ts",
+      "sha256": "37c220e9bcab6346e3edc0fec08256e820f539e6e3aeec477c9cb8c08007ef78"
+    },
+    {
+      "path": "packages/sdk/src/simulation-tests.ts",
+      "sha256": "160c6cdd50f656d43f4ca2fce147c7378407da4fc31bcbf45d130d8c585cf86f"
+    },
+    {
+      "path": "packages/sdk/src/memory-search.ts",
+      "sha256": "1207da30490c5c9d1ab4767c5a778a973133ddd09c64811cc5ecc1a26665e1b5"
+    },
+    {
+      "path": "packages/sdk/src/prediction-scaffold-simulations.ts",
+      "sha256": "b7b917826fddf0d87e2000eb5e431e2a9d66afa98a4a63268a6ffd49420413cb"
+    },
+    {
+      "path": "packages/sdk/src/seed.ts",
+      "sha256": "560a6e5a80fa760802fb221a7745af072cfc0c600cc2ef5e74335595f09e35a6"
+    },
+    {
+      "path": "packages/sdk/src/experiments.ts",
+      "sha256": "9017b07f545e82ea6e6749a06eb8750ca9eb289e89c7b02b1f459616d7f237d6"
+    },
+    {
+      "path": "packages/sdk/src/api.ts",
+      "sha256": "80374350d7171d11886cc0910e56058e48bbce327e92c82848d4485ede7e11d0"
+    },
+    {
+      "path": "packages/sdk/src/application.ts",
+      "sha256": "909ad2b12b0d6fe3d8564bff965acde02935c03490ebcffca890c78025ce4c2d"
+    },
+    {
+      "path": "packages/sdk/src/gauntlet-simulations.ts",
+      "sha256": "fe12bce4cd0eb2cfb1f0ced5b7d060a0469d9cc1bc31c208d8d8c7c7308c073b"
+    },
+    {
+      "path": "packages/sdk/src/component-authoring.ts",
+      "sha256": "e4d1fbe905716c791674ea6550e25cddf16a656e9f56975269c97150cc6b6954"
+    },
+    {
+      "path": "packages/sdk/src/disposition-statistics.ts",
+      "sha256": "8fd9d00090d21a0a968f70db447e608ba96a4f260db5b14296d77dfa43681307"
+    },
+    {
+      "path": "packages/sdk/src/identity-authoring.ts",
+      "sha256": "4694779aa0b90efccb5cf575561cea0cdbda78d7c79028584ffefbd8110fd079"
+    },
+    {
+      "path": "packages/sdk/src/prompt-settings.ts",
+      "sha256": "9459f4f0ea0fcbb0f883d03a676278b97f98118abbdeae35ff4b75419a4b357a"
+    },
+    {
+      "path": "apps/README.md",
+      "sha256": "6d4f20f9dd6d6e8f74247a079eae1160679c75e59746ddc9dd873059d60894ec"
+    },
+    {
+      "path": "apps/web/index.html",
+      "sha256": "12b4832b620ea3ba36422075617b4918267c4384b8d1a98ff240abe19677d0b7"
+    },
+    {
+      "path": "apps/web/README.md",
+      "sha256": "b36fbfe260c27dcdcd19b6386e103b21ac401ad1a7a82e6581672861b8ade57d"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "880f8369fbfef857e97742e6991ec7a74c721f0f4afbe108d71b88673791a7cc"
+    },
+    {
+      "path": "apps/web/style.css",
+      "sha256": "97e613089e934e37c3a86bd1c61a99391a267147f97ff890a65bae765f5f8198"
+    },
+    {
+      "path": "apps/web/src/app.ts",
+      "sha256": "b605fc3bb6791fea96f6b2e52d3f99428c1018456e0ba629dcbe88db96971a3e"
+    },
+    {
+      "path": "apps/server/README.md",
+      "sha256": "e48f4cbaba612b472f384a31a6be0087141f921e417fc44438a34874399a11e4"
+    },
+    {
+      "path": "apps/server/package.json",
+      "sha256": "40beb45e248d579939839013055c494ad2d189730f848d7df1ed7d272b22dfbc"
+    },
+    {
+      "path": "apps/server/src/main.ts",
+      "sha256": "2735705ac14e0d5250bcce20b8f9cefdc9401dbd97601f2d5d0fa644a12f3e83"
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "sha256": "aedc9d14e8fc702c99c86b2cce8e60328c4be9f04828fbc4be5874c4151c56d1"
+    },
+    {
+      "path": "apps/cli/README.md",
+      "sha256": "6e0707741b352e0874cc7a53ea2dacefa5ee0935c1045d801b763ae3016939a0"
+    },
+    {
+      "path": "apps/cli/package.json",
+      "sha256": "768d042b965da85cc234203a9249522e7a0fbb09b06be7bdff03304f3a440914"
+    },
+    {
+      "path": "apps/cli/src/main.ts",
+      "sha256": "04cda99927ffb9c11cae0f7383bc2d57b9c8dcf1015d25df6d0919ebb7de56bf"
+    },
+    {
+      "path": "docs/.DS_Store",
+      "sha256": "b98e38b85920a5a9e1dea430cccfd3d2d3eb7562e2654fd95b8934fbd8527bb4"
+    },
+    {
+      "path": "docs/SIMULATION_ARCHITECTURE.md",
+      "sha256": "66e01cdda3486e4a45ae0064e7ab4d3b39c18a6c88456ca212ec93ee9c7deb30"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "dd730cf78dbe451402acf6b449e761bc7e7265d0f9c098a030d6efc99a7ffcae"
+    },
+    {
+      "path": "docs/Example-Prompt.txt",
+      "sha256": "262f0f22fc533fffec8939d3347ce770c979b71683675cc29ec453663cf40b43"
+    },
+    {
+      "path": "docs/PARTS_ARCHITECTURE.md",
+      "sha256": "51d2022ad31ea0cb611fc6a5178abb9c6bcfe2fee2570e55f7e84edb664aa552"
+    },
+    {
+      "path": "docs/development/EXPERIENTIAL_DISPOSITION_REQUIREMENTS.md",
+      "sha256": "c8a54f9e320946016ad777f72022ca92d5b759fbfa3321f68cd39de822d6f140"
+    },
+    {
+      "path": "docs/development/WORLDSTATE_THREAD_SOURCE.md",
+      "sha256": "a751fd98be615bb338c8fbec7fbd5903da7eadcfc4a6b402f354965214f4fe2a"
+    },
+    {
+      "path": "docs/development/DISPOSITION_THREAD_AUDIT.md",
+      "sha256": "7911b9622f9cf230b4b8102807bde9b0372eee7eccbe5199f500033fdb5d4873"
+    },
+    {
+      "path": "docs/development/WORLDSTATE_THREAD_AUDIT.md",
+      "sha256": "1e29cef8c5a7a255f36dd5c0473c7381188483078011e3d83d0512d4e68d8c54"
+    },
+    {
+      "path": "docs/development/CURRENT_STATE.md",
+      "sha256": "21f0c1b9b9f3a380c5abc323b801dfaf65dbb2b6e4b45f5b4c98dc34475f990c"
+    },
+    {
+      "path": "docs/development/PREDICTION_SCAFFOLD_THREAD_AUDIT.md",
+      "sha256": "f33d8461a128a01a08f3126957de2ca6d5c537c69e0f1ab47a7b36c096165034"
+    },
+    {
+      "path": "docs/development/README.md",
+      "sha256": "a42b1a868383961decdff587c9244dc25176458a3c21abb21a63a8ec829cb5c3"
+    },
+    {
+      "path": "docs/development/IMPLEMENTATION_REQUEST.md",
+      "sha256": "19492060eadee4801a247cfae3dccbcf5435931bf8ef700c4748d62e236611d0"
+    },
+    {
+      "path": "docs/development/COMPLETION_AUDIT.md",
+      "sha256": "35d8efbc4cd18d561ff69deeed2587f03bc7044d7854d41550dd5acc580b9de7"
+    },
+    {
+      "path": "docs/development/EXPERIENTIAL_DISPOSITION_THREAD_AUDIT.md",
+      "sha256": "f1a9fdc331c74b2db36651e358eb3dcdf8ccb73db40f4c9ce4874cd1ea92f6b3"
+    },
+    {
+      "path": "docs/development/PREDICTION_SCAFFOLD_THREAD_SOURCE.md",
+      "sha256": "ca31b5a67377017c9c622908d4a8265fa3c030bc54ed9b85bc00de564f634953"
+    },
+    {
+      "path": "docs/theory/ACTIVATION_NETWORKS.md",
+      "sha256": "4ab577e68eee5365b6dec83a68436cfc2f002cad103b1b921d7d98bf9a8f1ce7"
+    },
+    {
+      "path": "docs/theory/PART_EXPRESSION.md",
+      "sha256": "742ea2c4fcea444db9e1d8f7b498038a460dbcad792ee5179b2e37745beb7ee3"
+    },
+    {
+      "path": "docs/theory/TEMPORARY_PARTS.md",
+      "sha256": "536f89670690c1bab1004d682de893ea27af86a0060110f4e70db1f81841a1f3"
+    },
+    {
+      "path": "docs/theory/THERAPEUTIC_CHANGE.md",
+      "sha256": "ac49c5eac51ad90dc90cd41d80baddcda5d7bf59df1f172bd3a5521f16ec64e4"
+    },
+    {
+      "path": "docs/theory/IDENTITY_MASKS.md",
+      "sha256": "d174e13ead28f4c7e0ff718628d134ef11a0329f9d37db729c44bfac14f867f8"
+    },
+    {
+      "path": "docs/theory/AUTOMATIC_AND_DELIBERATIVE_COGNITION.md",
+      "sha256": "13650290691d6894b290bbc02e22adeb9141ec6d1aacf462486082ce4b306938"
+    },
+    {
+      "path": "docs/theory/PART_EXECUTION_ORDER.md",
+      "sha256": "e79523b2965a321aaa8ba73ba484b99b3f51df09266fad120e0e5ba4171b85a1"
+    },
+    {
+      "path": "docs/theory/GENERALIZATION_AND_SPECIFICITY.md",
+      "sha256": "7dd2763e280946a28cebcfe50422b3474eca5ae49c65a6373411319cffd1bfb7"
+    },
+    {
+      "path": "docs/theory/PART_ONTOLOGY.md",
+      "sha256": "163cc6dd2a783e92b947f7126f8d3fd0fb9703d345e058a2495da128d61e37df"
+    },
+    {
+      "path": "docs/theory/PERCEPTION_MODES.md",
+      "sha256": "01c9f250746495dd01743bb5aa8520cd4433c98f715ba596f8c8812c52a78b23"
+    },
+    {
+      "path": "docs/theory/ATTENTION_AND_AWARENESS.md",
+      "sha256": "a118e0ef1f7683ec87e387ef63ac4cee45c766e49c252418ba1d54924aa1e3a9"
+    },
+    {
+      "path": "docs/theory/TASK_PERSISTENCE.md",
+      "sha256": "4632ee73a88b77f463e442a864d2e486e097eb863cfd8bee0853794b236e6466"
+    },
+    {
+      "path": "docs/theory/SELF_CONGRUENCE.md",
+      "sha256": "27eafe137c5180703ef62be1ca295994adfd7d1e151db579445e62a6a983a32e"
+    },
+    {
+      "path": "docs/theory/COGNITIVE_RANGE.md",
+      "sha256": "f76509ddf2d43f41dff443dcd5e2eb13dd22bbaa3988d1ae21f38e9b6c42b674"
+    },
+    {
+      "path": "docs/theory/IDENTITY.md",
+      "sha256": "cb39ffb5596c96ecf8d37d1e79ef5465cd54ede58ac91256e76692a190614eee"
+    },
+    {
+      "path": "docs/theory/FORECASTING_AND_IMPACT.md",
+      "sha256": "a3e66395722bd13cf911c50fb7394ea961e832a13e9f1b51e73a5f3bb3d434fc"
+    },
+    {
+      "path": "docs/theory/ACTIVATION_SPIKES.md",
+      "sha256": "3570ab154d09900085ddb6765c163714bf2de2e867662b6aeaf0289d44eeb095"
+    },
+    {
+      "path": "docs/theory/MEMORY_RECONSOLIDATION.md",
+      "sha256": "511d53fffe00c5eb2e42a1aa27469d70b9993b5e28770b943dfce48ee1276789"
+    },
+    {
+      "path": "docs/theory/DECISION_PROBABILITIES.md",
+      "sha256": "1c53d49b419bd20be5473552b2af041d5549191aeb92f7c8589e36d26fe79de9"
+    },
+    {
+      "path": "docs/theory/IDENTITY_STRUCTURE.md",
+      "sha256": "97737c56a0566ba3e746e805a743d3f2f7444561aa2b7bec52e8232e9fa73e45"
+    },
+    {
+      "path": "docs/theory/INTERNAL_DELIBERATION.md",
+      "sha256": "d4c23c6ba13ef3ab399ec64d7bdb52a6b4e943cfe361d1b424bbe12987cf1357"
+    },
+    {
+      "path": "docs/theory/OPEN_THEORETICAL_QUESTIONS.md",
+      "sha256": "69a363e4fff31d63f493820f8397d1ca2f0a9d5806df468a2757cff40785f8e2"
+    },
+    {
+      "path": "docs/theory/PART_STICKINESS.md",
+      "sha256": "7d787e3742f80739a9a3a7b64d53cd52d74956377f9ce23b0f295823aee5ddc3"
+    },
+    {
+      "path": "docs/theory/SELF_RUNTIME.md",
+      "sha256": "eb3b7bda3582a5546e8ad597aa9971fa1e0c283aa6940288e361d998c590dd05"
+    },
+    {
+      "path": "docs/theory/COGNITIVE_ACCESS.md",
+      "sha256": "8324bfb677360d03c54a6386a647104ff706e6a8c90ea5983c8f2b409042c792"
+    },
+    {
+      "path": "docs/theory/README.md",
+      "sha256": "3c536a7ef618bed8ded9c3098d8ba7f7b6f154f70b3e948d71afb4139c75bd17"
+    },
+    {
+      "path": "docs/theory/MEMORY_REEVALUATION.md",
+      "sha256": "b2b9ca7e8056ec44a5263c0c397d9fa465cb01b793f6b79c824b4114d7a766f9"
+    },
+    {
+      "path": "docs/theory/EPISODIC_MEMORY_FORMATION.md",
+      "sha256": "dc9afcc15d1a0fd6b23745306c474f3b0d1fb70d378e548302325cdd615c3068"
+    },
+    {
+      "path": "docs/theory/LANGUAGE_FIRST_LEARNING.md",
+      "sha256": "4322f15b7baa6ba4475f90df2058efbc955e1afe32b881ecf27e3f22ae7cc832"
+    },
+    {
+      "path": "docs/theory/COGNITIVE_MODEL.md",
+      "sha256": "082b63dfc988016f27245788ce881f838eac236fe50924e86f2eab256215c0ce"
+    },
+    {
+      "path": "docs/theory/SELF_MEDIATION.md",
+      "sha256": "4ca80825b398a4a564ef499e5c80a9c50fa572eaa461a2a50ecfac8d982f361d"
+    },
+    {
+      "path": "docs/theory/PREDICTION_CONTEXT.md",
+      "sha256": "cd29d385d338b6699b88dbfc8580ef0ee39a9175586ef33fb215b5ad23630a90"
+    },
+    {
+      "path": "docs/theory/MISSION_AND_BIAS.md",
+      "sha256": "8b3dd07362a4f4635ad9ef0ff03ecde2211ad37ab971c9e4e85ecb162b701885"
+    },
+    {
+      "path": "docs/theory/RELATIONAL_REALITY.md",
+      "sha256": "3728eb40e3f49e831493edca4a2d0f770c0d1e17d7b4e755389a97418393e324"
+    },
+    {
+      "path": "docs/theory/CONSOLIDATION_AND_SLEEP.md",
+      "sha256": "bcf509293f44189004ba7f13e497764f88421946fa327cba9a5ffd605323d3fd"
+    },
+    {
+      "path": "docs/theory/EXPERIENCE_DIGESTION.md",
+      "sha256": "15745807af5fa67e2b6c9dedf459c40b7e754e03b1219a8aee1cecec66826858"
+    },
+    {
+      "path": "docs/theory/IDENTITY_DEVELOPMENT.md",
+      "sha256": "cd6305c65ba7e356c34b848eae13541505907fece1e27f79acce4b7273a88ef2"
+    },
+    {
+      "path": "docs/theory/EMOTIONAL_FORMATION.md",
+      "sha256": "008797c7e88bb424b28cfe80515cc695bf0cc7d0ed4b3ebe85093e978641b627"
+    },
+    {
+      "path": "docs/theory/PREDICTION_LIFECYCLE.md",
+      "sha256": "e00772856ee4fba1a48ce20bc20812619b3d4f27676b2406ecb2deb637d14dc9"
+    },
+    {
+      "path": "docs/theory/OPTION_SPACE_AND_CHOICE.md",
+      "sha256": "08539b65d613a895a00a74d741b1a7e3f0e3c15852bbe83364c43edc5e86e1e1"
+    },
+    {
+      "path": "docs/theory/CAUSAL_ATTRIBUTION.md",
+      "sha256": "7001233df8660cb9d4f7c5e73aa7cc7abd8fa95ef66ec7b45189e9f96f4ffdd6"
+    },
+    {
+      "path": "docs/theory/ENVIRONMENTAL_SHAPING.md",
+      "sha256": "754994cfe0957f52b02c4d6921e1b8173b5db11cec7c92a9c28ff6882ca769d0"
+    },
+    {
+      "path": "docs/theory/INTERNAL_FREEDOM_AND_EXTERNAL_AUTHORITY.md",
+      "sha256": "912e6f49be096a5223438da491c7871e8edd99ec282027cab60147c0123d6e1a"
+    },
+    {
+      "path": "docs/theory/EXPERIMENTAL_SETTINGS.md",
+      "sha256": "b901824bb2778e83e71ca1665fcca50fa7637b00518443daa08ba79ded422a97"
+    },
+    {
+      "path": "docs/theory/PART_DEVELOPMENT.md",
+      "sha256": "303b5dde5c2a49e17a22e3984545df273b55fc21269178a703be65fdf178e86f"
+    },
+    {
+      "path": "docs/theory/PART_MEMORY.md",
+      "sha256": "f195b1cefdc899e2d580868025bae4550b526e66c405c657131ee6e8d1372864"
+    },
+    {
+      "path": "docs/theory/RELATIONAL_PARTS.md",
+      "sha256": "80f7f8903ddbc2587d68ae4bfecfbb6042af46fee35af0176a3fff8200f20fc7"
+    },
+    {
+      "path": "docs/architecture/STATE_AND_HISTORY.md",
+      "sha256": "5403668852b83e571f1154d3125575e2bc470b7a46a6cfa264759e8b1d8576cd"
+    },
+    {
+      "path": "docs/architecture/OFFLINE_CONSOLIDATION.md",
+      "sha256": "0b6f7bf993bd899721c02d0ecdd6d925ed9469ac23110110c77702682bbbbad3"
+    },
+    {
+      "path": "docs/architecture/MODEL_EXECUTION.md",
+      "sha256": "103633690e0ba6519c7047b6fe32ffb6e6d58ba4aa7bf894a8b572e6ffca5019"
+    },
+    {
+      "path": "docs/architecture/SIMULATION_BOUNDARY.md",
+      "sha256": "96cf0edd97204237d841bffb23d5add3a4d398b4c52015a0d0f46b1c66d37e43"
+    },
+    {
+      "path": "docs/architecture/OPEN_QUESTIONS.md",
+      "sha256": "327ae3aba1f841bf029ff4cf5f848ac03da30a2f2823c8344115547e3ea5a12e"
+    },
+    {
+      "path": "docs/architecture/PART_ASSOCIATION_NETWORK.md",
+      "sha256": "22f58408b562f1b36f216705e2f4169cb5336c6d1f665444ab21b35816daad36"
+    },
+    {
+      "path": "docs/architecture/PART_VERSIONING.md",
+      "sha256": "9d19e07aecf154dfb1c6e14df42eaeae3a4505d6f4cb4df1b31b78314ab15863"
+    },
+    {
+      "path": "docs/architecture/INSPECTION_MODEL.md",
+      "sha256": "ad2183d3f2c3f912599f02130527ef706266bb28b54144f8551a3c935a17dc66"
+    },
+    {
+      "path": "docs/architecture/GLOSSARY.md",
+      "sha256": "a099c917d7665ccc24b6521c0ccd7d1b133cd70f99c6d098940002ac8daf0929"
+    },
+    {
+      "path": "docs/architecture/SYSTEM_OVERVIEW.md",
+      "sha256": "689796abd16150e2ec44a6face74e692bfb86872dd22a4e41350dc8ffdd1c64a"
+    },
+    {
+      "path": "docs/architecture/INVARIANTS.md",
+      "sha256": "cd2a83892c04c02cc104b8c870e1fd8c96fed0692acc320703ce99199e81d24e"
+    },
+    {
+      "path": "docs/architecture/ACTIVATION_PROPAGATION.md",
+      "sha256": "1a659f2026bed4e93c50653651caabfb5dc39b4e1e5626976a38e48ef68bf356"
+    },
+    {
+      "path": "docs/architecture/DECISION_MODELS.md",
+      "sha256": "7cd61fe223cd6144eda19c2a6131a6a69423a765dab03d39014689d88b3f92c9"
+    },
+    {
+      "path": "docs/architecture/README.md",
+      "sha256": "7c2432715c8840abe374032ff5a065e4e54baa3cc258f5debf33ca5f385964ac"
+    },
+    {
+      "path": "docs/architecture/INFERENCE_CONTEXT_AND_CACHING.md",
+      "sha256": "647c7a2c86b42428a244f0655809e4e9fd5cae6963e38c28e368d791b2ee01f8"
+    },
+    {
+      "path": "docs/architecture/COGNITIVE_SECURITY.md",
+      "sha256": "081c656622c3b3031b74cea53b4b19bfc8821b9c7a60a18889858f9ed581817a"
+    },
+    {
+      "path": "docs/architecture/COGNITIVE_LIFECYCLE.md",
+      "sha256": "69ec497d90417f1e08bb310133e5138bf42477f30f25930c587df076806cf3c8"
+    },
+    {
+      "path": "docs/architecture/PART_RUNTIME_PROTOCOL.md",
+      "sha256": "2dede9f5eae3d3e1cc46fdbd3d3699dd771a5ee7dfa61576abf8d630fb7e813a"
+    },
+    {
+      "path": "docs/architecture/JEV_INTEGRATION.md",
+      "sha256": "4be21a0f0d88729fe91d30457157df56b9bf3f4ffd16666e89d268d028f7848a"
+    },
+    {
+      "path": "docs/architecture/INTEGRATION_CONTRACTS.md",
+      "sha256": "3db5fa7b10d08ad481ffc1d8b958fd33be0491e9cd52b268b65493ee14a61f65"
+    },
+    {
+      "path": "docs/architecture/CANONICAL_AGENT_FLOW.md",
+      "sha256": "2c66e40edac12b8dd15ed013a48b3dcf1519dd0dd778c20fa14f2875520720f9"
+    },
+    {
+      "path": "docs/architecture/SIMULATION_LIFECYCLE.md",
+      "sha256": "0bdb5e26e42f65d76dd74daa47ad10a76855486247bcad7229affb0b0c3ba340"
+    },
+    {
+      "path": "docs/architecture/decisions/0100-researcher-identity-authoring.md",
+      "sha256": "950cd87623d271295534bc76032c71a73adec3883c7432fcb2596e6f06c67b97"
+    },
+    {
+      "path": "docs/architecture/decisions/0034-self-selects-against-identity.md",
+      "sha256": "d54798fefa9d3ddd045cc698c7ccd0ae4fa799b2cee7e7407b29cdca6517319d"
+    },
+    {
+      "path": "docs/architecture/decisions/0106-fourteen-default-primitives.md",
+      "sha256": "25efcc31efe3d094866ffdfb1e047c2d762f3b81f21932e188a7cae790b966e8"
+    },
+    {
+      "path": "docs/architecture/decisions/0067-activation-is-shared-state-independent-scoring.md",
+      "sha256": "049f5744fd827b9cd301fcfc60ca3eace84286c803c89d5c3c92f6b6799fd871"
+    },
+    {
+      "path": "docs/architecture/decisions/0073-therapy-is-an-architecture-benchmark.md",
+      "sha256": "a0509fa9b0c4bfe8fff97002e2c9e10f1a602e0d94451bbff4643d26195fe8ff"
+    },
+    {
+      "path": "docs/architecture/decisions/0084-prediction-evaluation-can-encode-episodes-while-awake.md",
+      "sha256": "664035f8955dbf37c6fa5a50748d0877c4d483a29b5280e1a5f17d053e7e303a"
+    },
+    {
+      "path": "docs/architecture/decisions/0115-permanent-agent-deletion.md",
+      "sha256": "aa47fd30e1bc5bd76e27272f82d92e148ad3457e36d53d32b2d82a31b22be222"
+    },
+    {
+      "path": "docs/architecture/decisions/0125-agent-memory-and-worldstate-links.md",
+      "sha256": "c169dd6bf82c83a1c2122cb4ea8a803c3895b2cf2cd3b3ab37b86c6e1cab3844"
+    },
+    {
+      "path": "docs/architecture/decisions/0043-part-state-is-language-first.md",
+      "sha256": "3bef81ae43e3b64dce8d960dbad8854a6524ff423b3eba2f4e3c4cb7617e0d5a"
+    },
+    {
+      "path": "docs/architecture/decisions/0111-inquiry-target-directory.md",
+      "sha256": "ba1402281b972a01f2b0be7496a119b605eef5e4a867291f1a8aaf5ef8cc026d"
+    },
+    {
+      "path": "docs/architecture/decisions/0089-twig-prompt-context-rendering.md",
+      "sha256": "c744bb6dc992653010ce937fef7f306c28ec989638aed10dbfceb71f968894a2"
+    },
+    {
+      "path": "docs/architecture/decisions/0047-part-learning-uses-lived-prediction-evidence.md",
+      "sha256": "3558e7745694dbbe083eb8be2223a4493ba0842f808201f58e3ec0323bb650ed"
+    },
+    {
+      "path": "docs/architecture/decisions/0057-parts-are-learned-agent-world-relationships.md",
+      "sha256": "d72b77f8ea3da74834fec9bc8dedad8c662f1af583c7bcf9cb404b75f3d0976f"
+    },
+    {
+      "path": "docs/architecture/decisions/0130-disposition-parts-participate-without-activation-scoring.md",
+      "sha256": "69d08f86ab85bcb51c292adf67c8eeccdfad8fa9f3eae3ccb3281bdc1b657a1b"
+    },
+    {
+      "path": "docs/architecture/decisions/0059-part-activation-may-propagate-through-bounded-cues.md",
+      "sha256": "f18dcfae5f72a1f76d69cf9a0aec9f082e4c885c619ab4ac04e1568bb819b452"
+    },
+    {
+      "path": "docs/architecture/decisions/0035-part-predictions-create-future-evaluation.md",
+      "sha256": "25bac69bb74a471084a33e8f38bbfa6b5af4f3bd5f90bf2423515329e754de09"
+    },
+    {
+      "path": "docs/architecture/decisions/0093-full-chat-and-decaying-shared-thoughts.md",
+      "sha256": "c2e0cddee4b3caa637d16505d9816f4405b7602137ce7bc50eacbbd82c8f3b67"
+    },
+    {
+      "path": "docs/architecture/decisions/0137-experiential-disposition-development.md",
+      "sha256": "ba297c710bf8ab5398e72b53cc27f1b82e9356c22cb6c5a7bdd8ad04d73370fa"
+    },
+    {
+      "path": "docs/architecture/decisions/0069-parts-may-carry-execution-order.md",
+      "sha256": "a4183805d5e2aa62eb45631a44808fc66d43aec6ba8dd258bbdfa3e5c56ca3d2"
+    },
+    {
+      "path": "docs/architecture/decisions/0021-parts-define-the-candidate-option-space.md",
+      "sha256": "b22eca40e814d6e0203946e1bd8398bd05b0b54bb4a4e47cd92cdcebf2725adf"
+    },
+    {
+      "path": "docs/architecture/decisions/0085-memory-formation-does-not-require-prediction.md",
+      "sha256": "9ec3b36563915b2e96fe9ea3bd2918e33904bb0386fd3e38cbac21f45b226e86"
+    },
+    {
+      "path": "docs/architecture/decisions/0054-decision-probabilities-are-not-psychological-state.md",
+      "sha256": "af9f17238f8f1f58cc942c185764477ff83c861a505011e17c410e96a1d79efa"
+    },
+    {
+      "path": "docs/architecture/decisions/0044-part-memories-represent-relational-reality.md",
+      "sha256": "5ed10b7d490804bdc588362950e5edd2b6b274a9883f15088424769eeab405d3"
+    },
+    {
+      "path": "docs/architecture/decisions/0075-subjective-memories-retain-opaque-event-ancestry.md",
+      "sha256": "f20fa722af70d3cd3aa3e098653a3634ce5a2dbee3fc05859d9491c1948dc3f9"
+    },
+    {
+      "path": "docs/architecture/decisions/0009-parts-form-through-emotional-significance.md",
+      "sha256": "55359cbb1f4a5442b8e6c966f391b0e803016481581f8a1770a953699543a20d"
+    },
+    {
+      "path": "docs/architecture/decisions/0049-part-expression-preserves-first-person-boundaries.md",
+      "sha256": "f8ae10aab5e4141e8579121c7fc350cb7c4911f94b88b87e8946f49f43f4c3a4"
+    },
+    {
+      "path": "docs/architecture/decisions/0010-parts-are-mission-biased.md",
+      "sha256": "d65adc757e40f2a597b0f7e8802ad3bd59b691a43b3a6e0c72dc151c8dc34c68"
+    },
+    {
+      "path": "docs/architecture/decisions/0083-predictions-preserve-part-selected-context.md",
+      "sha256": "fb8adbb198593960c591a46084dafe2ad15b028ab4464467b0a891647b28314a"
+    },
+    {
+      "path": "docs/architecture/decisions/0070-execution-is-an-external-handoff.md",
+      "sha256": "3a53fcc19ebd540db4f7c3655e8c6ca537953e4411b0cc010a59fa62e0b10e4a"
+    },
+    {
+      "path": "docs/architecture/decisions/0032-parts-own-interpretation-forecasting-and-proposals.md",
+      "sha256": "4a0b581cee9e63c6237b6edf6170b5394f6ad2f09fb3c45940e5dbd2a59a7c94"
+    },
+    {
+      "path": "docs/architecture/decisions/0017-part-change-is-incremental.md",
+      "sha256": "9bc36b8246d2f16e5159109e949f46c41779b4bf28c62de5332fa469f4d6a947"
+    },
+    {
+      "path": "docs/architecture/decisions/0042-self-and-world-aware-context-use-separate-cache-domains.md",
+      "sha256": "19319c3e5eb3468df9373e79062627cb04dbb08773538b525f94bb56b7497c31"
+    },
+    {
+      "path": "docs/architecture/decisions/0098-cognition-products-and-next-cycle-thought-activation.md",
+      "sha256": "0029adac28315ec87c4287aae0ab855e3c229191062c4297a375a46ff2e82aab"
+    },
+    {
+      "path": "docs/architecture/decisions/0107-primitive-bid-permission.md",
+      "sha256": "fe6b86e03ccb1d3d4b54e29b2720e1bc21854bad4b970a0cebd5d9005abf28a3"
+    },
+    {
+      "path": "docs/architecture/decisions/0058-recognition-generally-precedes-reaction.md",
+      "sha256": "0da4dabe6536c379fa009723b12e3547856160170ed40a49db81e145bcf502dd"
+    },
+    {
+      "path": "docs/architecture/decisions/0102-selective-identity-authoring.md",
+      "sha256": "690425e5c9241504e83bad1c71fff451640f5fd8d87a1c56addc0b47d2c99207"
+    },
+    {
+      "path": "docs/architecture/decisions/0131-ordered-perspective-generation.md",
+      "sha256": "1bcac890e2b3387f7166468fb12d9d49f16f06e2f24a5bc1aef72e754a82e6ff"
+    },
+    {
+      "path": "docs/architecture/decisions/0036-identity-masks-are-temporary-overlays.md",
+      "sha256": "4fe1e8575e78cca4ffa45deb5b3d49eab0b4e2a0f2faa38c6676bce5bd0c18d2"
+    },
+    {
+      "path": "docs/architecture/decisions/0138-prediction-led-relevance-scaffolds.md",
+      "sha256": "b3c8e3e05d3b418dcf28c7e93b69c73dea21d455f9d407a7adceb6cad6633439"
+    },
+    {
+      "path": "docs/architecture/decisions/0025-self-is-a-transient-integrative-mode.md",
+      "sha256": "6875e7ff64b3b82b22f6d6b775e32ee73f8b8505d54252c0b4420d2cb7b39959"
+    },
+    {
+      "path": "docs/architecture/decisions/0063-consolidation-is-conservative-and-semantic.md",
+      "sha256": "532efb8cf3450b647e885a63dd96305edd44c326081f930e649f99d27cd13c41"
+    },
+    {
+      "path": "docs/architecture/decisions/0122-mission-advocacy-and-belief-grounded-answers.md",
+      "sha256": "802b2904975f7e51325c127446a9aff9b424b470a10f5875ea8593c0274bd553"
+    },
+    {
+      "path": "docs/architecture/decisions/0108-post-deliberation-activation.md",
+      "sha256": "4976ec7ff28de1d7eed063b3c49ccff641fdd0e3d02a57ca5c256a6d4eba29c0"
+    },
+    {
+      "path": "docs/architecture/decisions/0129-progressive-disposition-cognition.md",
+      "sha256": "6690824f26c6fe7f1145317bc7035e547394decd48437bafe7ffcb7f70588449"
+    },
+    {
+      "path": "docs/architecture/decisions/0132-direct-worldstate-disposition-activation.md",
+      "sha256": "b03ad2e3dfb12840cec2c45339c5a22df189d5bda938d997d90fde308ec419e6"
+    },
+    {
+      "path": "docs/architecture/decisions/0030-worldstate-is-objective-and-goalless.md",
+      "sha256": "009d9972cabbf2147d7dc12a98ee928e8114392826ef0cddce083b51cdc5497b"
+    },
+    {
+      "path": "docs/architecture/decisions/0092-motivated-relational-part-descriptions.md",
+      "sha256": "d1ea1b3ca70e43e31a3e7035abd578318c21f618e81e4f3e3885aa5d84d35a30"
+    },
+    {
+      "path": "docs/architecture/decisions/0087-per-agent-inference-settings.md",
+      "sha256": "069531846d57c0b0e2c471edf30e6cdd5483c93ebd44cd5abb14997b47e99661"
+    },
+    {
+      "path": "docs/architecture/decisions/0080-activation-spikes-are-cognitive-context.md",
+      "sha256": "6a195d504d24e483e7a2dcdf2c8f807c3f740476977b79f25b6ecde5369c29e5"
+    },
+    {
+      "path": "docs/architecture/decisions/0077-objective-ancestor-replay-is-rare.md",
+      "sha256": "68e1a52b5dcbb33ef8cfaf016b42a91005a9def60af317c9e99a3e969765c369"
+    },
+    {
+      "path": "docs/architecture/decisions/0062-consolidation-primarily-uses-lived-cognitive-traces.md",
+      "sha256": "67ec5d1dfa7a89ffe78ce5c674430e07cae40d7e51721fe8e05b72ac4737e28e"
+    },
+    {
+      "path": "docs/architecture/decisions/0074-objective-experience-is-not-ordinary-autobiographical-memory.md",
+      "sha256": "7123e0fafa777134e5a5737c0a893c8de2823d9462e19935db07cc6636c176fa"
+    },
+    {
+      "path": "docs/architecture/decisions/0031-activator-matches-worldstate-to-part-triggers.md",
+      "sha256": "2f26e41e84f8f95ddde1d3bbd0570cab701a4772bd9deccfd3c42085dff38402"
+    },
+    {
+      "path": "docs/architecture/decisions/0103-primitive-fallback-contributions.md",
+      "sha256": "c4697f730cbd8409e33a75421c94e17abb5aaa6c56f9a1c832669c89543ffe2a"
+    },
+    {
+      "path": "docs/architecture/decisions/0095-timestamped-readable-world-facts.md",
+      "sha256": "fa813c2cc5f818fc56d17181a5dd7da8061b6a5e16239cd65910aaa9dc3d2631"
+    },
+    {
+      "path": "docs/architecture/decisions/0134-general-disposition-attention-and-development.md",
+      "sha256": "1e4747a37bd1760888499f352d83a7f9d9b53e6443a83d708dfc3a080ff18da6"
+    },
+    {
+      "path": "docs/architecture/decisions/0064-therapy-uses-ordinary-cognition.md",
+      "sha256": "fe8b968f61d379d3f3755943c8e77515d72aec211c664ebfa64450124d9b6f70"
+    },
+    {
+      "path": "docs/architecture/decisions/0127-legacy-cutover.md",
+      "sha256": "4688864eff17f2e9f845797d296f81d40a8f4cfab8cf15376761789e1ee6e338"
+    },
+    {
+      "path": "docs/architecture/decisions/0015-emotion-is-inferred-from-perspective.md",
+      "sha256": "744596d427e4cb8025479de35673c6914e5776506bdff54b78c7197cbc9463ad"
+    },
+    {
+      "path": "docs/architecture/decisions/0022-self-incongruity-is-developmentally-meaningful.md",
+      "sha256": "f9795a1a649c4fa89842aab143a8a154a9a0fac4bd42611d873aad8719bfae32"
+    },
+    {
+      "path": "docs/architecture/decisions/0028-self-has-limited-attention.md",
+      "sha256": "90053c3c67131b5c77038f935f7a6ef9f84c254c911222947bcc5249a50ebd15"
+    },
+    {
+      "path": "docs/architecture/decisions/0086-typescript-local-runtime.md",
+      "sha256": "a6a251c5e60521458d9d54be84e85cbb4dc902f044ec407fcd33bafb3bb36496"
+    },
+    {
+      "path": "docs/architecture/decisions/0110-self-choice-cycle-history.md",
+      "sha256": "3ceb1c379f9ae063dc46e211049956c55ca5c7aa441cf8a920ea7233830bf937"
+    },
+    {
+      "path": "docs/architecture/decisions/0079-significant-memory-reinterpretation-preserves-continuity.md",
+      "sha256": "05ad19ed9dc4ddc8a37625206ce42a9a8506576f381b7c6cc0fdbaf3247d3862"
+    },
+    {
+      "path": "docs/architecture/decisions/0121-part-retrieval-keys.md",
+      "sha256": "aa6b2a4e0f690577341ff4438a8e2b4be2c130fa9fd3a2feef88675c09e71acd"
+    },
+    {
+      "path": "docs/architecture/decisions/0124-researcher-memory-search-and-removal.md",
+      "sha256": "18f1f8310b7abb525685f4021b45437f995a7e63fb3fed2ea9f1e3bb543facc0"
+    },
+    {
+      "path": "docs/architecture/decisions/0026-self-has-no-privileged-memory.md",
+      "sha256": "6965dc3eff8caad3920efe3c55365b939f80f45407c90971cb5a870d34e7bd1e"
+    },
+    {
+      "path": "docs/architecture/decisions/0136-experienced-and-prospective-worldstate.md",
+      "sha256": "f5f6b0aaf9dc5ef52cafd012c0ac6054ecab0f4bc2747c46fc0821ec3b9656fe"
+    },
+    {
+      "path": "docs/architecture/decisions/0076-experience-is-psychologically-digested.md",
+      "sha256": "52d675462daeb57e0eb9d6efbaf1880a0398f963e80879bbb2ad6073b2825573"
+    },
+    {
+      "path": "docs/architecture/decisions/0005-provider-routing-is-infrastructure.md",
+      "sha256": "dd681e30f550085530fc42fe19dea31b6deddd83623ef5e28828a87a7734c8b3"
+    },
+    {
+      "path": "docs/architecture/decisions/0090-chat-thread-context-isolation.md",
+      "sha256": "7894246296c66c1603a715de166ee0cc2959a4108ebf729fb20d857bab8fb207"
+    },
+    {
+      "path": "docs/architecture/decisions/0120-belief-supporting-predictions-and-confidence.md",
+      "sha256": "cfbcdfe81c0ebcc8d0c6c2ea5dd5fd1c42e48246f7696a89e2175f1bb68c5f80"
+    },
+    {
+      "path": "docs/architecture/decisions/0001-parts-are-persistent-perspectives.md",
+      "sha256": "470d43e0f17de9a4687f8e2e7a386a4b364c9f001cbb91fc3fbce291c5754abf"
+    },
+    {
+      "path": "docs/architecture/decisions/0094-current-task-prompt-overrides.md",
+      "sha256": "911ca456f2dba92cb1c6e55dfe817afe73d4e2e196b4eea94909160bec88f819"
+    },
+    {
+      "path": "docs/architecture/decisions/0118-additive-prediction-learning.md",
+      "sha256": "fa2ffe88b11922f83c5cfd57c7a004092f33faad83959c2b1ecf17ebdbec703d"
+    },
+    {
+      "path": "docs/architecture/decisions/0078-current-part-interprets-replayed-experience.md",
+      "sha256": "c865318f35dd0442def6d4a012caa1dc0ad8b7a01116f2e6cd3e3244798b42e7"
+    },
+    {
+      "path": "docs/architecture/decisions/0007-presets-are-not-living-state.md",
+      "sha256": "6897eec344717b264da58550110bb1a2f50c055fd789cf8b47ab225791b31b10"
+    },
+    {
+      "path": "docs/architecture/decisions/0072-subjective-memories-may-reconsolidate.md",
+      "sha256": "21d69980b8deb27a27a0a13c5c6c8c0d2beb3b438cd70380ba07ccce37ef8077"
+    },
+    {
+      "path": "docs/architecture/decisions/0116-self-score-execution-threshold.md",
+      "sha256": "e226c22e36beb5423fc3c21b6f6aa36c0c9e83e37dcac8e7ec2c230ddacc91ce"
+    },
+    {
+      "path": "docs/architecture/decisions/0101-identity-trait-roles.md",
+      "sha256": "b175ddc6fdf5ee1591611b3129b2c8c05133fa48521152d8e611749eaa64fa4e"
+    },
+    {
+      "path": "docs/architecture/decisions/0056-decision-model-providers-are-replaceable.md",
+      "sha256": "dfbfaf89682df54eb1df6324302851147b6a6741f9ca18d517a2217995fe755c"
+    },
+    {
+      "path": "docs/architecture/decisions/0068-task-persistence-is-part-stickiness.md",
+      "sha256": "64adee60bb447cb41def3e7809fce11c9a36e57f7219ee3477ddc84b8e3ed308"
+    },
+    {
+      "path": "docs/architecture/decisions/README.md",
+      "sha256": "36981054dc68d21f0027a076e0794afbe6a24b44a8182d426cb84da8304c1bc3"
+    },
+    {
+      "path": "docs/architecture/decisions/0033-self-is-unmotivated-and-world-blind.md",
+      "sha256": "7a29bd39781b20e6a88a1f27bca0d9928abcd85833d632cca56ce8cf06df91e4"
+    },
+    {
+      "path": "docs/architecture/decisions/0004-world-state-is-authoritative.md",
+      "sha256": "2f18fd68344887e80cf9925072c63fb5394771dd6c9c29198ad9c1320bcceeec"
+    },
+    {
+      "path": "docs/architecture/decisions/0096-full-part-records-in-activation-scoring.md",
+      "sha256": "5cf44df765b68ec649e4d33548d4192390e2d4047f00ded6b485d6ffb407dda3"
+    },
+    {
+      "path": "docs/architecture/decisions/0061-specific-relational-knowledge-and-generalized-lessons-are-separated.md",
+      "sha256": "141c87b4f3fe4b667846969f80df3ff142aa1647e87675003c17d8a382871361"
+    },
+    {
+      "path": "docs/architecture/decisions/0046-part-lifecycle-operations-are-semantic.md",
+      "sha256": "cb44f42da3a7b788e077da36fc2ff60f26d6df407c97e110b074bfdf733e4404"
+    },
+    {
+      "path": "docs/architecture/decisions/0133-parallel-assembled-part-cognition.md",
+      "sha256": "2e7e454b234a6ff927025ac931356fed3154ecc6aba4a0509c45384f57deed0f"
+    },
+    {
+      "path": "docs/architecture/decisions/0048-runtime-mechanics-remain-psychologically-neutral.md",
+      "sha256": "2c23690d3ccfa15c2521c71eb4bcb12ad870074b1d8c152f747a2b4ce224c44c"
+    },
+    {
+      "path": "docs/architecture/decisions/0041-part-private-context-remains-isolated.md",
+      "sha256": "4b93007eea271843347b5cd040f45281ddd7f2fa19f375d17461bf9e9d01f56a"
+    },
+    {
+      "path": "docs/architecture/decisions/0055-self-debate-is-a-separate-world-blind-reasoning-loop.md",
+      "sha256": "46bd4e086363ed52fe89574cad1e9688bfb9c0cfb0f7f31e87968b8c375224a2"
+    },
+    {
+      "path": "docs/architecture/decisions/0013-part-cognitive-capability-is-heterogeneous.md",
+      "sha256": "4d11e726543cf3cd09e65cb8f11e77d65baf6e1b6abb4ec74f56d987ab6273e5"
+    },
+    {
+      "path": "docs/architecture/decisions/0126-constructed-perspectives-and-dispositions.md",
+      "sha256": "326b52b001e3f9532198d2ad843f04b4b72b00489fd018e3cc9cd12ffac94f62"
+    },
+    {
+      "path": "docs/architecture/decisions/0039-vector-retrieval-precedes-llm-activation.md",
+      "sha256": "2a3d161417f6583dcb71609776fae4e3d9ed3d0cf45326e110beaa14ecbfa036"
+    },
+    {
+      "path": "docs/architecture/decisions/0024-environments-shape-agents-through-experience.md",
+      "sha256": "27b6fe277ac026d056a4d35b90e5d03c57f083cdd82c340c6fb5e62c644d016a"
+    },
+    {
+      "path": "docs/architecture/decisions/0029-self-context-may-be-isolated-from-raw-input.md",
+      "sha256": "f4466b67a62af2ee80f551a53d373044c6b815620d2309a0133fc546100288d7"
+    },
+    {
+      "path": "docs/architecture/decisions/0008-inspection-is-first-class.md",
+      "sha256": "a6dbad1dd337ccf834b33f18822879100fffb4aded900185680440e3f0766f85"
+    },
+    {
+      "path": "docs/architecture/decisions/0003-simulation-and-psychology-are-separated.md",
+      "sha256": "bec6d377f1286877a9d0f57fa6f3e7020b785dbf157611f678cf865e778ea140"
+    },
+    {
+      "path": "docs/architecture/decisions/0113-identity-guided-speech-realization.md",
+      "sha256": "ece775f8274d8715d080001b824ef9de98d68720463d31468cca66ba57b08db5"
+    },
+    {
+      "path": "docs/architecture/decisions/0071-online-cognition-and-offline-consolidation-are-distinct-timescales.md",
+      "sha256": "ac4aed3a0d8b906bcdb6ed4061c93d8cbd632110376e5c9f28eab95c610db219"
+    },
+    {
+      "path": "docs/architecture/decisions/0104-continuous-primitive-appraisal.md",
+      "sha256": "531fdd55f5cab47759d672d554775de2c88df4b92a93b82ac0ce468fa868748c"
+    },
+    {
+      "path": "docs/architecture/decisions/0099-identity-question-answer-traits.md",
+      "sha256": "190b448bbe4b92ace48f93640c36a39c7e7f94241b7bda438af2767d26294b6a"
+    },
+    {
+      "path": "docs/architecture/decisions/0011-identity-has-final-deliberative-authority.md",
+      "sha256": "9008eb59aaa15788c55e240ff00811432dd24a46d39c8f799fa84bbc38098720"
+    },
+    {
+      "path": "docs/architecture/decisions/0002-parts-do-not-have-external-authority.md",
+      "sha256": "7f977204641f7618283e1f173a0927a87c45521ceeb1b6fce1a962a5804b6c1c"
+    },
+    {
+      "path": "docs/architecture/decisions/0050-code-owns-cognitive-workflow.md",
+      "sha256": "e83da2f5da0216751db8663704fede6a6f7520fb960a9850b6009dc271fd6e05"
+    },
+    {
+      "path": "docs/architecture/decisions/0051-activation-uses-independent-bounded-judgments.md",
+      "sha256": "318300513046ea6b0c45aeeef42bd9bcc17c3e04c8dbf22f5ef6c4a0dbb68ebb"
+    },
+    {
+      "path": "docs/architecture/decisions/0014-internal-advocacy-is-separated-from-external-authority.md",
+      "sha256": "7a06ddc15042ef4251d87202e549a63d2ee3207599d149e25c4d93b9c85ba3c0"
+    },
+    {
+      "path": "docs/architecture/decisions/0037-simulation-is-outside-the-agent-engine.md",
+      "sha256": "eaa74f97608ec654c2fbec58678c9a7db8aa1d96038652dbd9087452ced39bbd"
+    },
+    {
+      "path": "docs/architecture/decisions/0040-worldstate-context-is-reused-across-parts.md",
+      "sha256": "158acea5636128a52626301ec82a403fec31bbd8cb78434da9b1bf177086c338"
+    },
+    {
+      "path": "docs/architecture/decisions/0123-jev-subjective-memory-recall.md",
+      "sha256": "82c544765b184ce47b4ee24a788ee7a1c43fc4aada93c3528d8b41d29861f402"
+    },
+    {
+      "path": "docs/architecture/decisions/0060-provenance-does-not-imply-activation.md",
+      "sha256": "42e213fd4b1314289bf20c2bb29ae1efbafae28e4b65e7237063b4e7816f960c"
+    },
+    {
+      "path": "docs/architecture/decisions/0045-part-mutations-are-explicit-and-versioned.md",
+      "sha256": "907617eb6e15517d0e451590b351eb15c38f87cbc18603038b76b756cc206bf3"
+    },
+    {
+      "path": "docs/architecture/decisions/0119-internal-thought-and-external-dialogue.md",
+      "sha256": "c235ecb72c05d54e2b84c422de3077db5ee4501b49327bd76e276a1ec2657d0d"
+    },
+    {
+      "path": "docs/architecture/decisions/0027-not-every-action-requires-self-deliberation.md",
+      "sha256": "1171b9a4aa22c190b7f3bb2efd2c798d2de894bae5f171f71242774f47f1230a"
+    },
+    {
+      "path": "docs/architecture/decisions/0065-emotional-charge-is-a-part-property.md",
+      "sha256": "4dfab2ba0a6232f890b28932ef6d329e4a95ad7963447b0a2bd57ffc2424d285"
+    },
+    {
+      "path": "docs/architecture/decisions/0114-researcher-agent-deletion.md",
+      "sha256": "89ba19a07c4dcf90cb1b2e204aaaf44eb1232d8175753cef3f8315a8c95b61c3"
+    },
+    {
+      "path": "docs/architecture/decisions/0128-single-online-cognition.md",
+      "sha256": "22ca0f6ea6dcf7c92c5d7da02f55ff9cee69f355e429d5ae9d53734eebd19fae"
+    },
+    {
+      "path": "docs/architecture/decisions/0135-simulation-hypothesis-tests.md",
+      "sha256": "34248d518cb701d21caaa6455a778dfb6ab25ee0e68bbeff241ee090b6cf9a42"
+    },
+    {
+      "path": "docs/architecture/decisions/0109-timestamped-memory-gists-in-activation.md",
+      "sha256": "a5b407e86f04efe0fa1e77bfa5e634af5d26be61ec2caf00f64213ec89a0e40f"
+    },
+    {
+      "path": "docs/architecture/decisions/0006-history-is-not-storage.md",
+      "sha256": "35073e53c4a35c572ca93304217b507ab487761bdf54c859478db67ad070b893"
+    },
+    {
+      "path": "docs/architecture/decisions/0052-part-reasoning-remains-generative.md",
+      "sha256": "558df67aad96d96c2591098c483a2c88c942da33d471a40f304f0e39cc0d031e"
+    },
+    {
+      "path": "docs/architecture/decisions/0081-one-outstanding-prediction-per-part.md",
+      "sha256": "644c9d59cbc113708e6a41767889c3cd7dae153e67e1ca203b9bce3a0538ab96"
+    },
+    {
+      "path": "docs/architecture/decisions/0019-self-mediates-without-forcing-revision.md",
+      "sha256": "58e45982481127c0a64c79ca085bf977cd205ba4400689b9151d70130fad9a44"
+    },
+    {
+      "path": "docs/architecture/decisions/0105-quality-guided-self-deliberation.md",
+      "sha256": "5777d159bebaca8203ccc99fee9e1c8ab3dfa0e2575afcc006119ad496e3155c"
+    },
+    {
+      "path": "docs/architecture/decisions/0082-predictions-are-broader-than-bid-forecasts.md",
+      "sha256": "cc0f66ab2db37cc842ca8bf8acf2d559360810659d4c34d562c49f3bd2711eff"
+    },
+    {
+      "path": "docs/architecture/decisions/0053-self-arbitration-is-bounded-to-part-proposals.md",
+      "sha256": "319f839dcb4c9ee88a5886f5c4d94e8343c948f9ba455c73e10549a225f946ad"
+    },
+    {
+      "path": "docs/architecture/decisions/0091-optional-vector-activation-filter.md",
+      "sha256": "78e5128265eb883330e331f74d856f631657d3b6e4bff4f686b605abbc16ab02"
+    },
+    {
+      "path": "docs/architecture/decisions/0016-subjective-memory-belongs-to-parts.md",
+      "sha256": "67cd9c4c6b44cb52186a733d7145547614bdb53efa77f76c79e6964bf6b01206"
+    },
+    {
+      "path": "docs/architecture/decisions/0134-researcher-component-authoring.md",
+      "sha256": "58de4b2e12351ba3ff2309c2076d2b8b4b863ca796534cff6234e354427514a8"
+    },
+    {
+      "path": "docs/architecture/decisions/0066-higher-order-psychology-may-emerge-from-part-networks.md",
+      "sha256": "a08ad20806a37a427bd5c65b7316e3ddaff4974d05bd81b24ed56ac344bd112e"
+    },
+    {
+      "path": "docs/architecture/decisions/0023-identity-can-develop-through-mediated-reflection.md",
+      "sha256": "810e392744ff8761d16340fe1338950d3f8bbe5b1167518d1f121c5297d8d90b"
+    },
+    {
+      "path": "docs/architecture/decisions/0112-score-based-self-selection.md",
+      "sha256": "c409454558227fbc5d1a74b6a704d252dfaa8453cb0833d0a0246c1e8c488502"
+    },
+    {
+      "path": "docs/architecture/decisions/0018-parts-may-be-temporary.md",
+      "sha256": "f46c4fb22fd10efe62c573d430aaceeabed8badcfccd7b899fc8049c8f7fe74b"
+    },
+    {
+      "path": "docs/architecture/decisions/0012-identity-perception-is-configurable.md",
+      "sha256": "1b8baccbf5bb0656e4aaac4617865242e42db45101ac6c67b7c850e3793d517a"
+    },
+    {
+      "path": "docs/architecture/decisions/0020-identity-is-a-persistent-self-definition.md",
+      "sha256": "a1015e701806fe8eb9059cd7e079bc9a4a07db92073cfc20790ff5550dec2434"
+    },
+    {
+      "path": "docs/architecture/decisions/0038-one-worldstate-snapshot-per-cognitive-cycle.md",
+      "sha256": "d9afa9eb364be9cbf2d8da8b83e86029d223e1ff38664f3c17a61229cd4b881d"
+    },
+    {
+      "path": "docs/architecture/decisions/0097-separate-prediction-inference-and-bounded-gates.md",
+      "sha256": "0f6a2b25509328c6b2f087975192b85a6fcffd7bd621463fa92ac9a0b146fdc2"
+    },
+    {
+      "path": "docs/architecture/decisions/0117-combined-chat-dialogue.md",
+      "sha256": "73257bbc4cfe3fc846d39f8a46c74527e2618a49d6b7532377fdab8aa22797b1"
+    },
+    {
+      "path": "docs/architecture/decisions/0088-versioned-task-prompts.md",
+      "sha256": "b365d97c30352c43b17691ca6dd1599d7c8e404ca811a34934ec2bd358559790"
+    },
+    {
+      "path": "scripts/copy-prompt-templates.mjs",
+      "sha256": "c1c424be540e7152f31e7ac810a8ba7b25153882d69f2f0311061d1ad1d97303"
+    },
+    {
+      "path": "scripts/live-smoke.ts",
+      "sha256": "3ebdf472acbd562f519041b1c3032de5e810086fb148f6a9722fc23e827dbdef"
+    },
+    {
+      "path": "scripts/lint.mjs",
+      "sha256": "44d539808d760d0e27b5a8c23333b455cac2e2e1a2120ec4da6fcc9495e407fb"
+    },
+    {
+      "path": "scripts/README.md",
+      "sha256": "6e159d69627e3a184fa286b6a917d196555fb3dfe152eda7b5d0c80c556435ff"
+    },
+    {
+      "path": "scripts/populate-retrieval-keys.ts",
+      "sha256": "4e7dc9cd994ca7464786bb60a312c9ef4890c7999cdfb5cdc6553996084c6c29"
+    },
+    {
+      "path": "tests/README.md",
+      "sha256": "8918260ea1efe8dadb19ecb6e0a5c020a4a2c5569bfefcf4f6b3f278b7f5f623"
+    },
+    {
+      "path": "tests/node/memories-browser.test.ts",
+      "sha256": "66dae57da6688ade47aa2514bef6a5cc48f9230e0e3044bd50630e659e856850"
+    },
+    {
+      "path": "tests/node/disposition-development.test.ts",
+      "sha256": "d53e2813212a49b70aaa6df9c3d5d75057351cfb91b29ea5dcb9f4de5400cb7c"
+    },
+    {
+      "path": "tests/node/memory-search.test.ts",
+      "sha256": "dd2128f4362f79d27987737d3e37060ad6c35a3c6ade465ef03623c11b10ea2d"
+    },
+    {
+      "path": "tests/node/constructed-browser.test.ts",
+      "sha256": "0bba7f61374f77adf4475c7be797d986fecb415e361a33b67b04a5b252a31826"
+    },
+    {
+      "path": "tests/node/consolidation.test.ts",
+      "sha256": "b1998c3d9aecdbda001b9b645c7863f8dca055cbd027b47895b0a0c783c6fd8e"
+    },
+    {
+      "path": "tests/node/browser.test.ts",
+      "sha256": "462c18f7595e877ae4c7c8eaa6e3b6175e9f6a36453aea4e6673935d427f2821"
+    },
+    {
+      "path": "tests/node/prompt-validation-browser.test.ts",
+      "sha256": "c1a5254452dd4792d40985a86bc51525490387f8c7286f18f5feaa3ee58b8f86"
+    },
+    {
+      "path": "tests/node/prediction-scaffolds.test.ts",
+      "sha256": "659795fc1c25feee9d9c39b03671088a67562b4da68882dea317724199145104"
+    },
+    {
+      "path": "tests/node/constructed-providers.test.ts",
+      "sha256": "35f75399cab43e204831edbae46501ea740137a4cdaee809f63b1ad2990ba8d2"
+    },
+    {
+      "path": "tests/node/memory-storage-links.test.ts",
+      "sha256": "08787849d0458ba4188593a50aac5606cb5078bd15795611a3dcd0254706290a"
+    },
+    {
+      "path": "tests/node/thought-history.test.ts",
+      "sha256": "ce2455906a9f5831be1a77f29fd9aaa2825be6d1f716328e442a30a8ca02f0d8"
+    },
+    {
+      "path": "tests/node/agent-settings.test.ts",
+      "sha256": "e44d1fe20342c148b021e499a2769ecc259e27bb4d683f476dc2dba1277b716e"
+    },
+    {
+      "path": "tests/node/memory-recall.test.ts",
+      "sha256": "eff17e6b58505718e7d1c8c8bc829bf32a924ed37767339bfecd4e6c8e90025d"
+    },
+    {
+      "path": "tests/node/identity.test.ts",
+      "sha256": "24b1cc9d036d587982e17ff8ae2dae8849668ec8b284b00ce58e460d2a1f66ea"
+    },
+    {
+      "path": "tests/node/primitives-first-migration.test.ts",
+      "sha256": "6d34da56ee5fa0a7f19e21f13422ca3ef6d441d56daf5124a265664c42cb8ea7"
+    },
+    {
+      "path": "tests/node/deliberation.test.ts",
+      "sha256": "29ba27bf47b6cc6f940541cee3fdce4c77ec1cfbf5516412cd3f178dd7fb532a"
+    },
+    {
+      "path": "tests/node/self-choice-history.test.ts",
+      "sha256": "5cf76997338459677bba5c2077750071bbe18e2b5ca70557116fbf81cf05cf50"
+    },
+    {
+      "path": "tests/node/continuous-primitives.test.ts",
+      "sha256": "8808f24e4915320572cd62b75c392a483bfb258e07905de1d650ebe6ab3ff701"
+    },
+    {
+      "path": "tests/node/simulation-tests.test.ts",
+      "sha256": "16f2b6571e03efa6b87a122a962a9b9924cc87c576183d541ea92f0a95c7165a"
+    },
+    {
+      "path": "tests/node/threads-browser.test.ts",
+      "sha256": "0b96f7f106923d6785c14ca649385d081bd20f35fb2ba00c2b6a7de223239a76"
+    },
+    {
+      "path": "tests/node/activation-memory-gists.test.ts",
+      "sha256": "97eadaf2c813acbc0faa87c40ffe87a91b7608ee11a2052b976287be3af26d1f"
+    },
+    {
+      "path": "tests/node/providers.test.ts",
+      "sha256": "c1832d4da52ce85b6c984d762fa7cf4141e593322bbac2d61362103a588d30ab"
+    },
+    {
+      "path": "tests/node/execution.test.ts",
+      "sha256": "4f7ae747a79fe9284895980375f71e07e6ef22c6c014aeb711975781ced77aed"
+    },
+    {
+      "path": "tests/node/primitives-browser.test.ts",
+      "sha256": "8449c96544e480184fa2b1e4994b6c973c2d9ad74eb74370e8f22597d934ff0d"
+    },
+    {
+      "path": "tests/node/component-authoring.test.ts",
+      "sha256": "7b4a8a582977240538c55a894bad870f108bb3b4a60714b0c0b37d7a654b39d5"
+    },
+    {
+      "path": "tests/node/prompts.test.ts",
+      "sha256": "f6d6ea2e7299b7b94874d9fa74e4ac3ec5169441470d5122214cc94f4fb27b6f"
+    },
+    {
+      "path": "tests/node/persistent-fixture.ts",
+      "sha256": "7010bf1273bf7d836487309c610019e0810b8e897364177d514f3a6e38f60e78"
+    },
+    {
+      "path": "tests/node/activation-browser.test.ts",
+      "sha256": "94d8f70888d4cf1f310ca4ecb02e88f4f7193f78d4a0662a1be21d18fd74c8fb"
+    },
+    {
+      "path": "tests/node/world-facts.test.ts",
+      "sha256": "86e04c5774d144278fc9aa0b9900ed867ba1ce1da9dd36fd008615c5a345f099"
+    },
+    {
+      "path": "tests/node/constructed.test.ts",
+      "sha256": "a32f10f7563bfae84bffae30f7a250d71c1d61e7a003f9705f42453724c72237"
+    },
+    {
+      "path": "tests/node/reconciliation-history.test.ts",
+      "sha256": "9fc6b01782cb57f8cd17a5902c6e14b11434e92211f62634761440fbdfd54f22"
+    },
+    {
+      "path": "tests/node/migrations.test.ts",
+      "sha256": "7d0907491255d6f8be148b1c965d3aac478b66622d5b2782816973ce34d702ae"
+    },
+    {
+      "path": "tests/node/inquiry-targets.test.ts",
+      "sha256": "71834882b701c15728eaf4c3e4ea3e46f3296926101d37ac3594a26642c8dd7e"
+    },
+    {
+      "path": "tests/node/prediction-reflection-evidence.test.ts",
+      "sha256": "9aba9fdba54320e4528b61d2b30fa7dea70a74cb4a83b5599c3b4f75057327f4"
+    },
+    {
+      "path": "tests/node/foundations.test.ts",
+      "sha256": "78930875f144e164d6ee154d1253ed04737644b675341755c59d2185f30b6ed3"
+    },
+    {
+      "path": "tests/node/identity-questions.test.ts",
+      "sha256": "acc6bb6659dfb14a3120648aa5050043d822404725a1facf0b86ec1b035c19b3"
+    },
+    {
+      "path": "tests/node/experienced.test.ts",
+      "sha256": "71d9fa7cf60e9a2b870439b787418c4414dd62a15d005d502e45658327fa33ea"
+    },
+    {
+      "path": "tests/node/self-scoring.test.ts",
+      "sha256": "bd1fa6e8cde2428efa780903ced88f94e2cec7db02cb72507c686624f3073385"
+    },
+    {
+      "path": "tests/node/primitives.test.ts",
+      "sha256": "58c43d93ab2030dcbc529714a8efcbfaa33236f596f2d7e2aa4197bebdf47606"
+    },
+    {
+      "path": "tests/node/prediction-confidence.test.ts",
+      "sha256": "ce774e7c8dcc8f3744b8a380ca7bc813dc023e1ce41d1823d7631f762f5c12b7"
+    },
+    {
+      "path": "tests/node/live-providers.test.ts",
+      "sha256": "090eacbd2ae830436a472b6a075cb75161ede9713e9bce8f537e2bf9828c5fb8"
+    },
+    {
+      "path": "tests/node/threads.test.ts",
+      "sha256": "773f3fa6a85fe103bdb2222a2f7f29fd8d18a7ccd77f7ec3522cd56c92dcfb07"
+    },
+    {
+      "path": "tests/node/runtime.test.ts",
+      "sha256": "dc8a6418dbf37e93a2f4f446dd98f3457d60e6445c6b9a03c8f9627096b2a733"
+    },
+    {
+      "path": "tests/node/component-menus-browser.test.ts",
+      "sha256": "6b34900ad4bfeb315710408174b369f45234a90bbd9efa53d54dc8738331c3e0"
+    },
+    {
+      "path": "tests/node/prediction-gates.test.ts",
+      "sha256": "b0350cbe9fd6fa9e75c6e98c573ed388111751a3eef392a9ef14fc529c64b232"
+    },
+    {
+      "path": "tests/node/simulation-tests-browser.test.ts",
+      "sha256": "efe2ca0e0bf54a4b5fbd653964aed197f1a2810643e0d90e84d2a048a6c50e34"
+    },
+    {
+      "path": "tests/node/prompt-preview.test.ts",
+      "sha256": "306171a1efe16ea46d00f6d43c7bed5771aeebffd2928d52ec25fca937698fac"
+    },
+    {
+      "path": "tests/node/part-inspector-browser.test.ts",
+      "sha256": "daa399b29e1d1ba1c99f0cfe0fd30282a5c7bcbb4afd728895377b28232b1ccf"
+    },
+    {
+      "path": "tests/node/cli.test.ts",
+      "sha256": "d60ac2183f45861187dbd7bcc779e70c90f3d73eac883dab53dccbb253f01300"
+    },
+    {
+      "path": "tests/node/api.test.ts",
+      "sha256": "eb9180b4c650ced1de853554de86b43813c60d06e6b74c6a40c3ae9f50bc9ec7"
+    },
+    {
+      "path": "tests/node/retrieval-keys.test.ts",
+      "sha256": "7b30083211ae347c58466637e888e570dcef316029fb111b3f1b6568c25a945e"
+    },
+    {
+      "path": "tests/node/speech.test.ts",
+      "sha256": "aedac3b179991804ec696a6d001364b854b6b6985588d0b8508a5260d51177bb"
+    },
+    {
+      "path": "tests/node/identity-browser.test.ts",
+      "sha256": "2bf928c76d9a1a46a916d6219fa891a543bf557d461509ae22992cc0ad7432fd"
+    },
+    {
+      "path": "tests/node/historical/activation.ts",
+      "sha256": "f98c04687b2de40585840d6b45fe7d163b0a49e756e92b91ad3707d045ae711a"
+    },
+    {
+      "path": "tests/node/historical/README.md",
+      "sha256": "137a19a0fea18d9a0e15c2b84cf7056da2ba90298fba369d4b8f0527d5b30bf2"
+    },
+    {
+      "path": "tests/node/historical/runtime.ts",
+      "sha256": "f3b196b05e912bbdcdfb6ca82952674f954613499da368d7cb6b076f05fc1819"
+    }
+  ],
+  "snapshotDescription": "Source capture during run after first registry additions; final-source-fingerprints.json records final repaired worktree."
+}

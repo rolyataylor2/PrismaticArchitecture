@@ -1,0 +1,55 @@
+{
+  "id": "skill_0738e8e8-0794-49ec-bc43-72251c2d3d8a",
+  "agentId": "agent_59beaffc-b94f-4f08-8b2e-7e61923b7cd1",
+  "version": 1,
+  "name": "Review fixture method",
+  "conditions": [
+    "Exact authored fixture"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_c0f68e9e-689b-4388-ae7a-9ad0d1bd659c",
+    "cycleId": "cycle_43a538fb-ff16-40b5-8cb9-7a968c06b69c",
+    "bidId": "bid_3f233f85-3959-4933-9f93-00bb878beb78",
+    "partId": "part_441e1a50-ac14-4ed4-afdf-6fdcd6db14e4",
+    "instruction": "Deterministic plumbing fixture; not evidence of model learning"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:21:29.930Z"
+  }
+}

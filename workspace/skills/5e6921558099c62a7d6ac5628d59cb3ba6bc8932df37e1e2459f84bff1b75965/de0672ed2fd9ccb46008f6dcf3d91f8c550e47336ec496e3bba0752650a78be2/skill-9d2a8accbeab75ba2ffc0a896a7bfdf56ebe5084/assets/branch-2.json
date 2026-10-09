@@ -1,0 +1,68 @@
+{
+  "id": "skill_4b248808-4554-4306-893c-f6fed90b08f2",
+  "agentId": "agent_e18b74d2-dd50-4488-aa7e-8b16064e4e82",
+  "version": 2,
+  "name": "Prescribed conditional fixture policy: 2",
+  "conditions": [
+    "Current preference is storage"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 43",
+    "constraints": [
+      "Minimize storage"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":43}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":43}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "43"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_979e1e9f-853e-493c-a231-96f2df880e76",
+    "cycleId": "cycle_7a5dc6db-d951-4651-a4e0-4249d90213ff",
+    "bidId": "bid_e0cec77c-6cc6-4243-bab9-70516cd930a7",
+    "partId": "part_fd27e3d4-7ff0-43c5-881f-e1318787289d",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [
+    {
+      "executionId": "execution_e1368fa2-d044-4374-8a08-0bba8e01a0db",
+      "at": "2026-10-09T05:10:43.735Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_7a8afa33-5599-4e40-937b-b9eb5eda21bc",
+        "mcp_trace_f9ff5b41-e1c3-49e7-85e5-fb5388ebf39c"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:10:43.735Z"
+  }
+}

@@ -1,0 +1,9 @@
+
+> ontoagentic@0.1.0 lint
+> npm run typecheck && node scripts/lint.mjs
+
+
+> ontoagentic@0.1.0 typecheck
+> tsc --noEmit
+
+Strict TypeScript and architectural dependency lint passed.

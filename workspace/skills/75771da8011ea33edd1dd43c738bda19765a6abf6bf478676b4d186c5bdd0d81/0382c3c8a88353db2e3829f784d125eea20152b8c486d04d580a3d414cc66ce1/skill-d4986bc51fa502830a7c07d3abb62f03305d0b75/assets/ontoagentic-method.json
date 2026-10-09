@@ -1,0 +1,82 @@
+{
+  "id": "skill_411add71-351f-44ad-884a-9c77d3b284fd",
+  "agentId": "agent_5278a154-0c38-4a04-b832-ae47875d5787",
+  "version": 1,
+  "name": "Prescribed conditional fixture policy",
+  "conditions": [
+    "Current explicit preference and exact recorded input"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 42",
+    "constraints": [
+      "Preserve information"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_65be47f8-758a-4f03-8896-8d84e6b66d18",
+    "reason": "Prescribed inferred conditions for plumbing only",
+    "escalate": [
+      "Unknown input or incompatible current permission"
+    ],
+    "branches": [
+      {
+        "id": "branch_8f618e41-8059-484b-acee-6fb7b35fbdb6",
+        "when": [
+          "Current preference is preservation"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_5928dba1-09e5-4ee0-bab9-20a521cad0f5",
+        "version": 2
+      },
+      {
+        "id": "branch_fbddeab2-a663-4161-9d1c-d31af93b27bc",
+        "when": [
+          "Current preference is storage"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_cc3b1ae7-306d-4507-b416-b86b943b6dd3",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_201d2724-a714-4303-8111-1fc38d2488bd",
+    "cycleId": "cycle_3ea14633-6de6-4990-b625-224cc42d92ec",
+    "bidId": "bid_a30351c0-2cb3-4451-b623-6ec5707c1b87",
+    "partId": "part_945c49b7-d4fb-4c44-bcd2-e244fb3da0f3",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Conditional consolidation candidate: Prescribed inferred conditions for plumbing only",
+    "restoredVersion": null,
+    "at": "2026-10-09T17:57:54.258Z"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "ontoagentic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "pretest": "npm run build",
+    "build": "tsc && node scripts/copy-prompt-templates.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/node/*.test.ts",
+    "cli": "tsx apps/cli/src/main.ts",
+    "demo": "tsx apps/cli/src/main.ts demo",
+    "smoke:live": "tsx scripts/live-smoke.ts",
+    "dev": "npm run build && node dist/apps/server/src/main.js",
+    "dev:watch": "./start.sh",
+    "dev:web": "npm run dev",
+    "dev:server": "npm run dev",
+    "lint": "npm run typecheck && node scripts/lint.mjs",
+    "validate:skills": "node scripts/validate-agent-skills.mjs",
+    "validate:skills-controls": "node scripts/check-agent-skills-controls.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.0.0",
+    "@types/twig": "^1.12.17",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

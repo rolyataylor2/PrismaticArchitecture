@@ -1,0 +1,81 @@
+[
+  {
+    "cycleId": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+    "immutablePartWorlds": [
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "bid_cf0b868e-13c7-4ae7-86a9-f03287a36336"
+    ]
+  },
+  {
+    "cycleId": "cycle_3a9f8b57-a9a7-41fc-809a-29d993033846",
+    "immutablePartWorlds": [
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "bid_de416ac8-5d48-4d59-93ff-3706a832e3e6"
+    ]
+  },
+  {
+    "cycleId": "cycle_dee9a555-e00f-4306-8010-d69da3b1bfe8",
+    "immutablePartWorlds": [
+      true,
+      true,
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "DELIBERATE",
+      "bid_4cb47fb9-6091-465b-b8d1-351ff22b6ed5",
+      "NOTHING"
+    ]
+  },
+  {
+    "cycleId": "cycle_33d3058b-78c7-4048-9f90-f9bb3662530d",
+    "immutablePartWorlds": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "bid_25ffc17e-80b2-435d-9fc9-e489aeb784f2"
+    ]
+  },
+  {
+    "cycleId": "cycle_5dd60950-a9e1-4ebd-84b1-02b3b00e16a8",
+    "immutablePartWorlds": [
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "bid_0f9ce90f-18d4-410f-b5e1-f7a365f6a9f6"
+    ]
+  },
+  {
+    "cycleId": "cycle_cb83e723-3626-404e-b4e0-a937f276f04a",
+    "immutablePartWorlds": [
+      true
+    ],
+    "selfInputsExcludeRawState": true,
+    "sameCycleScaffoldParticipation": [],
+    "primitiveOnlineEvents": [],
+    "selfChoices": [
+      "bid_972f843d-3c21-4848-8a76-2725dc56ad7e"
+    ]
+  }
+]

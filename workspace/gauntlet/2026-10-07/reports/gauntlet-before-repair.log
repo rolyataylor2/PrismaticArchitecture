@@ -1,0 +1,27 @@
+✖ prediction reflection supplies later facts, capsule and memories to constructed and legacy owners (10.554351ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 497.544593
+
+✖ failing tests:
+
+test at tests/node/prediction-reflection-evidence.test.ts:5:1
+✖ prediction reflection supplies later facts, capsule and memories to constructed and legacy owners (10.554351ms)
+  AssertionError [ERR_ASSERTION]: Current observation must reach reflection
+      at TestContext.<anonymous> (/Users/user/Desktop/Coding Projects/AI_Parts_Wrapper/tests/node/prediction-reflection-evidence.test.ts:15:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1397:25)
+      at Test.start (node:internal/test_runner/test:1257:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

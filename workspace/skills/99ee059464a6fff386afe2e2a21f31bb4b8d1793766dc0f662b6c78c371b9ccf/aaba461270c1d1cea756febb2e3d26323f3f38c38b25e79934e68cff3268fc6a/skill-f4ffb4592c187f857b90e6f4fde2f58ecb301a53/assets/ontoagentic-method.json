@@ -1,0 +1,65 @@
+{
+  "id": "skill_0219844b-7765-41cc-b2d3-c5869fbb30a4",
+  "agentId": "agent_76295ecd-83ef-41ae-81dd-f9aa2fce3b7e",
+  "version": 1,
+  "name": "Ended consultation source",
+  "conditions": [
+    "Exact fixture"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Separate read returns 42",
+    "constraints": [
+      "Preserve original inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "hold",
+        "argumentsJson": "{\"durationMs\":2000}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 4,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_fdb2f920-a0ac-4975-9ca8-a10fbc734de1",
+    "cycleId": "cycle_70f350f3-f235-4c71-ac72-fb2871dc752c",
+    "bidId": "bid_40945b2e-844f-4000-9d39-98e70377205d",
+    "partId": "part_a9b3cfa6-491a-4d71-8653-bd1edfc64c21",
+    "instruction": "Prescribed execution strategy"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T19:21:27.845Z"
+  }
+}

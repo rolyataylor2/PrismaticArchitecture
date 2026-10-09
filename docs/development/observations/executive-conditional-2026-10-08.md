@@ -1,0 +1,17 @@
+# Configured conditional-procedure observations, 2026-10-08
+
+Five fresh-Agent observations ran the sidebar scenarios using actual OpenAI reasoning and Jev decisions. No provider fixture prescribed activation, proposals, tool success, branch conditions or learned conclusions. Retrieval embeddings remain deterministic. Every SQLite record is preserved under `workspace/gauntlet/executive-conditional-*/research.sqlite`; server research scopes discover these directories on startup. The [bounded evidence summary](executive-conditional-2026-10-08.json) records exact paths, run/Agent IDs, provider/prompt versions, starting conditions, operational outcomes and candidate IDs without private Part snapshots.
+
+| Observation | Conditions / protocol | Result |
+| --- | --- | --- |
+| gpt-4.1-nano baseline | Identity fallback; original conditional protocol | No eligible operations; final cognitive generation failed the scaffold memory-provenance guard. This is infrastructure/inference failure, not hypothesis rejection. |
+| gpt-4.1 baseline | Same Identity fallback scenario | Completed without operational bids. Procedural prerequisites not observed; semantic criteria inconclusive. |
+| gpt-4.1 scope comparison | Explicit researcher-authored competence disposition | An operational bid referenced a nonexistent skill and was blocked. No eligible methods; semantic criteria inconclusive. |
+| gpt-4.1 reference-schema comparison | Same scope, wire admits only supplied active references | Actual read-only operations succeeded, but proposals left separate verification null. Outcomes remained unverified; parallel-budget blocks were retained. No candidate was created. |
+| gpt-4.1 verification-protocol comparison | Same scope; factory/schema clarify independent criterion | Two independently verified ended operational episodes. Model inference created one proposed conditional family, **Independent Read-Only Apparatus Tick Verification**, with two referenced source methods and branch reasons. No automatic approval. |
+
+The final candidate describes explicit read-only tick verification under preservation/conservation contexts. Its model-authored justification disclaims generalization beyond the observed apparatus, value and requests. The final operational prerequisite was observed; semantic preference-sensitive transfer and causal learning criteria remain inconclusive. The conditions differ across comparisons, so this is not an isolated intervention or proof that a particular prompt change caused the result. These were initial selected methods, not demonstrated correction efficacy or mature habits. No human psychology conclusion follows.
+
+Inspect the candidate on Agent `agent_96dd3152-a543-4954-89b0-845fd2b39240`, skill `skill_36c28a0a-c95b-4e6c-8d59-228adb914453`, in the final research scope. Its Procedure tab links each branch to the member's original bids/thoughts, Self decision, source criterion and execution evidence. The profile remains supervised and candidate/member methods remain proposals. The original source Agents and all failed/inconclusive records were preserved.
+
+Reproduce a fresh comparison with `OPENAI_MODEL=gpt-4.1 npx tsx scripts/executive-learning-observation.ts executive-conditional-consolidation-task-scope`. This explicitly invoked command makes configured-provider requests, retains a new research database and never replaces these records. Omitting the scenario argument runs the unchanged Identity-fallback baseline. It is not part of the test suite.

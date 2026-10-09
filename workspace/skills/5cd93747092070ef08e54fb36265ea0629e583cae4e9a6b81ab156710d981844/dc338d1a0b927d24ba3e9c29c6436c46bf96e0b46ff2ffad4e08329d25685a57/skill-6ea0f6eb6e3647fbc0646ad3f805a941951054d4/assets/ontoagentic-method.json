@@ -1,0 +1,104 @@
+{
+  "id": "skill_c10dbe18-6081-4566-a607-6b5eef9d37c3",
+  "agentId": "agent_0091d218-1587-43f3-a6dc-b2d5ace7f9af",
+  "version": 2,
+  "name": "Prescribed full corrected procedure",
+  "conditions": [
+    "Exact fixture inputs"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separately selected check returns 99",
+    "constraints": [
+      "Preserve completed operations"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":1}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":3}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":99}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "99"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_ed62a1be-9082-4fd8-98e7-1069c8e0c543",
+    "reason": "Prescribed conditional consolidation plumbing",
+    "escalate": [
+      "Uncovered condition"
+    ],
+    "branches": [
+      {
+        "id": "branch_455254c8-6fd9-4cc6-a6e9-c6b0a2655ffe",
+        "when": [
+          "Exact fixture inputs"
+        ],
+        "reason": "Prescribed correction interpretation",
+        "skillId": "skill_0bcb5ac2-f221-4f82-8ee0-cb66eaf895da",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_2026697c-4fe5-47f2-8269-f8588be7ad39",
+    "cycleId": "cycle_19f7c017-5e00-41d1-94b9-7cb76c23e4af",
+    "bidId": "bid_ceaefe3b-c13d-41d4-b1b6-36bd4d1889a4",
+    "partId": "part_0d42c3d3-f1cd-4c1e-bfca-98840474a516",
+    "instruction": "Prescribed control fixture, not configured-model learning",
+    "correctionChain": {
+      "executionId": "execution_36160a2f-5dad-4bf9-b7e5-69b1cc7b6551",
+      "rootContractId": "contract_586044cc-28b1-45d1-b966-81a25cb61f72",
+      "contractIds": [
+        "contract_586044cc-28b1-45d1-b966-81a25cb61f72",
+        "contract_2026697c-4fe5-47f2-8269-f8588be7ad39"
+      ],
+      "executionIds": [
+        "execution_faa1ad6c-b547-41db-9cd3-ad3927b258a5",
+        "execution_36160a2f-5dad-4bf9-b7e5-69b1cc7b6551"
+      ]
+    }
+  },
+  "validations": [
+    {
+      "executionId": "execution_36160a2f-5dad-4bf9-b7e5-69b1cc7b6551",
+      "at": "2026-10-09T17:37:13.613Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_261d2ffb-2ece-4e04-9762-508342fddf86",
+        "mcp_trace_3092ae3b-55d3-4694-bf28-d06bd1db7f37",
+        "mcp_trace_7627a02a-d46a-46d1-b90f-3b3dc3df277a"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T17:37:13.613Z"
+  }
+}

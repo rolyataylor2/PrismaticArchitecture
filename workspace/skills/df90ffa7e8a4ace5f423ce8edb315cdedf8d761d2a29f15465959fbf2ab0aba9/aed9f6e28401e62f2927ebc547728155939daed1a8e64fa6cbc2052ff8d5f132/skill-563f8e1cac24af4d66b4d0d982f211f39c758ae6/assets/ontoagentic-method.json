@@ -1,0 +1,90 @@
+{
+  "id": "skill_fc8f242c-9e17-4eb1-a6f9-301eaee7a7c7",
+  "agentId": "agent_cc0745ae-a2de-4611-8a62-a153a019069c",
+  "version": 3,
+  "name": "Prescribed full corrected procedure",
+  "conditions": [
+    "Exact fixture inputs"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separately selected check returns 99",
+    "constraints": [
+      "Preserve completed operations"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":1}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":3}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":99}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "99"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_b9a3d571-89f1-494b-9310-bdf908c5eadb",
+    "reason": "Prescribed conditional consolidation plumbing",
+    "escalate": [
+      "Uncovered condition"
+    ],
+    "branches": [
+      {
+        "id": "branch_47763993-028e-412d-9f06-bceaa8c4a051",
+        "when": [
+          "Exact fixture inputs"
+        ],
+        "reason": "Prescribed correction interpretation",
+        "skillId": "skill_03276a66-51e2-40df-9eed-024e4f96b676",
+        "version": 3
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_273d1c09-4832-425a-a66e-01bb688738ae",
+    "cycleId": "cycle_a16f3e1a-b0d6-4da5-85da-5580ad29807b",
+    "bidId": "bid_51f71d60-1256-4b6c-aa95-f745a04ec213",
+    "partId": "part_aedd08f7-48e3-4d98-a9f5-4be7b9bb2855",
+    "instruction": "Prescribed control fixture, not configured-model learning",
+    "correctionChain": {
+      "executionId": "execution_a2b19786-44aa-4b11-9842-d2a576610ebd",
+      "rootContractId": "contract_2ac59e5e-995d-42fc-914c-3b9f75ee1569",
+      "contractIds": [
+        "contract_2ac59e5e-995d-42fc-914c-3b9f75ee1569",
+        "contract_273d1c09-4832-425a-a66e-01bb688738ae"
+      ],
+      "executionIds": [
+        "execution_91fd0bdc-c56c-42f2-94c3-1b0f1beb33e4",
+        "execution_a2b19786-44aa-4b11-9842-d2a576610ebd"
+      ]
+    }
+  },
+  "validations": [],
+  "change": {
+    "kind": "revision",
+    "reason": "Rebind explicitly approved unchanged branch versions; applicability and family approval remain separate.",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:20:21.702Z"
+  }
+}

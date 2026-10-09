@@ -1,0 +1,55 @@
+{
+  "id": "skill_ff991134-50fe-44b2-9190-0871952dc287",
+  "agentId": "agent_8a184412-7264-4218-8585-b5db604b36a6",
+  "version": 1,
+  "name": "Independent proposal from the same instruction",
+  "conditions": [
+    "Separate declaration"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_54e8be4d-7934-4963-8180-8a6bad34f1cd",
+    "cycleId": "cycle_89e34b98-9b2d-4c71-b015-b373f12096e0",
+    "bidId": "bid_707f76c2-12cf-47a9-be15-285aa9658f94",
+    "partId": "part_db199e79-b5c8-4e71-a112-9b9db9a33eb4",
+    "instruction": "Prescribed revision fixture reason"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:03:53.856Z"
+  }
+}

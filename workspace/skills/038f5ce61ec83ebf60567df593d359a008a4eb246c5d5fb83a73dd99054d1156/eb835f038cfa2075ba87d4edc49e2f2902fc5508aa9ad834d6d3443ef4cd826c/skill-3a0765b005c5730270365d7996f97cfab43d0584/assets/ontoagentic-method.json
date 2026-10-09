@@ -1,0 +1,55 @@
+{
+  "id": "skill_7567d369-0e50-434c-a7aa-a3ec2cc40564",
+  "agentId": "agent_d13b4188-ea9c-404a-af9e-5e2b90d4af85",
+  "version": 1,
+  "name": "Exact fixture method",
+  "conditions": [
+    "Use the identical recorded input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "An independent check returns 42",
+    "constraints": [
+      "Keep the selected exact input"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_fcc1ba14-db75-4d37-b68b-2072e69b62d4",
+    "cycleId": "cycle_b2dd5473-7810-468d-9ee2-efda723eb1b7",
+    "bidId": "bid_3fcee998-7673-4b3c-b0c0-3fb9c2a7c943",
+    "partId": "part_f296082a-efc9-4d12-80d3-d77396adb40f",
+    "instruction": "Prescribed teaching plumbing fixture, not configured-model learning evidence"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T19:15:20.303Z"
+  }
+}

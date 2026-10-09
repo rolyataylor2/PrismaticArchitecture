@@ -1,0 +1,68 @@
+{
+  "id": "skill_cb205935-3b1a-48ac-ac70-13a7c7942365",
+  "agentId": "agent_7a36ad30-ea5b-4d90-ad98-bbc81f85f7ba",
+  "version": 2,
+  "name": "Exact fixture method",
+  "conditions": [
+    "Use the identical recorded input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "An independent check returns 42",
+    "constraints": [
+      "Keep the selected exact input"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_cfdf3f89-d051-4693-b6ad-f83287367a47",
+    "cycleId": "cycle_7792d250-8f81-46f8-a73e-d9d6181bd293",
+    "bidId": "bid_cb2d919c-d7d5-47b9-8df0-61ac7fdd2ddf",
+    "partId": "part_94d788b9-5cca-4b73-90e4-958f75f6698c",
+    "instruction": "Prescribed teaching plumbing fixture, not configured-model learning evidence"
+  },
+  "validations": [
+    {
+      "executionId": "execution_90ddd135-d5ba-474c-8ad0-7ed5c4367edc",
+      "at": "2026-10-09T05:07:20.160Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_3ad96785-7c38-4fe5-97ec-18eb3f4963a2",
+        "mcp_trace_5ec6b59d-8ba6-44b0-aa05-cf9045e04759"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:07:20.160Z"
+  }
+}

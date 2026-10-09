@@ -1,0 +1,30 @@
+{
+  "run_id": "gauntlet-2026-10-07",
+  "timestamp": "2026-10-07T22:01:21.288472+00:00",
+  "stopReason": "Measured generative token budget exceeded within final cycle; no further inference requests made",
+  "usage": {
+    "development": {
+      "calls": 27,
+      "inputTokens": 245010,
+      "cachedInputTokens": 10752,
+      "outputTokens": 17126
+    },
+    "comparison": {
+      "calls": 0,
+      "inputTokens": 0,
+      "cachedInputTokens": 0,
+      "outputTokens": 0
+    }
+  },
+  "budget": 250000,
+  "overshootPolicy": "No in-flight cycle cancellation or silent cognition suppression; final triggering state and traces retained. Pre-cycle guard stops subsequent trials. Jev token accounting unavailable.",
+  "status": "research_stopped_artifact_audit_in_progress",
+  "unexercised": [
+    "offline consolidation",
+    "new-thread transfer",
+    "comparison branch interaction",
+    "repeated retest durability",
+    "long-term Identity change"
+  ],
+  "wallClockSecondsAtStop": 453.294554
+}

@@ -1,0 +1,86 @@
+{
+  "id": "skill_91d73683-d700-48ac-81a5-d4003a04ff3d",
+  "agentId": "agent_c3f6b7c2-4ba5-4c6e-a04d-98bcae9cddbe",
+  "version": 3,
+  "name": "Prescribed full corrected procedure: 1",
+  "conditions": [
+    "Exact fixture inputs"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "active",
+  "procedure": {
+    "successCriteria": "The separately selected check returns 99",
+    "constraints": [
+      "Preserve completed operations"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":1}"
+      },
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":3}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":99}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "99"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_636f41fa-cdc2-4bf9-8f3a-c59f967f24e5",
+    "cycleId": "cycle_37056f75-f225-4e7b-9dd1-da5faea032a8",
+    "bidId": "bid_c2b00ebc-e69b-46fb-ac5a-90a6ce4c20be",
+    "partId": "part_dbff067c-511e-4ba8-94d8-f77758e6fae1",
+    "instruction": "Prescribed control fixture, not configured-model learning",
+    "correctionChain": {
+      "executionId": "execution_ace8b402-308f-4b21-8714-e752f5081fce",
+      "rootContractId": "contract_32aae788-3df5-4762-91b9-b16e2d2a2836",
+      "contractIds": [
+        "contract_32aae788-3df5-4762-91b9-b16e2d2a2836",
+        "contract_636f41fa-cdc2-4bf9-8f3a-c59f967f24e5"
+      ],
+      "executionIds": [
+        "execution_c29daec2-fce7-4ec4-94ae-8d48b03b0199",
+        "execution_ace8b402-308f-4b21-8714-e752f5081fce"
+      ]
+    }
+  },
+  "validations": [
+    {
+      "executionId": "execution_ace8b402-308f-4b21-8714-e752f5081fce",
+      "at": "2026-10-09T18:23:29.347Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_06b6117e-86dd-4396-892f-62f9939e8820",
+        "mcp_trace_6a380496-bd7b-4239-8a95-fd8a7b1aca4a",
+        "mcp_trace_28d525e1-3b19-4ff9-83ec-e723ea6b6b7e"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "approval",
+    "reason": "Explicit fixture approval of the evidenced whole procedure",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:23:29.702Z"
+  }
+}

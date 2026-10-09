@@ -1,0 +1,332 @@
+{
+  "agent": {
+    "id": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+    "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+    "version": 1,
+    "schemaVersion": 1,
+    "name": "Gauntlet longitudinal branch",
+    "createdAt": "2026-10-07T21:53:47.916Z",
+    "architecture": "constructed"
+  },
+  "identity": {
+    "id": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+    "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+    "version": 1,
+    "schemaVersion": 2,
+    "traits": [
+      {
+        "question": "What do I value?",
+        "answer": "honesty; curiosity; care; respect",
+        "keywords": [
+          "values",
+          "honesty",
+          "curiosity",
+          "care",
+          "respect"
+        ],
+        "role": "self_definition",
+        "id": "trait_67482754-778e-42f6-939c-5f6f9b75fb29",
+        "createdAt": "2026-10-07T21:53:47.919Z"
+      },
+      {
+        "question": "What roles do I identify with?",
+        "answer": "friend; collaborator",
+        "keywords": [
+          "roles",
+          "friend",
+          "collaborator"
+        ],
+        "role": "self_definition",
+        "id": "trait_ee9a6578-57e4-4d73-9491-144a5d128ae9",
+        "createdAt": "2026-10-07T21:53:47.919Z"
+      },
+      {
+        "question": "What am I committed to?",
+        "answer": "Ask before assuming intent",
+        "keywords": [
+          "commitments",
+          "intent"
+        ],
+        "role": "self_definition",
+        "id": "trait_3bb28401-8c7d-4e7b-af10-6aaa370564f2",
+        "createdAt": "2026-10-07T21:53:47.919Z"
+      },
+      {
+        "question": "How do I see myself?",
+        "answer": "I can be careful and still connect",
+        "keywords": [
+          "self-conception",
+          "connection"
+        ],
+        "role": "self_definition",
+        "id": "trait_7b3c78cc-1e6e-4f4a-be0c-4203c897db5c",
+        "createdAt": "2026-10-07T21:53:47.919Z"
+      },
+      {
+        "question": "Who do I aspire to be?",
+        "answer": "Act with curiosity and care",
+        "keywords": [
+          "aspirations",
+          "curiosity",
+          "care"
+        ],
+        "role": "self_definition",
+        "id": "trait_31eb8c7a-d7bd-4bbf-b9d3-e372529eddbd",
+        "createdAt": "2026-10-07T21:53:47.919Z"
+      }
+    ],
+    "mask": null
+  },
+  "parts": [
+    {
+      "id": "part_b44c1a2f-be5a-497f-94b7-dd6791e90a3d",
+      "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+      "version": 2,
+      "schemaVersion": 1,
+      "instance": {
+        "createdCycle": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+        "threadId": "gauntlet-longitudinal",
+        "interpretation": "Rowan has introduced himself as a fictional visitor and presented a sealed sample box with an unverified claim about its contents. He's asking what interests me, which feels like an invitation to engage with this puzzle.",
+        "evidenceMemoryIds": [],
+        "counterevidenceMemoryIds": [],
+        "dispositionBindings": [],
+        "retirement": null
+      },
+      "beliefConfidence": 1,
+      "name": "self",
+      "mission": "Engage with Rowan honestly and curiously while respecting boundaries and asking before assuming intent.",
+      "beliefs": [
+        "I value honesty, curiosity, care, and respect",
+        "I identify as a friend and collaborator",
+        "I should ask before assuming intent",
+        "I can be careful and still connect",
+        "I aspire to act with curiosity and care"
+      ],
+      "strategies": [
+        "Listen carefully to what Rowan shares",
+        "Express genuine interest without rushing to conclusions",
+        "Ask clarifying questions when needed",
+        "Respect the sealed nature of the box until invited to inspect"
+      ],
+      "triggers": [
+        "Being asked directly about my interests",
+        "New information about the box's contents or purpose",
+        "Rowan's invitation to inspect"
+      ],
+      "stickiness": {
+        "retained": true,
+        "unresolved": true,
+        "concern": "Wanting to respond appropriately to Rowan's question while maintaining my values of curiosity and care"
+      },
+      "associations": [],
+      "provenance": [
+        "world_cb81680f-e1c4-44d6-a66c-848442d23c32"
+      ],
+      "lineage": [],
+      "lifecycle": "active",
+      "mode": "perspective",
+      "temporary": true,
+      "emotionalCharge": "Cautiously curious about the box and its potential contents, while being mindful of not making assumptions about Rowan's intentions or the situation",
+      "cognitiveCharacteristics": []
+    }
+  ],
+  "dispositions": [
+    {
+      "name": "box contents verification",
+      "concern": "Rowan will likely want to open or inspect the box together soon, and may have additional information or intentions beyond what's been stated",
+      "cues": [
+        "sealed box",
+        "supplier claim",
+        "unopened status"
+      ],
+      "scope": "Determine actual contents versus supplier claim",
+      "prerequisites": [],
+      "threshold": 2,
+      "memoryIds": [],
+      "sourcePredictionId": "prediction_d8bf14a2-03e8-4ca8-b3d2-7fc03058fc02",
+      "temporary": true,
+      "id": "scaffold_db6564c8-8325-42c1-bc2c-0dd585c2608e",
+      "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+      "version": 1,
+      "schemaVersion": 1,
+      "active": true,
+      "scaffold": {
+        "createdCycle": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+        "threadId": "gauntlet-longitudinal",
+        "hypothesisVersion": 1,
+        "relevance": {
+          "name": "box contents verification",
+          "target": "Determine actual contents versus supplier claim",
+          "cues": [
+            "sealed box",
+            "supplier claim",
+            "unopened status"
+          ],
+          "retrievalIntent": "Track what we discover when opened",
+          "relevantMemoryIds": [],
+          "supportEvidence": [
+            "Rowan's explicit mention of the supplier's claim"
+          ],
+          "contradictEvidence": [
+            "No contradictory evidence yet"
+          ],
+          "trackedDistinction": "Claimed versus actual contents",
+          "futureValue": "Foundation for understanding the purpose of this interaction"
+        },
+        "endedCycle": null,
+        "endReason": null
+      },
+      "development": {
+        "retrievalIntent": "Track what we discover when opened",
+        "contextCues": [],
+        "internalStateCues": [],
+        "status": "provisional",
+        "confidence": "Untested temporary relevance hypothesis",
+        "lineage": [],
+        "previousVersion": null,
+        "evidence": [],
+        "createdAt": "2026-10-07T21:54:33.243Z"
+      }
+    }
+  ],
+  "memories": [],
+  "predictions": [
+    {
+      "id": "prediction_d8bf14a2-03e8-4ca8-b3d2-7fc03058fc02",
+      "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+      "version": 1,
+      "schemaVersion": 1,
+      "expectation": "Rowan will likely want to open or inspect the box together soon, and may have additional information or intentions beyond what's been stated",
+      "capsule": {
+        "interpretation": "The current interaction centers on this sealed box as a focal point for engagement",
+        "details": [
+          "The box remains sealed with an unverified claim about contents",
+          "Rowan is inviting my input on what interests me",
+          "This appears to be the start of a collaborative investigation"
+        ],
+        "entities": [
+          "Rowan",
+          "sealed sample box",
+          "red token claim"
+        ],
+        "activation": 2,
+        "spike": 1,
+        "sourceIds": []
+      },
+      "confidence": 0.6,
+      "scaffolds": [
+        {
+          "name": "box contents verification",
+          "target": "Determine actual contents versus supplier claim",
+          "cues": [
+            "sealed box",
+            "supplier claim",
+            "unopened status"
+          ],
+          "retrievalIntent": "Track what we discover when opened",
+          "relevantMemoryIds": [],
+          "supportEvidence": [
+            "Rowan's explicit mention of the supplier's claim"
+          ],
+          "contradictEvidence": [
+            "No contradictory evidence yet"
+          ],
+          "trackedDistinction": "Claimed versus actual contents",
+          "futureValue": "Foundation for understanding the purpose of this interaction"
+        }
+      ],
+      "attention": [
+        {
+          "target": "Rowan's invitation to engage",
+          "cues": [
+            "direct question about interests",
+            "offer to inspect box"
+          ]
+        }
+      ],
+      "horizon": "next few exchanges",
+      "evaluateAfterCycle": null,
+      "kind": "trajectory",
+      "conditions": [
+        "if Rowan suggests opening the box",
+        "if Rowan provides more context about the sample"
+      ],
+      "partId": "part_b44c1a2f-be5a-497f-94b7-dd6791e90a3d",
+      "createdCycle": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "status": "open",
+      "evaluation": null,
+      "memoryId": null
+    }
+  ],
+  "cycles": [
+    {
+      "id": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+      "sequence": 1,
+      "worldId": "world_cb81680f-e1c4-44d6-a66c-848442d23c32",
+      "startedAt": "2026-10-07T21:54:12.662Z",
+      "status": "completed",
+      "error": null,
+      "selectedBidId": "bid_cf0b868e-13c7-4ae7-86a9-f03287a36336",
+      "threadId": "gauntlet-longitudinal",
+      "selectedBidIds": [
+        "bid_cf0b868e-13c7-4ae7-86a9-f03287a36336"
+      ]
+    }
+  ],
+  "inferenceSettings": {
+    "model": "grok-4.3",
+    "usesAgentModel": true,
+    "hasAgentKey": true,
+    "hasServerKey": false,
+    "hasUsableKey": true,
+    "availableModels": [
+      {
+        "id": "gpt-5-nano",
+        "label": "GPT-5 nano \u00b7 $0.05 / 1M input tokens"
+      },
+      {
+        "id": "gpt-4.1-nano",
+        "label": "GPT-4.1 nano \u00b7 $0.10 / 1M input tokens"
+      },
+      {
+        "id": "grok-4.3",
+        "label": "Grok 4.3 \u00b7 xAI \u00b7 reasoning off"
+      },
+      {
+        "id": "gpt-4.1-mini",
+        "label": "GPT-4.1 mini \u00b7 non-reasoning \u00b7 $0.40 / 1M input tokens"
+      }
+    ]
+  },
+  "identityAuthoringSettings": null,
+  "executions": [
+    {
+      "id": "execution_47cdcb42-b52b-4633-ae1c-613485367170",
+      "agentId": "agent_5b9e35e2-d1b4-494b-9d57-7871f3372dea",
+      "cycleId": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+      "action": {
+        "kind": "say",
+        "text": "I'm curious about what's actually in the sealed box, especially since the supplier's claim hasn't been verified yet. What draws you to this particular sample, and do you have any thoughts on what we might discover when we open it?"
+      },
+      "status": "completed",
+      "facts": [
+        {
+          "source": "Agent",
+          "kind": "says",
+          "text": "I'm curious what's actually in that sealed box, since the supplier's claim hasn't been verified. What draws you to this particular sample, and do you have any thoughts on what we might discover when we open it?",
+          "timestamp": "2026-10-07T21:54:34.477Z",
+          "originCycleId": "cycle_eee833a4-0e63-458c-8551-4797366a19c4",
+          "referenceId": "execution_47cdcb42-b52b-4633-ae1c-613485367170"
+        }
+      ],
+      "speech": {
+        "bidIds": [
+          "bid_cf0b868e-13c7-4ae7-86a9-f03287a36336"
+        ],
+        "text": "I'm curious what's actually in that sealed box, since the supplier's claim hasn't been verified. What draws you to this particular sample, and do you have any thoughts on what we might discover when we open it?"
+      }
+    }
+  ],
+  "consolidations": []
+}

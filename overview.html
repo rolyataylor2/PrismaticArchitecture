@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f2ed">
+  <title>OntoAgentic — Project Overview</title>
+  <style>
+    :root{--ink:#192820;--muted:#627168;--paper:#f4f2ed;--card:#fffefa;--line:#dce1d8;--green:#315e4a;--mint:#e4efe8;--gold:#d59a45;--blue:#e9eff3;--rose:#f4e9e1;--shadow:0 16px 50px #23362a0c}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.62 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--green);text-decoration-thickness:1px;text-underline-offset:3px}a:hover{color:#173c2b} .wrap{max-width:1120px;margin:auto;padding:0 26px}
+    .top{padding:22px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.hero{padding:74px 0 58px;display:grid;grid-template-columns:1.5fr .8fr;gap:54px;align-items:end}.eyebrow{color:var(--green);font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}.hero h1{font:500 clamp(42px,7vw,76px)/1.02 Georgia,serif;letter-spacing:-.045em;margin:18px 0 22px}.hero p{max-width:690px;color:#526158;font-size:18px;margin:0}.status{background:#e7ece4;border:1px solid #d5ded4;border-radius:18px;padding:23px 24px;box-shadow:var(--shadow)}.status b{display:block;font:500 22px Georgia,serif;margin:4px 0 8px}.status span{color:var(--muted);font-size:14px}.pill{display:inline-flex;gap:8px;align-items:center;color:#315e4a;background:#d9e8dc;padding:5px 10px;border-radius:99px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:750}.dot{width:7px;height:7px;background:#5d956d;border-radius:50%}
+    nav{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 56px}nav a{font-size:13px;text-decoration:none;border:1px solid var(--line);background:#ffffff80;border-radius:99px;padding:7px 13px;color:#4a5d50}section{padding:58px 0;border-top:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:28px}.section-head h2{font:500 clamp(30px,4vw,43px)/1.1 Georgia,serif;letter-spacing:-.025em;margin:8px 0 0}.section-head p{max-width:470px;color:var(--muted);margin:0;font-size:14px}.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.13em;font-weight:750}.flow{background:#1f342a;border-radius:22px;padding:30px;color:#f2f3ed;box-shadow:var(--shadow)}.flow-intro{font:italic 17px Georgia,serif;color:#c2d1c6;margin:0 0 25px}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.step{min-height:105px;border:1px solid #ffffff25;background:#ffffff0b;border-radius:14px;padding:15px;position:relative}.step:not(:nth-child(5n)):after{content:"→";position:absolute;right:-13px;top:38px;color:#8eae99;z-index:1;font-size:17px}.step small{color:#b2c7b8;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.step strong{display:block;margin-top:8px;font:500 17px/1.22 Georgia,serif}.step em{display:block;color:#b8c8bd;font-size:12px;font-style:normal;margin-top:6px}.flow-foot{border-top:1px solid #ffffff26;margin-top:24px;padding-top:18px;display:flex;gap:10px;flex-wrap:wrap;color:#d3ded5;font-size:13px}.flow-foot span{background:#ffffff10;padding:6px 10px;border-radius:7px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:22px;box-shadow:var(--shadow)}.card h3{font:500 22px Georgia,serif;margin:12px 0 8px}.card p{font-size:14px;color:var(--muted);margin:0}.icon{font-size:20px}.tone-green{background:var(--mint)}.tone-blue{background:var(--blue)}.tone-gold{background:#f5eddf}.tone-rose{background:var(--rose)}.layers{display:grid;grid-template-columns:1fr 1fr;gap:16px}.layer{border:1px solid var(--line);background:var(--card);border-radius:17px;padding:24px}.layer h3{font:500 22px Georgia,serif;margin:0 0 14px}.tree{font:13px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:#46604f}.tree span{display:block;border-bottom:1px solid #edf0e9;padding:2px 0}.tree b{font-weight:650;color:#203c2d}.tree small{font:12px ui-sans-serif,system-ui;color:#748077}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}.metric{background:#f5f6f1;border-radius:12px;padding:15px}.metric strong{font:500 28px Georgia,serif;display:block}.metric small{color:var(--muted);font-size:12px}
+    .callout{border-left:3px solid var(--gold);background:#f5eddf;border-radius:0 14px 14px 0;padding:18px 21px;color:#59492f;font-size:14px;margin-top:18px}.questions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.question{background:#fffefa;border:1px solid var(--line);border-radius:12px;padding:15px 17px;font-size:14px;color:#4c5e52}.question:before{content:"?";display:inline-grid;place-items:center;width:21px;height:21px;background:#edf0e8;border-radius:50%;margin-right:9px;color:var(--green);font-weight:700}.principles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.principle{padding:19px;border-top:2px solid var(--green);background:#fffefa;border-radius:0 0 12px 12px}.principle b{display:block;font:500 18px Georgia,serif;margin-bottom:7px}.principle p{margin:0;color:var(--muted);font-size:13px}.refs{display:flex;gap:10px;flex-wrap:wrap}.refs a{font-size:13px;padding:8px 11px;background:#fffefa;border:1px solid var(--line);border-radius:9px;text-decoration:none}footer{padding:33px 0 52px;color:#748077;font-size:12px;border-top:1px solid var(--line)}
+    @media(max-width:780px){.hero{grid-template-columns:1fr;gap:25px;padding:52px 0 40px}.steps{grid-template-columns:repeat(2,1fr)}.step:not(:nth-child(5n)):after{display:none}.grid,.principles{grid-template-columns:repeat(2,1fr)}.layers{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:12px}.metrics{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:480px){.wrap{padding:0 18px}.grid,.questions,.principles{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.step{min-height:90px}.flow{padding:20px}.metrics{grid-template-columns:1fr}.hero p{font-size:16px}}
+    @media print{body{background:white}.top,nav{display:none}.hero{padding-top:30px}.card,.flow,.status{box-shadow:none}section{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <div class="top"><div class="wrap">OntoAgentic <span style="padding:0 8px;color:#abb4a9">/</span> Project field guide</div></div>
+  <main class="wrap">
+    <header class="hero">
+      <div><div class="eyebrow">An experimental cognitive architecture</div><h1>Many perspectives.<br>One agent.</h1><p>OntoAgentic is a Python framework scaffold for persistent agents whose behavior is meant to emerge from interacting cognitive Parts, a guiding Identity, and a single Self that chooses what to do.</p></div>
+      <aside class="status"><span class="pill"><i class="dot"></i> Current stage</span><b>Architecture &amp; scaffolding</b><span>The repository is rich in architecture and subsystem boundaries. The runtime itself has not yet been implemented.</span></aside>
+    </header>
+    <nav aria-label="Page sections"><a href="#cycle">Cognitive cycle</a><a href="#systems">System map</a><a href="#repo">Repository</a><a href="#maturity">Maturity</a><a href="#open">Open questions</a><a href="#principles">Guiding rules</a></nav>
+    <section id="cycle">
+      <div class="section-head"><div><div class="label">01 / How cognition is intended to work</div><h2>The canonical agent cycle</h2></div><p>This is the architecture the scaffolding is organized around. It describes intended responsibilities, not a finished executable pipeline.</p></div>
+      <div class="flow"><p class="flow-intro">The environment supplies facts. Parts give them meaning. Self makes the choice.</p>
+        <div class="steps">
+          <div class="step"><small>01 · outside agent</small><strong>WorldState</strong><em>Objective, goalless snapshot</em></div>
+          <div class="step"><small>02 · find relevance</small><strong>Activator</strong><em>Retrieve candidates; judge each independently</em></div>
+          <div class="step"><small>03 · perspectives</small><strong>Parts</strong><em>Interpret, react, forecast, and sometimes bid</em></div>
+          <div class="step"><small>04 · integration</small><strong>Self + Identity</strong><em>Self selects; Identity guides the choice</em></div>
+          <div class="step"><small>05 · act &amp; learn</small><strong>Executive → outcome</strong><em>Enact, observe, evaluate predictions later</em></div>
+        </div>
+        <div class="flow-foot"><span>One immutable WorldState snapshot per cycle</span><span>Self never receives raw WorldState</span><span>Parts advocate; Executive enacts Self’s choice</span><span>Simulation is an optional external environment</span></div>
+      </div>
+    </section>
+    <section id="systems">
+      <div class="section-head"><div><div class="label">02 / The main boundaries</div><h2>What the scaffold makes room for</h2></div><p>Folders and README files establish ownership seams so implementations can evolve without collapsing cognition into a model call or a simulation.</p></div>
+      <div class="grid">
+        <article class="card tone-green"><div class="icon">◉</div><h3>Parts</h3><p>Persistent, bounded perspectives with missions, bias, subjective memory, relationships, predictions, and a developmental history. The Part Manager owns population and lifecycle, not arbitration.</p></article>
+        <article class="card tone-blue"><div class="icon">⌁</div><h3>Activation &amp; bidding</h3><p>Retrieval narrows candidates; independent bounded judgments decide who activates. Activated Parts may offer context without bidding, or make proposals for Self.</p></article>
+        <article class="card tone-gold"><div class="icon">◇</div><h3>Self &amp; Identity</h3><p>Identity is persistent self-definition. Self is temporary, bounded integration: it chooses among available proposals, or requests a world-blind debate.</p></article>
+        <article class="card tone-rose"><div class="icon">↗</div><h3>Runtime &amp; inference</h3><p>Deterministic runtime controls workflow. Decision inference handles bounded judgments; generative reasoning handles open-ended Part cognition and debate. Providers remain replaceable.</p></article>
+        <article class="card tone-blue"><div class="icon">▧</div><h3>World &amp; simulation</h3><p>Simulation owns authoritative external truth and validates attempted actions. Agents own interpretation and psychological meaning. Simulation connects through narrow interfaces.</p></article>
+        <article class="card tone-green"><div class="icon">⌕</div><h3>Memory, history &amp; inspection</h3><p>Subjective memories belong to Parts. Storage is separate from domain history. Inspection is intended to make important decisions and development observable.</p></article>
+      </div>
+    </section>
+    <section id="repo">
+      <div class="section-head"><div><div class="label">03 / Where things live</div><h2>A map of the repository</h2></div><p>Framework code, starting configurations, mutable state, and research material are deliberately kept apart.</p></div>
+      <div class="layers">
+        <div class="layer"><h3>Project areas</h3><div class="tree">
+          <span><b>src/ontoagentic/</b> <small>framework package + subsystem boundary READMEs</small></span>
+          <span><b>docs/architecture/</b> <small>system contracts, lifecycle, integration, ADRs</small></span>
+          <span><b>docs/theory/</b> <small>psychological model and theoretical questions</small></span>
+          <span><b>presets/</b> <small>reusable starting configurations</small></span>
+          <span><b>workspace/</b> <small>reserved local runtime state locations</small></span>
+          <span><b>experiments/ · scenarios/ · examples/</b> <small>future studies, worlds, and usage examples</small></span>
+          <span><b>third_party/</b> <small>external runtime dependencies and read-only references</small></span>
+        </div></div>
+        <div class="layer"><h3>Package neighborhoods</h3><div class="tree">
+          <span><b>parts/</b> <small>model, memory, retrieval, formation, adaptation, lifecycle, lineage</small></span>
+          <span><b>activator/ · bidding/</b> <small>candidate retrieval, activation cues, advocacy</small></span>
+          <span><b>cognition/ · identity/</b> <small>Self, executive, attention, consolidation, self-definition</small></span>
+          <span><b>runtime/ · inference/ · providers/ · routing/</b> <small>execution and replaceable compute infrastructure</small></span>
+          <span><b>worldstate/ · simulation/</b> <small>snapshot boundary and optional external worlds</small></span>
+          <span><b>memory/ · history/ · storage/ · inspection/</b> <small>persistence concepts and observability seams</small></span>
+        </div></div>
+      </div>
+    </section>
+    <section id="maturity">
+      <div class="section-head"><div><div class="label">04 / What exists today</div><h2>Scaffolded, not yet running</h2></div><p>Based on the files currently in this checkout, the concrete work is primarily conceptual documentation and directory structure.</p></div>
+      <div class="grid">
+        <article class="card"><div class="label">In place</div><h3>Architecture is detailed</h3><p>Canonical flow, invariants, model roles, simulation boundaries, lifecycle guidance, theory documents, and a substantial ADR history.</p></article>
+        <article class="card"><div class="label">In place</div><h3>Python packaging shell</h3><p>A minimal setuptools project definition exists for Python 3.11+. Package discovery points at <code>src</code>.</p></article>
+        <article class="card"><div class="label">Not present yet</div><h3>Executable framework</h3><p>There are currently no Python implementation modules under <code>src/ontoagentic</code>; those folders contain README files describing intended boundaries.</p></article>
+        <article class="card"><div class="label">Not present yet</div><h3>Working examples or tests</h3><p>No runnable examples, application code, or test modules are present in the inspected scaffold. The test directory has a README.</p></article>
+        <article class="card"><div class="label">Reserved</div><h3>Presets &amp; local state</h3><p>Directories mark intended homes for agent, Part, identity, and simulation presets and local state, but contain no populated configurations.</p></article>
+        <article class="card"><div class="label">Research material</div><h3>Third-party projects</h3><p>External repositories are checked in as references or runtime candidates. Their presence does not mean the architecture depends on them.</p></article>
+      </div>
+      <div class="callout"><strong>How to read this overview:</strong> subsystem names are architectural signposts, not promises that a capability already works. In particular, Jev is designated as the initial bounded decision provider in the design, but the execution adapter is not implemented here.</div>
+    </section>
+    <section id="open">
+      <div class="section-head"><div><div class="label">05 / Deliberately unsettled</div><h2>Questions left open for experiments</h2></div><p>The architecture protects boundaries while leaving many mechanisms configurable. These decisions should follow evidence rather than folder names.</p></div>
+      <div class="questions">
+        <div class="question">How should Parts be represented, formed, split, merged, and eventually archived?</div>
+        <div class="question">What should subjective memory, forgetting, retrieval, and consolidation look like?</div>
+        <div class="question">How do bids connect to Self arbitration and executive machinery?</div>
+        <div class="question">Which inference, indexing, caching, and concurrency choices fit real workloads?</div>
+        <div class="question">What simulation authoring format and external engine integrations are useful?</div>
+        <div class="question">How should prediction evidence influence development while preserving each Part’s perspective?</div>
+      </div>
+    </section>
+    <section id="principles">
+      <div class="section-head"><div><div class="label">06 / Guardrails</div><h2>Rules that shape future code</h2></div><p>These are the most useful mental checks when reading or extending this scaffold.</p></div>
+      <div class="principles">
+        <div class="principle"><b>Meaning stays plural</b><p>Parts can disagree, hold bias, and preserve subjective interpretations.</p></div>
+        <div class="principle"><b>Authority stays singular</b><p>Self chooses; Executive enacts. Parts do not act directly on the world.</p></div>
+        <div class="principle"><b>Truth has an owner</b><p>Simulation owns world facts; agents own beliefs and psychological meaning.</p></div>
+        <div class="principle"><b>Mechanics stay replaceable</b><p>Provider, model, storage, and simulation choices do not define cognitive identity.</p></div>
+      </div>
+    </section>
+    <section>
+      <div class="section-head"><div><div class="label">Read the source of truth</div><h2>Useful starting points</h2></div></div>
+      <div class="refs"><a href="README.md">Project README</a><a href="AGENTS.md">Contributor instructions</a><a href="docs/architecture/CANONICAL_AGENT_FLOW.md">Canonical agent flow</a><a href="docs/architecture/SYSTEM_OVERVIEW.md">System overview</a><a href="docs/architecture/INVARIANTS.md">Architecture invariants</a><a href="docs/architecture/OPEN_QUESTIONS.md">Open questions</a><a href="docs/architecture/MODEL_EXECUTION.md">Model execution</a><a href="docs/theory/README.md">Theory index</a><a href="docs/architecture/decisions/README.md">Decision records</a></div>
+    </section>
+    <footer>Prepared from the repository contents · 22 September 2026 · Self-contained HTML; no external assets or scripts required.</footer>
+  </main>
+</body>
+</html>

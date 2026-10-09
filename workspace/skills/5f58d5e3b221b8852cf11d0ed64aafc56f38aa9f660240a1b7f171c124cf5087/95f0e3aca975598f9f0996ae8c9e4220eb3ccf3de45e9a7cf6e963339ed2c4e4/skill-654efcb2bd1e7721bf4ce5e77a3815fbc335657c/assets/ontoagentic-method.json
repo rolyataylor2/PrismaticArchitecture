@@ -1,0 +1,66 @@
+{
+  "id": "skill_8b483789-7444-494c-8948-6dd2109372bc",
+  "agentId": "agent_23dd3699-8bc2-45f2-8ba4-e473a7149c6b",
+  "version": 2,
+  "name": "Recorded browser procedure",
+  "conditions": [
+    "Exact recorded input and verification criterion"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 3,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_bb928365-6c7b-4f55-9bcf-dbcc2cb0366d",
+    "cycleId": "cycle_606054e9-c644-460d-b313-ff55accf215a",
+    "bidId": "bid_faab8872-a60b-4575-80cd-01678a90a537",
+    "partId": "part_ddec4475-ddec-48d2-80da-5189fb9505b6",
+    "instruction": "Prescribed plumbing fixture, not psychological validation"
+  },
+  "validations": [
+    {
+      "executionId": "execution_ec4eb99c-d9a5-4d18-8ddc-3c79fcaaa4fe",
+      "at": "2026-10-09T17:52:00.759Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_a4e88f9b-fe0b-4ad0-86bf-3a724fcdd8e5",
+        "mcp_trace_b6350494-751d-4f81-ad6a-977b2ad63c90"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T17:52:00.759Z"
+  }
+}

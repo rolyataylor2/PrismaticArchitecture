@@ -1,0 +1,81 @@
+{
+  "id": "skill_b1245734-e434-459c-9499-23c643d0f421",
+  "agentId": "agent_b2022db3-9c08-427e-ae33-1fb0b07880cc",
+  "version": 5,
+  "name": "Method learned from a recorded invocation",
+  "conditions": [
+    "Known exact input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "maturity": {
+    "stage": "deprecated",
+    "origin": "researcher",
+    "assessedVersion": 4,
+    "reason": "Retire this exact fixture knowledge",
+    "applicability": "Only exact recorded fixture inputs and constraints",
+    "executionIds": [],
+    "counterevidenceIds": [],
+    "limitations": [
+      "No transfer or causal proof"
+    ],
+    "at": "2026-10-09T05:14:15.391Z"
+  },
+  "source": {
+    "contractId": "contract_ee6cae05-ee08-4a10-84a3-1ef31f2088c0",
+    "cycleId": "cycle_e9586835-ae15-4e72-8f67-5324c99f7a49",
+    "bidId": "bid_a99ce58e-2845-4602-b59f-c6998934efbe",
+    "partId": "part_bd86702a-100e-4d48-bd8c-e492a1a34c4e",
+    "instruction": "Prescribed revision fixture reason"
+  },
+  "validations": [
+    {
+      "executionId": "execution_2d4968a1-6db3-4f83-86b8-932784577fa4",
+      "at": "2026-10-09T05:14:15.271Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_c829d4af-5c75-4d32-8922-aea6c4c00a2d",
+        "mcp_trace_4a7fe065-64e8-4664-b938-b5b8ca8c64ba"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "maturity",
+    "reason": "Retire this exact fixture knowledge",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:14:15.402Z"
+  }
+}

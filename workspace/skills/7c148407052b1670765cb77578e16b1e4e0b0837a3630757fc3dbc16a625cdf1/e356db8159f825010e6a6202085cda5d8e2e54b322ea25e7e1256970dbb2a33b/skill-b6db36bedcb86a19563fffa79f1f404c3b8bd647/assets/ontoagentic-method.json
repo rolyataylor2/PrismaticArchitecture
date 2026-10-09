@@ -1,0 +1,55 @@
+{
+  "id": "skill_e5d4d02a-baaf-4831-bd80-60dd1172b9c8",
+  "agentId": "agent_570ba196-0c02-4035-8fe0-b5814907666d",
+  "version": 1,
+  "name": "Exact fixture procedure",
+  "conditions": [
+    "Exact recorded fixture inputs and criterion"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact selected arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_adcf7637-d381-4a3f-97e7-6c0884c516cd",
+    "cycleId": "cycle_e0539fd8-ada2-4156-863b-c14f3ac3addf",
+    "bidId": "bid_b5712b18-d2f4-47c4-b161-4c0947f8090e",
+    "partId": "part_cd8991df-b67f-4ba8-a141-dd5543efe783",
+    "instruction": "Prescribed instruction fixture, not a model observation"
+  },
+  "validations": [],
+  "change": {
+    "kind": "proposal",
+    "reason": "Retain selected instruction as a procedural proposal",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:09:59.586Z"
+  }
+}

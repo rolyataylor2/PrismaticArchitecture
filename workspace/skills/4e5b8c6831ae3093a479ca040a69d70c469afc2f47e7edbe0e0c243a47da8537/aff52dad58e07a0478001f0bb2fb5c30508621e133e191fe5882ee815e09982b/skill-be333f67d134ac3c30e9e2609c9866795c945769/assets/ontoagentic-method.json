@@ -1,0 +1,82 @@
+{
+  "id": "skill_81249dff-09a4-4825-9573-c64a1b4ca7bd",
+  "agentId": "agent_4f5c1d57-1a9f-4974-94d4-82a23ec263da",
+  "version": 3,
+  "name": "Prescribed conditional fixture policy",
+  "conditions": [
+    "Current explicit preference and exact recorded input"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 42",
+    "constraints": [
+      "Preserve information"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_ae8c5209-1778-455f-b9e0-8cc353f3631f",
+    "reason": "Prescribed inferred conditions for plumbing only",
+    "escalate": [
+      "Unknown input or incompatible current permission"
+    ],
+    "branches": [
+      {
+        "id": "branch_eb26dec3-1d0a-4df6-a616-2da807c20e8a",
+        "when": [
+          "Current preference is preservation"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_5f16bec4-134a-419e-ab29-af610ef49f52",
+        "version": 3
+      },
+      {
+        "id": "branch_bce110f1-0247-4646-8948-e56a7e12db0e",
+        "when": [
+          "Current preference is storage"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_855b8be1-da2d-48db-b135-deadcf7bb62e",
+        "version": 3
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_27a97ad7-4720-49c4-8419-b77c21cb1a22",
+    "cycleId": "cycle_a7d8ea2e-b2d4-484c-a660-0ae16e317a1d",
+    "bidId": "bid_6ee4448e-cab7-4da1-bf2f-5e0c80b957d2",
+    "partId": "part_27563e82-1f24-42f9-823d-87748a432649",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [],
+  "change": {
+    "kind": "revision",
+    "reason": "Rebind explicitly approved unchanged branch versions; applicability and family approval remain separate.",
+    "restoredVersion": null,
+    "at": "2026-10-09T04:54:19.402Z"
+  }
+}

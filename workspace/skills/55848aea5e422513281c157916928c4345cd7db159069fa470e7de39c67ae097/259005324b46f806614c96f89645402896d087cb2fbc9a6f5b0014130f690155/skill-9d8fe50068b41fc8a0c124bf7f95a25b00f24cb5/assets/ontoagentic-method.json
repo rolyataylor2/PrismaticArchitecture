@@ -1,0 +1,68 @@
+{
+  "id": "skill_03f30ae7-81ff-467f-ad9a-0a42a0b0d547",
+  "agentId": "agent_363690da-511c-403b-bdad-ca66f92ec93d",
+  "version": 2,
+  "name": "Exact resumed fixture",
+  "conditions": [
+    "The same exact fixture inputs and criterion"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Use only the selected fixture value"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 1
+  },
+  "source": {
+    "contractId": "contract_6ac825ac-ddf9-407e-8feb-870e5ded6398",
+    "cycleId": "cycle_e48a7646-db52-494b-bb5d-802042fdad52",
+    "bidId": "bid_0c790763-47b8-40b7-bc84-f0531485adf2",
+    "partId": "part_1cc8cb67-6688-4aaa-a3b4-aa31ac73d08b",
+    "instruction": "Deliberately prescribed selected instruction for plumbing; not model teaching evidence"
+  },
+  "validations": [
+    {
+      "executionId": "execution_84e3b79b-28d3-45cc-8a7d-459a37f030d5",
+      "at": "2026-10-09T04:42:07.783Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_5d9f490b-d2e8-4116-944b-34251240ff59",
+        "mcp_trace_71210990-195c-46af-a4c9-832c204c0bed"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T04:42:07.783Z"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "id": "skill_7f366b95-1240-4389-bfd1-c5fc3a156634",
+  "agentId": "agent_692535c9-8dd3-4828-9e1b-40b58dd49106",
+  "version": 2,
+  "name": "Prescribed conditional fixture policy",
+  "conditions": [
+    "Current explicit preference and exact recorded input"
+  ],
+  "scope": "agent",
+  "threadId": null,
+  "status": "proposed",
+  "procedure": {
+    "successCriteria": "Independent value 42",
+    "constraints": [
+      "Preserve information"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "conditional": {
+    "runId": "procedure-consolidation_78186c68-fba2-4b88-a8cf-3916cb7586d2",
+    "reason": "Prescribed inferred conditions for plumbing only",
+    "escalate": [
+      "Unknown input or incompatible current permission"
+    ],
+    "branches": [
+      {
+        "id": "branch_f9d326c7-fc5c-4491-9e5f-ad20708c0078",
+        "when": [
+          "Current preference is preservation"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_d055582e-9189-4f72-9d53-328b668a1870",
+        "version": 2
+      },
+      {
+        "id": "branch_aa9379d2-ad63-4119-8521-5b74246e34bc",
+        "when": [
+          "Current preference is storage"
+        ],
+        "reason": "Prescribed interpretation of the selected bid and outcome",
+        "skillId": "skill_a27bcc40-920d-48ae-a3bc-1fc53067a418",
+        "version": 2
+      }
+    ]
+  },
+  "source": {
+    "contractId": "contract_52ac61a4-54ab-4025-875e-38206be08e6f",
+    "cycleId": "cycle_6ab90ea7-f114-43bf-b5f3-9031377379bd",
+    "bidId": "bid_d99b90c0-9a9b-4e21-bc1e-11512c3f0bd3",
+    "partId": "part_1d9111cb-3aa9-4ff2-92f7-27a0321117a2",
+    "instruction": "Prescribed reason with the current situational preference"
+  },
+  "validations": [
+    {
+      "executionId": "execution_ca9244df-c79b-4e41-b43f-ad0cbfd5d8fd",
+      "at": "2026-10-09T18:04:34.536Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_fe73a442-5d3d-43ae-b30d-30c29c8a88a7",
+        "mcp_trace_d9548321-67c7-4fc0-bc9c-3ea494a25a9a"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "validation",
+    "reason": "Recorded exact-strategy validation: passed",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:04:34.536Z"
+  }
+}

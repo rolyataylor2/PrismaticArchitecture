@@ -1,0 +1,83 @@
+{
+  "id": "skill_0e98442f-d07f-4593-a9ce-a779b3216da5",
+  "agentId": "agent_5db73306-d9b2-40cf-81ab-a25d9241015a",
+  "version": 3,
+  "name": "Method learned from a recorded invocation",
+  "conditions": [
+    "Known exact input"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "The separate check returns 42",
+    "constraints": [
+      "Preserve exact inputs"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "maturity": {
+    "stage": "tested",
+    "origin": "researcher",
+    "assessedVersion": 2,
+    "reason": "Explicit plumbing assessment",
+    "applicability": "Only exact recorded fixture inputs and constraints",
+    "executionIds": [
+      "execution_2a0f65a6-21dc-4def-aa4d-543993c9e4c7"
+    ],
+    "counterevidenceIds": [],
+    "limitations": [
+      "No transfer or causal proof"
+    ],
+    "at": "2026-10-09T05:05:21.798Z"
+  },
+  "source": {
+    "contractId": "contract_f41b203d-c6a3-4925-8e48-378cfcf289a8",
+    "cycleId": "cycle_6e8e0d79-b297-411f-aa4a-3943ddc54b27",
+    "bidId": "bid_06e6231f-d1e7-48d6-9029-93be77e3ee18",
+    "partId": "part_99fb2cf2-e299-4dd8-8b32-633085bcb39e",
+    "instruction": "Prescribed revision fixture reason"
+  },
+  "validations": [
+    {
+      "executionId": "execution_b4ff5449-ed75-497d-b916-794c06b1e6cd",
+      "at": "2026-10-09T05:05:21.641Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_5ed51a90-93d3-4536-958b-902488caa77c",
+        "mcp_trace_7a54026b-e8a4-4ac0-a57c-f68e233399a6"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "maturity",
+    "reason": "Explicit plumbing assessment",
+    "restoredVersion": null,
+    "at": "2026-10-09T05:05:21.804Z"
+  }
+}

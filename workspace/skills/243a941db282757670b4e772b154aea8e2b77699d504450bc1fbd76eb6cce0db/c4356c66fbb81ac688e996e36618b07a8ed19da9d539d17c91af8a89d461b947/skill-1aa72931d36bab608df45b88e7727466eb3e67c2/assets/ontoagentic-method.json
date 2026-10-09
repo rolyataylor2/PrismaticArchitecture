@@ -1,0 +1,69 @@
+{
+  "id": "skill_bd1c2c0c-235f-4033-a882-6cc81abeafb3",
+  "agentId": "agent_c1c37767-1331-4988-bef8-508ce849fdcd",
+  "version": 3,
+  "name": "Review fixture method",
+  "conditions": [
+    "Exact authored fixture"
+  ],
+  "scope": "thread",
+  "threadId": "origin",
+  "status": "active",
+  "procedure": {
+    "successCriteria": "A separate check returns 42",
+    "constraints": [
+      "Keep exact arguments"
+    ],
+    "steps": [
+      {
+        "serverId": "local",
+        "toolName": "echo",
+        "argumentsJson": "{\"value\":42}"
+      }
+    ],
+    "verification": {
+      "serverId": "local",
+      "toolName": "echo",
+      "argumentsJson": "{\"value\":42}",
+      "path": [
+        "value"
+      ],
+      "expectedJson": "42"
+    }
+  },
+  "limits": {
+    "maxSteps": 20,
+    "maxRetries": 2,
+    "maxParallelJobs": 1,
+    "maxDurationMs": 30000,
+    "maxGuidanceRequests": 2
+  },
+  "source": {
+    "contractId": "contract_c2af713a-c7c6-401a-9048-f3bd7f099ceb",
+    "cycleId": "cycle_5cf62395-69b1-4ecb-b8aa-e2ac8113b248",
+    "bidId": "bid_e666b806-08d4-4896-a28f-3c10b0b137e6",
+    "partId": "part_3b832561-aba5-4a38-aeb5-17bd1581473a",
+    "instruction": "Deterministic plumbing fixture; not evidence of model learning"
+  },
+  "validations": [
+    {
+      "executionId": "execution_56a89655-eb41-4ff6-9f0e-761e82fdaae7",
+      "at": "2026-10-09T18:48:09.724Z",
+      "result": "passed",
+      "traceRefs": [
+        "mcp_trace_a322960c-213b-485f-957c-cedbaa479ec1",
+        "mcp_trace_4e8e97c9-6281-4507-918b-b8e572296288"
+      ],
+      "limitations": [
+        "Evidence validates only the exact recorded inputs and structured criterion. Transfer, new condition applicability and novel-context safety are not established."
+      ]
+    }
+  ],
+  "change": {
+    "kind": "approval",
+    "reviewContractId": "contract_21a7ab6d-1b7c-4a3e-b319-4bbd30bf7fd9",
+    "reason": "Prescribed review reason",
+    "restoredVersion": null,
+    "at": "2026-10-09T18:48:09.931Z"
+  }
+}
