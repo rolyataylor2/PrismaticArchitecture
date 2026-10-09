@@ -476,7 +476,8 @@ export class SqliteStore implements Store {
       ? 'IN (SELECT cycle_id FROM cycle_threads WHERE agent_id = ? AND thread_id = ?)'
       : 'NOT IN (SELECT cycle_id FROM cycle_threads WHERE agent_id = ?)';
     const parameters = threadId ? [agentId, agentId, threadId, limit ?? -1] : [agentId, agentId, limit ?? -1];
-    const executions = this.#db.prepare(`SELECT e.body,e.updated_at,e.updated_order,c.sequence FROM executions e JOIN cycles c ON c.id = json_extract(e.body,'$.cycleId') WHERE e.agent_id = ? AND c.id ${cycleFilter} ORDER BY e.updated_order DESC LIMIT ?`).all(...parameters)
+    const executiveEnabled = this.executiveProfile(agentId).enabled;
+    const executions = !executiveEnabled ? [] : this.#db.prepare(`SELECT e.body,e.updated_at,e.updated_order,c.sequence FROM executions e JOIN cycles c ON c.id = json_extract(e.body,'$.cycleId') WHERE e.agent_id = ? AND c.id ${cycleFilter} ORDER BY e.updated_order DESC LIMIT ?`).all(...parameters)
       .map(row => {
         const execution = ExecutionSchema.parse(JSON.parse(row.body as string));
         const timestamp = String(row.updated_at) || this.cycle(execution.cycleId).startedAt;
@@ -493,13 +494,14 @@ export class SqliteStore implements Store {
       .map(row => {
         const raw = JSON.parse(row.body as string) as { facts: { kind: string; originCycleId?: string }[] };
         const world = WorldStateSchema.parse(raw);
+        if (!executiveEnabled && this.cycle(world.cycleId).kind?.startsWith('attention_')) return { cycle: Number(row.sequence), phase: 0, at: world.capturedAt, order: 0, facts: [] };
         // Legacy utterances were the incoming facts. New snapshots retain explicit origin
         // so prior statements remain says without being re-added on each later turn.
         const originals = world.facts.filter((fact, index) => raw.facts[index]?.kind === 'utterance' || fact.originCycleId === world.cycleId);
         return { cycle: Number(row.sequence), phase: 0, at: world.capturedAt, order: 0,
           facts: originals.map(fact => ({ ...fact, timestamp: fact.timestamp ?? world.capturedAt, originCycleId: world.cycleId })) };
       });
-    const teaching = this.eventsByType(agentId, ['execution.procedure_teaching']).filter(event => event.cycleId
+    const teaching = !executiveEnabled ? [] : this.eventsByType(agentId, ['execution.procedure_teaching']).filter(event => event.cycleId
       && (this.cycle(event.cycleId).threadId ?? null) === (threadId ?? null)).slice(limit === null ? 0 : -limit).flatMap(event => {
         if (event.type !== 'execution.procedure_teaching' || !event.cycleId) return [];
         return [{ cycle: this.cycle(event.cycleId).sequence, phase: 1, at: event.at, order: event.sequence,

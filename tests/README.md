@@ -26,3 +26,5 @@ ADR 0112 replaces Self single Choice with graded bid Scores and conservative com
 ADR 0113 adds external chat speech realization: selected consecutive Say commands and exact speech-tagged Identity Traits guide one utterance. Original bid actions remain preserved; execution speech records emitted text and source IDs. Exec · Speech is editable and previewable through Settings → Prompts.
 
 `concern-inheritance.test.ts` checks ADR 0154 creation linkage, attributed bounded investigation trajectories, unsupported citation rejection, offline inheritance persistence and online audit exclusion. The desire/inquiry Simulation Tests use ordinary fresh-Agent experiences; fixture observations establish plumbing, not learned motivation.
+
+Executive integration fixtures opt in explicitly with `enableExecutive` or an enabled profile. Default-off boundary tests use the production defaults; historical persistent fixtures retain enabled external execution.

@@ -57,7 +57,7 @@ export class Application {
   vault = new SecretVault()) {
     this.#vault = vault;
     this.executiveConnections = new ExecutiveConnections(store, trace => {
-      if (this.#closing || !store.executiveProfile(trace.agentId).attention.enabled) return;
+      if (this.#closing || !store.executiveProfile(trace.agentId).enabled || !store.executiveProfile(trace.agentId).attention.enabled) return;
       const execution = store.executions(trace.agentId).find(item => item.contractId === trace.contractId);
       // Background handoffs exist before tool submission. Synchronous checkpoints cannot re-enter their source cycle.
       if (!execution || execution.status !== 'running') return;
@@ -99,6 +99,7 @@ export class Application {
     this.executiveWorkers = new BackgroundExecutiveExecutor(new NativeExecutiveExecutor(
       new ChatExecutor(store, this.providers.reasoning, this.inspection), contract => this.executiveConnections.executionGateway(contract), undefined,
       input => this.executiveControl.pause(input), async (contract, completedSteps) => {
+        if (!store.executiveProfile(contract.agentId).enabled) return;
         const attention = store.executiveProfile(contract.agentId).attention;
         if (attention.enabled && attention.reviewInterested && attention.awaitCheckpointReview) {
           const execution = store.executions(contract.agentId).find(item => item.contractId === contract.id && item.status === 'running');
@@ -142,7 +143,7 @@ export class Application {
     this.remainderHandoff = new SelectedRemainderHandoff(store, this.inspection, this.executiveWorkers);
     this.executiveControl = new SelectedExecutionControl(store, this.inspection, this.executiveWorkers);
     this.runtime = new CognitiveRuntime(store, providers.decisions, this.providers.reasoning, providers.embeddings,
-      new TeachingExecutiveExecutor(executor ?? this.executiveWorkers, execution => { this.executiveTeaching.record(execution); this.#scheduleProcedures(execution); }), this.inspection, options,
+      new TeachingExecutiveExecutor(executor ?? this.executiveWorkers, execution => { if (store.executiveProfile(execution.agentId).enabled) this.executiveTeaching.record(execution); this.#scheduleProcedures(execution); }), this.inspection, options,
       async (agentId, skillId, version) => {
         await this.agentSkillPackages.flush(agentId);
         const loaded = await this.agentSkillPackages.resolveMethod(agentId, skillId, version);
@@ -249,6 +250,7 @@ export class Application {
     return updated;
   }
   async #capabilities(agentId: string) {
+    if (!this.store.executiveProfile(agentId).enabled) return undefined;
     let capabilities: ExternalCapabilities | undefined;
     const permissions = this.store.mcpPermissions(agentId);
     if (permissions.tools.length) {
@@ -280,6 +282,7 @@ export class Application {
     const fact: Fact = { source, kind: 'says', text, referenceId: null, timestamp: now() };
     return this.#coordinate(agentId, async () => {
       if (skillDocumentIds.length > 10 || new Set(skillDocumentIds).size !== skillDocumentIds.length) throw new Error('Request at most ten distinct skill documents');
+      if (skillDocumentIds.length && !this.store.executiveProfile(agentId).enabled) throw new Error('Executive is disabled');
       const documents = await Promise.all(skillDocumentIds.map(async proposalId => {
         const proposal = await this.agentSkillImports.load(agentId, proposalId); const review = proposal.reviews.at(-1);
         if (review?.decision !== 'reviewed') throw new Error('Skill document requires a current same-Agent knowledge review');
@@ -321,15 +324,15 @@ export class Application {
     });
     if (!['running', 'pending'].includes(validated.status) && validated.contractId) this.#checkpointReviews.delete(validated.contractId);
     // External retention failures must not roll back an already observed tool outcome.
-    this.executiveTeaching.record(validated);
+    if (this.store.executiveProfile(validated.agentId).enabled) this.executiveTeaching.record(validated);
     this.#scheduleProcedures(validated);
     return validated;
   }
   #scheduleProcedures(execution: Execution): void {
-    if (this.#closing || execution.status !== 'completed' || execution.action.kind !== 'operate'
+    if (this.#closing || !this.store.executiveProfile(execution.agentId).enabled || execution.status !== 'completed' || execution.action.kind !== 'operate'
       || this.store.executiveProfile(execution.agentId).consolidation.mode === 'manual') return;
     // Queue behind the selecting/review cycle. Candidate inference never blocks a tool worker.
-    void this.#coordinate(execution.agentId, () => this.procedureConsolidation.automatically(execution.agentId, execution.id)).catch(error => {
+    void this.#coordinate(execution.agentId, () => this.store.executiveProfile(execution.agentId).enabled ? this.procedureConsolidation.automatically(execution.agentId, execution.id) : Promise.resolve(null)).catch(error => {
       try { this.procedureConsolidation.recordTriggerFailure(execution.agentId, execution.id, error); }
       catch { /* A persistence outage cannot roll back an already recorded operational outcome. */ }
     });

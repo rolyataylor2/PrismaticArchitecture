@@ -1,3 +1,7 @@
+## Executive connection (ADR 0155)
+
+The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](decisions/0155-executive-disconnected-by-default.md).
+
 ## Conditional procedural knowledge (ADR 0147)
 
 Offline external procedural inference may propose conditional skills from bounded ended selected experience and independently verified operations without explicit teaching. Conditions/reasons and source methods remain versioned. Ordinary Part/Self must explicitly select a branch under current preferences and constraints; the host checks approved current parent/member versions and current permission. No first-branch default, global planner, psychological mutation, causal proof or transfer guarantee is introduced. See [ADR 0147](decisions/0147-conditional-procedure-consolidation.md).

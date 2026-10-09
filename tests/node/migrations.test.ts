@@ -36,6 +36,10 @@ for (const missingTimestamp of [true, false]) {
       assert.equal(store.promptOverrides({ scope: 'agent', agentId: agent.id, task: 'cognition' })[0]?.text, 'Legacy Agent cognition prompt.');
       assert.deepEqual(store.events(agent.id), events);
       assert.deepEqual(store.executions(agent.id), executions);
+      assert.equal(store.executiveProfile(agent.id).enabled, false, 'Migrated Agents require explicit Executive opt-in');
+      assert.ok(!store.recentFacts(agent.id, 20, 'thread-a').some(fact => fact.referenceId === first.execution!.id));
+      const profile = store.executiveProfile(agent.id);
+      store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1 }, profile.revision);
       assert.ok(store.recentFacts(agent.id, 20, 'thread-a').some(fact => fact.referenceId === first.execution!.id));
       assert.deepEqual(store.recentFacts(agent.id, 20, 'thread-b'), []);
       const second = await new Application(store).message(agent.id, 'Please continue.', 'user', 'thread-a');

@@ -79,7 +79,7 @@ export class ExecutiveConnections {
       const execution = this.store.executions(contract.agentId).find(item => item.contractId === contract.id);
       const consumed = this.store.eventsByType(contract.agentId, ['execution.remainder_claim']).some(event =>
         event.type === 'execution.remainder_claim' && event.payload.authority.parentContractId === contract.id);
-      return !consumed && current.status !== 'failed' && (execution ? execution.status === 'running' : current.status === 'running');
+      return this.store.executiveProfile(contract.agentId).enabled && !consumed && current.status !== 'failed' && (execution ? execution.status === 'running' : current.status === 'running');
     };
     const recorded = this.store.eventsByType(contract.agentId, ['execution.contract'], [cycle.id])
       .find(event => event.type === 'execution.contract' && JSON.stringify(event.payload) === JSON.stringify(contract));

@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -19,7 +20,7 @@ test('prescribed remainder claim and ready handoff preserve lineage, reject repl
   const store = new SqliteStore(database);
   const app = new Application(store, { reasoning: new MockReasoning(), decisions: new MockDecisions(), embeddings: new MockEmbeddings() });
   try {
-    const agent = app.createAgent(); const origin = store.startCycle(agent.id, 'origin');
+    const agent = app.createAgent(); enableExecutive(app, agent.id); const origin = store.startCycle(agent.id, 'origin');
     const step = { serverId: 'local', toolName: 'echo', argumentsJson: '{"value":42}' };
     const initial: ActionBid = { id: 'initial', partId: 'part', action: { kind: 'operate', text: 'Fixture goal', operation: {
       successCriteria: 'Fixture check returns 42', constraints: ['Preserve original'], steps: [step, step],
@@ -89,10 +90,10 @@ test('prescribed remainder claim and ready handoff preserve lineage, reject repl
     assert.equal(store.eventsByType(agent.id, ['execution.remainder_ready']).length, 0);
     store.saveExecution({ ...beforeStop, status: 'blocked', operational: { attempts: 1, verified: false, reason: 'Prescribed worker stopped at its exact settled prefix', traceRefs: ['trace'] } });
     const priorProfile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...priorProfile, revision: 1, limits: { ...priorProfile.limits, maxSteps: 1 } }, 0);
+    store.saveExecutiveProfile(agent.id, { ...priorProfile, enabled: true, revision: 2, limits: { ...priorProfile.limits, maxSteps: 1 } }, 1);
     assert.throws(() => recordRemainderReady(store, app.inspection, contract, () => false), /current framework limits/);
     assert.equal(store.eventsByType(agent.id, ['execution.remainder_ready']).length, 0);
-    store.saveExecutiveProfile(agent.id, { ...priorProfile, revision: 2 }, 1);
+    store.saveExecutiveProfile(agent.id, { ...priorProfile, enabled: true, revision: 3 }, 2);
     recordRemainderReady(store, app.inspection, contract, () => false);
     verifyRemainderHandoff(store, contract);
     const continued = store.executions(agent.id)[0]!;

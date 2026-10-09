@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -52,7 +53,7 @@ test('selected teaching and exact method invocation preserve recorded authority 
   for (const executionMode of ['synchronous', 'background'] as const) {
     const { store, app, agent, draft } = fixture();
     try {
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 1, executionMode, learningMode: 'validated_automatic' }, 0);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, executionMode, learningMode: 'validated_automatic' }, 0);
       const taught = await app.message(agent.id, 'Teach the prescribed method.', 'user', 'origin');
       const execution = await settled(app, taught.execution!); assert.equal(execution.status, 'completed');
       const skill = store.executiveSkills(agent.id)[0]!; assert.equal(skill.status, 'active'); assert.equal(skill.version, 2);
@@ -110,9 +111,9 @@ test('background teaching cannot loosen captured modes and invalid revisions lea
     ['disabled', 'validated_automatic'], ['validated_automatic', 'disabled']] as const) {
     const { store, app, agent } = fixture();
     try {
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 1, executionMode: 'background', learningMode: captured }, 0);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, executionMode: 'background', learningMode: captured }, 0);
       const run = await app.message(agent.id, 'Record the chosen lesson after completion.', 'user', 'origin'); assert.equal(run.execution?.status, 'running');
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 2, learningMode: current }, 1);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 2, learningMode: current }, 1);
       const result = await settled(app, run.execution!); assert.equal(result.status, 'completed');
       const skills = store.executiveSkills(agent.id);
       if (captured === 'disabled' || current === 'disabled') assert.deepEqual(skills, []);
@@ -121,6 +122,7 @@ test('background teaching cannot loosen captured modes and invalid revisions lea
     } finally { await app.close(); store.close(); }
   }
   const { store, app, agent, draft } = fixture();
+  enableExecutive(app, agent.id);
   try {
     draft.operation.teachProcedure = { ...lesson().teachProcedure!, skillId: 'nonexistent_skill', expectedVersion: 1 };
     const run = await app.message(agent.id, 'Invalid retention reference with a valid operation.', 'user', 'origin');
@@ -144,7 +146,7 @@ test('selected procedure retention honors learning modes and independent evidenc
     const { store, app, agent, draft } = fixture(executor);
     try {
       const learningMode = kind === 'disabled' ? 'disabled' : kind === 'supervised' ? 'supervised' : 'validated_automatic';
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 1, learningMode }, 0);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, learningMode }, 0);
       if (kind === 'failed') draft.operation.steps = [{ serverId: 'local', toolName: 'error', argumentsJson: '{}' }];
       const run = await app.message(agent.id, 'Selected lesson fixture.', 'user', 'origin');
       const saved = structuredClone(run.execution); const skills = store.executiveSkills(agent.id);
@@ -154,7 +156,7 @@ test('selected procedure retention honors learning modes and independent evidenc
         assert.equal(skills.length, 1); assert.equal(skills[0]!.status, kind === 'automatic' ? 'active' : 'proposed');
         assert.equal(skills[0]!.validations[0]!.result, kind === 'failed' ? 'failed' : kind === 'fabricated' ? 'inconclusive' : 'passed');
         if (kind === 'supervised') {
-          store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 2, learningMode: 'validated_automatic' }, 1);
+          store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 2, learningMode: 'validated_automatic' }, 1);
           draft.operation = method();
           const evidence = await app.message(agent.id, 'Another independently recorded exact execution.', 'user', 'origin');
           const again = app.executiveSkills.validate(agent.id, skills[0]!.id, 2, evidence.execution!.id);
@@ -170,7 +172,7 @@ test('selected procedure retention honors learning modes and independent evidenc
 test('a retention reporting infrastructure failure cannot roll back a persisted background tool outcome', async () => {
   const { store, app, agent } = fixture();
   try {
-    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 1, executionMode: 'background' }, 0);
+    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, executionMode: 'background' }, 0);
     const run = await app.message(agent.id, 'Complete a real operation before the injected retention failure.', 'user', 'origin');
     assert.equal(run.execution?.status, 'running');
     app.executiveTeaching.record = () => { throw new Error('Deliberately injected retention reporting infrastructure failure'); };
@@ -188,7 +190,7 @@ test('selected revisions and restart preserve source history, idempotent teachin
   const first = fixture(undefined, path); let { store, app } = first; const { agent, draft, providers } = first;
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, learningMode: 'validated_automatic', limits: { ...profile.limits, maxSteps: 2 } }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, learningMode: 'validated_automatic', limits: { ...profile.limits, maxSteps: 2 } }, 0);
     const initial = await app.message(agent.id, 'Teach the initial exact method.', 'user', 'origin');
     const original = structuredClone(store.executiveSkills(agent.id)[0]!); assert.equal(original.status, 'active');
     draft.operation = { ...lesson(), teachProcedure: { ...lesson().teachProcedure!, name: 'Revised exact fixture method', skillId: original.id, expectedVersion: original.version } };
@@ -201,7 +203,7 @@ test('selected revisions and restart preserve source history, idempotent teachin
     await app.close(); store.close(); store = new SqliteStore(path); app = new Application(store, providers);
     app.executiveTeaching.record(initial.execution!); assert.deepEqual(store.executiveSkills(agent.id)[0], skill);
     assert.deepEqual(store.world(initial.cycle.worldId), savedWorld);
-    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 2, limits: { ...profile.limits, maxSteps: 20 } }, 1);
+    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 2, limits: { ...profile.limits, maxSteps: 20 } }, 1);
     draft.operation = { ...method(), steps: [], verification: null, skillInvocation: { skillId: skill.id, version: skill.version } };
     const reuse = await app.message(agent.id, 'Reuse the current exact method after restart.', 'user', 'origin');
     assert.equal(reuse.execution?.status, 'completed');

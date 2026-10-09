@@ -43,6 +43,8 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   const toolbar = el('div'); toolbar.className = 'executive-actions'; page.append(toolbar);
   const runtime = panel(page, 'Runtime');
   runtime.append(el('p', 'Native is the available runtime. OpenClaw and custom adapters are not yet available.'));
+  const enabled = input(runtime, 'Enable Executive', '', 'checkbox'); enabled.checked = profile.enabled;
+  runtime.append(el('p', 'Off disconnects execution, tool and skill context, feedback and checkpoint reviews from cognition. Selected actions, including speech, are recorded without enactment. Already submitted effects cannot be undone.'));
   const mode = choice(runtime, 'Execution mode', ['synchronous', 'background'], profile.executionMode);
   const copy = el('fieldset'); copy.append(el('legend', 'Copy Executive configuration')); runtime.append(copy);
   const sourceLabel = el('label', 'Source Agent'); const sourceChoice = el('select'); sourceLabel.append(sourceChoice); copy.append(sourceLabel);
@@ -295,7 +297,7 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
     sensitivity.consequentialRiskMultiplier = Number(multiplier.value);
     const { revision, ...current } = profile;
     profile = await api<ExecutiveProfile>(`${path}/executive-profile`, 'PUT', { ...current, expectedRevision: revision,
-      executionMode: mode.value, allowEquivalentMethods: equivalent.checked, learningMode: learningMode.value, skillReviewPolicy: reviewPolicy.value,
+      enabled: enabled.checked, executionMode: mode.value, allowEquivalentMethods: equivalent.checked, learningMode: learningMode.value, skillReviewPolicy: reviewPolicy.value,
       consolidation: { mode: consolidationMode.value, requiredSuccesses: Number(requiredSuccesses.value) },
       limits: Object.fromEntries(Object.entries(limits).map(([key, control]) => [key, Number(control.value)])), sensitivity,
       attention: { enabled: monitor.checked, reviewInterested: review.checked, awaitCheckpointReview: awaitReview.checked, ...Object.fromEntries(Object.entries(attentionFields).map(([key, control]) => [key, Number(control.value)])),

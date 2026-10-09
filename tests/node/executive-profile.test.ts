@@ -133,7 +133,7 @@ test('normal cognitive handoff uses durable profile budgets before any tool subm
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent(); const profile = defaultExecutiveProfile();
-    profile.revision = 1; profile.limits.maxSteps = 1; profile.sensitivity.drift.threshold = 0.7;
+    profile.enabled = true; profile.revision = 1; profile.limits.maxSteps = 1; profile.sensitivity.drift.threshold = 0.7;
     store.saveExecutiveProfile(agent.id, profile, 0);
     const result = await app.message(agent.id, 'Run the selected strategy.');
     assert.equal(result.execution?.status, 'blocked'); assert.equal(result.execution?.operational?.attempts, 0);

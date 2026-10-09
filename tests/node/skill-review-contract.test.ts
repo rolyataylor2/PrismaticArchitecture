@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { SelectedSkillReview } from '../../packages/sdk/src/selected-skill-review.js';
@@ -43,6 +44,7 @@ test('opt-in ordinary Part and world-blind Self review records an exact approval
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent();
+    enableExecutive(app, agent.id);
     store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
@@ -54,7 +56,7 @@ test('opt-in ordinary Part and world-blind Self review records an exact approval
     assert.equal(candidate.status, 'proposed');
     assert.deepEqual(publicSkills(store, agent.id, source.cycle.threadId!, 10)[0]!.reviewDecisions, []);
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, skillReviewPolicy: 'self_selected' }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 2, skillReviewPolicy: 'self_selected' }, 1);
     const manifest = publicSkills(store, agent.id, source.cycle.threadId!, 10)[0]!;
     assert.deepEqual(manifest.reviewDecisions, ['rejection', 'approval']);
     const wire = operationalProposalSchema({ ...store.world(source.cycle.worldId), externalSkills: [manifest] });
@@ -151,7 +153,7 @@ test('ordinary prescribed Self selection of unsupported review blocks without to
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent(); const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, executionMode: 'background' }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background' }, 0);
     const selected = await app.message(agent.id, 'Review the prescribed candidate.', 'user', 'review');
     assert.equal(selected.execution!.status, 'blocked'); assert.equal(selected.execution!.operational!.attempts, 0);
     assert.match(selected.execution!.operational!.reason, /disabled/);

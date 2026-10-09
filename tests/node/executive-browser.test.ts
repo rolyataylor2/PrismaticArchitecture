@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -52,7 +53,7 @@ test('Executive panels persist operational configuration and discover/grant real
   }); const agent = app.createAgent();
   const profileSource = app.createAgent('Profile copy source');
   const sourceSettings = store.executiveProfile(profileSource.id);
-  store.saveExecutiveProfile(profileSource.id, { ...sourceSettings, revision: 1, limits: { ...sourceSettings.limits, maxSteps: 9 } }, 0);
+  store.saveExecutiveProfile(profileSource.id, { ...sourceSettings, enabled: true, revision: 1, limits: { ...sourceSettings.limits, maxSteps: 9 } }, 0);
   const importRoot = mkdtempSync(join(tmpdir(), 'executive-folder-import-'));
   const importFolder = join(importRoot, 'folder-example'); mkdirSync(importFolder);
   writeFileSync(join(importFolder, 'SKILL.md'), '---\nname: folder-example\ndescription: Folder import fixture\n---\n\nKeep ambiguous files for review.\n');
@@ -71,6 +72,8 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByRole('tab', { name: 'Feedback & Diagnostics', exact: true }).waitFor();
     assert.deepEqual(await page.locator('.executive-panel > h3').allTextContents(),
       ['Runtime', 'MCP Connections', 'Autonomy & Recovery', 'Environmental Sensitivity', 'Skills & Learning', 'Feedback & Diagnostics']);
+    assert.equal(await page.getByLabel('Enable Executive', { exact: true }).isChecked(), false);
+    await page.getByLabel('Enable Executive', { exact: true }).check();
     await page.getByLabel('Execution mode', { exact: true }).selectOption('background');
     assert.equal(await page.getByRole('tabpanel').count(), 1, 'Only the selected section is visible');
     await page.getByRole('tab', { name: 'Autonomy & Recovery', exact: true }).click();
@@ -85,6 +88,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByLabel('Verified successes before repeated consolidation', { exact: true }).fill('3');
     await page.getByRole('button', { name: 'Save Executive profile', exact: true }).click();
     await page.getByText('Saved profile revision 1', { exact: true }).waitFor();
+    assert.equal(store.executiveProfile(agent.id).enabled, true);
     assert.equal(store.executiveProfile(agent.id).executionMode, 'background');
     assert.equal(store.executiveProfile(agent.id).limits.maxSteps, 3);
     assert.equal(store.executiveProfile(agent.id).sensitivity.novelty.threshold, 0.6);
@@ -350,6 +354,7 @@ test('browser consultation preserves a draft through refresh and records attribu
     },
   });
   const agent = app.createAgent();
+  enableExecutive(app, agent.id);
   const started = await app.message(agent.id, 'Start the held UI fixture.', 'user', 'origin');
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });

@@ -7,6 +7,9 @@ export async function developmentDemo(store: Store, observe: (event: CognitiveEv
   const encounter = new TextEncounter('Bill');
   const app = new Application(store, configuredProviders({ PRISM_PROVIDER: 'mock' }), encounter);
   const agent = app.createAgent('Development demo', architecture);
+  // This demonstration explicitly includes external enactment and outcome learning.
+  const profile = store.executiveProfile(agent.id);
+  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1 }, profile.revision);
   const unsubscribe = app.inspection.subscribe(observe);
   try {
     for (let turn = 0; turn < 2; turn++) {

@@ -38,7 +38,7 @@ function fixture(slow = false) {
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'slow' }] }, 0);
-  store.saveExecutiveProfile(agent.id, { ...defaultExecutiveProfile(), revision: 1, executionMode: 'background' }, 0);
+  store.saveExecutiveProfile(agent.id, { ...defaultExecutiveProfile(), enabled: true, revision: 1, executionMode: 'background' }, 0);
   return { app, store, agent, stopProposals: () => { operate = false; } };
 }
 
@@ -114,5 +114,25 @@ test('a failed originating cycle cannot authorize a queued worker or fabricate c
     assert.equal(final.status, 'unverified'); assert.equal(final.operational?.attempts, 0);
     assert.ok(final.facts.some(fact => fact.text.includes('external worker stopped')));
     assert.equal(store.eventsByType(agent.id, ['execution.tool_trace']).length, 0);
+  } finally { await app.close(); store.close(); }
+});
+
+
+test('disabling during background work blocks later submissions and disconnects feedback', async () => {
+  const { app, store, agent } = fixture(true);
+  try {
+    const first = await app.message(agent.id, 'Run slow fixture.', 'user', 'origin');
+    const submitted = () => store.eventsByType(agent.id, ['execution.tool_trace'], [first.cycle.id]).filter(event =>
+      event.type === 'execution.tool_trace' && event.payload.phase === 'submitted');
+    await until(() => submitted().length === 1);
+    const profile = store.executiveProfile(agent.id);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: false, revision: profile.revision + 1 }, profile.revision);
+    await app.executiveWorkers.wait(agent.id, first.execution!.id);
+    assert.equal(submitted().length, 1, 'An earlier captured contract cannot submit after disabling');
+    assert.notEqual(store.executions(agent.id)[0]!.status, 'completed');
+    const next = await app.message(agent.id, 'Continue thinking.', 'user', 'origin');
+    assert.equal(next.execution, null);
+    assert.ok(!store.world(next.cycle.worldId).facts.some(fact => fact.referenceId === first.execution!.id));
+    assert.equal(store.cycles(agent.id).length, 2, 'Disabled results do not trigger checkpoint cognition');
   } finally { await app.close(); store.close(); }
 });

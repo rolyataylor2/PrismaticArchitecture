@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +49,7 @@ function fixture(path = ':memory:') {
   }
   const store = new SqliteStore(path); const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   const agent = app.createAgent();
+  enableExecutive(app, agent.id);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: ['echo', 'error'].map(toolName => ({ serverId: 'local', toolName })) }, 0);
@@ -58,7 +60,7 @@ test('automatic consolidation waits for repeated exact evidence, keeps candidate
   const { store, app, agent, draft, inputs } = fixture();
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       consolidation: { mode: 'after_repeated_success', requiredSuccesses: 2 } }, profile.revision);
     const first = await app.message(agent.id, 'First prescribed exact method.', 'user', 'automatic');
     assert.equal(first.execution!.status, 'completed'); await app.waitForInference(agent.id);
@@ -77,7 +79,7 @@ test('automatic consolidation waits for repeated exact evidence, keeps candidate
     await app.message(agent.id, 'Prescribed failed method.', 'user', 'automatic'); await app.waitForInference(agent.id);
     assert.equal(inputs.length, 1, 'A failed execution cannot trigger candidate inference');
     const current = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...current, revision: current.revision + 1, learningMode: 'disabled',
+    store.saveExecutiveProfile(agent.id, { ...current, enabled: true, revision: current.revision + 1, learningMode: 'disabled',
       consolidation: { mode: 'after_verified_execution', requiredSuccesses: 2 } }, current.revision);
     draft.operation = method(42, 'Preserve information');
     await app.message(agent.id, 'Verified work with learning disabled.', 'user', 'automatic'); await app.waitForInference(agent.id);
@@ -89,7 +91,7 @@ test('automatic single verified episode policy schedules external inference afte
   const { store, app, agent, inputs } = fixture();
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       consolidation: { mode: 'after_verified_execution', requiredSuccesses: 2 } }, profile.revision);
     const selected = await app.message(agent.id, 'Prescribed verified automatic candidate.', 'user', 'automatic');
     await app.waitForInference(agent.id);
@@ -105,12 +107,12 @@ test('automatic inference policy changes preserve failed learning evidence witho
   const { store, app, agent, inputs, hold, release } = fixture();
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       consolidation: { mode: 'after_verified_execution', requiredSuccesses: 2 } }, profile.revision);
     hold(); const selected = await app.message(agent.id, 'Prescribed verified task with held learning inference.', 'user', 'automatic');
     while (!app.procedureConsolidation.records(agent.id).some(record => record.status === 'running')) await new Promise(resolve => setTimeout(resolve, 5));
     const current = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...current, revision: current.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...current, enabled: true, revision: current.revision + 1,
       consolidation: { mode: 'manual', requiredSuccesses: 2 } }, current.revision);
     release(); await app.waitForInference(agent.id);
     const run = app.procedureConsolidation.records(agent.id)[0]!;
@@ -119,7 +121,7 @@ test('automatic inference policy changes preserve failed learning evidence witho
     assert.equal(store.executiveSkills(agent.id).length, 0);
     assert.equal(store.executions(agent.id).find(execution => execution.id === selected.execution!.id)!.status, 'completed');
     const manual = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...manual, revision: manual.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...manual, enabled: true, revision: manual.revision + 1,
       consolidation: { mode: 'after_verified_execution', requiredSuccesses: 2 } }, manual.revision);
     assert.equal(await app.procedureConsolidation.automatically(agent.id, selected.execution!.id), null);
     assert.equal(inputs.length, 1, 'Policy toggles cannot silently retry a consumed execution trigger');
@@ -131,7 +133,7 @@ test('automatic pre-inference failures remain inspectable and consumed without i
   const original = app.procedureConsolidation.automatically.bind(app.procedureConsolidation);
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       consolidation: { mode: 'after_verified_execution', requiredSuccesses: 2 } }, profile.revision);
     app.procedureConsolidation.automatically = async () => { throw new Error('Prescribed automatic trigger assessment failure'); };
     const selected = await app.message(agent.id, 'Prescribed completed task with an assessment outage.', 'user', 'automatic');
@@ -242,7 +244,7 @@ test('foreign/generated source references reject the whole consolidation atomica
     await app.message(agent.id, 'Create one recorded source.', 'user', 'source'); badSource();
     const rejected = await app.consolidateProcedures(agent.id); assert.equal(rejected.status, 'failed'); assert.match(rejected.error!, /supplied independently passed/);
     assert.equal(store.executiveSkills(agent.id).length, 0);
-    const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1, learningMode: 'disabled' }, profile.revision);
+    const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1, learningMode: 'disabled' }, profile.revision);
     assert.equal((await app.consolidateProcedures(agent.id)).status, 'skipped'); assert.equal(inputs.length, 1);
   } finally { await app.close(); store.close(); }
 });

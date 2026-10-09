@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Application } from '../../packages/sdk/src/application.js';
@@ -49,6 +50,7 @@ test('ordinary selected invalid correction is recorded blocked with no submissio
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent();
+    enableExecutive(app, agent.id);
     const result = await app.message(agent.id, 'Inspect the correction fixture.', 'user', 'origin');
     assert.equal(result.cycle.status, 'completed'); assert.equal(result.execution?.status, 'blocked');
     assert.equal(result.execution?.operational?.attempts, 0); assert.deepEqual(result.execution?.operational?.traceRefs, []);

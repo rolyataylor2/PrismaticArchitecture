@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -92,13 +93,14 @@ test('real background results trigger nonblocking read-only checkpoints and exte
   let app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent(); const foreign = app.createAgent();
+    enableExecutive(app, foreign.id);
     await api(app, 'POST', `/api/agents/${agent.id}/dispositions`, { name: 'Transport fixture attention', concern: 'Notice the transport fixture',
       cues: ['echo fixture'], scope: 'echo', threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
     store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 2000 }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
     const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, executionMode: 'background', learningMode: 'disabled', attention: { ...profile.attention, enabled: true } }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', learningMode: 'disabled', attention: { ...profile.attention, enabled: true } }, 0);
     const first = await app.message(agent.id, 'Run the fixture.', 'user', 'origin'); const executionId = first.execution!.id;
     const initial = structuredClone(store.world(first.cycle.worldId));
     const before = { generated, selected, parts: store.list('part', agent.id), memories: store.list('memory', agent.id), identity: store.get('identity', agent.id) };
@@ -132,7 +134,7 @@ test('real background results trigger nonblocking read-only checkpoints and exte
     assert.equal(gap.attention.state, 'interested'); assert.equal(gap.attention.relevance, 0); assert.equal(gap.attention.competent, false);
     await assert.rejects(api(app, 'POST', `/api/agents/${foreign.id}/executions/${executionId}/checkpoint`, { facts }), /attributed operational/);
     const current = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...current, revision: current.revision + 1, attention: { ...current.attention, enabled: false } }, current.revision);
+    store.saveExecutiveProfile(agent.id, { ...current, enabled: true, revision: current.revision + 1, attention: { ...current.attention, enabled: false } }, current.revision);
     const count = store.cycles(agent.id).length; assert.equal(await api(app, 'POST', route, { facts }), null);
     assert.equal(store.cycles(agent.id).length, count);
     assert.equal(store.eventsByType(agent.id, ['execution.tool_trace']).filter(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted').length, 2);

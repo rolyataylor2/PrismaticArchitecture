@@ -49,7 +49,7 @@ test('two ordinary selected corrections retain every settled prefix and one orig
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
     const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
       attention: { ...profile.attention, enabled: true, reviewInterested: true, awaitCheckpointReview: true } }, 0);
     const initial = await app.message(agent.id, 'Run the repeated correction fixture.', 'user', 'repeated');
     const deadline = Date.now() + 15000;

@@ -9,6 +9,7 @@ export const ExecutionLimitsSchema = z.strictObject({
 });
 /** External configuration. Unimplemented adapters cannot be selected. */
 export const ExecutiveProfileSchema = z.strictObject({
+  enabled: z.boolean().default(false),
   revision: z.number().int().nonnegative(), runtime: z.literal('native'),
   executionMode: z.enum(['synchronous', 'background']).default('synchronous'),
   learningMode: z.enum(['disabled', 'supervised', 'validated_automatic']),

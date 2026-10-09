@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -47,6 +48,7 @@ test('a replacement executor cannot change arguments, reorder steps, overlap sub
   } };
   app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }, replacement);
   const agent = app.createAgent();
+  enableExecutive(app, agent.id);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [tool] }, 0);
@@ -94,7 +96,7 @@ test('framework duration budgets abort submitted calls and cannot be reset by re
   } };
   app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }, replacement);
   const agent = app.createAgent(); const profile = defaultExecutiveProfile(); profile.revision = 1; profile.limits.maxDurationMs = 200;
-  store.saveExecutiveProfile(agent.id, profile, 0);
+  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true }, 0);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [slow, echo] }, 0);

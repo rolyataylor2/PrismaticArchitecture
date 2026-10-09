@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
@@ -22,6 +23,7 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
     const agent = store.list('agent')[0]!;
+    enableExecutive(app, agent.id);
     assert.equal(agent.architecture, 'constructed'); assert.equal(store.list('part', agent.id).length, 0);
     await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Hello, a calm ordinary conversation.');
     await page.getByRole('button', { name: 'Send', exact: true }).click();

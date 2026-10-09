@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -19,7 +20,7 @@ const constraint = 'Use only the selected fixture value';
 const echo = { serverId: 'local', toolName: 'echo', argumentsJson: '{"value":42}' };
 const empty = (): Operation => ({ successCriteria: 'The separate check returns 42', constraints: [constraint], steps: [], verification: null });
 const steps = (): Operation => ({ ...empty(), steps: [echo], verification: { ...echo, path: ['value'], expectedJson: '42' } });
-function fixture(path = ':memory:') {
+function fixture(path = ':memory:', enabled = true) {
   const draft = { text: goal, operation: empty() };
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
@@ -38,6 +39,7 @@ function fixture(path = ':memory:') {
   }
   const providers = { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() };
   const store = new SqliteStore(path); const app = new Application(store, providers); const agent = app.createAgent();
+  if (enabled) enableExecutive(app, agent.id);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
@@ -50,9 +52,9 @@ async function settled(app: Application, execution: Execution): Promise<Executio
 
 test('ordinary Self-selected supplemental instructions resume native/background work with real MCP, preserved parent lineage and no replay', async () => {
   for (const executionMode of ['synchronous', 'background'] as const) {
-    const { store, app, agent, draft } = fixture();
+    const { store, app, agent, draft } = fixture(':memory:', false);
     try {
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 1, executionMode }, 0);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, executionMode }, 0);
       const first = await app.message(agent.id, 'Consider the fixture goal.', 'user', 'origin');
       const parent = await settled(app, first.execution!); assert.equal(parent.status, 'needs_guidance');
       const originalWorld = structuredClone(store.world(first.cycle.worldId));
@@ -96,6 +98,7 @@ test('foreign, changed-goal and constraint-removing guidance responses have zero
     const first = await app.message(agent.id, 'Consider the fixture.', 'user', 'origin'); const parent = first.execution!;
     draft.operation = { ...steps(), guidanceResponse: { requestId: parent.guidance!.id, newInformation: 'Explicit fixture response.' } };
     const otherAgent = app.createAgent();
+    enableExecutive(app, otherAgent.id);
     const responses = [
       await app.message(otherAgent.id, 'Foreign Agent response fixture.', 'user', 'origin'),
       await app.message(agent.id, 'Foreign thread response fixture.', 'user', 'other'),
@@ -136,8 +139,8 @@ test('guidance usage survives restart and profile increases; identical assertion
     assert.equal(repeated.execution!.status, 'blocked'); assert.ok(repeated.execution!.operational!.reason.includes('new recorded'));
     assert.equal(store.executions(first.agent.id).find(item => item.id === second.id)!.status, 'needs_guidance');
     await app.close(); store.close(); store = new SqliteStore(path); app = new Application(store, first.providers);
-    store.saveExecutiveProfile(first.agent.id, { ...store.executiveProfile(first.agent.id), revision: 1,
-      limits: { ...store.executiveProfile(first.agent.id).limits, maxGuidanceRequests: 20 } }, 0);
+    store.saveExecutiveProfile(first.agent.id, { ...store.executiveProfile(first.agent.id), enabled: true, revision: 2,
+      limits: { ...store.executiveProfile(first.agent.id).limits, maxGuidanceRequests: 20 } }, 1);
     first.draft.operation.guidanceResponse!.newInformation = 'Second explicitly stated instruction after restart.';
     const exhausted = await app.message(first.agent.id, 'Continue within the original chain budget.', 'user', 'origin');
     assert.equal(exhausted.execution!.status, 'blocked'); assert.equal(exhausted.execution!.guidance, undefined);

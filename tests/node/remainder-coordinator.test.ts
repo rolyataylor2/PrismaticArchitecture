@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Application } from '../../packages/sdk/src/application.js';
@@ -12,7 +13,8 @@ import type { ActionBid } from '../../packages/core/src/domain.js';
 function fixture(mode: 'success' | 'consume_failure' | 'cancel_failure' | 'settlement_failure' | 'unexpected_effect' | 'deadline') {
   const store = new SqliteStore(':memory:');
   const app = new Application(store, { reasoning: new MockReasoning(), decisions: new MockDecisions(), embeddings: new MockEmbeddings() });
-  const agent = app.createAgent(); const origin = store.startCycle(agent.id, 'thread');
+  const agent = app.createAgent();
+  enableExecutive(app, agent.id); const origin = store.startCycle(agent.id, 'thread');
   const step = { serverId: 'local', toolName: 'echo', argumentsJson: '{"value":42}' };
   const initial: ActionBid = { id: 'initial', partId: 'part', action: { kind: 'operate', text: 'Prescribed fixture goal', operation: {
     successCriteria: 'Separate check returns 42', constraints: ['Preserve earlier effects'], steps: [step, step], verification: { ...step, path: ['value'], expectedJson: '42' } } },

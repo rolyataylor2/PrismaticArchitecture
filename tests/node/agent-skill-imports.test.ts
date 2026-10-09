@@ -29,6 +29,7 @@ test('explicit reviewed document intake uses ordinary cognition with shared prov
   if (previousRoot === undefined) delete process.env.PRISM_SKILLS_ROOT; else process.env.PRISM_SKILLS_ROOT = previousRoot;
   try {
     const agent = app.createAgent(); const foreign = app.createAgent();
+    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1 }, 0);
     const proposal = await app.agentSkillImports.propose(agent.id, { name: 'document-example', source: 'Fixture external source', reason: 'Test intake boundaries',
       files: { 'SKILL.md': '---\nname: document-example\ndescription: Document intake\n---\n\nCheck ambiguous classifications before proceeding.\n',
         'references/audit.md': 'PRIVATE_RESOURCE_CANARY' } });

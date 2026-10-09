@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +9,7 @@ import { ExternalCapabilitiesSchema, isLegacyCapabilityFact } from '../../packag
 
 test('large current capability catalogs remain one immutable snapshot field without factual accumulation', async () => {
   const store = new SqliteStore(':memory:'); const app = new Application(store); const agent = app.createAgent();
+  enableExecutive(app, agent.id);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url)), '--many'], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   const tools = Array.from({ length: 60 }, (_, index) => ({ serverId: 'local', toolName: `catalog_${index}` }));
@@ -40,6 +42,7 @@ test('large current capability catalogs remain one immutable snapshot field with
 
 test('unavailable capability metadata is explicit and legacy generated records are projected out without changing history', async () => {
   const store = new SqliteStore(':memory:'); const app = new Application(store); const agent = app.createAgent();
+  enableExecutive(app, agent.id);
   try {
     const legacy = { source: 'External capabilities', kind: 'observes' as const,
       text: 'Available permitted tool: {"serverId":"old","toolName":"echo"}', referenceId: null, timestamp: null };

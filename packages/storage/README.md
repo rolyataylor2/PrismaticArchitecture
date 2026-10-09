@@ -106,3 +106,5 @@ Correction-derived methods retain the reconstructed whole procedure and original
 ## Selected procedural review (ADR 0153)
 
 Researcher-only approval remains the default. The opt-in `self_selected` profile policy exposes bounded candidate review choices to Parts. An exclusive Self-selected approval/rejection operation resolves the exact immutable Agent Skills package, checks captured/current policy and current scope/version/evidence/grants, and atomically records the decision and new skill version. Approval dispatches no tools, changes no permissions or maturity, and requires a later fresh selected invocation. Storage independently checks selected review lineage and completion receipts. Inspection includes the review episode's expressed thoughts, bids and Self reason, alongside the preserved version history.
+
+ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.

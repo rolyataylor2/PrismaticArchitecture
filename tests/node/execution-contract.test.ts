@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compileChatExecutionContract, ExecutionContractSchema } from '../../packages/core/src/execution-contract.js';
@@ -66,6 +67,7 @@ test('ordinary constructed runtime hands off frozen contracts and persists attri
   try {
     const app = new Application(store, undefined, executor);
     const agent = app.createAgent();
+    enableExecutive(app, agent.id);
     const result = await app.message(agent.id, 'Hello.', 'user', 'original_thread');
     assert.ok(captured?.contract);
     assert.ok(Object.isFrozen(captured.contract));

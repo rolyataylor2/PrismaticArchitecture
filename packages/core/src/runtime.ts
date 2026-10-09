@@ -56,14 +56,15 @@ export class CognitiveRuntime {
     let stage = 'worldstate';
     try {
       this.inspection.emit(agentId, cycle.id, 'cycle.started', cycle);
-      const externalExecutionRequests = currentExecutionRequests(this.store, agentId, threadId ?? null, this.options.maxGuidanceContexts ?? 20);
-      const externalSkills = publicSkills(this.store, agentId, threadId ?? null, this.options.maxSkillContexts ?? 20);
+      const executiveEnabled = this.store.executiveProfile(agentId).enabled;
+      const externalExecutionRequests = executiveEnabled ? currentExecutionRequests(this.store, agentId, threadId ?? null, this.options.maxGuidanceContexts ?? 20) : [];
+      const externalSkills = executiveEnabled ? publicSkills(this.store, agentId, threadId ?? null, this.options.maxSkillContexts ?? 20) : [];
       const world = freeze(WorldStateSchema.parse({ id: cycle.worldId, agentId, cycleId: cycle.id,
         sequence: cycle.sequence, capturedAt: cycle.startedAt, facts: [...this.store.recentFacts(agentId, this.options.recentFactLimit, threadId), ...incoming.map(fact => ({ ...fact, timestamp: fact.timestamp ?? cycle.startedAt, originCycleId: cycle.id }))],
-        ...(externalCapabilities ? { externalCapabilities } : {}),
+        ...(executiveEnabled && externalCapabilities ? { externalCapabilities } : {}),
         ...(externalExecutionRequests.length ? { externalExecutionRequests } : {}),
         ...(externalSkills.length ? { externalSkills } : {}),
-        ...(externalSkillDocuments?.length ? { externalSkillDocuments } : {}),
+        ...(executiveEnabled && externalSkillDocuments?.length ? { externalSkillDocuments } : {}),
         thoughtHistory: thoughtHistory(this.store, cycle, this.options.thoughtDecay),
         experienced: experiencedState(this.store, cycle) }));
       this.store.saveWorld(world);
@@ -245,7 +246,7 @@ export class CognitiveRuntime {
         stage = 'execution';
         cycle = { ...cycle, selectedBidId: selected[0]!.id, selectedBidIds: selected.map(bid => bid.id) };
         this.store.saveCycle(cycle);
-        for (let index = 0; index < selected.length; index++) {
+        for (let index = 0; this.store.executiveProfile(agentId).enabled && index < selected.length; index++) {
           const selectedBid = selected[index]!;
           const group = [selectedBid];
           if (this.executor.executeSay && (selectedBid.action.kind === 'say' || selectedBid.action.kind === 'ask')) {
@@ -271,6 +272,7 @@ export class CognitiveRuntime {
               packageRejection = `Skill package selection rejected: ${error instanceof Error ? error.message : String(error)}`;
             }
           }
+          if (!this.store.executiveProfile(agentId).enabled) break;
           const contract = this.inspection.atomic(() => {
             let continuation; let guidanceRejection; let selectedSkill; let skillRejection; let remainderRejection; let remainder;
             if (selectedBid.action.kind === 'operate' && selectedBid.action.operation.remainderCorrection) {
@@ -296,6 +298,7 @@ export class CognitiveRuntime {
             acceptGuidanceContinuation(this.store, this.inspection, compiled);
             return compiled;
           });
+          if (!this.store.executiveProfile(agentId).enabled) break;
           execution = ExecutionSchema.parse(await (this.executor.executeSay && (selectedBid.action.kind === 'say' || selectedBid.action.kind === 'ask')
             ? this.executor.executeSay({ agentId, cycleId: cycle.id, bids: group, contract })
             : contract.continuation && this.executor.resume
@@ -378,6 +381,10 @@ export class CognitiveRuntime {
   /** Persist an advisory checkpoint, with ordinary activation but no recall, Parts or selection. */
   async monitorExecution(agentId: string, executionId: string, facts: Fact[], checkpoint: 'tool_result' | 'environment',
     competence: ExecutiveCompetence, externalCapabilities?: ExternalCapabilities, consultationReason?: string) {
+    if (!this.store.executiveProfile(agentId).enabled) {
+      if (consultationReason !== undefined) throw new Error('Executive is disabled');
+      return null;
+    }
     const incoming = z.array(FactSchema).min(1).max(50).parse(facts);
     ExecutiveCheckpointKindSchema.parse(checkpoint); ExecutiveCompetenceSchema.parse(competence);
     const execution = this.store.executions(agentId).find(item => item.id === executionId);
@@ -429,7 +436,7 @@ export class CognitiveRuntime {
         ...evaluateExecutiveAttention({ settings: profile.attention, relevance, competence, evidenceKey, at: cycle.startedAt,
           ...(previous?.type === 'execution.attention' ? { previous: previous.payload } : {}) }) };
       this.inspection.emit(agentId, cycle.id, 'execution.attention', attention);
-      if ((requestedReason || (profile.attention.reviewInterested && attention.state === 'interested')) && activity
+      if (this.store.executiveProfile(agentId).enabled && (requestedReason || (profile.attention.reviewInterested && attention.state === 'interested')) && activity
         && selectedActivity(this.store, agentId, executionId, origin.threadId ?? null)) {
         cycle = { ...cycle, kind: 'attention_review' };
         this.store.saveCycle(cycle);

@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -14,7 +15,7 @@ import type { SelfContext } from '../../packages/core/src/domain.js';
 import type { Executor } from '../../packages/core/src/contracts.js';
 import type { ExecutiveSkill } from '../../packages/core/src/executive-skill.js';
 
-function fixture(path = ':memory:', failed = false, executor?: Executor) {
+function fixture(path = ':memory:', failed = false, executor?: Executor, enabled = true) {
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
       const result = await super.constructed(input); if (input.task !== 'part_cognition') return result;
@@ -38,6 +39,7 @@ function fixture(path = ':memory:', failed = false, executor?: Executor) {
     reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings(),
   }, executor);
   const agent = app.createAgent();
+  if (enabled) enableExecutive(app, agent.id);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'error' }] }, 0);
@@ -52,7 +54,8 @@ test('cross-Agent package copy preserves exact provenance as reviewed knowledge 
     let skill = app.executiveSkills.proposeSkill(agent.id, proposal(run.execution!.contractId!));
     skill = app.executiveSkills.validate(agent.id, skill.id, skill.version, run.execution!.id, false);
     skill = app.executiveSkills.decide(agent.id, skill.id, skill.version, 'approval', 'Source-host approval only');
-    const target = app.createAgent('Package recipient'); const identity = structuredClone(store.get('identity', target.id));
+    const target = app.createAgent('Package recipient');
+    enableExecutive(app, target.id); const identity = structuredClone(store.get('identity', target.id));
     const path = `/api/agents/${target.id}/executive-skill-imports/copy`;
     const input = { sourceAgentId: agent.id, skillId: skill.id, version: skill.version, reason: 'Inspect an exact portable source method' };
     const copied = await api(app, 'POST', path, input) as Awaited<ReturnType<Application['agentSkillImports']['load']>>;
@@ -104,6 +107,7 @@ test('supervised procedural skills preserve source, real validation, revisions, 
     try { assert.throws(() => db.exec('UPDATE executive_skill_history SET version=99'), /immutable/); assert.throws(() => db.exec('DELETE FROM executive_skill_history'), /immutable/); }
     finally { db.close(); }
     const other = app.createAgent();
+    enableExecutive(app, other.id);
     assert.throws(() => app.executiveSkills.proposeSkill(other.id, proposal(run.execution!.contractId!)), /same-Agent/);
     store.saveMcpPermissions(first.agent.id, { revision: 2, tools: [] }, 1);
     assert.throws(() => app.executiveSkills.rollback(first.agent.id, skill.id, 5, 3, 'Restore after revocation'), /permissions/);
@@ -118,9 +122,9 @@ test('automatic learning requires real successful evidence; failure and adapter 
       id: 'fabricated_execution', agentId: input.agentId, cycleId: input.cycleId, action: input.bid.action, status: 'completed', facts: [],
       operational: { attempts: 0, verified: true, reason: 'Deliberately false plumbing fixture assertion', traceRefs: [] },
     }) } : undefined;
-    const { store, app, agent } = fixture(':memory:', kind === 'failure', executor);
+    const { store, app, agent } = fixture(':memory:', kind === 'failure', executor, false);
     try {
-      const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, learningMode: 'validated_automatic' }, 0);
+      const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, learningMode: 'validated_automatic' }, 0);
       const run = await app.message(agent.id, 'Run the selected fixture.', 'user', 'origin');
       const skill = app.executiveSkills.proposeSkill(agent.id, proposal(run.execution!.contractId!));
       const validated = app.executiveSkills.validate(agent.id, skill.id, 1, run.execution!.id);
@@ -131,7 +135,7 @@ test('automatic learning requires real successful evidence; failure and adapter 
         executionId: run.execution!.id, at: new Date().toISOString(), result: 'passed', traceRefs: ['forged_trace'], limitations: ['Explicit forgery fixture'],
       }] };
       assert.throws(() => store.saveExecutiveSkill(forged, 2), kind === 'success' ? /proposed procedure/ : /recorded tool evidence/);
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), revision: 2, learningMode: 'disabled' }, 1);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 2, learningMode: 'disabled' }, 1);
       assert.throws(() => app.executiveSkills.proposeSkill(agent.id, proposal(run.execution!.contractId!)), /disabled/);
     } finally { await app.close(); store.close(); }
   }

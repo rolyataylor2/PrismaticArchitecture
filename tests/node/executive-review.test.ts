@@ -1,3 +1,4 @@
+import { enableExecutive } from './executive-fixture.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -72,7 +73,7 @@ async function fixture(mode: 'thoughts' | 'continue' | 'pause' | 'invalid_contin
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'hold' }] }, 0);
   const profile = defaultExecutiveProfile();
-  store.saveExecutiveProfile(agent.id, { ...profile, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
+  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
     attention: { ...profile.attention, enabled: true, reviewInterested: true, awaitCheckpointReview } }, 0);
   return { app, store, agent, inputs, judgments, selves, forceTarget: (id: string) => { forcedTarget = id; },
     holdAssessment: () => {
@@ -88,7 +89,7 @@ test('explicit consultation reports activity ending during assessment without st
   let release: (() => void) | undefined;
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       attention: { ...profile.attention, enabled: false } }, profile.revision);
     const first = await app.message(agent.id, 'Start the prescribed external procedure.', 'user', 'origin');
     const held = holdAssessment(); release = held.release;
@@ -119,7 +120,7 @@ test('explicit host consultation uses ordinary cognition with automatic monitori
   const { app, store, agent, inputs, selves } = await fixture('continue', false, 0);
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
       attention: { ...profile.attention, enabled: false, reviewInterested: false } }, profile.revision);
     const first = await app.message(agent.id, 'Start the prescribed external procedure.', 'user', 'origin');
     const original = structuredClone(store.world(first.cycle.worldId));
@@ -141,6 +142,7 @@ test('explicit host consultation uses ordinary cognition with automatic monitori
     assert.equal(store.executions(agent.id).length, 1, 'Continuation creates no additional contract');
     assert.deepEqual(store.world(first.cycle.worldId), original);
     const other = app.createAgent();
+    enableExecutive(app, other.id);
     await assert.rejects(app.consultExecution(other.id, first.execution!.id,
       [{ source: 'External executor', kind: 'observes', text: 'Foreign request', timestamp: null, referenceId: null }], 'Request cognition'), /attributed operational/);
     await app.executiveWorkers.wait(agent.id, first.execution!.id);
@@ -272,6 +274,7 @@ test('selected control rejects other threads and Agents without stopping the liv
     assert.equal(otherThread.execution!.status, 'blocked');
     assert.match(otherThread.execution!.operational!.reason, /earlier selected activity in this thread/);
     const foreign = app.createAgent();
+    enableExecutive(app, foreign.id);
     const otherAgent = await app.message(foreign.id, 'Consider explicit fixture control.', 'user', 'origin');
     assert.equal(otherAgent.execution!.status, 'blocked'); assert.match(otherAgent.execution!.operational!.reason, /owned by this Agent/);
     assert.equal(store.eventsByType(agent.id, ['execution.intervention']).length, 0);
