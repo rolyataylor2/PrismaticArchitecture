@@ -134,8 +134,14 @@ export const EvaluationSchema = z.strictObject({
   assessment: z.enum(['confirmed', 'partly_confirmed', 'contradicted', 'ambiguous', 'invalidated', 'external_circumstances', 'not_testable', 'self_influenced', 'interrupted']),
   interpretation: Text, causalAttribution: Text, evidence: z.array(Text), evidenceWorldId: Id,
 });
+export const DispositionVersionRefSchema = z.strictObject({ dispositionId: Id, version: z.number().int().positive() });
+export const PredictionCognitionOriginSchema = z.strictObject({ thoughtEventId: Id,
+  partVersion: z.number().int().positive(), dispositions: z.array(DispositionVersionRefSchema).max(12) });
+export const InheritedConcernDraftSchema = z.strictObject({ concern: Text, meaning: Text,
+  thoughtEventIds: z.array(Id).min(2).max(40), continuityReason: Text, distinctnessReason: Text });
 export const PredictionSchema = z.strictObject({
   ...Version, ...PredictionDraftSchema.shape, partId: Id.nullable(), createdCycle: Id,
+  cognitionOrigin: PredictionCognitionOriginSchema.optional(),
   gapOrigin: z.strictObject({ threadId: Id.nullable(), gap: Text, consequentialValue: Text,
     futureInference: z.strictObject({ prediction: Text, retrieval: Text, causal: Text, action: Text, compression: Text }),
     existingStructureInsufficient: Text }).optional(),
@@ -220,6 +226,12 @@ export const CognitionSchema = z.strictObject({
   beliefs: z.array(Text).max(100).optional(), affect: z.string().max(4000).optional(),
   localGoal: Text.nullable().optional(), prediction: PredictionDraftSchema.nullable().optional(),
 });
+export const PredictionThoughtSchema = z.strictObject({ eventId: Id, cycleId: Id, sequence: z.number().int().positive(),
+  threadId: Id.nullable(), partId: Id, partVersion: z.number().int().positive(),
+  dispositions: z.array(DispositionVersionRefSchema).max(12),
+  association: z.enum(['origin', 'holding_prediction', 'originating_disposition', 'scaffold']),
+  predictionVersion: z.number().int().positive().nullable(), interpretation: Text, thought: Text,
+  localGoal: Text.nullable(), proposal: CognitionSchema.shape.proposal });
 export type Cognition = z.infer<typeof CognitionSchema>;
 export const JudgmentDistributionSchema = z.array(z.strictObject({ label: Text, probability: z.number().min(0).max(1) }));
 export const ActivationScoreSchema = z.strictObject({ partId: Id, score: z.number().min(0).max(4), distribution: JudgmentDistributionSchema.optional() });
@@ -310,6 +322,9 @@ export const DispositionEvidenceSchema = z.strictObject({
   reconciliation: z.enum(['pending', 'reconciled']), reason: Text,
 });
 export const DispositionDevelopmentSchema = z.strictObject({
+  learnedConcern: z.strictObject({ concern: Text, meaning: Text }).optional(),
+  concernInheritance: z.strictObject({ predictionIds: z.array(Id).min(1).max(12),
+    thoughts: z.array(PredictionThoughtSchema).min(2).max(40), continuityReason: Text, distinctnessReason: Text }).optional(),
   retrievalIntent: Text,
   contextCues: z.array(Text).max(30), internalStateCues: z.array(Text).max(30),
   cueEvidence: z.array(z.strictObject({ cue: Text, kind: z.enum(['activation', 'context', 'internal']),
@@ -342,4 +357,11 @@ export function freeze<T>(value: T): T {
     Object.freeze(value);
   }
   return value;
+}
+
+/** Learned psychology is ordinary context; its audit citations are not. */
+export function ordinaryDisposition(disposition: Disposition): Disposition {
+  if (!disposition.development?.concernInheritance) return disposition;
+  const { concernInheritance: _audit, ...development } = disposition.development;
+  return { ...disposition, development };
 }

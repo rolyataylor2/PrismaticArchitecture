@@ -206,3 +206,7 @@ Each assessment preserves its rubric, prompt, model, exact frozen input and hash
 ## Automatic procedural candidate scheduling
 
 ADR 0152 permits opt-in external candidate inference after independently verified ended execution, optionally requiring repeated identical whole-procedure success. The Application coordinates this learning behind cognition; it introduces no task planner, psychological mutation or goal authority. Manual is the default. Candidates remain unapproved and reports preserve their triggering execution/policy.
+
+## Offline concern inheritance (ADR 0154)
+
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.

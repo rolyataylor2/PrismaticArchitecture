@@ -353,3 +353,7 @@ ADR 0123 adds independent JEV subjective-memory recall and selectable memory-bas
 Construction, independent subjective memory evidence and initial cognition may share one ordered generative request. Runtime validates scope, memory IDs, unique continuation and unresolved predictions before committing products. Different disposition/entity bindings remain independent, and Self receives only mediated outputs.
 
 Researcher disposition deletion appends a tombstone version and removes the disposition from live listings, activation and consolidation inputs while preserving saved versions and references. Researcher rollback appends a new current version from a selected historical disposition; it never erases intervening history. These administrative operations grant no cognitive authority.
+
+## Concern inheritance (ADR 0154)
+
+Prediction correctness never manufactures motivation. Only offline institutionalization may establish a newly inherited concern from cited originating and subsequent expressed cognition. Temporary scaffolds remain relevance-only; audit citations do not grant online memory access, activation or authority.

@@ -1,4 +1,5 @@
 import { DispositionSchema, activationAssociations, id, now, type Disposition, type Memory } from './domain.js';
+import { predictionTrajectories, type PredictionTrajectory } from './prediction-lineage.js';
 import type { Store } from './contracts.js';
 import type { Inspection } from './inspection.js';
 import { cueEvidence } from './experiential-formation.js';
@@ -8,7 +9,7 @@ import { validateReconciliationCitations, validateReconciliationEvidence,
 /** Commit validated structural proposals without changing subjective memory content. */
 export function commitReconciliation(store: Store, inspection: Inspection, agentId: string,
   operations: ReconciliationOperation[], memories: Memory[], observations: ReconciliationObservations,
-  expectedDispositionVersions?: Record<string, number>) {
+  expectedDispositionVersions?: Record<string, number>, suppliedTrajectories: PredictionTrajectory[] = []) {
   const definitions = store.list('disposition', agentId);
   for (const operation of operations) {
     validateReconciliationCitations(operation, memories.map(memory => memory.id), definitions.map(disposition => disposition.id));
@@ -35,6 +36,27 @@ export function commitReconciliation(store: Store, inspection: Inspection, agent
       if (operation.operation === 'INSTITUTIONALIZE' && sources.some(source => !source.temporary || !source.scaffold
         || !source.sourcePredictionId || store.get('prediction', source.sourcePredictionId).status === 'open'))
         throw new Error('Institutionalization requires preserved temporary scaffold sources whose originating hypotheses have ended');
+      let concernInheritance;
+      if (operation.operation === 'INSTITUTIONALIZE' && operation.inheritedConcern) {
+        const inherited = operation.inheritedConcern;
+        const predictionIds = [...new Set(sources.map(source => source.sourcePredictionId!))];
+        const recorded = predictionTrajectories(store, agentId, predictionIds.map(id => store.get('prediction', id)), definitions);
+        const selectedIds = new Set(inherited.thoughtEventIds);
+        if (selectedIds.size !== inherited.thoughtEventIds.length) throw new Error('Inherited concern requires unique thought citations');
+        const thoughts = recorded.flatMap(trajectory => trajectory.thoughts).filter(thought => selectedIds.has(thought.eventId));
+        const unique = [...new Map(thoughts.map(thought => [thought.eventId, thought])).values()];
+        if (unique.length !== selectedIds.size || unique.some(thought => !suppliedTrajectories.some(trajectory =>
+          predictionIds.includes(trajectory.predictionId) && trajectory.thoughts.some(selected => selected.eventId === thought.eventId
+            && JSON.stringify(selected) === JSON.stringify(thought)))))
+          throw new Error('Inherited concern requires supplied recorded source-investigation thoughts');
+        if (!recorded.some(trajectory => {
+          const origin = trajectory.thoughts.find(thought => thought.association === 'origin' && selectedIds.has(thought.eventId));
+          return origin && trajectory.thoughts.some(thought => selectedIds.has(thought.eventId) && thought.sequence > origin.sequence);
+        }))
+          throw new Error('Inherited concern requires originating and later expressed cognition');
+        concernInheritance = { predictionIds, thoughts: unique.sort((a, b) => a.sequence - b.sequence),
+          continuityReason: inherited.continuityReason, distinctnessReason: inherited.distinctnessReason };
+      }
       if (operation.operation === 'ASSESS_HYPOTHESIS' && source.temporary)
         throw new Error('Temporary scaffolds require explicit institutionalization to become durable');
       if (operation.operation === 'ASSESS_HYPOTHESIS') {
@@ -88,7 +110,10 @@ export function commitReconciliation(store: Store, inspection: Inspection, agent
           memoryIds: [...new Set([...sources.flatMap(source => source.memoryIds), ...operation.memoryIds])],
           ...(operation.operation === 'INSTITUTIONALIZE' ? { temporary: false, scaffold: undefined } : {}),
           active: operation.operation !== 'ARCHIVE' && (operation.operation === 'INSTITUTIONALIZE' || !source.temporary || source.active),
-          development: { ...base, ...(draft ? { retrievalIntent: draft.retrievalIntent, cueEvidence: cueEvidence(draft), contextCues: draft.contextCues.map(cue => cue.text),
+          development: { ...base,
+            ...(operation.operation === 'INSTITUTIONALIZE' ? { learnedConcern: operation.inheritedConcern
+              ? { concern: operation.inheritedConcern.concern, meaning: operation.inheritedConcern.meaning } : undefined,
+              concernInheritance } : {}), ...(draft ? { retrievalIntent: draft.retrievalIntent, cueEvidence: cueEvidence(draft), contextCues: draft.contextCues.map(cue => cue.text),
             internalStateCues: draft.internalStateCues.map(cue => cue.text), confidence: draft.confidence, status: 'provisional' } : {}),
             ...(operation.operation === 'ARCHIVE' ? { status: 'archived' } : {}),
             ...(operation.operation === 'ASSESS_HYPOTHESIS' ? { status: operation.status, confidence: operation.confidence } : {}),

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Text, ActivationAssociationSchema } from './domain.js';
+import { Id, Text, ActivationAssociationSchema, InheritedConcernDraftSchema } from './domain.js';
 import { ProvisionalRelevanceSchema } from './experiential-formation.js';
 
 export const RetrievalJudgmentSchema = z.strictObject({ memoryId: Id, dispositionId: Id,
@@ -16,7 +16,7 @@ const StructuralEvidence = {
 export const ReconciliationOperationSchema = z.discriminatedUnion('operation', [
   z.strictObject({ operation: z.literal('NO_CHANGE'), reason: Text }),
   z.strictObject({ operation: z.literal('INSUFFICIENT_EVIDENCE'), reason: Text }),
-  z.strictObject({ operation: z.literal('INSTITUTIONALIZE'), ...StructuralEvidence, draft: ProvisionalRelevanceSchema }),
+  z.strictObject({ operation: z.literal('INSTITUTIONALIZE'), ...StructuralEvidence, draft: ProvisionalRelevanceSchema, inheritedConcern: InheritedConcernDraftSchema.optional() }),
   z.strictObject({ operation: z.literal('ASSESS_HYPOTHESIS'), ...StructuralEvidence,
     status: z.enum(['provisional', 'established']), confidence: Text }),
   z.strictObject({ operation: z.enum(['SPECIALIZE', 'GENERALIZE']), ...StructuralEvidence, draft: ProvisionalRelevanceSchema }),

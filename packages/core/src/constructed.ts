@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { predictionTrajectories, PredictionTrajectorySchema } from './prediction-lineage.js';
 import { CoverageProductSchema } from './cognition-coverage.js';
 import { commitReconciliation } from './reconciliation-commit.js';
 import { ActivationScoreSchema, DispositionSchema, MemorySchema, freeze, id, now, ordinaryMemory, memoryWithoutFormationAffect,
-  activationAssociations, type WorldState, type Part, type Memory, type Disposition, type Prediction, type Cognition } from './domain.js';
+  activationAssociations, ordinaryDisposition, type WorldState, type Part, type Memory, type Disposition, type Prediction, type Cognition } from './domain.js';
 import { constructedOutputs, LearningSchema, EffortfulRecallSchema, DispositionLearningTraceSchema, type ConstructedInput, type ConstructedTask,
   type JudgmentInput, type PartGenerationSchema } from './constructed-domain.js';
 import { InfrastructureError, ContextLimitError, MutationValidationError, type Store, type DecisionProvider, type ReasoningProvider } from './contracts.js';
@@ -41,7 +42,7 @@ export class ConstructedCognition {
       throw new InfrastructureError(task, 'Gap reflection requires factual-only evidence and its own capsule; no private state or imagination');
     if ((input.hypothesis || input.laterEvidence || input.outcome) && task !== 'hypothesis_reflection')
       throw new InfrastructureError(task, 'Hypothesis outcome evidence is reflection-only');
-    if ((input.dispositionHistory || input.hypothesisHistory || input.observations) && task !== 'disposition_learning') throw new InfrastructureError(task, 'Structural evidence is offline only');
+    if ((input.dispositionHistory || input.hypothesisHistory || input.observations || input.predictionTrajectories) && task !== 'disposition_learning') throw new InfrastructureError(task, 'Structural evidence is offline only');
     if (input.learningTraces && task !== 'disposition_learning') throw new InfrastructureError(task, 'Learning traces are offline-only evidence');
     if (task === 'experiential_formation' && (input.workingParts || input.identity || input.dispositionBindings || input.memory || input.question))
       throw new InfrastructureError(task, 'Experiential formation receives committed subjective memories and relevance structures only');
@@ -55,7 +56,7 @@ export class ConstructedCognition {
         || input.dispositionBindings?.length || input.workingParts?.some(part => part.name !== 'self'))))
       throw new InfrastructureError(task, 'Identity is permitted only for the same-Agent fallback Part');
     const request: ConstructedInput = freeze({ task, agentId: input.agentId,
-      ...(input.world ? { world: input.world } : {}), ...(input.dispositions ? { dispositions: input.dispositions } : {}),
+      ...(input.world ? { world: input.world } : {}), ...(input.dispositions ? { dispositions: task === 'disposition_learning' ? input.dispositions : input.dispositions.map(ordinaryDisposition) } : {}),
       ...(input.dispositionBindings ? { dispositionBindings: input.dispositionBindings } : {}),
       ...(input.memories ? { memories: input.memories.map(memoryWithoutFormationAffect) } : {}), ...(input.memory ? { memory: memoryWithoutFormationAffect(input.memory) } : {}),
       ...(input.workingParts ? { workingParts: input.workingParts } : {}),
@@ -68,6 +69,7 @@ export class ConstructedCognition {
       ...(input.hypothesisHistory ? { hypothesisHistory: input.hypothesisHistory } : {}),
       ...(input.dispositionHistory ? { dispositionHistory: input.dispositionHistory } : {}),
       ...(input.observations ? { observations: input.observations } : {}),
+      ...(input.predictionTrajectories ? { predictionTrajectories: PredictionTrajectorySchema.array().parse(input.predictionTrajectories) } : {}),
       ...(input.learningTraces ? { learningTraces: DispositionLearningTraceSchema.array().parse(input.learningTraces) } : {}),
       ...(input.identity ? { identity: input.identity } : {}), ...(input.question !== undefined ? { question: input.question } : {}),
     });
@@ -76,6 +78,10 @@ export class ConstructedCognition {
   }
   private async judge(input: JudgmentInput) {
     if (!input.candidates.length) return [];
+    input = { ...input, candidates: input.candidates.map(candidate => {
+      const context = candidate.context as { disposition?: Disposition };
+      return context.disposition ? { ...candidate, context: { ...context, disposition: ordinaryDisposition(context.disposition) } } : candidate;
+    }) };
     if (!this.decisions.judge) throw new InfrastructureError(input.task, 'Decision provider does not support constructed judgments');
     const judgeBatch = async (candidates: JudgmentInput['candidates']): Promise<z.infer<typeof ActivationScoreSchema>[]> => {
       const batch = freeze({ ...input, candidates });
@@ -344,11 +350,12 @@ export class ConstructedCognition {
     const endedHypotheses = this.store.list('prediction', agentId).filter(prediction => prediction.status !== 'open'
       && definitions.some(disposition => disposition.scaffold && disposition.sourcePredictionId === prediction.id && usedScaffoldIds.has(disposition.id)));
     const learningPredictions = [...new Map([...resolved, ...endedHypotheses].map(prediction => [prediction.id, prediction])).values()];
+    const trajectories = predictionTrajectories(this.store, agentId, learningPredictions, definitions);
     const proposal = LearningSchema.parse(await this.infer('disposition_learning', { agentId, memories, predictions: learningPredictions,
-      dispositions: definitions, learningTraces, dispositionHistory,
+      dispositions: definitions, learningTraces, dispositionHistory, predictionTrajectories: trajectories,
       hypothesisHistory: learningPredictions.flatMap(prediction => this.store.versions('prediction', prediction.id).map(record => record.state)), observations }));
     const committed = commitReconciliation(this.store, this.inspection, agentId, proposal.operations, memories, observations,
-      Object.fromEntries(definitions.map(disposition => [disposition.id, disposition.version])));
+      Object.fromEntries(definitions.map(disposition => [disposition.id, disposition.version])), trajectories);
     const interpretation = await this.infer('memory_reinterpretation', { agentId, memories, predictions: resolved });
     const selectedMemoryIds = new Set(memories.map(memory => memory.id));
     if (new Set(interpretation.revisions.map(revision => revision.memoryId)).size !== interpretation.revisions.length

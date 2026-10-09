@@ -95,3 +95,7 @@ The shared snapshot's bounded current `externalExecutionRequests` exposes exact 
 Part cognition v21 and deliberation-answer v23 describe unavailable remainder handoff accurately. Contextual schemas omit `remainderCorrection` until dispatch exists; generic domain schemas preserve explicit one-time requests for host rejection/inspection. No new inference task, Self raw-world access or automatic intervention is added.
 
 Part cognition v22 and deliberation-answer v24 describe selected remainder correction. Contextual generation admits the current selected activity ID and supplied tool-result progress reference IDs only; runtime independently checks live suspension/ownership, settled prefix, grants and cumulative limits. No new inference task or Self raw-world access is added.
+
+## Offline concern inheritance (ADR 0154)
+
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.

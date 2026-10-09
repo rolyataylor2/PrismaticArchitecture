@@ -66,6 +66,7 @@ export function startSimulationAssessment(app: Application, runId: string, optio
       || (['prospective-calibration', 'missing-perspective'].includes(run.testId) && index === 2 && (missingFirst || currentObserver[1]?.outcome !== 'observed'))
       || (run.testId === 'prospective-anticipation' && index === 2 && missingFirst)
       || (run.testId.startsWith('experiential-') && index === 2 && !initialTraining?.memories.some(memory => memory.createdCycle === initialTraining.cycleId))
+      || (run.testId.startsWith('concern-inheritance-') && index >= 2 && (missingFirst || currentObserver[1]?.outcome !== 'observed'))
       || (run.testId.startsWith('scaffold-') && index === 3 && !run.stages.at(-1)?.predictions.some(prediction => prediction.gapOrigin))) {
       criterion.blockedReason = 'Required earlier forecast, investigation or subjective episode is absent; the dependent semantic criterion must remain inconclusive.';
     }

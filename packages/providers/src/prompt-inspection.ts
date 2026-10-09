@@ -1,6 +1,7 @@
 import { ProcedureConsolidationSchema, ProcedureConsolidationInputSchema } from '../../core/src/procedure-consolidation.js';
 import { SimulationEvaluationSchema } from './simulation-evaluation.js';
 import { ComponentDraftSchema } from './component-authoring.js';
+import { PredictionTrajectorySchema } from '../../core/src/prediction-lineage.js';
 import { constructedOutputs, DispositionLearningTraceSchema } from '../../core/src/constructed-domain.js';
 import { SpeechContextSchema, SpeechResultSchema } from '../../core/src/domain.js';
 import { IdentityAnswersSchema, IdentityClarificationSchema, IdentityReferenceSchema } from './identity-authoring.js';
@@ -74,7 +75,7 @@ export const promptInspection: Record<string, { variables: PromptVariable[]; out
     outputSchema: z.toJSONSchema(ActivationScoreSchema.array()), outputNote: 'Independent shared-state 0–4 JEV judgments. Activation is not emotion or selection authority.' },
   part_cognition: { variables: [definition('task', 'Ordered independent Part generation.', z.string()),
     definition('question', 'Optional attributed Self inquiry recruiting a missing eligible perspective; never a new fact or an instruction to agree.', z.string().nullable()),
-    definition('dispositions', 'Exactly one active disposition, or empty for the fallback Part.', z.unknown()),
+    definition('dispositions', 'Exactly one active disposition, or empty for the fallback Part. Durable learnedConcern supplies inherited concern/meaning; supporting audit thoughts are excluded. Temporary scaffolds remain relevance-only.', z.unknown()),
     definition('dispositionBindings', 'Code-owned disposition scope; generation cannot change it.', z.unknown()),
     definition('memories', 'Selected rich subjective memories ordered oldest to newest.', z.array(MemorySchema)),
     definition('workingParts', 'This scope’s one continuing instance selected by code, or empty. No private state of other scopes.', z.array(PartSchema)),
@@ -88,8 +89,9 @@ export const promptInspection: Record<string, { variables: PromptVariable[]; out
   experiential_formation: { variables: ['task', 'dispositions', 'memories', 'predictions'].map(name => definition(name, 'Committed subjective experience and existing relevance structures; no WorldState or private Part state.', z.unknown())),
     outputSchema: z.toJSONSchema(constructedOutputs.experiential_formation), outputNote: 'No change or evidence attachment only. New relevance requires prediction-led temporary scaffolds; durable institutionalization remains offline.' },
   disposition_learning: { variables: [...['task', 'dispositions', 'memories', 'predictions', 'dispositionHistory', 'hypothesisHistory', 'observations'].map(name => definition(name, 'Selected offline evidence; no WorldState.', z.unknown())),
+    definition('predictionTrajectories', 'Bounded attributed originating and investigation cognition, with omissions. Offline only; association is not motivational evidence by itself.', z.array(PredictionTrajectorySchema)),
     definition('learningTraces', 'Selected chronological disposition registration and expressed thoughts/proposals with cycle/thread attribution. No WorldState or private Part snapshots; proposals are not outcomes.', z.array(DispositionLearningTraceSchema))],
-    outputSchema: z.toJSONSchema(constructedOutputs.disposition_learning), outputNote: 'Conservative creation and maturation of general attention structures from episodes, resolved predictions and selected trajectories. Code validates evidence and preserves versions.' },
+    outputSchema: z.toJSONSchema(constructedOutputs.disposition_learning), outputNote: 'Conservative relevance learning and optional cited concern inheritance during offline institutionalization; temporary scaffolds remain relevance-only. Code validates evidence and preserves versions.' },
   memory_reinterpretation: { variables: ['task', 'memories', 'predictions'].map(name => definition(name, 'Selected subjective episodes and linked resolved evidence; no raw history or WorldState.', z.unknown())), outputSchema: z.toJSONSchema(constructedOutputs.memory_reinterpretation), outputNote: 'Separate conservative versioned reinterpretation; no disposition edits.' },
   effortful_recall: { variables: ['task', 'memories', 'memory', 'question'].map(name => definition(name, 'Explicit subjective recall input, never objective audit ancestry.', z.unknown())), outputSchema: z.toJSONSchema(constructedOutputs.effortful_recall), outputNote: 'Subjective detail recollection; no WorldState.' },
   identity_clarification: { variables: [definition('name', 'Submitted person or character name.', IdentityReferenceSchema.shape.name)], outputSchema: z.toJSONSchema(IdentityClarificationSchema), outputNote: 'Researcher authoring only. Options do not change Agent state.' },

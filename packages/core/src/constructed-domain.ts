@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { PredictionTrajectory } from './prediction-lineage.js';
 import { CognitionCoverageSchema, type CoverageProductSchema } from './cognition-coverage.js';
 import { DispositionReconciliationSchema, type ReconciliationObservations } from './disposition-reconciliation.js';
 import { ExperienceAttachmentSchema } from './experiential-formation.js';
@@ -47,6 +48,7 @@ export type ConstructedInput = { task: ConstructedTask; agentId: string; world?:
   coverageProducts?: z.infer<typeof CoverageProductSchema>[];
   identity?: import('./domain.js').Identity;
   learningTraces?: DispositionLearningTrace[];
+  predictionTrajectories?: PredictionTrajectory[];
   dispositionHistory?: Disposition[];
   hypothesisHistory?: Prediction[];
   observations?: ReconciliationObservations;

@@ -108,3 +108,7 @@ Procedure review proposals now have an exclusive one-time operation binding and 
 ## Selected procedural review (ADR 0153)
 
 Researcher-only approval remains the default. The opt-in `self_selected` profile policy exposes bounded candidate review choices to Parts. An exclusive Self-selected approval/rejection operation resolves the exact immutable Agent Skills package, checks captured/current policy and current scope/version/evidence/grants, and atomically records the decision and new skill version. Approval dispatches no tools, changes no permissions or maturity, and requires a later fresh selected invocation. Storage independently checks selected review lineage and completion receipts. Inspection includes the review episode's expressed thoughts, bids and Self reason, alongside the preserved version history.
+
+## Offline concern inheritance (ADR 0154)
+
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.

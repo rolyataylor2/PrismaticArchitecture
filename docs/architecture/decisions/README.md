@@ -83,3 +83,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0136 — Experienced WorldState and affective perspective traversal](0136-experienced-and-prospective-worldstate.md)
 
 - [0139 — Soft disposition activation associations](0139-soft-disposition-activation-associations.md)
+
+- [0154 — Offline inheritance of expressed concerns](0154-offline-concern-inheritance.md)

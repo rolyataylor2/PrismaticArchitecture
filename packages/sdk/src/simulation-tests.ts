@@ -1,5 +1,6 @@
 import { startSimulationAssessment, type SimulationAssessment } from './simulation-evaluator.js';
 import { gauntletSimulations } from './gauntlet-simulations.js';
+import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
 import { predictionScaffoldSimulations } from './prediction-scaffold-simulations.js';
 import { Application } from './application.js';
 import { conversationStarters } from './conversation-starters.js';
@@ -170,6 +171,7 @@ export const simulationTests: SimulationTestDefinition[] = [
     limitations: 'Researcher-authored attention and links are explicit starting conditions, not learned discoveries. Compare both catalog entries using the same configured providers. Mocks use literal overlap and validate plumbing only, so quoted-cue semantics remain inconclusive. Outcomes require semantic review; infrastructure failure is separate. No automatic Hebbian learning or human psychology validation is claimed.',
   })),
   ...predictionScaffoldSimulations,
+  ...concernInheritanceSimulations,
   ...gauntletSimulations,
   { id: 'fantastical-interpretation', title: 'Fantastical subjective interpretation',
     source: 'Researcher conversation, 2026-10-06: Part workings should remain believably biased even when fantastical or non-real.',
@@ -493,6 +495,19 @@ export function measureSimulation(definition: SimulationTestDefinition, stages: 
       ...definition.criteria.slice(1).map(criterion => semantic(criterion, 'Inspect independent activation, expressed thoughts, Self choices, review outcomes and control receipts against the paired control. Missing live activity is a prerequisite not observed, not an infrastructure failure.'))];
   }
   const controls = stages.filter(s => s.phase === 'control');
+  if (definition.id.startsWith('concern-inheritance-')) {
+    const predictions = last.predictions.filter(prediction => prediction.partId && prediction.cognitionOrigin);
+    const inherited = last.dispositions.filter(disposition => !disposition.temporary && disposition.development?.concernInheritance);
+    const investigated = predictions.filter(prediction => stages.some(stage => stage.cycleId !== prediction.createdCycle && stage.thoughts.some(thought =>
+      thought.partId === prediction.partId || thought.dispositionIds.some(id => last.dispositions.some(disposition => disposition.id === id && disposition.sourcePredictionId === prediction.id)))));
+    const eligible = last.dispositions.filter(disposition => disposition.scaffold && predictions.some(prediction => prediction.id === disposition.sourcePredictionId && prediction.status !== 'open')
+      && new Set(stages.filter(stage => stage.thoughts.some(thought => thought.dispositionIds.includes(disposition.id)
+        && stage.memories.some(memory => memory.createdCycle === stage.cycleId && memory.partId === thought.partId))).map(stage => stage.cycleId)).size >= 2);
+    return [measure(definition.criteria[0]!, investigated.length ? true : null, JSON.stringify({ predictions, investigated, thoughts: stages.map(stage => stage.thoughts) })),
+      measure(definition.criteria[1]!, inherited.length ? true : eligible.length ? false : null,
+        JSON.stringify({ inherited, eligible, consolidation: stages.filter(stage => stage.name.includes('institutionalization')) })),
+      ...definition.criteria.slice(2).map(criterion => semantic(criterion, 'Review attributed concern inheritance, preserved source thoughts, source sufficiency and paired desire/inquiry controls. Association is not proof of a motive.'))];
+  }
   if (definition.id.startsWith('scaffold-')) {
     const hypotheses = last.predictions.filter(prediction => prediction.gapOrigin);
     const scaffolds = last.dispositions.filter(disposition => disposition.scaffold);

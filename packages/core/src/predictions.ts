@@ -1,3 +1,4 @@
+import { thoughtDispositionVersions } from './prediction-lineage.js';
 import type { z } from 'zod';
 import {
   id, now, DispositionSchema, MemorySchema, PredictionDraftSchema, PredictionSchema, PredictionUpdateSchema,
@@ -11,7 +12,7 @@ type PredictionDraft = z.infer<typeof PredictionDraftSchema>;
 
 export class Predictions {
   constructor(private readonly store: Store, private readonly inspection: Inspection, private readonly mutations: PartMutations) {}
-  form(partId: string, world: WorldState, draft: PredictionDraft): Prediction {
+  form(partId: string, world: WorldState, draft: PredictionDraft, thoughtEventId?: string): Prediction {
     const owner = this.store.get('part', partId);
     if (owner.agentId !== world.agentId) throw new Error('Prediction owner mismatch');
     if (this.store.list('prediction', world.agentId).some(p => p.partId === partId && p.status === 'open')) {
@@ -23,7 +24,16 @@ export class Predictions {
         || scaffold.relevantMemoryIds.some(memoryId => !availableMemories.has(memoryId)))
         throw new InfrastructureError('prediction', 'Scaffold memory hints must cite the owning perspective’s recalled evidence');
     }
-    const prediction = PredictionSchema.parse({ ...PredictionDraftSchema.parse(draft), confidence: owner.instance ? draft.confidence : owner.beliefConfidence ?? 1, id: id('prediction'),
+    const thought = thoughtEventId ? this.store.eventsByType(world.agentId, ['part.thought'], [world.cycleId])
+      .find(event => event.id === thoughtEventId && event.type === 'part.thought' && event.payload.partId === partId) : null;
+    if (thoughtEventId && (!thought || thought.type !== 'part.thought'
+      || JSON.stringify(thought.payload.output.prediction) !== JSON.stringify(draft)))
+      throw new Error('Prediction origin requires its exact recorded cognition');
+    const cognitionOrigin = thought?.type === 'part.thought' ? { thoughtEventId: thought.id,
+      partVersion: thought.payload.partSnapshot.version,
+      dispositions: thoughtDispositionVersions(this.store, world.agentId, world.cycleId,
+        (thought.payload.partSnapshot.instance?.dispositionBindings ?? []).map(binding => binding.dispositionId)) } : undefined;
+    const prediction = PredictionSchema.parse({ ...PredictionDraftSchema.parse(draft), cognitionOrigin, confidence: owner.instance ? draft.confidence : owner.beliefConfidence ?? 1, id: id('prediction'),
       agentId: world.agentId, partId, version: 1, schemaVersion: 1, createdCycle: world.cycleId,
       status: 'open', evaluation: null, memoryId: null });
     return this.commitFormation(prediction, world);

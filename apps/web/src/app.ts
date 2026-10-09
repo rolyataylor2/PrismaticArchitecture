@@ -2581,6 +2581,15 @@ async function openDispositionInfo(disposition: AgentSnapshot['dispositions'][nu
     ]));
     if (item.development) {
       const development = item.development;
+      if (development.learnedConcern) entry.append(inspectorSection('Inherited concern and meaning', [development.learnedConcern.concern, development.learnedConcern.meaning]));
+      if (development.concernInheritance) {
+        const inheritance = development.concernInheritance;
+        entry.append(inspectorSection('Concern inheritance rationale', [inheritance.continuityReason, inheritance.distinctnessReason,
+          `Investigations: ${inheritance.predictionIds.join(', ')}`]),
+          inspectorSection('Attributed source thoughts', inheritance.thoughts.map(thought =>
+            `${thought.association} · cycle ${thought.sequence} · ${thought.cycleId} · thread ${thought.threadId ?? 'unthreaded'} · Part ${thought.partId} v${thought.partVersion} · event ${thought.eventId}: ${thought.thought}${thought.localGoal ? ` · Local concern: ${thought.localGoal}` : ''}`)),
+          details('Concern inheritance provenance', inheritance));
+      }
       entry.append(node('h3', 'Development'),
         node('p', `${development.status} · ${development.confidence}`),
         inspectorSection('Retrieval intent', [development.retrievalIntent]),

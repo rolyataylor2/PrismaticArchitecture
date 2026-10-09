@@ -21,8 +21,8 @@ export const prompts = {
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-checkpoints-v9', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-selected-review-v24', text: loadFactoryPrompt('part_cognition') },
-  disposition_learning: { version: 'disposition-reconciliation-associations-v6', text: loadFactoryPrompt('disposition_learning') },
+  part_cognition: { version: 'part-cognition-concern-inheritance-v25', text: loadFactoryPrompt('part_cognition') },
+  disposition_learning: { version: 'disposition-concern-inheritance-v7', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
   memory_relevance: { version: 'memory-relevance-twig-v2', text: loadFactoryPrompt('memory_relevance') },
@@ -81,7 +81,7 @@ export function resolvePrompt(agentId: string, task: PromptTask, resolver?: Prom
 }
 
 export function renderTaskPrompt(agentId: string, task: PromptTask, data: object, resolver?: PromptResolver): string {
-  if ((constructedPromptTasks as readonly string[]).includes(task)) data = { task, world: null, identity: null, dispositions: [], dispositionBindings: [], memories: [], workingParts: [], predictions: [], coverageProducts: [], hypothesisLimit: 3, hypothesis: null, hypothesisHistory: [], outcome: null, laterEvidence: [], memory: null, question: null, candidates: [], ...data };
+  if ((constructedPromptTasks as readonly string[]).includes(task)) data = { task, world: null, identity: null, dispositions: [], dispositionBindings: [], memories: [], workingParts: [], predictions: [], coverageProducts: [], hypothesisLimit: 3, hypothesis: null, hypothesisHistory: [], predictionTrajectories: [], outcome: null, laterEvidence: [], memory: null, question: null, candidates: [], ...data };
   // Legacy owning-Part snapshots have implicit full conviction. Never add Part state to world-blind contexts.
   const owningPart = (data as { part?: { beliefConfidence?: number; instance?: unknown } }).part;
   if (owningPart) data = { dispositions: [], effortfulRecollections: [], ...data, part: { ...owningPart, instance: owningPart.instance ?? null, beliefConfidence: owningPart.beliefConfidence ?? 1 } };

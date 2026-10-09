@@ -1,3 +1,4 @@
+import { ordinaryDisposition } from './domain.js';
 import { ConstructedCognition, type DispositionAssessment } from './constructed.js';
 import { z } from 'zod';
 import { isDeepStrictEqual } from 'node:util';
@@ -86,7 +87,7 @@ export class CognitiveRuntime {
       const recalledContext = async (snapshot: typeof world, part: import('./domain.js').Part, activation: import('./domain.js').Activation): Promise<PartContext> => {
         const context = partContext(this.store, snapshot, part, activation);
         return freeze({ ...context,
-          dispositions: constructedState.dispositions.filter(disposition => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === disposition.id)),
+          dispositions: constructedState.dispositions.filter(disposition => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === disposition.id)).map(ordinaryDisposition),
           memories: context.memories.filter(memory => constructedState.recalledMemoryIds[part.id]?.includes(memory.id) ?? true) });
       };
       stage = 'activation';
@@ -160,12 +161,12 @@ export class CognitiveRuntime {
       const publish = (context: PartContext, generated: typeof constructedState.generatedCognition[string]): Contribution => {
         if (!generated || generated.worldId !== world.id) throw new InfrastructureError('part_cognition', 'Missing assembled Part generation');
         const output = CognitionSchema.parse(generated.output);
-        this.inspection.emit(agentId, cycle.id, 'part.thought', { partId: context.part.id, partSnapshot: context.part, recalledMemoryIds: context.memories.map(memory => memory.id),
+        const thoughtEvent = this.inspection.emit(agentId, cycle.id, 'part.thought', { partId: context.part.id, partSnapshot: context.part, recalledMemoryIds: context.memories.map(memory => memory.id),
           predictionSnapshot: context.prediction, output, durationMs: generated.durationMs });
         let formedPrediction = null;
         if (output.prediction) {
           if (context.prediction) throw new InfrastructureError('part_cognition', 'Cannot stack another unresolved prediction');
-          formedPrediction = this.predictions.form(context.part.id, world, PredictionDraftSchema.parse(output.prediction));
+          formedPrediction = this.predictions.form(context.part.id, world, PredictionDraftSchema.parse(output.prediction), thoughtEvent.id);
         }
         const current = this.store.get('part', context.part.id);
         this.mutations.patch(current.id, current.version, {
@@ -209,7 +210,7 @@ export class CognitiveRuntime {
             const activation = { partId: part.id, score: 2, previous: 0, delta: 2, similarity: 0,
               reasons: ['deliberation_recruitment'], active: true };
             const context = freeze({ ...partContext(this.store, world, part, activation),
-              dispositions: recruited.dispositions.filter(disposition => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === disposition.id)),
+              dispositions: recruited.dispositions.filter(disposition => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === disposition.id)).map(ordinaryDisposition),
               memories: partContext(this.store, world, part, activation).memories.filter(memory => recruited.recalledMemoryIds[part.id]?.includes(memory.id)),
               availableContributors: [...current.map(contribution => ({ partId: contribution.partId, name: contribution.name })),
                 ...recruited.parts.map(item => ({ partId: item.id, name: item.name }))] });
