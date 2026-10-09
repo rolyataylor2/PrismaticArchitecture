@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CoverageProductSchema } from './cognition-coverage.js';
 import { commitReconciliation } from './reconciliation-commit.js';
-import { ActivationScoreSchema, DispositionSchema, MemorySchema, freeze, id, now, ordinaryMemory,
+import { ActivationScoreSchema, DispositionSchema, MemorySchema, freeze, id, now, ordinaryMemory, memoryWithoutFormationAffect,
   activationAssociations, type WorldState, type Part, type Memory, type Disposition, type Prediction, type Cognition } from './domain.js';
 import { constructedOutputs, LearningSchema, EffortfulRecallSchema, DispositionLearningTraceSchema, type ConstructedInput, type ConstructedTask,
   type JudgmentInput, type PartGenerationSchema } from './constructed-domain.js';
@@ -57,7 +57,7 @@ export class ConstructedCognition {
     const request: ConstructedInput = freeze({ task, agentId: input.agentId,
       ...(input.world ? { world: input.world } : {}), ...(input.dispositions ? { dispositions: input.dispositions } : {}),
       ...(input.dispositionBindings ? { dispositionBindings: input.dispositionBindings } : {}),
-      ...(input.memories ? { memories: input.memories } : {}), ...(input.memory ? { memory: input.memory } : {}),
+      ...(input.memories ? { memories: input.memories.map(memoryWithoutFormationAffect) } : {}), ...(input.memory ? { memory: memoryWithoutFormationAffect(input.memory) } : {}),
       ...(input.workingParts ? { workingParts: input.workingParts } : {}),
       ...(input.hypothesis ? { hypothesis: input.hypothesis } : {}),
       ...(input.laterEvidence ? { laterEvidence: input.laterEvidence } : {}),
@@ -264,6 +264,7 @@ export class ConstructedCognition {
     const memory = MemorySchema.parse({ id: id('memory'), agentId: world.agentId, version: 1, schemaVersion: 1,
       partId: part.id, content: reflection.content, gist: product.memoryGist, context: reflection.context,
       ancestorIds: [world.id], predictionId: null, createdCycle: world.cycleId, referencingPartIds: [part.id],
+      ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
       encoding: { interpretation: reflection.interpretation, affect: reflection.affect, perceivedDetails: reflection.perceivedDetails,
         prediction: null, outcome: null } });
     this.store.save('memory', memory, 0, { origin: 'organic_cognition', reason: 'Subjective reflection in ordered Part cognition', sourceIds: [world.id, part.id] });

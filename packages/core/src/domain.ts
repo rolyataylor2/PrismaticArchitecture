@@ -89,14 +89,21 @@ export type PartPatch = z.infer<typeof PartPatchSchema>;
 export const MemorySchema = z.strictObject({
   ...Version, partId: Id.nullable(), content: Text, gist: Text, context: z.array(Text), deleted: z.boolean().optional(),
   ancestorIds: z.array(Id), predictionId: Id.nullable(), createdCycle: Id,
+  selfAffectAtFormation: z.array(z.strictObject({ partId: Id, affect: z.string().max(4000) })).optional(),
   encoding: z.strictObject({ interpretation: Text, affect: z.string().max(4000),
     perceivedDetails: z.array(Text).max(30), prediction: Text.nullable(), outcome: Text.nullable() }).optional(),
   referencingPartIds: z.array(Id).refine(ids => new Set(ids).size === ids.length, 'Duplicate Part references').optional(),
 });
 export type Memory = z.infer<typeof MemorySchema>;
+/** Reserved formation metadata is not an inference input. */
+export function memoryWithoutFormationAffect(memory: Memory): Memory {
+  const { selfAffectAtFormation: _storedSelfAffect, ...ordinary } = memory;
+  return ordinary;
+}
 /** Ordinary recall preserves subjective content; detailed traces require deliberate recollection. */
 export function ordinaryMemory(memory: Memory): Memory {
-  return memory.encoding ? { ...memory, encoding: { ...memory.encoding, perceivedDetails: [] } } : memory;
+  const ordinary = memoryWithoutFormationAffect(memory);
+  return ordinary.encoding ? { ...ordinary, encoding: { ...ordinary.encoding, perceivedDetails: [] } } : ordinary;
 }
 /** Formation attribution is separate from explicit recall access. */
 export function memoryPartIds(memory: Memory): string[] { return memory.referencingPartIds ?? (memory.partId ? [memory.partId] : []); }

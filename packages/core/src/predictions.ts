@@ -63,6 +63,7 @@ export class Predictions {
   encode(partId: string, world: WorldState, draft: NonNullable<PredictionUpdate['memory']>, predictionId: string | null = null, ancestorIds = [world.id]): Memory {
     const memory = MemorySchema.parse({ ...draft, id: id('memory'), agentId: world.agentId, partId,
       version: 1, schemaVersion: 1, ancestorIds, predictionId, createdCycle: world.cycleId,
+      ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
       ...(this.store.get('part', partId).instance ? { encoding: {
         interpretation: this.store.get('part', partId).instance!.interpretation,
         affect: this.store.get('part', partId).emotionalCharge ?? '', perceivedDetails: draft.context,
@@ -80,6 +81,7 @@ export class Predictions {
     const memory = MemorySchema.parse({ ...draft, id: id('memory'), agentId: world.agentId, partId: null,
       referencingPartIds: [], version: 1, schemaVersion: 1, ancestorIds: this.outcomeAncestors(prediction, world),
       predictionId: prediction.id, createdCycle: world.cycleId,
+      ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
       encoding: { interpretation: prediction.capsule.interpretation, affect: '', perceivedDetails: draft.context,
         prediction: prediction.expectation, outcome: draft.content } });
     this.store.save('memory', memory, 0, { origin: 'prediction_evaluation', reason: 'Subjective gap hypothesis outcome episode', sourceIds: memory.ancestorIds });

@@ -6,6 +6,8 @@ The Prism Agent Architecture treats autobiographical memory as fundamentally per
 
 ## Subjective evidence
 
+Memories now retain the current Self-selected affect separately from the encoding Part's affect as optional formation metadata. Its possible future use in affect-based recall exclusion is an unadopted idea, not a current mechanism. See [formation affect and future recall filtering](../architecture/MEMORY_AFFECT_FUTURE_IDEA.md).
+
 A Part uses memories as evidence for beliefs, predictions, activation, strategies, bids, and interpretations. Its memory is not assumed to be an objective historical record.
 
 ## Memory privacy
