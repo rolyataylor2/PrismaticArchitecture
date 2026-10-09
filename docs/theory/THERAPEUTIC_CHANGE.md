@@ -1,6 +1,6 @@
 # Therapeutic Change
 
-OntoAgentic should be capable of psychological change through ordinary conversation and experience. Therapy has two roles: it is an ordinary external relationship in the psychological process, and a benchmark suite for whether persistent Parts can develop through the architecture. It is not a product subsystem or privileged internal mutation path.
+The Prism Agent Architecture should be capable of psychological change through ordinary conversation and experience. Therapy has two roles: it is an ordinary external relationship in the psychological process, and a benchmark suite for whether persistent Parts can develop through the architecture. It is not a product subsystem or privileged internal mutation path.
 
 ## Therapy as an architecture benchmark
 

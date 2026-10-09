@@ -1,6 +1,6 @@
 # Attention and Awareness
 
-OntoAgentic distinguishes internal existence from reflective awareness. A Part may exist without being relevant, activate without entering Self awareness, or influence cognition without producing a verbal report.
+The Prism Agent Architecture distinguishes internal existence from reflective awareness. A Part may exist without being relevant, activate without entering Self awareness, or influence cognition without producing a verbal report.
 
 ## Conceptual stages
 

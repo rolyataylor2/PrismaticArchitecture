@@ -2,13 +2,15 @@
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
 
-# OntoAgentic
+# The Prism Agent Architecture
 
 The updated Executive learning target is [ADR 0144](docs/architecture/decisions/0144-correction-led-executive-learning-and-attention.md): continuous authorized activity, independent cognitive attention and operational competence, Self-selected corrections, conditional skills and late-bound preferences. Skill inspection follows actual bid/thought/validation/version lineage; checkpoint cognition/selected pause and offline conditional candidates are implemented, with source-member inspection. Maturity, automatic policy, full adaptation and transfer remain requirements tracked in the thread audit.
 
 The bounded Executive implementation is tracked in [ADR 0140](docs/architecture/decisions/0140-bounded-teachable-executive.md) and the [thread audit](docs/development/EXECUTIVE_THREAD_AUDIT.md). Chat and explicit operational strategies compile immutable selected-bid contracts. The native executor enacts exact selected tool calls, checks a selected verification criterion and returns compact later-thread feedback, while raw traces stay in audit. The shared MCP manager supports stdio/Streamable HTTP, schema validation and scoped permissions, with durable configuration APIs. Per-Agent profiles, native background work/cancellation and evidence-checked exact-procedure versions are administered through six Executive tabs. [ADR 0142](docs/architecture/decisions/0142-selected-guidance-continuations.md) connects no-submission guidance pauses to fresh Self-selected supplemental contracts, preserving original history and cumulative request limits. [ADR 0143](docs/architecture/decisions/0143-selected-procedure-teaching-and-use.md) adds explicit Self-selected procedure teaching and exact active-method reuse with recorded evidence and mode gates. Broader planning/recovery, cognitive approval, generalized/shared methods, portable adapters and remaining configuration are unfinished.
 
-OntoAgentic is an experimental cognitive architecture with a TypeScript runtime, durable Agent state, and a browser research inspector.
+The Prism Agent Architecture is an experimental cognitive architecture with a TypeScript runtime, durable Prismatic Agent state, and a browser research inspector.
+
+Agents built with this architecture are called **Prismatic Agents**. `Agent` remains the concise domain type for a complete Prismatic Agent; Parts, Identity and Self keep their distinct meanings. See [project naming and compatibility](docs/architecture/PROJECT_NAMING.md).
 
 ## Current cognition
 
@@ -43,9 +45,9 @@ npm run demo
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000**. Default mock inference requires no paid credentials. `ONTOAGENTIC_DB` selects the SQLite file; the default is `workspace/agents/local.sqlite`. `PORT` changes the HTTP port. CLI and server use the same database by default. The privileged researcher interface binds to loopback.
+Open **http://127.0.0.1:3000**. Default mock inference requires no paid credentials. `PRISM_DB` selects the SQLite file; the default is `workspace/agents/local.sqlite`. `PORT` changes the HTTP port. CLI and server use the same database by default. The privileged researcher interface binds to loopback.
 
-The Agent selector includes saved experimental bots as well as ordinary Agents. Experimental databases named `research.sqlite` inside immediate subdirectories of `workspace/gauntlet` are discovered when the server starts; `ONTOAGENTIC_RESEARCH_ROOT` changes that directory. Each bot opens through the normal chat and inspection pages using its original database, with an experiment label in the selector.
+The Agent selector includes saved experimental bots as well as ordinary Agents. Experimental databases named `research.sqlite` inside immediate subdirectories of `workspace/gauntlet` are discovered when the server starts; `PRISM_RESEARCH_ROOT` changes that directory. Each bot opens through the normal chat and inspection pages using its original database, with an experiment label in the selector.
 
 For live inference, copy `.env.example` to `.env`, supply provider credentials through environment variables, and select the provider/model there or in Agent Settings. Credentials remain server-side; Agent-specific keys are encrypted with a machine-local key under ignored `workspace/credentials/`. Back up that key with the database. `.env` is ignored by Git. Jev stays behind its replaceable adapter. Missing credentials and provider errors fail explicitly; there is no silent mock fallback.
 
@@ -87,7 +89,7 @@ Tests use mocks or transport stubs and do not make paid requests. Browser tests 
 - `presets/`: starting configurations, distinct from living state.
 - `workspace/`: generated local development state; storage may live elsewhere.
 - `tests/` and `experiments/`: validation and reproducible experiments.
-- `src/ontoagentic/`: earlier Python subsystem scaffolding and boundary documentation.
+- `src/prism/`: earlier Python subsystem scaffolding and boundary documentation.
 - `third_party/`: read-only external runtime infrastructure and research references.
 
 A Part is not an LLM call, provider, autonomous Agent or executor. Simulation owns external truth; Agents own subjective psychological meaning. Models propose cognitive products; deterministic runtime validates and sequences them. Identity guides, Self chooses and external systems execute.

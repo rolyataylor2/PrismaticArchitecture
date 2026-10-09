@@ -1,6 +1,6 @@
 # Inference Context and Caching
 
-OntoAgentic may evaluate many Parts against the same environmental situation. Naively resending and recomputing the entire environment independently for every Part would be expensive and could introduce contextual inconsistency.
+The Prism Agent Architecture may evaluate many Parts against the same environmental situation. Naively resending and recomputing the entire environment independently for every Part would be expensive and could introduce contextual inconsistency.
 
 The architecture therefore treats the WorldState snapshot as reusable shared inference context.
 

@@ -17,11 +17,11 @@ Production cognition uses prior-cycle disposition prerequisites, disposition-spe
 
 [ADR 0126](decisions/0126-constructed-perspectives-and-dispositions.md) supersedes older persistent-Part and private-only recall guidance for the default constructed architecture. Parts are temporary working perspectives reconstructed from subjective Agent autobiography; retired instances remain inspectable. Thread steering and gated entity-bound disposition graphs guide perception and recall. Self remains world-blind and Identity-guided; execution remains external. ADR 0128 removes the earlier online flow from application code. Historical regression fixtures and offline Part-development consolidation remain separate.
 
-Jev is the initial System-One decision model used by OntoAgentic.
+Jev is the initial System-One decision model used by The Prism Agent Architecture.
 
 It is infrastructure rather than cognitive identity.
 
-OntoAgentic should interact with Jev through a replaceable decision-model adapter.
+The Prism Agent Architecture should interact with Jev through a replaceable decision-model adapter.
 
 ## Current intended uses
 
@@ -53,11 +53,11 @@ Jev can evaluate several independent semantic questions against shared state. Fo
 
 ## Structured uncertainty
 
-Jev returns probabilities. OntoAgentic should preserve these results for inspection, performance evaluation, policy decisions, debugging, and calibration experiments. They should not automatically become Part psychology.
+Jev returns probabilities. The Prism Agent Architecture should preserve these results for inspection, performance evaluation, policy decisions, debugging, and calibration experiments. They should not automatically become Part psychology.
 
 ## Vendor independence
 
-The rest of OntoAgentic should not directly import Jev-specific SDK types. A future decision model should be replaceable without rewriting Parts, Self, Identity, bidding, WorldState, simulation, or history.
+The rest of The Prism Agent Architecture should not directly import Jev-specific SDK types. A future decision model should be replaceable without rewriting Parts, Self, Identity, bidding, WorldState, simulation, or history.
 
 For Activator, WorldState is permitted. Its template may select which available WorldState fields become the shared prompt text. For Self arbitration, WorldState is forbidden. Self's rendered prompt is built only from Identity, mediated Part/primitive contributions, deliberation and available choice IDs; the adapter must not expand cognitive access merely because Jev supports larger state. Jev's typed Score/Choice question IDs, criteria and model remain provider protocol fields around the rendered human-readable prompt.
 

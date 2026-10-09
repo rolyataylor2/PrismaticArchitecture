@@ -2,7 +2,7 @@
 
 A decision model consumes state and returns bounded semantic judgments or chooses among predefined outcomes.
 
-OntoAgentic uses decision models where:
+The Prism Agent Architecture uses decision models where:
 
 - possible outputs are already known;
 - open-ended generation is unnecessary;

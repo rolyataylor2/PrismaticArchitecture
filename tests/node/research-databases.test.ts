@@ -54,14 +54,22 @@ test('normal Agent selector opens experimental chat, Brain and components and re
     await page.getByRole('button', { name: /Select Agent/ }).click();
     await page.getByRole('option', { name: /Experimental bot/ }).click();
     await page.getByRole('heading', { name: 'Experimental bot', exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => localStorage.getItem('ontoagentic-database')), null);
     await page.getByText('Scenario observer: A saved experimental conversation.', { exact: true }).waitFor();
-    assert.equal(await page.evaluate(() => localStorage.getItem('ontoagentic-database')), 'saved-experiment');
+    assert.equal(await page.evaluate(() => localStorage.getItem('prism-database')), 'saved-experiment');
     await page.getByRole('button', { name: 'View this thread’s Brain timeline', exact: true }).click();
     await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Part History', exact: true }).click();
     await page.locator('.part-list-item').first().waitFor();
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage).filter(key => key.startsWith('prism-'))) {
+        localStorage.setItem(`ontoagentic-${key.slice('prism-'.length)}`, localStorage.getItem(key)!);
+        localStorage.removeItem(key);
+      }
+    });
     await page.reload();
     await page.getByRole('heading', { name: 'Experimental bot', exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => localStorage.getItem('ontoagentic-database')), null);
     await page.getByText('Scenario observer: A saved experimental conversation.', { exact: true }).waitFor();
     await page.getByRole('button', { name: /Select Agent/ }).click();
     await page.getByRole('option', { name: /Main bot/ }).click();

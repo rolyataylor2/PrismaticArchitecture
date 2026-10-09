@@ -10,9 +10,9 @@ import { SqliteStore } from '../../packages/storage/src/sqlite.js';
 import { Application } from './persistent-fixture.js';
 
 test('CLI subprocesses manage and inspect the same persistent psychology across restarts', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-cli-')); const db = join(directory, 'agent.sqlite');
+  const directory = mkdtempSync(join(tmpdir(), 'prism-cli-')); const db = join(directory, 'agent.sqlite');
   const executable = resolve('dist/apps/cli/src/main.js');
-  const env = { ...process.env, ONTOAGENTIC_DB: db, ONTOAGENTIC_PROVIDER: 'mock', ONTOAGENTIC_DECISIONS: 'mock' };
+  const env = { ...process.env, PRISM_DB: db, PRISM_PROVIDER: 'mock', PRISM_DECISIONS: 'mock' };
   const cli = (...args: string[]): string => execFileSync(process.execPath, [executable, ...args], { env, encoding: 'utf8' });
   try {
     assert.ok(cli('--help').includes('inspect live'));
@@ -47,7 +47,7 @@ test('CLI subprocesses manage and inspect the same persistent psychology across 
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 test('explicit interruption recovery preserves state and never repeats external handoff', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-recovery-')); const path = join(directory, 'state.sqlite');
+  const directory = mkdtempSync(join(tmpdir(), 'prism-recovery-')); const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   try {
     const app = new Application(store); const agent = app.createAgent(); const cycle = store.startCycle(agent.id);

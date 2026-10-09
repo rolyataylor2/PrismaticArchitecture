@@ -1,4 +1,4 @@
-# OntoAgentic Parts Architecture
+# The Prism Agent Architecture Parts Architecture
 
 Parts are persistent, bounded cognitive perspectives that develop through experience, not disposable prompts or complete autonomous agents.
 

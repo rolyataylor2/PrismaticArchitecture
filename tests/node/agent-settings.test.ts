@@ -11,7 +11,7 @@ import { Application } from './persistent-fixture.js';
 import { api } from '../../packages/sdk/src/api.js';
 
 test('Agent settings save a private model and encrypted API key without exposing the secret', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-agent-settings-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-agent-settings-'));
   const store = new SqliteStore(join(directory, 'agents.sqlite'));
   const original = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;
@@ -50,7 +50,7 @@ test('Agent settings save a private model and encrypted API key without exposing
 });
 
 test('Secret vault uses authenticated encryption and detects tampering', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-vault-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-vault-'));
   try {
     const vault = new SecretVault(join(directory, 'key'));
     const encrypted = vault.encrypt('secret API key');
@@ -62,7 +62,7 @@ test('Secret vault uses authenticated encryption and detects tampering', () => {
 });
 
 test('activation settings are validated, isolated per Agent, and survive restart', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-activation-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-activation-'));
   const path = join(directory, 'agents.sqlite');
   let store = new SqliteStore(path);
   try {
@@ -86,7 +86,7 @@ test('activation settings are validated, isolated per Agent, and survive restart
 });
 
 test('Agent deletion survives restart, preserves other Agents, and blocks active work', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-delete-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-delete-'));
   const path = join(directory, 'agents.sqlite');
   let store = new SqliteStore(path);
   try {
@@ -122,7 +122,7 @@ test('Agent deletion survives restart, preserves other Agents, and blocks active
 
 
 test('provider changes require the correct credential and preserve routing after restart', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-xai-settings-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-xai-settings-'));
   const path = join(directory, 'agents.sqlite');
   let store = new SqliteStore(path);
   const vault = new SecretVault(join(directory, 'vault.key'));

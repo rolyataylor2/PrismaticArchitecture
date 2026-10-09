@@ -1,6 +1,6 @@
 # Cognitive Access
 
-OntoAgentic deliberately limits what different cognitive entities may directly access.
+The Prism Agent Architecture deliberately limits what different cognitive entities may directly access.
 
 ## Part access
 

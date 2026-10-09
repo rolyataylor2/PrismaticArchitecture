@@ -10,7 +10,7 @@ import type { DecisionProvider, PartContext } from '../../packages/core/src/cont
 import { snapshot, api } from '../../packages/sdk/src/api.js';
 
 test('threads isolate facts, activation, stickiness and private thought continuity across restart while sharing learning', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-threads-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-threads-'));
   const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   const contexts: PartContext[] = [];

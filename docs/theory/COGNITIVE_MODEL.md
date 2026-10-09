@@ -2,7 +2,7 @@
 
 The default constructed model is defined by [ADR 0126](../architecture/decisions/0126-constructed-perspectives-and-dispositions.md). It supersedes the older persistent-Part meaning below for constructed Agents. Subjective memories retain their bias; temporary instances retain working continuity and remain in the inspector after retirement.
 
-OntoAgentic explores a model in which a persistent Agent contains Identity and multiple persistent or temporary Parts. Parts represent specialized motivated perspectives. Identity is the persistent self-definition. Self is a temporary whole-agent perspective assembled when integration is needed.
+The Prism Agent Architecture explores a model in which a persistent Agent contains Identity and multiple persistent or temporary Parts. Parts represent specialized motivated perspectives. Identity is the persistent self-definition. Self is a temporary whole-agent perspective assembled when integration is needed.
 
 The architecture separates wanting, predicting, warning, interpreting, advocating, choosing, and acting. These need not occur inside one monolithic inference.
 

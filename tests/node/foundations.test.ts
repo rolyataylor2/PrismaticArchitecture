@@ -21,7 +21,7 @@ function fixture() {
   return { store, app, agent, part, world };
 }
 test('durable current state, immutable versions, stale-write rejection, restore as new version', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-test-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-test-'));
   const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   try {

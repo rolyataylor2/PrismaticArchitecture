@@ -1,10 +1,10 @@
-# OntoAgentic Simulation Architecture
+# The Prism Agent Architecture Simulation Architecture
 
-OntoAgentic simulations give cognitive agents experiences without controlling their psychological responses.
+The Prism Agent Architecture simulations give cognitive agents experiences without controlling their psychological responses.
 
 ## Three layers
 
-**World** is authoritative external reality. **Interface** transforms world information into agent-specific observations and intentions into attempted actions. **Mind** is the OntoAgentic agent that interprets observations, invokes Parts and cognition, selects behavior, learns, and changes.
+**World** is authoritative external reality. **Interface** transforms world information into agent-specific observations and intentions into attempted actions. **Mind** is the Prismatic Agent that interprets observations, invokes Parts and cognition, selects behavior, learns, and changes.
 
 ## Interaction cycle
 

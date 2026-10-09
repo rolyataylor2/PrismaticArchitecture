@@ -6,4 +6,4 @@
 `sdk` assembles application services used by all interfaces.
 `executive` implements external tool infrastructure behind framework-granted execution scopes; it cannot mutate cognitive state.
 
-Architecture documentation and ADRs remain authoritative. The older `src/ontoagentic` directories retain conceptual subsystem documentation.
+Architecture documentation and ADRs remain authoritative. The older `src/prism` directories retain conceptual subsystem documentation.

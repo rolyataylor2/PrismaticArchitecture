@@ -19,7 +19,7 @@ Application cognition always constructs temporary working perspectives. The prev
 
 Constructed tests import the real Application and exercise its default. Historical tests import `node/persistent-fixture.ts`, explicitly selecting the previous experiment while preserving its regression coverage. Constructed checks cover restart/retention, working continuity, pending prediction evaluation after retirement, thread isolation, overlapping contradictory evidence, world-blind Self, entity-scoped graph gating/reclassification, model-ID validation and provider/browser integration.
 
-This directory contains automated tests for the OntoAgentic system. Tests should emphasize observable behavior and subsystem boundaries. External AI calls should not be required for the majority of the test suite.
+This directory contains automated tests for the The Prism Agent Architecture system. Tests should emphasize observable behavior and subsystem boundaries. External AI calls should not be required for the majority of the test suite.
 
 ADR 0112 replaces Self single Choice with graded bid Scores and conservative compatible-set selection. Scores and selected IDs remain inspectable; external handoffs preserve each original bid.
 

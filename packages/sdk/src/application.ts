@@ -1,3 +1,4 @@
+import { projectEnvironmentValue } from '../../providers/src/environment.js';
 import { SelectedSkillReview } from './selected-skill-review.js';
 import { ProcedureConsolidator } from './procedure-consolidation.js';
 import { AgentSkillPackages } from './agent-skill-packages.js';
@@ -81,8 +82,8 @@ export class Application {
       void review.catch(() => {});
       void this.#checkpointReviews.get(trace.contractId)!.done.catch(() => {});
     });
-    this.agentSkillPackages = new AgentSkillPackages(store, process.env.ONTOAGENTIC_SKILLS_ROOT ?? resolve('workspace/skills'));
-    this.agentSkillImports = new AgentSkillImports(store, process.env.ONTOAGENTIC_SKILLS_ROOT ?? resolve('workspace/skills'));
+    this.agentSkillPackages = new AgentSkillPackages(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
+    this.agentSkillImports = new AgentSkillImports(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
     this.executiveSkills = new ExecutiveSkills(store, skill => this.agentSkillPackages.schedule(skill));
     const observeUsage: UsageObserver = record => { store.appendEvent(record.agentId, record.cycleId, 'provider.usage', record.usage); };
     this.providers = { ...providers, reasoning: new AgentReasoningProvider(providers.reasoning, agentId => {
@@ -159,7 +160,7 @@ export class Application {
   researcherAuthoringProvider(agentId: string): OpenAIProvider {
     this.store.get('agent', agentId);
     const settings = this.store.agentProviderSettings(agentId);
-    const xai = settings?.model === 'grok-4.3' || (!settings && process.env.ONTOAGENTIC_PROVIDER === 'xai');
+    const xai = settings?.model === 'grok-4.3' || (!settings && projectEnvironmentValue('PROVIDER') === 'xai');
     const apiKey = settings?.encryptedApiKey ? this.#vault.decrypt(settings.encryptedApiKey) : (xai ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
     if (!apiKey) throw new Error('Set an API key in Agent Settings before smart creation');
     if (xai) return new XaiProvider(apiKey, settings?.model ?? process.env.XAI_MODEL, fetch, promptResolver(this.store));
@@ -185,7 +186,7 @@ export class Application {
   agentInferenceSettings(agentId: string) {
     this.store.get('agent', agentId);
     const saved = this.store.agentProviderSettings(agentId);
-    const model = saved?.model ?? (process.env.ONTOAGENTIC_PROVIDER === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
+    const model = saved?.model ?? (projectEnvironmentValue('PROVIDER') === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
     const serverKey = model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
     return { model, usesAgentModel: saved !== null,
       hasAgentKey: saved?.encryptedApiKey !== null && saved?.encryptedApiKey !== undefined,

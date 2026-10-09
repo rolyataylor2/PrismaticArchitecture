@@ -17,9 +17,9 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('textbox', { name: 'New Agent name' }).fill('Constructed browser');
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Constructed browser');
     assert.equal(await page.getByRole('combobox', { name: 'New Agent cognitive model' }).count(), 0);
-    await page.getByRole('button', { name: 'Create Agent', exact: true }).click();
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
     const agent = store.list('agent')[0]!;
     assert.equal(agent.architecture, 'constructed'); assert.equal(store.list('part', agent.id).length, 0);

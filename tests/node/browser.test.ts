@@ -12,7 +12,7 @@ import { createResearchServer } from '../../apps/server/src/server.js';
 
 const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, manage Parts, inspect histories', { skip: !existsSync(executable) }, async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-browser-')); const dbPath = join(directory, 'state.sqlite');
+  const directory = mkdtempSync(join(tmpdir(), 'prism-browser-')); const dbPath = join(directory, 'state.sqlite');
   let store = new SqliteStore(dbPath); const app = new Application(store);
   let server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
@@ -21,8 +21,8 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
   const previousOpenAIKey = process.env.OPENAI_API_KEY;
   try {
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('textbox', { name: 'New Agent name' }).fill('Browser Agent');
-    await page.getByRole('button', { name: 'Create Agent', exact: true }).click();
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Browser Agent');
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
 
     // Verify pencil edit renaming
@@ -34,10 +34,10 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
 
     // Verify agent dropdown and create popup
     await page.getByRole('button', { name: /Select Agent/ }).click();
-    await page.getByRole('button', { name: '+ Create Agent' }).click();
+    await page.getByRole('button', { name: '+ Create Prismatic Agent' }).click();
     await page.getByRole('dialog').waitFor();
-    await page.getByRole('dialog').getByRole('textbox', { name: 'New Agent name' }).fill('Second Agent');
-    await page.getByRole('dialog').getByRole('button', { name: 'Create Agent' }).click();
+    await page.getByRole('dialog').getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Second Agent');
+    await page.getByRole('dialog').getByRole('button', { name: 'Create Prismatic Agent' }).click();
     await page.getByRole('heading', { name: 'Second Agent', exact: true }).waitFor();
     assert.equal(store.list('agent').length, 2);
 
@@ -87,7 +87,7 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
     await page.getByRole('button', { name: 'Logs', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Logs filter' }).fill('part.mutation_applied');
     assert.ok((await page.locator('#content').innerText()).includes('part.mutation_applied'));
-    await page.screenshot({ path: '/private/tmp/ontoagentic-browser-workflow.png', fullPage: true });
+    await page.screenshot({ path: '/private/tmp/prism-browser-workflow.png', fullPage: true });
     const persistedParts = store.list('part', agent.id);
     const persistedMemories = store.list('memory', agent.id);
     const previousPort = (server.address() as AddressInfo).port;

@@ -2,7 +2,7 @@
 
 The default constructed model is defined by [ADR 0126](../architecture/decisions/0126-constructed-perspectives-and-dispositions.md). It supersedes the older persistent-Part meaning below for constructed Agents. Subjective memories retain their bias; temporary instances retain working continuity and remain in the inspector after retirement.
 
-OntoAgentic treats autobiographical memory as fundamentally perspectival. Agent-owned subjective records preserve interpretations formed by Parts. Parts reference memories relevant to their missions and lived perspectives, and different Parts may remember overlapping experiences differently.
+The Prism Agent Architecture treats autobiographical memory as fundamentally perspectival. Agent-owned subjective records preserve interpretations formed by Parts. Parts reference memories relevant to their missions and lived perspectives, and different Parts may remember overlapping experiences differently.
 
 ## Subjective evidence
 

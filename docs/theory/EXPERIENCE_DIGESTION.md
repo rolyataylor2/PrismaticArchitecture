@@ -1,6 +1,6 @@
 # Experience Digestion
 
-OntoAgentic distinguishes an experience from the psychological structures that emerge from it.
+The Prism Agent Architecture distinguishes an experience from the psychological structures that emerge from it.
 
 Objective experience is transient input. Relevant Parts digest that experience through activation and interpretation, optional prediction/context capture, later outcomes, and subjective episodic memory. A prediction can preserve Part-selected details before bounded recent context decays. Future cognition should primarily operate on these persistent psychological products; later semantic consolidation may generalize across episodes without deleting them.
 

@@ -10,7 +10,7 @@ Examples might eventually include:
 - creative exploration;
 - game characters.
 
-Part Packs are not part of the universal OntoAgentic psychology.
+Part Packs are not part of the universal The Prism Agent Architecture psychology.
 
 The base architecture should not assume productivity, task completion, helpfulness, curiosity, or caution as Agent-wide goals.
 

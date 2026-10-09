@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2ed">
-  <title>OntoAgentic — Project Overview</title>
+  <title>The Prism Agent Architecture — Project Overview</title>
   <style>
     :root{--ink:#192820;--muted:#627168;--paper:#f4f2ed;--card:#fffefa;--line:#dce1d8;--green:#315e4a;--mint:#e4efe8;--gold:#d59a45;--blue:#e9eff3;--rose:#f4e9e1;--shadow:0 16px 50px #23362a0c}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.62 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--green);text-decoration-thickness:1px;text-underline-offset:3px}a:hover{color:#173c2b} .wrap{max-width:1120px;margin:auto;padding:0 26px}
@@ -18,10 +18,10 @@
   </style>
 </head>
 <body>
-  <div class="top"><div class="wrap">OntoAgentic <span style="padding:0 8px;color:#abb4a9">/</span> Project field guide</div></div>
+  <div class="top"><div class="wrap">The Prism Agent Architecture <span style="padding:0 8px;color:#abb4a9">/</span> Project field guide</div></div>
   <main class="wrap">
     <header class="hero">
-      <div><div class="eyebrow">An experimental cognitive architecture</div><h1>Many perspectives.<br>One agent.</h1><p>OntoAgentic is a Python framework scaffold for persistent agents whose behavior is meant to emerge from interacting cognitive Parts, a guiding Identity, and a single Self that chooses what to do.</p></div>
+      <div><div class="eyebrow">An experimental cognitive architecture</div><h1>Many perspectives.<br>One agent.</h1><p>The Prism Agent Architecture is a Python framework scaffold for persistent agents whose behavior is meant to emerge from interacting cognitive Parts, a guiding Identity, and a single Self that chooses what to do.</p></div>
       <aside class="status"><span class="pill"><i class="dot"></i> Current stage</span><b>Architecture &amp; scaffolding</b><span>The repository is rich in architecture and subsystem boundaries. The runtime itself has not yet been implemented.</span></aside>
     </header>
     <nav aria-label="Page sections"><a href="#cycle">Cognitive cycle</a><a href="#systems">System map</a><a href="#repo">Repository</a><a href="#maturity">Maturity</a><a href="#open">Open questions</a><a href="#principles">Guiding rules</a></nav>
@@ -53,7 +53,7 @@
       <div class="section-head"><div><div class="label">03 / Where things live</div><h2>A map of the repository</h2></div><p>Framework code, starting configurations, mutable state, and research material are deliberately kept apart.</p></div>
       <div class="layers">
         <div class="layer"><h3>Project areas</h3><div class="tree">
-          <span><b>src/ontoagentic/</b> <small>framework package + subsystem boundary READMEs</small></span>
+          <span><b>src/prism/</b> <small>framework package + subsystem boundary READMEs</small></span>
           <span><b>docs/architecture/</b> <small>system contracts, lifecycle, integration, ADRs</small></span>
           <span><b>docs/theory/</b> <small>psychological model and theoretical questions</small></span>
           <span><b>presets/</b> <small>reusable starting configurations</small></span>
@@ -76,7 +76,7 @@
       <div class="grid">
         <article class="card"><div class="label">In place</div><h3>Architecture is detailed</h3><p>Canonical flow, invariants, model roles, simulation boundaries, lifecycle guidance, theory documents, and a substantial ADR history.</p></article>
         <article class="card"><div class="label">In place</div><h3>Python packaging shell</h3><p>A minimal setuptools project definition exists for Python 3.11+. Package discovery points at <code>src</code>.</p></article>
-        <article class="card"><div class="label">Not present yet</div><h3>Executable framework</h3><p>There are currently no Python implementation modules under <code>src/ontoagentic</code>; those folders contain README files describing intended boundaries.</p></article>
+        <article class="card"><div class="label">Not present yet</div><h3>Executable framework</h3><p>There are currently no Python implementation modules under <code>src/prism</code>; those folders contain README files describing intended boundaries.</p></article>
         <article class="card"><div class="label">Not present yet</div><h3>Working examples or tests</h3><p>No runnable examples, application code, or test modules are present in the inspected scaffold. The test directory has a README.</p></article>
         <article class="card"><div class="label">Reserved</div><h3>Presets &amp; local state</h3><p>Directories mark intended homes for agent, Part, identity, and simulation presets and local state, but contain no populated configurations.</p></article>
         <article class="card"><div class="label">Research material</div><h3>Third-party projects</h3><p>External repositories are checked in as references or runtime candidates. Their presence does not mean the architecture depends on them.</p></article>

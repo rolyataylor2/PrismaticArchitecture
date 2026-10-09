@@ -1,6 +1,6 @@
 # Language-First Learning
 
-OntoAgentic Parts primarily develop through semantic change.
+The Prism Agent Architecture Parts primarily develop through semantic change.
 
 A Part's beliefs, strategies, triggers, expectations, and mission interpretation may evolve by changing the language through which the Part understands reality.
 

@@ -5,7 +5,7 @@ import type { Store, CognitiveEvent } from '../../core/src/contracts.js';
 
 export async function developmentDemo(store: Store, observe: (event: CognitiveEvent) => void = () => {}, architecture: 'constructed' | 'persistent' = 'constructed') {
   const encounter = new TextEncounter('Bill');
-  const app = new Application(store, configuredProviders({ ONTOAGENTIC_PROVIDER: 'mock' }), encounter);
+  const app = new Application(store, configuredProviders({ PRISM_PROVIDER: 'mock' }), encounter);
   const agent = app.createAgent('Development demo', architecture);
   const unsubscribe = app.inspection.subscribe(observe);
   try {
@@ -19,7 +19,7 @@ export async function developmentDemo(store: Store, observe: (event: CognitiveEv
     const beforeSleep = store.list('part', agent.id);
     const sleep = await app.consolidation.run(agent.id);
     const alex = new TextEncounter('Alex');
-    const laterApp = new Application(store, configuredProviders({ ONTOAGENTIC_PROVIDER: 'mock' }), alex);
+    const laterApp = new Application(store, configuredProviders({ PRISM_PROVIDER: 'mock' }), alex);
     const stopLaterInspection = laterApp.inspection.subscribe(observe);
     try { await laterApp.runtime.run(agent.id, alex.observe('I have a personal question about uncertainty and vulnerability.')); }
     finally { stopLaterInspection(); }

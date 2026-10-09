@@ -1,6 +1,6 @@
 # Identity Structure
 
-Identity represents the persistent self-definition of an OntoAgentic Agent.
+Identity represents the persistent self-definition of a Prismatic Agent.
 
 Self is different: it is the temporary whole-agent perspective assembled when integrative cognition is useful. Self does not replace or duplicate persistent Identity.
 

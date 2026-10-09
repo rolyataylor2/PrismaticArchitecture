@@ -55,7 +55,7 @@ test('full thread transcript survives beyond 100 facts, in order, without duplic
 });
 
 test('thoughts decay steadily, Self-selected bids decay slower, and shared snapshots preserve privacy across restart', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-thoughts-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-thoughts-'));
   const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   const reasoning = new Reasoning();
@@ -144,7 +144,7 @@ test('Self selection of a deliberation-revised bid retains its originating Part 
 
 
 test('legacy thought events without Part snapshots remain usable and immutable when chat resumes', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-legacy-thoughts-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-legacy-thoughts-'));
   const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   const providers = { decisions: new Decisions(), embeddings: new Embeddings(), reasoning: new Reasoning() };

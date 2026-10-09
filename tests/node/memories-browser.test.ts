@@ -49,7 +49,7 @@ test('Memories defaults to access/recent rankings, restores them on clearing sea
     await page.getByRole('button', { name: 'JEV search', exact: true }).click();
     await page.locator('.memory-result-activation[title="JEV memory relevance (0–1)"]').waitFor();
     assert.equal(await row.locator('.memory-result-activation').textContent(), '1.00');
-    await page.screenshot({ path: '/tmp/ontoagentic-memories-page.png', fullPage: true });
+    await page.screenshot({ path: '/tmp/prism-memories-page.png', fullPage: true });
     await page.setViewportSize({ width: 520, height: 900 });
     assert.equal(await row.locator('.memory-result-text').evaluate(element => element.scrollHeight > element.clientHeight), false);
     await row.getByRole('button', { name: 'Memory information: A warm welcome', exact: true }).click();

@@ -7,12 +7,12 @@ cd "$SCRIPT_DIR"
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   echo "Usage: ./start.sh"
   echo ""
-  echo "Runs the OntoAgentic server in watch mode with automatic restart on file changes"
+  echo "Runs the The Prism Agent Architecture server in watch mode with automatic restart on file changes"
   echo "and auto-recovery if the process terminates."
   echo ""
   echo "Environment variables:"
   echo "  PORT              HTTP port (default: 3000)"
-  echo "  ONTOAGENTIC_DB    Database path (default: workspace/agents/local.sqlite)"
+  echo "  PRISM_DB    Database path (default: workspace/agents/local.sqlite)"
   exit 0
 fi
 

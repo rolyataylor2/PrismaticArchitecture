@@ -1,6 +1,6 @@
 # Cognitive Security
 
-OntoAgentic's cognitive boundaries may also provide useful security boundaries. This document describes architectural possibilities rather than a finished security design.
+The Prism Agent Architecture's cognitive boundaries may also provide useful security boundaries. This document describes architectural possibilities rather than a finished security design.
 
 ## Raw external input
 
@@ -8,7 +8,7 @@ Externally supplied language may contain ordinary information, misleading claims
 
 ## Mediated context
 
-OntoAgentic should permit configurations where external input is first processed through perception or relevant Parts, after which Self receives bounded internal observations, concerns, or proposals. This may reduce direct exposure of final decision inference to hostile external language. It is an architectural capability, not a mandated default.
+The Prism Agent Architecture should permit configurations where external input is first processed through perception or relevant Parts, after which Self receives bounded internal observations, concerns, or proposals. This may reduce direct exposure of final decision inference to hostile external language. It is an architectural capability, not a mandated default.
 
 ## No trusted-Part assumption
 

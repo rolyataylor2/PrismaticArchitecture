@@ -17,8 +17,8 @@ test('browser resumes threads without mixing conversation facts or Brain keyfram
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('textbox', { name: 'New Agent name' }).fill('Threads');
-    await page.getByRole('button', { name: 'Create Agent', exact: true }).click();
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Threads');
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     const agent = store.list('agent')[0]!;
     const send = async (text: string, count: number) => {
       await page.getByRole('textbox', { name: 'Message', exact: true }).fill(text);
@@ -61,8 +61,8 @@ test('chat immediately displays submissions and preserves ordered collapsible th
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('textbox', { name: 'New Agent name' }).fill('Threads');
-    await page.getByRole('button', { name: 'Create Agent', exact: true }).click();
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Threads');
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.route('**/api/agents/*/message', async route => {
       await new Promise(resolve => setTimeout(resolve, 700));
       await route.continue();

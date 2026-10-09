@@ -31,7 +31,7 @@ export class AgentSkillPackages {
     return loaded;
   }
   private async bind(agentId: string, pack: AgentSkillPackage) {
-    const method = ExecutiveSkillSchema.parse(JSON.parse(pack.files['assets/ontoagentic-method.json']!));
+    const method = ExecutiveSkillSchema.parse(JSON.parse(pack.files['assets/prism-method.json']!));
     if (method.agentId !== agentId) throw new Error('Cannot bind a foreign skill package');
     const directory = this.bindingDirectory(agentId, method.id); await mkdir(directory, { recursive: true });
     const staging = await mkdtemp(join(directory, '.binding-'));
@@ -86,11 +86,12 @@ export class AgentSkillPackages {
       if (!stat.isFile()) throw new Error('Stored package resources must be regular files');
       return readFile(file, 'utf8');
     };
-    const method = ExecutiveSkillSchema.parse(JSON.parse(await read('assets/ontoagentic-method.json')));
+    const legacy = (await readdir(join(directory, 'assets'))).includes('ontoagentic-method.json');
+    const method = ExecutiveSkillSchema.parse(JSON.parse(await read(legacy ? 'assets/ontoagentic-method.json' : 'assets/prism-method.json')));
     if (method.agentId !== agentId) throw new Error('Stored package belongs to a different Agent');
     const members = await Promise.all((method.conditional?.branches ?? []).map(async (_branch, index) =>
       ExecutiveSkillSchema.parse(JSON.parse(await read(`assets/branch-${index + 1}.json`)))));
-    const pack = buildAgentSkillPackage(method, await read('references/DEVELOPMENT.md'), members);
+    const pack = buildAgentSkillPackage(method, await read('references/DEVELOPMENT.md'), members, legacy ? 'legacy' : 'prism');
     const expectedRoot = ['SKILL.md', 'assets', 'references'];
     const rootEntries = await readdir(directory);
     const assets = await readdir(join(directory, 'assets')); const references = await readdir(join(directory, 'references'));

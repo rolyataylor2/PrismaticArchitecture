@@ -51,7 +51,7 @@ test('Trait operations preserve continuity, reject stale writes and keep deleted
 });
 
 test('legacy Identity migration appends a version, preserves original bodies and survives restart', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-identity-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-identity-'));
   const path = join(directory, 'state.sqlite');
   const db = new DatabaseSync(path);
   const createdAt = '2025-01-01T00:00:00.000Z';
@@ -119,7 +119,7 @@ test('autobiographical roles survive edits and duplication while runtime exclude
 
 test('wizard character choices persist across restart, stay agent-scoped and preserve Identity', async () => {
   const { OpenAIProvider } = await import('../../packages/providers/src/openai.js');
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-wizard-'));
+  const directory = mkdtempSync(join(tmpdir(), 'prism-wizard-'));
   const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   try {

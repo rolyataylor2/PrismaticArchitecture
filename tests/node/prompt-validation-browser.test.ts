@@ -16,8 +16,8 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
   const page = await browser.newPage();
   try {
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('textbox', { name: 'New Agent name' }).fill('Twig Agent');
-    await page.getByRole('button', { name: 'Create Agent', exact: true }).click();
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Twig Agent');
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('button', { name: 'Prompts', exact: true }).click();
     await page.getByRole('button', { name: /Select prompt/ }).click();

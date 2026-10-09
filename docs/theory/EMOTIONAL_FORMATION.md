@@ -12,7 +12,7 @@ Emotional impact does not automatically create a new Part. It may instead activa
 
 ## Emotion is inferred, not a required taxonomy
 
-OntoAgentic does not require a hand-authored taxonomy, fixed emotion label, or emotional vector for Parts to function. Emotional meaning may be inferred from beliefs, memory, relational context, mission, expectations, consequences, and current investment. Experimental emotional representations remain optional.
+The Prism Agent Architecture does not require a hand-authored taxonomy, fixed emotion label, or emotional vector for Parts to function. Emotional meaning may be inferred from beliefs, memory, relational context, mission, expectations, consequences, and current investment. Experimental emotional representations remain optional.
 
 ## Full emotional range
 

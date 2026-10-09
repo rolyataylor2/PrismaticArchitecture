@@ -1,6 +1,6 @@
 # Simulation Lifecycle
 
-OntoAgentic simulations maintain external worlds in which agents can have experiences.
+The Prism Agent Architecture simulations maintain external worlds in which agents can have experiences.
 
 1. **World state:** The simulation maintains authoritative external reality.
 2. **Time and systems:** World systems may advance time or produce changes independently of a particular Agent action.

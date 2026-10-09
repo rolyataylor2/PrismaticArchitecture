@@ -16,13 +16,13 @@
 
 Production cognition uses prior-cycle disposition prerequisites, chronological recall and one ordered construction/evidence/cognition generation per disposition binding or bootstrap request. Disposition Parts participate directly without Part activation scoring. Self remains world-blind. Earlier separate-prediction descriptions apply to historical fixtures. See [ADR 0129](decisions/0129-progressive-disposition-cognition.md).
 
-# OntoAgentic Model Execution
+# The Prism Agent Architecture Model Execution
 
 ## Current default revision (ADR 0126)
 
 [ADR 0126](decisions/0126-constructed-perspectives-and-dispositions.md) supersedes older persistent-Part and private-only recall guidance for the default constructed architecture. Parts are temporary working perspectives reconstructed from subjective Agent autobiography; retired instances remain inspectable. Thread steering and gated entity-bound disposition graphs guide perception and recall. Self remains world-blind and Identity-guided; execution remains external. ADR 0128 removes the earlier online flow from application code. Historical regression fixtures and offline Part-development consolidation remain separate.
 
-OntoAgentic deliberately separates workflow, judgment, and reasoning.
+The Prism Agent Architecture deliberately separates workflow, judgment, and reasoning.
 
 No single model is "the Agent."
 
@@ -80,7 +80,7 @@ A model call does not own workflow.
 
 A model returns information to the runtime.
 
-The runtime determines what stage happens next according to OntoAgentic architecture.
+The runtime determines what stage happens next according to The Prism Agent Architecture architecture.
 
 ## Replaceability
 
@@ -169,7 +169,7 @@ Future routing may map these capabilities to different models.
 
 Self never receives Wₙ. Per-Part activation Scores and arbitration distributions are operational judgment telemetry, not psychological state. Activation Scores are independent and unnormalized; a runtime policy separately determines which Parts are activated.
 
-After Self selects, the selected action is handed to the appropriate external interface or capability (for example, a tool, application API, robot controller, chat output, environment adapter, game control, or operating-system interface). External execution may be synchronous, asynchronous, or proceed in parallel with later cognition where the host permits. Factual status may return in a later WorldState. OntoAgentic does not require an internal Faculties system or generic automated-task infrastructure.
+After Self selects, the selected action is handed to the appropriate external interface or capability (for example, a tool, application API, robot controller, chat output, environment adapter, game control, or operating-system interface). External execution may be synchronous, asynchronous, or proceed in parallel with later cognition where the host permits. Factual status may return in a later WorldState. The Prism Agent Architecture does not require an internal Faculties system or generic automated-task infrastructure.
 
 ## Forecast and failure boundaries
 

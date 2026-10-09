@@ -43,5 +43,5 @@ test('Jev contract preserves a shared Score request and bounded world-blind choi
   const results = await provider.score({ world, candidates: ['a', 'b'].map((id, index) => ({ ...demoParts[index]!, id, agentId: 'agent', version: 1, schemaVersion: 1, triggers: [index === 0 ? 'one' : 'two'] })) });
   assert.equal(calls, 1); assert.deepEqual(results.map(r => r.score), [4, 4]);
   await provider.choose(self);
-  assert.throws(() => configuredProviders({ ONTOAGENTIC_DECISIONS: 'jev' }), /transport/);
+  assert.throws(() => configuredProviders({ PRISM_DECISIONS: 'jev' }), /transport/);
 });

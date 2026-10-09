@@ -24,9 +24,9 @@ test('explicit reviewed document intake uses ordinary cognition with shared prov
     override async choose(context: SelfContext) { this.contexts.push(structuredClone(context)); return super.choose(context); }
   }
   const reasoning = new Reasoning(); const decisions = new Decisions();
-  const previousRoot = process.env.ONTOAGENTIC_SKILLS_ROOT; process.env.ONTOAGENTIC_SKILLS_ROOT = root;
+  const previousRoot = process.env.PRISM_SKILLS_ROOT; process.env.PRISM_SKILLS_ROOT = root;
   const app = new Application(store, { reasoning, decisions, embeddings: new MockEmbeddings() });
-  if (previousRoot === undefined) delete process.env.ONTOAGENTIC_SKILLS_ROOT; else process.env.ONTOAGENTIC_SKILLS_ROOT = previousRoot;
+  if (previousRoot === undefined) delete process.env.PRISM_SKILLS_ROOT; else process.env.PRISM_SKILLS_ROOT = previousRoot;
   try {
     const agent = app.createAgent(); const foreign = app.createAgent();
     const proposal = await app.agentSkillImports.propose(agent.id, { name: 'document-example', source: 'Fixture external source', reason: 'Test intake boundaries',
@@ -57,10 +57,10 @@ test('explicit reviewed document intake uses ordinary cognition with shared prov
 test('portable imports persist as attributed proposals, preserve revisions and reject changed contents without authority or execution', async () => {
   const root = await mkdtemp(join(tmpdir(), 'skill-imports-'));
   const store = new SqliteStore(join(root, 'agent.sqlite'));
-  const previousRoot = process.env.ONTOAGENTIC_SKILLS_ROOT;
-  process.env.ONTOAGENTIC_SKILLS_ROOT = join(root, 'skills');
+  const previousRoot = process.env.PRISM_SKILLS_ROOT;
+  process.env.PRISM_SKILLS_ROOT = join(root, 'skills');
   const app = (() => { try { return new Application(store); } finally {
-    if (previousRoot === undefined) delete process.env.ONTOAGENTIC_SKILLS_ROOT; else process.env.ONTOAGENTIC_SKILLS_ROOT = previousRoot;
+    if (previousRoot === undefined) delete process.env.PRISM_SKILLS_ROOT; else process.env.PRISM_SKILLS_ROOT = previousRoot;
   } })();
   try {
     const agent = app.createAgent(); const foreign = app.createAgent();

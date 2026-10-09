@@ -12,7 +12,7 @@ loadLocalEnvironment();
 const directory = resolve('workspace/gauntlet', `executive-conditional-${Date.now()}`);
 mkdirSync(directory, { recursive: true });
 const store = new SqliteStore(resolve(directory, 'research.sqlite'));
-const providers = configuredProviders({ ...process.env, ONTOAGENTIC_PROVIDER: 'openai', ONTOAGENTIC_DECISIONS: 'jev' }, undefined, promptResolver(store));
+const providers = configuredProviders({ ...process.env, PRISM_PROVIDER: 'openai', PRISM_DECISIONS: 'jev' }, undefined, promptResolver(store));
 const app = new Application(store, providers);
 try {
   const source = app.createAgent('Conditional skill observation source');

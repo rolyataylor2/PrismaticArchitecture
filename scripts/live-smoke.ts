@@ -12,7 +12,7 @@ loadLocalEnvironment();
 const providers = configuredProviders();
 assert.ok(providers.reasoning.label.startsWith('openai/'), 'Smoke check requires OpenAI reasoning');
 assert.ok(providers.decisions.label.startsWith('jev/'), 'Smoke check requires Jev decisions');
-const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-live-'));
+const directory = mkdtempSync(join(tmpdir(), 'prism-live-'));
 const store = new SqliteStore(join(directory, 'smoke.sqlite'));
 try {
   const app = new Application(store, providers);

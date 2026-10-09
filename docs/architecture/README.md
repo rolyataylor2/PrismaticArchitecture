@@ -1,12 +1,14 @@
-# OntoAgentic Architecture
+# The Prism Agent Architecture Architecture
 
-This directory describes the architectural meaning of OntoAgentic.
+This directory describes the architectural meaning of The Prism Agent Architecture.
+
+Current naming and migration compatibility are defined in [Project Naming](PROJECT_NAMING.md).
 
 These documents explain how the major systems fit together without prescribing one implementation.
 
 The distinction is intentional.
 
-OntoAgentic is an experimental architecture and many implementation mechanisms are expected to change.
+The Prism Agent Architecture is an experimental architecture and many implementation mechanisms are expected to change.
 
 ## Experience and memory
 

@@ -9,11 +9,11 @@ import { configuredProviders } from '../../../packages/providers/src/config.js';
 import { api } from '../../../packages/sdk/src/api.js';
 import { experimentNames, runExperiment, type ExperimentName } from '../../../packages/sdk/src/experiments.js';
 import { developmentDemo } from '../../../packages/sdk/src/demo.js';
-import { loadLocalEnvironment } from '../../../packages/providers/src/environment.js';
+import { loadLocalEnvironment, projectEnvironmentValue } from '../../../packages/providers/src/environment.js';
 import { promptResolver } from '../../../packages/sdk/src/prompt-settings.js';
 
 loadLocalEnvironment();
-const help = `OntoAgentic — local research CLI (default inference: deterministic/mock, not Jev)
+const help = `The Prism Agent Architecture — local research CLI (default inference: deterministic/mock, not Jev)
 Usage: npm run cli -- <command>
   agent list | agent create [name]
   chat <agent-id> [message]              interactive when message omitted
@@ -34,12 +34,12 @@ Usage: npm run cli -- <command>
   experiment run <name> | experiment list
   inspect live <agent-id> | inspect cycle <cycle-id> | inspect world <world-id>
   demo
-Set ONTOAGENTIC_DB to any SQLite path (default workspace/agents/local.sqlite).
+Set PRISM_DB to any SQLite path (default workspace/agents/local.sqlite).
 Researcher edits append immutable versions. Live inspection can run in a second terminal.`;
 const args = process.argv.slice(2);
 if (!args.length || args.includes('--help')) { console.log(help); process.exit(0); }
-const store = new SqliteStore(resolve(process.env.ONTOAGENTIC_DB ?? 'workspace/agents/local.sqlite'));
-const app = new Application(store, configuredProviders(args[0] === 'demo' ? { ONTOAGENTIC_PROVIDER: 'mock' } : process.env, undefined, promptResolver(store)));
+const store = new SqliteStore(resolve(projectEnvironmentValue('DB') ?? 'workspace/agents/local.sqlite'));
+const app = new Application(store, configuredProviders(args[0] === 'demo' ? { PRISM_PROVIDER: 'mock' } : process.env, undefined, promptResolver(store)));
 const output = (value: unknown): void => { console.log(JSON.stringify(value, null, 2)); };
 const required = (index: number): string => { const value = args[index]; if (!value) throw new Error(`Missing argument.\n${help}`); return value; };
 function showEvent(event: ReturnType<SqliteStore['events']>[number]): void {

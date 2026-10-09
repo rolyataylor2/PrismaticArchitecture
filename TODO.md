@@ -3,7 +3,7 @@
 - [x] Implement and verify all conclusions of the 6ac6ac9c shared thread. Source and requirement ledger: docs/development/PREDICTION_SCAFFOLD_THREAD_{SOURCE,AUDIT}.md.
 - [x] Read required architecture/theory, document revised hypothesis-first formation architecture, implement full lifecycle and synchronized surfaces, add normal-pipeline experiments, complete requirement-level verification.
 
-# OntoAgentic Development TODO
+# The Prism Agent Architecture Development TODO
 
 Task specification: `docs/development/IMPLEMENTATION_REQUEST.md`. Resume by reading this file and `docs/development/CURRENT_STATE.md`. Check boxes require implementation and evidence, not intent.
 

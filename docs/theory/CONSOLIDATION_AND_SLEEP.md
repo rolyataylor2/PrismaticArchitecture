@@ -2,13 +2,13 @@
 
 ## Two developmental timescales
 
-OntoAgentic distinguishes **online/waking cognition** from **offline/consolidation cognition**. Online cognition primarily asks, “What does this mean right now?” It interprets the present, activates relevant Parts, proposes behavior, predicts, chooses, acts, observes outcomes, and makes relatively local incremental updates. Offline consolidation can ask, “What have these experiences collectively taught me?” It is the primary place for cross-experience structural reasoning. It does not replace the waking loop and need not correspond literally to biological sleep. Scheduling remains open.
+The Prism Agent Architecture distinguishes **online/waking cognition** from **offline/consolidation cognition**. Online cognition primarily asks, “What does this mean right now?” It interprets the present, activates relevant Parts, proposes behavior, predicts, chooses, acts, observes outcomes, and makes relatively local incremental updates. Offline consolidation can ask, “What have these experiences collectively taught me?” It is the primary place for cross-experience structural reasoning. It does not replace the waking loop and need not correspond literally to biological sleep. Scheduling remains open.
 
 Offline processing may consider recurrence, abstraction, generalization, specialization, relational formation, split/merge, memory reconsolidation, association changes, emotional-charge development, dormancy/archive, and repeated Identity incongruity. It may surface evidence for later Self/Part reflection but does not directly rewrite core Identity.
 
 ## Experience digestion
 
-OntoAgentic should digest experiences. An experience enters through WorldState; relevant Parts interpret it and may form a prediction capsule or another encoding opportunity. Later evidence and Part evaluation may form subjective episodic memories during waking cognition. Relevant Parts may also develop beliefs, triggers, associations, strategies, and relational understanding. These persistent psychological products become the primary material for future cognition. The immutable original remains historically available for provenance, inspection, verification, and rare controlled replay, but it is not a perfect autobiographical memory.
+The Prism Agent Architecture should digest experiences. An experience enters through WorldState; relevant Parts interpret it and may form a prediction capsule or another encoding opportunity. Later evidence and Part evaluation may form subjective episodic memories during waking cognition. Relevant Parts may also develop beliefs, triggers, associations, strategies, and relational understanding. These persistent psychological products become the primary material for future cognition. The immutable original remains historically available for provenance, inspection, verification, and rare controlled replay, but it is not a perfect autobiographical memory.
 
 Sleep therefore primarily digests already digested psychology. This second-order process is intentional:
 

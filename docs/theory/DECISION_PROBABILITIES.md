@@ -1,6 +1,6 @@
 # Decision Probabilities
 
-OntoAgentic may use probabilistic decision models for several semantic judgments.
+The Prism Agent Architecture may use probabilistic decision models for several semantic judgments.
 
 These probabilities are useful but must not be confused with psychological state.
 

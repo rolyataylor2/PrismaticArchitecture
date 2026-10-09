@@ -1,4 +1,8 @@
-# OntoAgentic Glossary
+# The Prism Agent Architecture Glossary
+
+## Prismatic Agent / Agent
+
+A Prismatic Agent is a complete persistent cognitive agent built with The Prism Agent Architecture. `Agent` is the concise domain term and code type. A Part is a bounded perspective within a Prismatic Agent, not a separate Prismatic Agent.
 
 ## WorldState
 

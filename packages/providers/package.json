@@ -1,1 +1,1 @@
-{"name":"@ontoagentic/providers","version":"0.1.0","private":true,"type":"module","dependencies":{"twig":"^3.0.0"}}
+{"name":"@prism/providers","version":"0.1.0","private":true,"type":"module","dependencies":{"twig":"^3.0.0"}}

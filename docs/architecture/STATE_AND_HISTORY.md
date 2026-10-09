@@ -1,6 +1,6 @@
 # State and History
 
-OntoAgentic distinguishes current state, starting configuration, persistence, and history. These concepts must not collapse into one another.
+The Prism Agent Architecture distinguishes current state, starting configuration, persistence, and history. These concepts must not collapse into one another.
 
 ## Preset
 

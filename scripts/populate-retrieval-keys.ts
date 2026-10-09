@@ -4,7 +4,7 @@ import { Inspection } from '../packages/core/src/inspection.js';
 import { PartMutations } from '../packages/core/src/mutations.js';
 import { demoParts } from '../packages/sdk/src/seed.js';
 
-const store = new SqliteStore(process.env.ONTOAGENTIC_DB ?? 'workspace/agents/local.sqlite');
+const store = new SqliteStore(process.env.PRISM_DB ?? 'workspace/agents/local.sqlite');
 try {
   const mutations = new PartMutations(store, new Inspection(store));
   const keys = new Map(demoParts.map(part => [part.name, part.retrievalKeys ?? []]));

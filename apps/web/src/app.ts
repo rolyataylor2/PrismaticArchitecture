@@ -26,8 +26,15 @@ type ChatSession = {
 let activeTab = 'Chat Sessions';
 let selectedPromptTask = 'activation';
 let settingsSection: 'Model & key' | 'Prompts' | 'Activation' | 'Delete Agent' = 'Model & key';
-let selectedAgent = localStorage.getItem('ontoagentic-agent') ?? '';
-let selectedDatabase = localStorage.getItem('ontoagentic-database') ?? '';
+// Preserve existing researcher selections and sessions after the namespace change.
+for (const key of Object.keys(localStorage)) {
+  if (!key.startsWith('ontoagentic-')) continue;
+  const replacement = `prism-${key.slice('ontoagentic-'.length)}`;
+  if (localStorage.getItem(replacement) === null) localStorage.setItem(replacement, localStorage.getItem(key)!);
+  localStorage.removeItem(key);
+}
+let selectedAgent = localStorage.getItem('prism-agent') ?? '';
+let selectedDatabase = localStorage.getItem('prism-database') ?? '';
 let state: AgentSnapshot | null = null;
 let events: CognitiveEvent[] = [];
 let stream: EventSource | null = null;
@@ -80,7 +87,7 @@ let sessions: ChatSession[] = [];
 let activeSessionId: string | null = null;
 
 function sessionStorageKey(agentId: string): string {
-  return `ontoagentic-sessions-${selectedDatabase ? `${selectedDatabase}-` : ''}${agentId}`;
+  return `prism-sessions-${selectedDatabase ? `${selectedDatabase}-` : ''}${agentId}`;
 }
 
 function loadSessions(agentId: string): void {
@@ -495,8 +502,8 @@ async function refresh(): Promise<void> {
 }
 async function selectAgent(agentId: string, databaseId = selectedDatabase): Promise<void> {
   if (state?.agent.id !== agentId || selectedDatabase !== databaseId) messageDraft = '';
-  selectedDatabase = databaseId; localStorage.setItem('ontoagentic-database', databaseId);
-  selectedAgent = agentId; activeSessionId = null; brainSeekSequence = null; localStorage.setItem('ontoagentic-agent', agentId); frozenCycle = ''; events = [];
+  selectedDatabase = databaseId; localStorage.setItem('prism-database', databaseId);
+  selectedAgent = agentId; activeSessionId = null; brainSeekSequence = null; localStorage.setItem('prism-agent', agentId); frozenCycle = ''; events = [];
   threadSelectionRevision++; threadLoading = false;
   renderAgentControls();
   stream?.close(); state = null; content.replaceChildren(node('h2', 'Loading Agent…')); await refresh();
@@ -553,24 +560,24 @@ function openCreateAgentModal(): void {
   modal.setAttribute('aria-modal', 'true');
   modal.setAttribute('aria-labelledby', 'create-agent-modal-title');
 
-  const title = node('h3', 'Create New Agent', 'modal-title');
+  const title = node('h3', 'Create New Prismatic Agent', 'modal-title');
   title.id = 'create-agent-modal-title';
 
-  const desc = node('p', 'Configure a new cognitive agent with independent perspectives, identity, and memory.', 'modal-desc');
+  const desc = node('p', 'Create a Prismatic Agent with independent perspectives, identity, and memory.', 'modal-desc');
 
   const form = node('form', '', 'modal-form');
   const label = node('label', 'Agent Name', 'modal-label');
   const input = node('input', '', 'modal-input');
   input.type = 'text';
-  input.placeholder = 'New Agent name';
-  input.setAttribute('aria-label', 'New Agent name');
+  input.placeholder = 'New Prismatic Agent name';
+  input.setAttribute('aria-label', 'New Prismatic Agent name');
   label.append(input);
 
   const actions = node('div', '', 'modal-actions');
   const cancelBtn = node('button', 'Cancel', 'secondary modal-btn');
   cancelBtn.type = 'button';
 
-  const submitBtn = node('button', 'Create Agent', 'modal-btn modal-submit-btn');
+  const submitBtn = node('button', 'Create Prismatic Agent', 'modal-btn modal-submit-btn');
   submitBtn.type = 'submit';
 
   actions.append(cancelBtn, submitBtn);
@@ -603,7 +610,7 @@ function renderAgentControls(): void {
   controls.replaceChildren();
 
   if (agentList.length === 0) {
-    const createBtn = button('+ Create Agent', () => openCreateAgentModal());
+    const createBtn = button('+ Create Prismatic Agent', () => openCreateAgentModal());
     createBtn.className = 'agent-create-prompt-btn';
     controls.append(createBtn);
     return;
@@ -710,7 +717,7 @@ function renderAgentControls(): void {
     const dropdownMenu = node('div', '', 'agent-dropdown-menu');
     dropdownMenu.setAttribute('role', 'listbox');
 
-    const menuHeader = node('div', 'All available Agents', 'agent-menu-header');
+    const menuHeader = node('div', 'All available Prismatic Agents', 'agent-menu-header');
     dropdownMenu.append(menuHeader);
 
     const listContainer = node('div', '', 'agent-menu-list');
@@ -745,7 +752,7 @@ function renderAgentControls(): void {
 
     const createOption = node('button', '', 'agent-menu-create-btn');
     createOption.type = 'button';
-    createOption.innerHTML = `<span class="agent-menu-plus">+</span> Create Agent`;
+    createOption.innerHTML = `<span class="agent-menu-plus">+</span> Create Prismatic Agent`;
     createOption.onclick = (e) => {
       e.stopPropagation();
       agentDropdownOpen = false;
@@ -3326,7 +3333,7 @@ function deleteAgentSettings(): void {
         stream?.close(); stream = null;
         selectedAgent = ''; state = null; events = []; sessions = []; activeSessionId = null;
         submittedChat = null; messageDraft = ''; frozenCycle = ''; brainSeekSequence = null;
-        localStorage.removeItem('ontoagentic-agent');
+        localStorage.removeItem('prism-agent');
         settingsSection = 'Model & key'; activeTab = 'Chat Sessions';
       }
       await agents();

@@ -33,7 +33,7 @@ node_modules/
 *.sqlite-shm
 *.sqlite-wal
 
-# OntoAgentic generated workspace data
+# The Prism Agent Architecture generated workspace data
 workspace/agents/*
 workspace/runs/*
 workspace/histories/*

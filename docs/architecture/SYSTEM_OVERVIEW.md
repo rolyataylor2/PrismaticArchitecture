@@ -48,7 +48,7 @@ Production cognition uses prior-cycle disposition prerequisites, chronological r
 
 [ADR 0126](decisions/0126-constructed-perspectives-and-dispositions.md) supersedes older persistent-Part and private-only recall guidance for the default constructed architecture. Parts are temporary working perspectives reconstructed from subjective Agent autobiography; retired instances remain inspectable. Thread steering and gated entity-bound disposition graphs guide perception and recall. Self remains world-blind and Identity-guided; execution remains external. ADR 0128 removes the earlier online flow from application code. Historical regression fixtures and offline Part-development consolidation remain separate.
 
-OntoAgentic is a platform for constructing persistent cognitive agents composed of interacting Parts and exposing those agents to conversations, simulations, and other experiences.
+The Prism Agent Architecture is a platform for constructing persistent cognitive agents composed of interacting Parts and exposing those agents to conversations, simulations, and other experiences.
 
 The project contains several conceptually independent systems.
 
@@ -160,7 +160,7 @@ The simulation must never directly create psychological conclusions inside the a
 
 ## Experimentation
 
-OntoAgentic should permit researchers to vary components independently: same Parts with different identity, same agent with different model or routing, different life experiences, or different Parts-management policy. Replaceability is a core architectural characteristic.
+The Prism Agent Architecture should permit researchers to vary components independently: same Parts with different identity, same agent with different model or routing, different life experiences, or different Parts-management policy. Replaceability is a core architectural characteristic.
 
 ## Separate prediction inference (ADR 0097)
 

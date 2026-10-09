@@ -1,5 +1,9 @@
 # Instructions for Coding Agents
 
+## Automatic commits and pushes
+
+After completing requested repository changes and passing the relevant checks, automatically commit the task's changes with a descriptive message and push the current branch to its configured remote. Do not ask for separate confirmation unless the user explicitly requests otherwise. Include only changes belonging to the task; keep secrets and ignored generated state excluded. Preserve existing history and never force-push. If committing or pushing fails, report the failure and the remaining local state.
+
 ## Current requested architecture
 
 ADR 0138 extends ADRs 0133/0136 and supersedes direct online durable formation in ADR 0137. Bounded coverage can propose and adjust gap-origin predictions without an owning Part. Part and gap predictions propose versioned temporary relevance scaffolds, investigated through ordinary later-cycle activation/recall/Part generation. Independent activation remains distinct from admission under computation budgets. Online experience attaches evidence only; offline institutionalization waits for ended investigations and repeated recorded usefulness, preserving source lineage and memories. Self remains world-blind. Read ADR 0138 before modifying disposition formation, prediction ownership, investigation or consolidation.
@@ -107,15 +111,15 @@ External source is stored under `third_party/`. Treat third-party repositories a
 
 ### any-llm
 
-any-llm is infrastructure. Only the OntoAgentic provider layer should eventually depend directly on it. Parts, cognition, bidding, identity, memory, simulations, history, and interfaces must not directly import any-llm.
+any-llm is infrastructure. Only the Prism Agent Architecture provider layer should eventually depend directly on it. Parts, cognition, bidding, identity, memory, simulations, history, and interfaces must not directly import any-llm.
 
 ### TextArena
 
-TextArena is reference material for simulation design. OntoAgentic simulations should not become dependent on TextArena merely because its source is available.
+TextArena is reference material for simulation design. The Prism Agent Architecture simulations should not become dependent on TextArena merely because its source is available.
 
 ### Dulwich
 
-Dulwich is reference material for Git-like history concepts. Do not expose Git or Dulwich objects as OntoAgentic's public cognitive-history API. The OntoAgentic domain model must remain independent from the persistence mechanism.
+Dulwich is reference material for Git-like history concepts. Do not expose Git or Dulwich objects as The Prism Agent Architecture's public cognitive-history API. The Prism Agent Architecture domain model must remain independent from the persistence mechanism.
 
 ## Presets versus persistent state
 
@@ -131,7 +135,7 @@ Provider API keys are secrets. Never place credentials in source files, presets,
 
 ## Simulation/psychology boundary
 
-The governing rule is: **Simulations create experiences. Agents create psychological meaning.** Code under `ontoagentic.simulation` must not directly manipulate Parts, Part activation, motivations, identity, cognitive bids, psychological interpretations, or agent memory. Simulation integration should use narrow public agent/environment interfaces.
+The governing rule is: **Simulations create experiences. Agents create psychological meaning.** Code under `prism.simulation` must not directly manipulate Parts, Part activation, motivations, identity, cognitive bids, psychological interpretations, or agent memory. Simulation integration should use narrow public agent/environment interfaces.
 
 ## World truth versus subjective reality
 
@@ -147,7 +151,7 @@ An Event records something that occurred. A Storylet describes a potential situa
 
 ## NPC cognition
 
-An NPC may be scripted behavior or a complete OntoAgentic agent. If it is an OntoAgentic agent, its Parts belong to that agent, not the simulation.
+An NPC may be scripted behavior or a complete Prismatic Agent. If it is a Prismatic Agent, its Parts belong to that agent, not the simulation.
 
 ## Simulation realism
 

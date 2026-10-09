@@ -266,11 +266,11 @@ A Part may maintain an ordered behavioral strategy. This does not grant the Part
 
 ## External execution
 
-External action execution belongs outside the psychological architecture. OntoAgentic selects behavior and hands it off to the appropriate external interface. Execution status may later return as objective WorldState facts.
+External action execution belongs outside the psychological architecture. The Prism Agent Architecture selects behavior and hands it off to the appropriate external interface. Execution status may later return as objective WorldState facts.
 
 ## Automation boundary
 
-Generic automated tasks and background job systems are not part of OntoAgentic cognition. Prediction evaluation scheduling remains part of Part learning and is not equivalent to task automation.
+Generic automated tasks and background job systems are not part of The Prism Agent Architecture cognition. Prediction evaluation scheduling remains part of Part learning and is not equivalent to task automation.
 
 ## Therapy parity
 

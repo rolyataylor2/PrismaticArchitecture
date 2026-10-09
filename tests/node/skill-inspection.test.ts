@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto';
+import { dirname } from 'node:path';
+import { buildAgentSkillPackage } from '../../packages/core/src/agent-skill-package.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +15,7 @@ import type { Operation } from '../../packages/core/src/operation.js';
 import type { Store } from '../../packages/core/src/contracts.js';
 import { publicSkills } from '../../packages/core/src/skill-invocation.js';
 import { AgentSkillPackages } from '../../packages/sdk/src/agent-skill-packages.js';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { ExecutiveSkills } from '../../packages/sdk/src/executive-skills.js';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -123,7 +126,7 @@ test('read-only skill inspection reconstructs actual thoughts, activation, sourc
     assert.equal(deprecated.execution!.status, 'blocked');
     assert.equal(store.eventsByType(agent.id, ['execution.tool_trace'], [deprecated.cycle.id]).length, 0);
     assert.ok(store.executiveSkillHistory(agent.id, derived.id).some(skill => skill.maturity?.stage === 'established'));
-    const packageRoot = await mkdtemp(join(tmpdir(), 'ontoagentic-skills-'));
+    const packageRoot = await mkdtemp(join(tmpdir(), 'prism-skills-'));
     try {
       const automaticRoot = join(packageRoot, 'automatic');
       const automatic = new AgentSkillPackages(store, automaticRoot);
@@ -165,14 +168,26 @@ test('read-only skill inspection reconstructs actual thoughts, activation, sourc
       assert.match(pack.files['SKILL.md']!, new RegExp(`^---\\nname: ${pack.name}\\ndescription:`));
       assert.match(pack.files['references/DEVELOPMENT.md']!, /Prescribed original fixture thought/);
       assert.match(pack.files['references/DEVELOPMENT.md']!, /Unsuccessful fixture revision|Prescribed revision fixture reason/);
-      assert.deepEqual(JSON.parse(pack.files['assets/ontoagentic-method.json']!), store.executiveSkills(agent.id).find(skill => skill.id === initial.id));
+      assert.deepEqual(JSON.parse(pack.files['assets/prism-method.json']!), store.executiveSkills(agent.id).find(skill => skill.id === initial.id));
+      const legacy = buildAgentSkillPackage(JSON.parse(pack.files['assets/prism-method.json']!), pack.files['references/DEVELOPMENT.md']!, [], 'legacy');
+      const legacyDirectory = join(packageRoot, createHash('sha256').update(agent.id).digest('hex'), legacy.digest, legacy.name);
+      for (const [path, contents] of Object.entries(legacy.files)) {
+        await mkdir(dirname(join(legacyDirectory, path)), { recursive: true });
+        await writeFile(join(legacyDirectory, path), contents);
+      }
+      const oldSnapshot = await packages.load(agent.id, legacy.digest);
+      assert.deepEqual(oldSnapshot.files, legacy.files);
+      assert.equal(oldSnapshot.digest, legacy.digest, 'Legacy immutable snapshots retain their original digest');
+      assert.deepEqual(oldSnapshot.method, JSON.parse(pack.files['assets/prism-method.json']!));
+      await writeFile(join(legacyDirectory, 'SKILL.md'), `${legacy.files['SKILL.md']}\nChanged`);
+      await assert.rejects(packages.load(agent.id, legacy.digest), /immutable snapshot/);
       const saved = await packages.persist(agent.id, initial.id);
       assert.equal(await readFile(join(saved.directory, 'SKILL.md'), 'utf8'), pack.files['SKILL.md']);
       assert.deepEqual(await packages.persist(agent.id, initial.id), saved, 'Repeated persistence preserves the immutable content snapshot');
       assert.deepEqual(await new AgentSkillPackages(store, packageRoot).persist(agent.id, initial.id), saved);
       const loaded = await new AgentSkillPackages(store, packageRoot).load(agent.id, saved.digest);
       assert.deepEqual(loaded.files, pack.files);
-      assert.deepEqual(loaded.method, JSON.parse(pack.files['assets/ontoagentic-method.json']!));
+      assert.deepEqual(loaded.method, JSON.parse(pack.files['assets/prism-method.json']!));
       const bound = await new AgentSkillPackages(store, packageRoot).resolveMethod(agent.id, initial.id, loaded.method.version);
       assert.deepEqual(bound.files, pack.files); assert.equal(bound.digest, saved.digest);
       await assert.rejects(packages.resolveMethod(foreign.id, initial.id, loaded.method.version));

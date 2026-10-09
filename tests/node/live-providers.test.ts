@@ -9,7 +9,7 @@ import { OpenAIProvider, strictOutputSchema, decodeOutput } from '../../packages
 import { JevHttpTransport } from '../../packages/providers/src/jev-http.js';
 import { JevDecisions } from '../../packages/providers/src/jev.js';
 import { configuredProviders } from '../../packages/providers/src/config.js';
-import { loadLocalEnvironment } from '../../packages/providers/src/environment.js';
+import { loadLocalEnvironment, projectEnvironmentValue } from '../../packages/providers/src/environment.js';
 import { PartPatchSchema, type SelfContext } from '../../packages/core/src/domain.js';
 import type { PartContext } from '../../packages/core/src/contracts.js';
 import { demoIdentity, demoParts } from '../../packages/sdk/src/seed.js';
@@ -256,17 +256,17 @@ test('Jev rejects missing, out of bounds, and unavailable judgments without mock
   }
   const invalid = new JevHttpTransport('test-only', undefined, async () => Response.json({ answers: { selection: { type: 'choice', choice: 'invented', confidence: 1, probabilities: { invented: 1 } } } }));
   await assert.rejects(invalid.choice({ state: 'Identity has no bids.', choices: ['DELIBERATE'] }), /unavailable/);
-  assert.throws(() => configuredProviders({ ONTOAGENTIC_PROVIDER: 'openai' }), /OPENAI_API_KEY/);
-  assert.throws(() => configuredProviders({ ONTOAGENTIC_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only' }), /JEV_API_KEY/);
-  const configured = configuredProviders({ ONTOAGENTIC_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only', TYPESAFE_API_KEY: 'test-only' });
+  assert.throws(() => configuredProviders({ PRISM_PROVIDER: 'openai' }), /OPENAI_API_KEY/);
+  assert.throws(() => configuredProviders({ PRISM_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only' }), /JEV_API_KEY/);
+  const configured = configuredProviders({ PRISM_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only', TYPESAFE_API_KEY: 'test-only' });
   assert.equal(configured.reasoning.label, 'openai/gpt-4.1-nano');
   assert.equal(configured.decisions.label, 'jev/jev-latest');
   assert.match(configuredProviders({}).reasoning.label, /mock/);
 });
 
 test('local environment loading tolerates absence and preserves exported overrides', () => {
-  const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-env-'));
-  const key = 'ONTOAGENTIC_ENV_TEST_VALUE';
+  const directory = mkdtempSync(join(tmpdir(), 'prism-env-'));
+  const key = 'PRISM_ENV_TEST_VALUE';
   const previous = process.env[key];
   try {
     loadLocalEnvironment(join(directory, 'missing'));
@@ -406,8 +406,8 @@ test('xAI uses its own Responses endpoint and disables reasoning without sharing
   });
   assert.equal(provider.label, 'xai/grok-4.3');
   assert.deepEqual(await provider.question(self), inquiry);
-  assert.throws(() => configuredProviders({ ONTOAGENTIC_PROVIDER: 'xai', OPENAI_API_KEY: 'must-not-use-this' }), /XAI_API_KEY/);
-  assert.equal(configuredProviders({ ONTOAGENTIC_PROVIDER: 'xai', XAI_API_KEY: 'test-only', ONTOAGENTIC_DECISIONS: 'mock' }).reasoning.label, 'xai/grok-4.3');
+  assert.throws(() => configuredProviders({ PRISM_PROVIDER: 'xai', OPENAI_API_KEY: 'must-not-use-this' }), /XAI_API_KEY/);
+  assert.equal(configuredProviders({ PRISM_PROVIDER: 'xai', XAI_API_KEY: 'test-only', PRISM_DECISIONS: 'mock' }).reasoning.label, 'xai/grok-4.3');
 });
 
 test('Jev identifies context limits without retaining vendor bodies or retrying unrelated failures', async () => {
@@ -420,4 +420,12 @@ test('Jev identifies context limits without retaining vendor bodies or retrying 
       return true;
     });
   }
+});
+
+test('Prism configuration accepts legacy environment values and gives new names precedence', () => {
+  assert.equal(projectEnvironmentValue('DB', { ONTOAGENTIC_DB: 'old.sqlite' }), 'old.sqlite');
+  assert.equal(projectEnvironmentValue('DB', { ONTOAGENTIC_DB: 'old.sqlite', PRISM_DB: 'new.sqlite' }), 'new.sqlite');
+  assert.equal(projectEnvironmentValue('DB', {}), undefined);
+  assert.equal(configuredProviders({ ONTOAGENTIC_PROVIDER: 'mock', ONTOAGENTIC_DECISIONS: 'mock' }).reasoning.label, 'deterministic/mock-reasoning-v1');
+  assert.equal(configuredProviders({ ONTOAGENTIC_PROVIDER: 'invalid', PRISM_PROVIDER: 'mock', PRISM_DECISIONS: 'mock' }).reasoning.label, 'deterministic/mock-reasoning-v1');
 });

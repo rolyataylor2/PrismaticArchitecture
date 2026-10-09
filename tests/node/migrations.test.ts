@@ -9,7 +9,7 @@ import { Application } from './persistent-fixture.js';
 
 for (const missingTimestamp of [true, false]) {
   test(`version-7 migration preserves chat history with timestamp ${missingTimestamp ? 'missing' : 'present'}`, async () => {
-    const directory = mkdtempSync(join(tmpdir(), 'ontoagentic-migration-'));
+    const directory = mkdtempSync(join(tmpdir(), 'prism-migration-'));
     const path = join(directory, 'state.sqlite');
     let store = new SqliteStore(path);
     try {

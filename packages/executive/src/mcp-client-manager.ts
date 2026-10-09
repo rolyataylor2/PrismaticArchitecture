@@ -153,7 +153,7 @@ export class McpClientManager {
     this.#health.set(config.id, 'connecting');
     let generation = 0;
     let connection: Connection | undefined;
-    const client = new Client({ name: 'ontoagentic-executive', version: '0.1.0' }, {
+    const client = new Client({ name: 'prism-executive', version: '0.1.0' }, {
       versionNegotiation: { mode: 'auto' }, jsonSchemaValidator: this.#validator,
       listChanged: { tools: { autoRefresh: false, debounceMs: 0, onChanged: () => {
         generation++; if (connection) connection.catalogGeneration = generation;
