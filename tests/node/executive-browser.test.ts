@@ -71,7 +71,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByRole('button', { name: 'Executive', exact: true }).click();
     await page.getByRole('tab', { name: 'Feedback & Diagnostics', exact: true }).waitFor();
     assert.deepEqual(await page.locator('.executive-panel > h3').allTextContents(),
-      ['Runtime', 'MCP Connections', 'Autonomy & Recovery', 'Environmental Sensitivity', 'Skills & Learning', 'Feedback & Diagnostics']);
+      ['Runtime', 'MCP Connections', 'Autonomy & Recovery', 'Environmental Sensitivity', 'Skills & Learning', 'Imports', 'Feedback & Diagnostics']);
     assert.equal(await page.getByLabel('Enable Executive', { exact: true }).isChecked(), false);
     await page.getByLabel('Enable Executive', { exact: true }).check();
     await page.getByLabel('Execution mode', { exact: true }).selectOption('background');
@@ -157,6 +157,11 @@ test('Executive panels persist operational configuration and discover/grant real
     assert.equal(await calls.locator('tbody tr').count(), 2);
     let cyclesBeforeAdministration = store.cycles(agent.id).length;
     await page.getByRole('tab', { name: 'Skills & Learning', exact: true }).click();
+    assert.equal(await page.getByLabel('Skill package folder', { exact: true }).isVisible(), false);
+    await page.getByRole('tab', { name: 'Imports', exact: true }).click();
+    assert.equal(await page.getByLabel('Source Agent', { exact: true }).isVisible(), true);
+    assert.equal(await page.getByLabel('Skill package folder', { exact: true }).isVisible(), true);
+    assert.equal(await page.getByLabel('Learning mode', { exact: true }).isVisible(), false);
     const importRevision = page.locator(`#skill-import-${revisedImport.id}`);
     await importRevision.locator('summary').first().click();
     await importRevision.getByText('Reason: Add a warning', { exact: true }).waitFor();
@@ -184,6 +189,7 @@ test('Executive panels persist operational configuration and discover/grant real
     assert.equal(reviewedFolder.reviews[0]!.reason, 'Browser researcher review of knowledge');
     assert.equal(reviewedFolder.status, 'proposed'); assert.deepEqual(reviewedFolder.package.files, storedFolder.package.files);
     assert.equal(store.events(agent.id).length, importEvents); assert.deepEqual(store.mcpPermissions(agent.id), importGrants);
+    await page.getByRole('tab', { name: 'Skills & Learning', exact: true }).click();
     await page.getByRole('button', { name: 'Refresh skills', exact: true }).click();
     await page.getByLabel('Procedure name', { exact: true }).fill('Recorded browser procedure');
     await page.getByLabel('Applicable conditions (one per line)', { exact: true }).fill('Exact recorded input and verification criterion');
@@ -283,7 +289,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByText(`Continued under supplemental contract: ${resumed.execution!.contractId}`, { exact: true }).waitFor();
     await page.getByText(`Responds to guidance request: ${guidanceRequestId}`, { exact: true }).waitFor();
     operate = false; guidanceRequestId = undefined;
-    await page.getByRole('tab', { name: 'Skills & Learning', exact: true }).click();
+    await page.getByRole('tab', { name: 'Imports', exact: true }).click();
     const attachedProposal = page.locator(`#skill-import-${storedFolder.id}`);
     if (!await attachedProposal.evaluate(element => (element as HTMLDetailsElement).open)) await attachedProposal.locator('summary').first().click();
     await attachedProposal.getByLabel('Message with this skill', { exact: true }).fill('Consider this reviewed procedure for my next task.');
@@ -310,7 +316,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByText(`Showing ${total} of ${total} operational executions, newest first.`, { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Show older executions', exact: true }).isVisible(), false);
     await page.getByRole('heading', { name: 'Browser tool fixture', exact: true }).first().waitFor();
-    await page.getByRole('tab', { name: 'Runtime', exact: true }).click();
+    await page.getByRole('tab', { name: 'Imports', exact: true }).click();
     await page.getByLabel('Source Agent', { exact: true }).selectOption(profileSource.id);
     await page.waitForFunction(() => document.querySelector('.executive-page pre')?.textContent?.includes('"maxSteps": 9'));
     await page.getByLabel('Reason for copying configuration', { exact: true }).fill('Browser configuration portability fixture');

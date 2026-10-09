@@ -46,7 +46,7 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   const enabled = input(runtime, 'Enable Executive', '', 'checkbox'); enabled.checked = profile.enabled;
   runtime.append(el('p', 'Off disconnects execution, tool and skill context, feedback and checkpoint reviews from cognition. Selected actions, including speech, are recorded without enactment. Already submitted effects cannot be undone.'));
   const mode = choice(runtime, 'Execution mode', ['synchronous', 'background'], profile.executionMode);
-  const copy = el('fieldset'); copy.append(el('legend', 'Copy Executive configuration')); runtime.append(copy);
+  const copy = el('fieldset'); copy.append(el('legend', 'Copy Executive configuration'));
   const sourceLabel = el('label', 'Source Agent'); const sourceChoice = el('select'); sourceLabel.append(sourceChoice); copy.append(sourceLabel);
   const emptySource = el('option', 'Choose an Agent'); emptySource.value = ''; sourceChoice.append(emptySource);
   for (const agent of await api<{ id: string; name: string }[]>('agents')) if (agent.id !== agentId) {
@@ -153,7 +153,7 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
         const copied = await api<{ id: string }>(`agents/${encodeURIComponent(target.value)}/executive-skill-imports/copy`, 'POST', {
           sourceAgentId: agentId, skillId: skill.id, version: Number(versionToCopy.value), reason: transferReason.value,
         });
-        transferResult.textContent = `Copied as review proposal ${copied.id}. Open the receiving Agent's Skills & Learning to inspect and review it.`;
+        transferResult.textContent = `Copied as review proposal ${copied.id}. Open the receiving Agent's Imports tab to inspect and review it.`;
       }, fail);
       if (skill.conditional) {
         row.append(el('p', `Conditional procedure: ${skill.conditional.branches.length} recorded branches. ${skill.conditional.reason}`));
@@ -217,7 +217,9 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
     }
   }, fail);
   action(learning, 'Refresh skills', refreshSkills, fail); await refreshSkills();
-  const imports = el('fieldset'); imports.append(el('legend', 'Imported skill proposals')); learning.append(imports);
+  const importsPanel = panel(page, 'Imports');
+  importsPanel.append(copy);
+  const imports = el('fieldset'); imports.append(el('legend', 'Imported skill proposals')); importsPanel.append(imports);
   imports.append(el('p', 'Inspect imported instructions, declared source and revision history here. These proposals await review before they can become executable skills.'));
   const folderLabel = el('label', 'Skill package folder'); const folder = el('input'); folder.type = 'file';
   folder.multiple = true; folder.setAttribute('webkitdirectory', ''); folderLabel.append(folder); imports.append(folderLabel);
@@ -375,7 +377,7 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   }, fail);
 
   const diagnostics = panel(page, 'Feedback & Diagnostics');
-  const sections = [runtime, connections, recovery, sensitivity, learning, diagnostics];
+  const sections = [runtime, connections, recovery, sensitivity, learning, importsPanel, diagnostics];
   const tabs = el('div'); tabs.className = 'executive-tabs'; tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Executive sections');
   const buttons = sections.map((section, index) => {
     const tab = el('button', section.querySelector('h3')!.textContent!); tab.type = 'button'; tab.setAttribute('role', 'tab');
