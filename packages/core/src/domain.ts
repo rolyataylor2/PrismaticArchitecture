@@ -6,6 +6,7 @@ import { ExternalCapabilitiesSchema } from './mcp-configuration.js';
 import { ExecutiveDiagnosticsSchema } from './executive-sensitivity.js';
 import { ExecutionGuidanceSchema, ExternalExecutionRequestSchema } from './execution-guidance.js';
 import { PublicExecutiveSkillSchema } from './executive-skill.js';
+import { AffectProposalSchema, type AffectBid } from './affect-domain.js';
 
 export const id = (prefix: string): string => `${prefix}_${randomUUID()}`;
 export const now = (): string => new Date().toISOString();
@@ -224,6 +225,7 @@ export const CognitionSchema = z.strictObject({
   interpretation: Text, thought: Text, evidenceSummary: z.array(Text),
   proposal: ProposalSchema.nullable(),
   beliefs: z.array(Text).max(100).optional(), affect: z.string().max(4000).optional(),
+  affectProposals: z.array(AffectProposalSchema).max(4).optional(),
   localGoal: Text.nullable().optional(), prediction: PredictionDraftSchema.nullable().optional(),
 });
 export const PredictionThoughtSchema = z.strictObject({ eventId: Id, cycleId: Id, sequence: z.number().int().positive(),
@@ -237,7 +239,7 @@ export const JudgmentDistributionSchema = z.array(z.strictObject({ label: Text, 
 export const ActivationScoreSchema = z.strictObject({ partId: Id, score: z.number().min(0).max(4), distribution: JudgmentDistributionSchema.optional() });
 export type ActivationScore = z.infer<typeof ActivationScoreSchema>;
 export type Activation = ActivationScore & { similarity: number; reasons: string[]; previous: number; delta: number; active: boolean };
-export type Contribution = { sourceKind?: 'part' | 'primitive'; partId: string; name: string; thought: string; interpretation: string; affect?: string; evidenceSummary: string[]; prediction: string | null; bid: Bid | null };
+export type Contribution = { sourceKind?: 'part' | 'primitive'; partId: string; name: string; thought: string; interpretation: string; affect?: string; affectProposals?: AffectBid[]; evidenceSummary: string[]; prediction: string | null; bid: Bid | null };
 export type SelfContext = { identity: Identity; contributions: Contribution[]; deliberation: DeliberationMessage[]; ongoingActivity?: z.infer<typeof SelectedActivitySchema>; stanceHistory?: StanceRecord[]; contributionHistory?: Contribution[]; inquiries?: (Partial<z.infer<typeof DeliberationSchema>> & { question: string; target_parts: string[]; sourceBidId: string | null })[]; completedDeliberationRounds?: number };
 export type DeliberationMessage = { partId: string; question: string; answer: string };
 export const ChoiceSchema = z.strictObject({ choice: Id, explanation: Text, identityConflict: z.string().max(4000), distribution: JudgmentDistributionSchema.optional(), selectedBidIds: z.array(Id).optional(), scores: z.array(ActivationScoreSchema.extend({ selectedBefore: z.array(Id) })).optional() });

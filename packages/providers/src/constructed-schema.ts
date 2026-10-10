@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { constructedOutputs, PartFormationSchema, PartGenerationSchema, MemoryReflectionSchema, type ConstructedInput } from '../../core/src/constructed-domain.js';
 import { Id, DeliberationProposalSchema } from '../../core/src/domain.js';
 import { navigationSchema } from './navigation-schema.js';
+import { AffectProposalSchema } from '../../core/src/affect-domain.js';
 
 /** Historical references in continuity state do not grant current recall access. */
 export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unknown> {
@@ -26,6 +27,9 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     target_parts: z.array(z.enum(contributorIds as [string, ...string[]])).min(1).max(contributorIds.length),
   }) : null;
   const action = operationalProposalSchema(input.world);
+  const predictionIds = [...new Set((input.predictions ?? []).map(prediction => prediction.id))];
+  const supportingPredictionIds = predictionIds.length ? z.array(z.enum(predictionIds as [string, ...string[]])).max(10)
+    : z.array(Id).max(0);
   const alternatives = [action, ...(inquiry ? [inquiry] : []), ...(navigation ? [navigation] : [])];
   const proposal = alternatives.length === 1 ? action : z.union([alternatives[0]!, alternatives[1]!, ...alternatives.slice(2)]);
   const product = PartGenerationSchema.extend({ formation: PartFormationSchema.extend({
@@ -34,6 +38,8 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     interpretation: PartGenerationSchema.shape.cognition.shape.interpretation.describe('My interpretation of the current encounter, including relevant newly supplied details. Earlier state and memories frame this interpretation; they are not new observations.'),
     evidenceSummary: PartGenerationSchema.shape.cognition.shape.evidenceSummary.describe('Express relevant details of the current encounter for world-blind Self. Distinguish earlier context, recalled episodes and imagined futures from newly supplied records.'),
     proposal: proposal.nullable().describe('A complete recommendation if I advocate behavior now; otherwise null. Thought, localGoal and prediction conditionedAction are not selectable recommendations. Consider the current encounter and behavior already completed.'),
+    affectProposals: z.array(AffectProposalSchema.extend({ supportingPredictionIds })).max(4).optional()
+      .describe('Optional proposed attentional orientations, distinct from my experienced affect and action proposal. Include motivation, reason and expectedValue. Refer only to supplied predictions; an empty list is valid.'),
     ...(input.predictions?.some(prediction => prediction.status === 'open') ? { prediction: z.null() } : {}),
   }) });
   // Runtime commits a subjective episode and its gist together, or neither.

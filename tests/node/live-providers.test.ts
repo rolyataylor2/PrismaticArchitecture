@@ -302,7 +302,7 @@ test('Part cognition instructions live in the editable task template for both pr
     await provider.cognize(context);
     await provider.question(self);
     const cognitionSchema = vendor === 'openai' ? requests[0]!.text.format.schema.properties.result : requests[0]!.format;
-    assert.deepEqual(Object.keys(cognitionSchema.properties).sort(), ['evidenceSummary', 'interpretation', 'proposal', 'thought']);
+    assert.deepEqual(Object.keys(cognitionSchema.properties).sort(), ['affectProposals', 'evidenceSummary', 'interpretation', 'proposal', 'thought']);
     const cognitionSystem = vendor === 'openai' ? requests[0]!.instructions : requests[0]!.messages[0].content;
     const selfSystem = vendor === 'openai' ? requests[1]!.instructions : requests[1]!.messages[0].content;
     assert.ok(!cognitionSystem.includes('PersonaGPT'));

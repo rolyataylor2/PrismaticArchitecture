@@ -1,5 +1,7 @@
 # Architecture Decision Records
 
+ADR 0157 extends experienced posture with explicit Part affect proposals, separate world-blind affect/bid Self invocations, focused revision and attributed exploration periods. Its implementation status is tracked in the Self affect thread audit.
+
 This directory records significant architectural decisions.
 
 Decision records explain what was decided, why it matters, what must remain true, and what remains flexible.

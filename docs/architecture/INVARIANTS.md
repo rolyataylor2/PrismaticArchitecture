@@ -1,3 +1,7 @@
+## Affect selection boundaries (ADR 0157)
+
+Affect and bid selection are two modes of the same Self. The affect mode receives explicit proposals and mediated period feedback, never current affect levels, activation scores, raw WorldState, memories or private Part state. Voluntary focus does not overwrite experienced affect or establish facts. Outcome counts do not establish learning progress, disposition maturity or causal usefulness. See [ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md); full integration remains in progress.
+
 ## Executive connection (ADR 0155)
 
 The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](decisions/0155-executive-disconnected-by-default.md).

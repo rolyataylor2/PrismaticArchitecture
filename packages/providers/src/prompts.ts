@@ -21,7 +21,7 @@ export const prompts = {
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-checkpoints-v9', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-executive-opt-in-v26', text: loadFactoryPrompt('part_cognition') },
+  part_cognition: { version: 'part-cognition-affect-proposals-v27', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-concern-inheritance-v7', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 

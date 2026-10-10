@@ -92,6 +92,7 @@ export type EventPayloads = {
   'part.prediction_created': Prediction;
   'part.prediction_revised': Prediction;
   'part.bid_created': Bid;
+  'part.affect_proposals': { partId: string; proposals: import('./affect-domain.js').AffectBid[] };
   'self.arbitration_started': SelfContext;
   'self.choice': Choice;
   'self.experienced_transition': import('./domain.js').ExperiencedTransition;

@@ -116,7 +116,7 @@ test('prompt catalog groups processes and exposes separate schemas', () => {
     assert.ok(promptInspection[row.task]);
   }
   const schema = promptInspection.cognition!.outputSchema as { properties: Record<string, unknown> };
-  assert.deepEqual(Object.keys(schema.properties).sort(), ['affect', 'beliefs', 'evidenceSummary', 'interpretation', 'localGoal', 'prediction', 'proposal', 'thought']);
+  assert.deepEqual(Object.keys(schema.properties).sort(), ['affect', 'affectProposals', 'beliefs', 'evidenceSummary', 'interpretation', 'localGoal', 'prediction', 'proposal', 'thought']);
   const draft = promptInspection.prediction!.outputSchema as { properties: Record<string, unknown> };
   assert.ok('expectation' in draft.properties); assert.equal('thought' in draft.properties, false);
 });

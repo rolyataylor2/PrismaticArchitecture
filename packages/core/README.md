@@ -1,3 +1,7 @@
+## Self affect extension (ADR 0157)
+
+`affect-domain.ts` defines natural-language Part proposals and separate selection, focus and feedback contracts. `affect.ts` projects a world-blind first-pass context, validates proposed/maintain/no-change/inquiry choices, bounds same-thread focus lifetime and calculates origin-cohort outcome counts without inferred learning or practical value. Ordinary cognition publishes attributed `part.affect_proposals` audit events; raw Part affect remains separate. These contracts are not yet connected to a provider selection pass or period storage/analytics. ADR 0157 and the Self affect thread audit track the full target.
+
 ## Conditional procedural consolidation (ADR 0147)
 
 `agent-skill-package.ts` builds Agent Skills `SKILL.md` with standard frontmatter, readable applicability/procedure and relative exact-method/development references. Host-specific approval in an asset is historical metadata, not portable execution permission. Runtime package loading and import remain unfinished.

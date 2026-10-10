@@ -1,0 +1,37 @@
+# ADR 0157: Two-pass Self and affect exploration
+
+Status: Accepted, 2026-10-10. Requested source: https://chatgpt.com/share/6acaa14a-54f8-83e8-a9b2-0d6a4004d945
+
+Extends ADRs 0133/0136. Supersedes automatic adoption of selected action affect as the sole means of choosing affective focus. Experienced posture, natural Part affect and internal stance navigation remain distinct. ADRs 0138/0139 and the explicit Executive connection in ADR 0155 remain in force. This decision describes the implementation target; the Self affect thread audit records what actually works.
+
+## One Self, separate access boundaries
+
+Parts may express bounded affect proposals alongside their behavioral proposal. Both are proposals from the same perspective, with attributed IDs and immutable lineage. An affect proposal describes an orientation, motivation, expected usefulness, and optional supporting prediction references. It is neither experienced affect nor an external action. No fixed emotion taxonomy, intensity multiplier or emotion engine is introduced.
+
+Self operates in two separately invoked modes. Affect Selection receives Identity, currently participating Parts' explicit affect proposals, the prior selected focus and a compact mediated outcome summary. It receives neither raw WorldState, current affect/intensity, activation scores, disposition definitions, memories, private state nor complete audit traces. Bid Selection subsequently receives expressed contributions, revised action bids, selected focus and the ordinary mediated deliberation context. It may reject the action favored by the chosen focus. Identity remains self-definition; neither mode has an independent mission or can invent an unproposed emotional orientation.
+
+The first pass evaluates every submitted proposal by its reason and expected usefulness, regardless of its owner's activation strength. It can select up to two explicitly proposed complementary orientations, maintain an unexpired prior focus, make no deliberate change, or request ordinary bounded deliberation from available contributors. The two-orientation cap is an operational budget, not a claim about psychological limits. A maintain decision renews the existing focus without rewriting its original proposal or reason. No-change makes no renewal and permits the existing focus to expire. Deliberation uses the existing inquiry/recruitment budget; it creates no separate investigator.
+
+The mechanism is invoked when Parts supply affect proposals or there is an active selected focus to reconsider. The runtime does not detect meaningful conflict using invented psychological heuristics. Routine cognition with no proposals/focus keeps ordinary action arbitration. Provider failure is infrastructure failure, never a no-change decision or implicit mock fallback.
+
+## Focused cognition and baseline
+
+Before focused revision, preserve the original expressed proposals and unmodulated bid evaluation as an audit baseline. Baseline evaluation dispatches no action and does not consume or renew focus. After Affect Selection, participating Parts may retain, revise or withdraw their action bids through generative cognition against the identical immutable WorldState and their ordinary scoped context plus the selected focus. This bounded revision forms no new Part, memory or prediction and does not re-run formation. Original Part affect remains recorded, even when attention changes. New or competing perspectives may be sought through ordinary bounded deliberation.
+
+Bid Selection evaluates the revised proposals separately. Preserve baseline/focused scores, original/revised bid IDs, expressed revision explanations and actual selected behavior. Differences are inspectable evidence, not an automatic claim that affect caused improvement. Focus cannot fabricate evidence, facts, beliefs or psychological agreement, change activation authority, or force a particular bid.
+
+## Period lifecycle and evidence
+
+Selected focus lasts for the selecting cycle and the next cycle in the same thread unless explicitly renewed. Only completed cognition advances its lifetime; monitor cycles and another thread do not. Switching, expiry and renewal preserve the old period and all decisions. Navigation explicitly ends the active voluntary focus and revisits mediated experienced posture for later cognition; it never rolls back external facts or private memories. Focus remains natural-language attributed content, separate from naturally occurring Part affect and selected-action posture.
+
+Each period preserves Agent/thread, source proposal/Part/cycle, reasons, renewal/expiry/switch events, original prediction baseline, predictions subsequently made during the period, and selected actions. Later prediction checks remain factual-only. Outcomes resolving after a period ends remain attributed to their origin period. Supporting, contradicted, unresolved, abandoned, expired and invalidated outcomes remain distinct; untested predictions never inflate apparent reliability. Predictions already open at entry are baseline evidence, not newly created achievements of the selected focus. Action-conditioned outcomes and revision history retain attribution.
+
+The feedback accumulator supplies counts and provenance, never psychological meaning. Its mediated Self projection excludes raw predictions and audit payloads. Predictive reliability, learning progress and behavioral/meaningful value are distinct. Learning progress is unavailable without comparable recorded measurements; linguistic confidence is never converted to invented probabilities or a Brier score. Parts may supply interpreted practical value through proposals and inquiry. Accuracy neither proves an interpretation nor establishes disposition maturity; sustained development remains ordinary prediction learning and conservative offline consolidation.
+
+## Constitution and research inspection
+
+Both modes respect enduring Identity while permitting meaningful self-incongruity. Affect can guide understanding, protection, repair, connection, enjoyment or acknowledgment. Unpleasant or nuanced perspectives are valid; lack of new learning does not require abandoning grief or another behaviorally meaningful orientation. Preserve competing appraisals and permit discriminating inquiry, alternatives and disconfirmation. Self is fallible because it chooses among expressed perspectives, not from a privileged objective worldview.
+
+The researcher panel exposes a durable lifetime timeline of experienced affect and selected focus, period boundaries, proposals/decisions, bid revisions and behavior, prediction outcomes, contributing perspectives and source inspection. Agent, thread and time filters refine analytics without deleting history. Per-period statistics distinguish origin cohorts, later outcomes and insufficient evidence. Researcher inspection remains outside cognitive access.
+
+Inference task schemas, routing, editable factory prompts, preview contexts and Settings descriptions must be synchronized. Simulation Tests must cover instrumental unpleasant focus, meaningful retention without learning, competing perspectives and rejection of a focus-favored action, expiry/renewal, confirmation bias and baseline comparison through ordinary cognition on fresh Agents. Preserve controls, provenance and honest inconclusive/model-failure distinctions; deterministic tests establish plumbing, not psychological validity.

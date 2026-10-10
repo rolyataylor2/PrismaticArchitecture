@@ -1,3 +1,13 @@
+# Active Self affect thread — ADR 0157
+
+- [x] Record source requirements and architectural access/lifecycle boundaries.
+- [x] Add explicit Part affect proposals, restricted selection contracts and origin-cohort feedback logic.
+- [ ] Route the separate affect-selection inference and focused Part revision tasks; synchronize prompt catalog and previews.
+- [ ] Connect bounded first-pass deliberation, baseline scoring and final bid selection to ordinary runtime.
+- [ ] Persist periods, renewals/expiry/navigation and delayed prediction attribution across restart.
+- [ ] Add lifetime/timeframe affect panel, per-period statistics and source inspection.
+- [ ] Add sourced normal-pipeline Simulation Tests and verify every audit requirement.
+
 # Completed requested prediction scaffold work
 
 - [x] Implement and verify all conclusions of the 6ac6ac9c shared thread. Source and requirement ledger: docs/development/PREDICTION_SCAFFOLD_THREAD_{SOURCE,AUDIT}.md.

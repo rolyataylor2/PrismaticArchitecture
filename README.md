@@ -1,3 +1,7 @@
+## Self affect extension in progress (ADR 0157)
+
+[ADR 0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md) defines separate world-blind affect and bid selection passes, focused bid revision and attributed affect periods. Part cognition can now record explicit affect proposals separately from experienced affect. Selection/lifecycle and feedback contracts are implemented; provider selection dispatch, focused revision, period persistence, analytics and experiments remain unfinished. See the [implementation audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md).
+
 ## Executive connection (ADR 0155)
 
 The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](docs/architecture/decisions/0155-executive-disconnected-by-default.md).

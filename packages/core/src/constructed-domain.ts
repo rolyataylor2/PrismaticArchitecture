@@ -21,6 +21,7 @@ export const PartGenerationSchema = z.strictObject({
   memoryGist: Text.nullable(),
   cognition: z.strictObject({ interpretation: CognitionSchema.shape.interpretation,
     beliefs: CognitionSchema.shape.beliefs, affect: CognitionSchema.shape.affect,
+    affectProposals: CognitionSchema.shape.affectProposals,
     thought: CognitionSchema.shape.thought, evidenceSummary: CognitionSchema.shape.evidenceSummary,
     prediction: CognitionSchema.shape.prediction, localGoal: CognitionSchema.shape.localGoal,
     proposal: CognitionSchema.shape.proposal }),

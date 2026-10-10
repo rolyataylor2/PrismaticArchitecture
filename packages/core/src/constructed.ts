@@ -216,6 +216,9 @@ export class ConstructedCognition {
         throw new InfrastructureError('part_cognition', 'Formation cited an unavailable memory');
       if (product.cognition.prediction && openPredictions.some(prediction => prediction.partId === assembly.current?.id))
         throw new InfrastructureError('part_cognition', 'Cannot stack another unresolved prediction');
+      const availablePredictions = new Set(openPredictions.filter(prediction => prediction.partId === assembly.current?.id).map(prediction => prediction.id));
+      if (product.cognition.affectProposals?.some(proposal => proposal.supportingPredictionIds.some(predictionId => !availablePredictions.has(predictionId))))
+        throw new InfrastructureError('part_cognition', 'Affect proposal cited an unavailable owning-Part prediction');
       const proposal = product.cognition.proposal;
       if (proposal?.type === 'navigate' && !world.experienced?.stanceHistory?.some(record => record.id === proposal.stateId))
         throw new InfrastructureError('part_cognition', 'Navigation requires an available mediated stance');

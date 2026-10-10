@@ -170,7 +170,7 @@ test('OpenAI and Ollama dispatch every constructed generation task with strict p
       if (task === 'part_cognition') {
         for (const product of body.text.format.schema.properties.result.anyOf) {
           assert.deepEqual(Object.keys(product.properties), ['formation', 'memoryReflection', 'memoryGist', 'cognition']);
-          assert.deepEqual(Object.keys(product.properties.cognition.properties), ['interpretation', 'beliefs', 'affect', 'thought', 'evidenceSummary', 'prediction', 'localGoal', 'proposal']);
+          assert.deepEqual(Object.keys(product.properties.cognition.properties), ['interpretation', 'beliefs', 'affect', 'affectProposals', 'thought', 'evidenceSummary', 'prediction', 'localGoal', 'proposal']);
         }
       }
       return new Response(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ result: output }) }] }] }));

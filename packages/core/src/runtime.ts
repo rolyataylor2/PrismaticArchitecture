@@ -162,6 +162,9 @@ export class CognitiveRuntime {
       const publish = (context: PartContext, generated: typeof constructedState.generatedCognition[string]): Contribution => {
         if (!generated || generated.worldId !== world.id) throw new InfrastructureError('part_cognition', 'Missing assembled Part generation');
         const output = CognitionSchema.parse(generated.output);
+        if (output.affectProposals?.some(proposal => proposal.supportingPredictionIds.some(predictionId => predictionId !== context.prediction?.id))) {
+          throw new InfrastructureError('part_cognition', 'Affect proposal refers to an unavailable owning-Part prediction');
+        }
         const thoughtEvent = this.inspection.emit(agentId, cycle.id, 'part.thought', { partId: context.part.id, partSnapshot: context.part, recalledMemoryIds: context.memories.map(memory => memory.id),
           predictionSnapshot: context.prediction, output, durationMs: generated.durationMs });
         let formedPrediction = null;
@@ -178,9 +181,14 @@ export class CognitiveRuntime {
         }, { origin: 'organic_cognition', reason: 'Updated scoped perspective from independent cognition', sourceIds: [world.id] }, cycle.id);
         const bid = output.proposal ? { ...output.proposal, id: id('bid'), partId: context.part.id } : null;
         if (bid) this.inspection.emit(agentId, cycle.id, 'part.bid_created', bid);
+        const affectProposals = (output.affectProposals ?? []).map(proposal => ({
+          ...proposal, id: id('affect_bid'), partId: context.part.id, name: context.part.name,
+        }));
+        if (affectProposals.length) this.inspection.emit(agentId, cycle.id, 'part.affect_proposals', { partId: context.part.id, proposals: affectProposals });
         return { partId: context.part.id, name: context.part.name, thought: output.thought,
           interpretation: output.interpretation, evidenceSummary: output.evidenceSummary,
           affect: output.affect ?? '',
+          ...(affectProposals.length ? { affectProposals } : {}),
           prediction: formedPrediction?.expectation ?? context.prediction?.expectation ?? null, bid };
       };
       for (const context of contexts.values()) contributions.push(publish(context, constructedState.generatedCognition[context.part.id]!));
