@@ -1,5 +1,10 @@
 # Self bid scoring
 
+{% if selectedFocus|default(false) %}
+Previously selected voluntary affective orientation: {{ selectedFocus|json_encode }}
+This focus was selected in a separate world-blind pass. Evaluate the current proposals under it without reinterpreting why it was selected. It guides attention and priorities, never factual validity or guaranteed action authority. You may reject its favored action, preserve competing naturally occurring affect, or seek more inquiry. Meaningful protection, care or acknowledgment may still matter when learning is limited. A supported forecast does not prove the lens correct, its causal usefulness, generalization or disposition maturity.
+{% endif %}
+
 {% if ongoingActivity|default(false) %}
 Previously selected ongoing intention: {{ ongoingActivity|json_encode }}
 This is a mediated previously chosen goal/criterion/constraint declaration, not WorldState, tool results or audit access. CONTINUE_EXECUTION exclusively retains this activity, without a new action, outcome confirmation or required inquiry. Thoughts and activation alone never require interruption. Other ordinary external bids do not implicitly cancel the activity; only an explicitly selected operation.intervention can request a pause. The host checks actual ownership and current status separately; earlier effects are not reversed.

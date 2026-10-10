@@ -2,7 +2,7 @@
 
 - [x] Record source requirements and architectural access/lifecycle boundaries.
 - [x] Add explicit Part affect proposals, restricted selection contracts and origin-cohort feedback logic.
-- [ ] Route the separate affect-selection inference and focused Part revision tasks; synchronize prompt catalog and previews.
+- [x] Route the separate affect-selection inference and focused Part revision tasks; synchronize prompt catalog and previews.
 - [ ] Connect bounded first-pass deliberation, baseline scoring and final bid selection to ordinary runtime.
 - [ ] Persist periods, renewals/expiry/navigation and delayed prediction attribution across restart.
 - [ ] Add lifetime/timeframe affect panel, per-period statistics and source inspection.

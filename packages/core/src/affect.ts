@@ -42,6 +42,14 @@ export function affectSelectionContext(input: {
   });
 }
 
+/** Reproject at provider dispatch so wider caller objects cannot enter a Self prompt. */
+export function projectAffectSelectionContext(context: AffectSelectionContext): AffectSelectionContext {
+  return affectSelectionContext({ identity: context.identity, proposals: context.proposals,
+    currentFocus: context.currentFocus, previousPeriodFeedback: context.previousPeriodFeedback,
+    contributions: context.availableContributors.map(({ partId, name }) => ({ partId, name,
+      thought: '', interpretation: '', evidenceSummary: [], prediction: null, bid: null })) });
+}
+
 /** One thread's completed-cognition ordinal, supplied by host; no global turn count. */
 export function activeAffect(focus: SelectedAffect | null, agentId: string, threadId: string | null,
   sequence: number): SelectedAffect | null {

@@ -16,6 +16,6 @@ export function configuredProviders(environment: NodeJS.ProcessEnv = process.env
   const decisionMode = projectEnvironmentValue('DECISIONS', environment) ?? ((mode === 'openai' || mode === 'xai') ? 'jev' : mode === 'ollama' ? 'ollama' : 'mock');
   if (!['mock', 'ollama', 'jev'].includes(decisionMode)) throw new Error('Unknown decision provider');
   const decisions = decisionMode === 'jev' ? new JevDecisions(jevTransport ?? new JevHttpTransport(environment.JEV_API_KEY ?? environment.TYPESAFE_API_KEY ?? '', environment.JEV_MODEL, fetch), promptResolver)
-    : decisionMode === 'ollama' ? new OllamaProvider(environment.OLLAMA_MODEL ?? '', environment.OLLAMA_URL) : new MockDecisions();
+    : decisionMode === 'ollama' ? new OllamaProvider(environment.OLLAMA_MODEL ?? '', environment.OLLAMA_URL, fetch, promptResolver) : new MockDecisions();
   return { reasoning, decisions, embeddings: new MockEmbeddings() };
 }

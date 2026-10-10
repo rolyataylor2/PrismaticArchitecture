@@ -1,3 +1,7 @@
+## Self affect prompt previews (ADR 0157)
+
+Settings exposes `affect_selection`, `affect_inquiry` and `focused_bid_revision`. Affect previews reproject recorded restricted Self inputs or an explicit empty Identity-only example; they never query WorldState to fill missing proposals. Focused revision previews require its recorded owning-Part request and preserve its original snapshot. These read-only previews make no inference call or cognitive mutation. Runtime orchestration remains unfinished.
+
 ## Conditional procedural consolidation (ADR 0147)
 
 `ProcedureConsolidator` reads bounded ended Self-selected operational episodes with independently checked ledgers, attributed expressed products, activation definitions and checkpoint observations. The configured external `executive_skill_consolidation` task proposes conditions/escalation, never tools or psychological changes. Validated candidates and exact members remain supervised proposals. GET/POST `/api/agents/:id/executive-consolidation` inspect/run this offline phase. POST `/:runId/abandon` explicitly closes incomplete inference while preserving input; late results cannot retain candidates or overwrite closure. No restart replay occurs. Refreshing approved unchanged branch versions appends a new unapproved family revision; changed methods require new consolidation.

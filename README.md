@@ -1,6 +1,6 @@
 ## Self affect extension in progress (ADR 0157)
 
-[ADR 0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md) defines separate world-blind affect and bid selection passes, focused bid revision and attributed affect periods. Part cognition can now record explicit affect proposals separately from experienced affect. Selection/lifecycle and feedback contracts are implemented; provider selection dispatch, focused revision, period persistence, analytics and experiments remain unfinished. See the [implementation audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md).
+[ADR 0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md) defines separate world-blind affect and bid selection passes, focused bid revision and attributed affect periods. Part cognition records explicit affect proposals separately from experienced affect. Selection/lifecycle/feedback contracts, provider affect scoring/inquiry/focused-revision adapters and editable prompt/previews are implemented. Ordinary runtime orchestration, period persistence, analytics and experiments remain unfinished. See the [implementation audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md).
 
 ## Executive connection (ADR 0155)
 

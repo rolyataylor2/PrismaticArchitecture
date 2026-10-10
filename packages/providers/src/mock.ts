@@ -1,6 +1,9 @@
 import type { ConstructedInput, PartFormationSchema } from '../../core/src/constructed-domain.js';
 import type { z } from 'zod';
 import { scoreSelf } from '../../core/src/self-scoring.js';
+import { scoreAffect } from '../../core/src/affect-scoring.js';
+import { projectAffectSelectionContext } from '../../core/src/affect.js';
+import { affectInquirySchema, focusedBidSchema } from './affect-schema.js';
 import { PartSchema, freeze, type Cognition, type PredictionUpdate, type Proposal, type SelfContext } from '../../core/src/domain.js';
 import type { DecisionProvider, EmbeddingProvider, PartContext, ReasoningProvider } from '../../core/src/contracts.js';
 import type { ConsolidationContext } from '../../core/src/consolidation-domain.js';
@@ -13,6 +16,11 @@ const overlap = (a: string, b: string): number => {
 
 /** Transparent fixture semantics for offline demos. This is not Jev or a learned psychological model. */
 export class MockDecisions implements DecisionProvider {
+  async chooseAffect(input: Parameters<NonNullable<DecisionProvider['chooseAffect']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return scoreAffect(context, async options => options.map(partId => ({ partId,
+      score: partId === 'NO_AFFECT_CHANGE' ? 4 : 0 })));
+  }
   readonly label = 'deterministic/mock-decisions-v1 (not Jev)';
   async score(input: Parameters<DecisionProvider['score']>[0]): ReturnType<DecisionProvider['score']> {
     const text = [...input.world.facts.map(f => `${f.source} ${f.text}`), ...(input.world.thoughtHistory ?? []).map(thought => thought.thought)].join(' ');
@@ -104,6 +112,18 @@ function proposal(context: PartContext): Proposal | null {
     argument: 'I would rather ask than assume what someone means.', identityFit: ['curiosity', 'honesty', 'care'] };
 }
 export class MockReasoning implements ReasoningProvider {
+  async affectInquiry(input: Parameters<NonNullable<ReasoningProvider['affectInquiry']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return affectInquirySchema(context).parse({ primary_c: 'curiosity',
+      why_deliberate: 'Fixture requests more expressed context without assuming an interpretation.', secondary_c: null,
+      missing_information: 'Reasons and alternatives for the proposed orientation.',
+      target_parts: context.availableContributors.slice(0, 16).map(contributor => contributor.partId),
+      question: 'What would support or weaken this orientation, and what meaningful action might it help?' });
+  }
+  async reviseFocusedBid(context: Parameters<NonNullable<ReasoningProvider['reviseFocusedBid']>>[0]): ReturnType<NonNullable<ReasoningProvider['reviseFocusedBid']>> {
+    return focusedBidSchema(context).parse({ response: 'Deterministic fixture retains the original recommendation; this is not observed psychological regulation.',
+      bid_disposition: 'retain', new_bid: null });
+  }
   readonly label = 'deterministic/mock-reasoning-v1';
   async renderSpeech(context: Parameters<NonNullable<ReasoningProvider['renderSpeech']>>[0]) {
     return { text: context.commands.map(command => command.text).join('\n\n') };

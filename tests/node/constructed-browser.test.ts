@@ -125,7 +125,8 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     await page.locator('.component-header .prompt-selector > button').click();
     await page.getByRole('menuitemradio', { name: 'Mem · Memory accessibility', exact: true }).click();
     await page.getByRole('region', { name: 'Mem · Memory accessibility', exact: true }).waitFor();
-    for (const title of ['Cog · Consequential coverage and hypotheses', 'Mem · Gap hypothesis outcome check', 'Mem · Gap hypothesis subjective reflection', 'Mem · Experience evidence attachment']) {
+    for (const title of ['Cog · Self affect scoring', 'Cog · Self affect inquiry', 'Cog · Focused Part bid revision',
+      'Cog · Consequential coverage and hypotheses', 'Mem · Gap hypothesis outcome check', 'Mem · Gap hypothesis subjective reflection', 'Mem · Experience evidence attachment']) {
       await page.locator('.component-header .prompt-selector > button').click();
       await page.getByRole('menuitemradio', { name: title, exact: true }).click();
       await page.getByRole('region', { name: title, exact: true }).waitFor();

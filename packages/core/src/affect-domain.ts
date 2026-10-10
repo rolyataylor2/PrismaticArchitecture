@@ -49,6 +49,16 @@ export type AffectSelectionContext = {
   previousPeriodFeedback: AffectFeedback | null;
   availableContributors: { partId: string; name: string }[];
 };
+/** Bounded first-pass choice; a deliberate result subsequently requests generative inquiry. */
+export const AffectChoiceSchema = z.strictObject({
+  mode: z.enum(['select', 'maintain', 'no_change', 'deliberate']),
+  selectedProposalIds: z.array(Reference).max(2), reason: Language,
+  scores: z.array(z.strictObject({ proposalId: Reference, score: z.number().min(0).max(4),
+    selectedBefore: z.array(Reference).max(1),
+    distribution: z.array(z.strictObject({ label: Language, probability: z.number().min(0).max(1) })).optional() })).optional(),
+}).refine(value => (value.mode === 'select') === (value.selectedProposalIds.length > 0), 'Only select requires proposal IDs')
+  .refine(value => new Set(value.selectedProposalIds).size === value.selectedProposalIds.length, 'Duplicate affect selections');
+export type AffectChoice = z.infer<typeof AffectChoiceSchema>;
 const ExplorationRequest = z.strictObject({
   target_parts: z.array(Reference).min(1).max(16), question: Language,
 }).refine(value => new Set(value.target_parts).size === value.target_parts.length, 'Duplicate affect inquiry targets');

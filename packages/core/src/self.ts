@@ -13,6 +13,7 @@ export async function select(input: {
   onSelection?: (contributions: Contribution[]) => void;
   onNavigation?: (bid: NavigationBid) => void;
   ongoingActivity?: SelectedActivity;
+  selectedFocus?: import('./affect-domain.js').SelectedAffect;
   onContinue?: () => void;
   answerContext?: (context: PartContext, question: string) => Promise<PartContext>;
   afterDeliberation?: (contributions: Contribution[], deliberation: DeliberationMessage[]) => Promise<void>;
@@ -31,6 +32,7 @@ export async function select(input: {
   for (let round = 0; round <= input.maxDeliberationRounds; round++) {
     const context = selfContext(identity, contributions, deliberation, { contributionHistory, inquiries, completedDeliberationRounds: round,
       ...(input.ongoingActivity ? { ongoingActivity: input.ongoingActivity } : {}),
+      ...(input.selectedFocus ? { selectedFocus: input.selectedFocus } : {}),
       ...(world.experienced ? { stanceHistory: world.experienced.stanceHistory ?? [] } : {}) });
     inspection.emit(world.agentId, world.cycleId, 'self.arbitration_started', context);
     const choice = ChoiceSchema.parse(await decisions.choose(context));

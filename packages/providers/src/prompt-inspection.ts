@@ -6,6 +6,7 @@ import { constructedOutputs, DispositionLearningTraceSchema } from '../../core/s
 import { SpeechContextSchema, SpeechResultSchema } from '../../core/src/domain.js';
 import { IdentityAnswersSchema, IdentityClarificationSchema, IdentityReferenceSchema } from './identity-authoring.js';
 import { z } from 'zod';
+import { AffectBidSchema, AffectFeedbackSchema, SelectedAffectSchema } from '../../core/src/affect-domain.js';
 import { SelectedActivitySchema } from '../../core/src/execution-review.js';
 import { PrimitiveSchema } from '../../core/src/primitives.js';
 import {
@@ -38,7 +39,15 @@ const inputPartContext = [
   definition('activation', 'This Part’s activation and operational activation metadata.', ActivationSchema),
   definition('recentThoughts', 'Compatibility view of retained thoughts from this Part in this thread only, following WorldState thought decay. Shared prior thought text is available through world.thoughtHistory.', z.array(z.strictObject({ cycleId: z.string(), thought: z.string(), interpretation: z.string() }))),
 ];
+const affectContext = [
+  definition('identity', 'Persistent self-definition; autobiographical Traits are excluded.', IdentitySchema),
+  definition('proposals', 'Explicit attributed Part affect proposals, never experienced affect or activation scores.', z.array(AffectBidSchema)),
+  definition('currentFocus', 'Previously selected voluntary focus, separate from naturally occurring affect.', SelectedAffectSchema.nullable()),
+  definition('previousPeriodFeedback', 'Mediated origin-cohort counts; no raw predictions, events, factual context or inferred learning progress.', AffectFeedbackSchema.nullable()),
+  definition('availableContributors', 'Public addressing identifiers only; no thoughts, memories or private snapshots.', z.array(z.strictObject({ partId: z.string(), name: z.string() }))),
+];
 const selfContext = [
+  definition('selectedFocus', 'Optional Self-selected voluntary lens. It is neither a command to choose its favored action nor evidence about facts; natural Part affect remains separate.', SelectedAffectSchema),
   definition('ongoingActivity', 'Optional mediated previously Self-selected goal, criterion and constraints. CONTINUE_EXECUTION retains it immediately; no raw observations, tools or audit access.', SelectedActivitySchema),
   definition('stanceHistory', 'Mediated earlier expressed stance records in this thread. Navigation changes a lens, never restores external facts or private state.', z.array(StanceRecordSchema)),
   definition('identity', 'Only self_definition Identity Traits with keywords and creation timestamps. Autobiographical Traits are removed by runtime before world-blind Self receives this context.', IdentitySchema),
@@ -121,6 +130,20 @@ export const promptInspection: Record<string, { variables: PromptVariable[]; out
   arbitration: { variables: [...selfContext,
     definition('choices', 'Current bid IDs plus DELIBERATE, with NOTHING only after two completed inquiry rounds. Only these current options can be scored and selected.', z.array(z.string()))],
     outputSchema: z.toJSONSchema(ActivationScoreSchema.array()), outputNote: 'Jev and Ollama return one 0–4 Score per option. Runtime selects all current external bids scoring strictly above 2 in descending score order when external behavior is chosen. Internal inquiry and NOTHING remain exclusive. Inspection records Scores and selected IDs. Disabled Executive integration preserves selection without enactment.' },
+  affect_selection: { variables: [...affectContext,
+    definition('choices', 'Supplied proposal IDs and available maintain/no-change/inquiry controls.', z.array(z.string())),
+    definition('selectedBefore', 'First selected orientation, supplied only during bounded complementary scoring.', z.array(z.string()).max(1))],
+    outputSchema: z.toJSONSchema(ActivationScoreSchema.array()),
+    outputNote: 'Jev/Ollama independently score every proposal and control. A focus requires >2; a separately scored complementary orientation may be added under a cap of two. Scores supply no authored rationale. Deliberate defers a question to separate generative affect inquiry. This adapter is implemented; ordinary runtime orchestration remains in progress.' },
+  affect_inquiry: { variables: affectContext, outputSchema: z.toJSONSchema(DeliberationSchema),
+    outputNote: 'One ordinary quality-guided inquiry from the same world-blind input. Targets are constrained to supplied public contributor IDs; no behavioral selection, fact inference or new investigation authority.' },
+  focused_bid_revision: { variables: [...inputPartContext,
+    definition('currentBid', 'This owning Part’s original behavioral recommendation, or null.', BidSchema.nullable()),
+    definition('selectedFocus', 'Selected voluntary focus; an attentional preference, never evidence or experienced affect replacement.', SelectedAffectSchema),
+    definition('expressed', 'Only this Part’s original expressed interpretation, thought, affect and evidence summary.', z.strictObject({
+      thought: z.string(), interpretation: z.string(), affect: z.string().optional(), evidenceSummary: z.array(z.string()) }))],
+    outputSchema: z.toJSONSchema(DeliberationAnswerSchema),
+    outputNote: 'Retain, replace or withdraw this Part’s bid against the exact original snapshot. Preserve original affect. No new memory, prediction, formation, persistent state or external action is committed by this inference task. Ordinary runtime integration remains in progress.' },
   deliberation: { variables: selfContext, outputSchema: z.toJSONSchema(DeliberationSchema), outputNote: 'One ordered quality-guided inquiry. Self has no WorldState or objective history in this context.' },
   answer: { variables: [...inputPartContext, definition('question', 'The question selected by Self for this Part.', z.string()), definition('currentBid', 'This Part’s current bid, or null.', BidSchema.nullable()), definition('deliberation', 'Explicitly mediated earlier inquiry responses; no private Part state.', z.array(DeliberationMessageSchema))],
     outputSchema: z.toJSONSchema(DeliberationAnswerSchema), outputNote: 'Only this Part’s context and shared WorldState are available to the answering Part. Public procedure manifests contain no raw method arguments or private source-Part state. Supplied checkpoint references admit selected remainder corrections; stale or unsupported requests have no tool authority. Candidate manifests may offer exclusive evidence-limited approval/rejection proposals under opt-in host policy; a selected decision does not run the skill or establish maturity. Selected operational proposals may teach an exact method or invoke a current active version, under independent host evidence, scope, mode and permission checks. Answer from owning beliefs and memories even when it weakens the preferred action; uncertainty and unknowns are allowed. Then retain, replace or withdraw the bid without changing the mission to agree. A replacement inquiry asks one contextualized, open question and addresses all available targets by default, narrowing only when confident only specific contributors may have the answer.' },

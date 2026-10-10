@@ -30,7 +30,10 @@ export const prompts = {
   identity_clarification: { version: 'identity-clarification-twig-v1', text: loadFactoryPrompt('identity_clarification') },
   identity_answers: { version: 'identity-answers-twig-v2', text: loadFactoryPrompt('identity_answers') },
   activation: { version: 'activation-twig-v14', text: loadFactoryPrompt('activation') },
-  arbitration: { version: 'self-arbitration-executive-opt-in-v13', text: loadFactoryPrompt('arbitration') },
+  affect_selection: { version: 'affect-selection-v1', text: loadFactoryPrompt('affect_selection') },
+  affect_inquiry: { version: 'affect-inquiry-v1', text: loadFactoryPrompt('affect_inquiry') },
+  focused_bid_revision: { version: 'focused-bid-revision-v1', text: loadFactoryPrompt('focused_bid_revision') },
+  arbitration: { version: 'self-arbitration-selected-focus-v14', text: loadFactoryPrompt('arbitration') },
   cognition: { version: 'cognition-executive-opt-in-v3', text: loadFactoryPrompt('cognition') },
   prediction_gate: { version: 'prediction-gate-twig-v3', text: loadFactoryPrompt('prediction_gate') },
   prediction_outcome: { version: 'prediction-outcome-branches-v2', text: loadFactoryPrompt('prediction_outcome') },
@@ -63,6 +66,9 @@ export const promptCatalog: { task: PromptTask; title: string; category: string;
   { task: 'researcher_authoring', title: 'Researcher · Component draft', category: 'Researcher', version: prompts.researcher_authoring.version, original: prompts.researcher_authoring.text },
   { task: 'identity_answers', title: 'Identity · Answer preset questions', category: 'Identity', version: prompts.identity_answers.version, original: prompts.identity_answers.text },
   { task: 'speech', title: 'Exec · Speech', category: 'Exec', version: prompts.speech.version, original: prompts.speech.text },
+  { task: 'affect_selection', title: 'Cog · Self affect scoring', category: 'Cog', version: prompts.affect_selection.version, original: prompts.affect_selection.text },
+  { task: 'affect_inquiry', title: 'Cog · Self affect inquiry', category: 'Cog', version: prompts.affect_inquiry.version, original: prompts.affect_inquiry.text },
+  { task: 'focused_bid_revision', title: 'Cog · Focused Part bid revision', category: 'Cog', version: prompts.focused_bid_revision.version, original: prompts.focused_bid_revision.text },
   { task: 'arbitration', title: 'Cog · Self bid scoring', category: 'Cog', version: prompts.arbitration.version, original: prompts.arbitration.text },
   { task: 'memory_relevance', title: 'Mem · Memory relevance', category: 'Mem', version: prompts.memory_relevance.version, original: prompts.memory_relevance.text },
   { task: 'prediction_outcome', title: 'Mem · Prediction outcome check', category: 'Mem', version: prompts.prediction_outcome.version, original: prompts.prediction_outcome.text },
@@ -96,7 +102,7 @@ export function renderTaskPrompt(agentId: string, task: PromptTask, data: object
   }), primitives: ((data as { primitives?: Primitive[] }).primitives ?? []).map(effectivePrimitive) }
     : task === 'consolidation' ? { primitiveAppraisals: [], ...data } : data;
   const selfInput = data as { deliberation?: unknown[]; contributions?: { sourceKind?: string; bid: object | null }[]; contributionHistory?: { sourceKind?: string; bid: object | null }[]; inquiries?: object[] };
-  const legacySelf = ['arbitration', 'deliberation'].includes(task) ? { completedDeliberationRounds: 0, stanceHistory: [], ongoingActivity: null, debate: selfInput.deliberation ?? [], ...compatible,
+  const legacySelf = ['arbitration', 'deliberation'].includes(task) ? { completedDeliberationRounds: 0, stanceHistory: [], ongoingActivity: null, selectedFocus: null, debate: selfInput.deliberation ?? [], ...compatible,
     inquiries: (selfInput.inquiries ?? []).map(inquiry => ({ why_deliberate: null, primary_c: null, secondary_c: null, missing_information: null, ...inquiry })),
     contributionHistory: (selfInput.contributionHistory ?? []).map(contribution => ({ affect: '', ...contribution, bid: contribution.bid ? { type: 'action', ...contribution.bid } : null })),
     contributions: (selfInput.contributions ?? []).map(contribution => ({ sourceKind: 'part', affect: '', ...contribution,

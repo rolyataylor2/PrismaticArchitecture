@@ -36,6 +36,16 @@ export class AgentReasoningProvider implements ReasoningProvider {
   cognize(context: Parameters<ReasoningProvider['cognize']>[0]) { return this.provider(context.part.agentId).cognize(context); }
   predict(context: Parameters<ReasoningProvider['predict']>[0]) { return this.provider(context.part.agentId).predict(context); }
   question(context: Parameters<ReasoningProvider['question']>[0]) { return this.provider(context.identity.agentId).question(context); }
+  affectInquiry(context: Parameters<NonNullable<ReasoningProvider['affectInquiry']>>[0]) {
+    const provider = this.provider(context.identity.agentId);
+    if (!provider.affectInquiry) throw new Error('Reasoning provider does not support affect inquiry');
+    return provider.affectInquiry(context);
+  }
+  reviseFocusedBid(context: Parameters<NonNullable<ReasoningProvider['reviseFocusedBid']>>[0]) {
+    const provider = this.provider(context.part.agentId);
+    if (!provider.reviseFocusedBid) throw new Error('Reasoning provider does not support focused bid revision');
+    return provider.reviseFocusedBid(context);
+  }
   answer(context: Parameters<ReasoningProvider['answer']>[0], question: string) { return this.provider(context.part.agentId).answer(context, question); }
   evaluate(context: Parameters<ReasoningProvider['evaluate']>[0]) { return this.provider(context.part.agentId).evaluate(context); }
   consolidate(context: Parameters<ReasoningProvider['consolidate']>[0]) { return this.provider(context.part.agentId).consolidate(context); }

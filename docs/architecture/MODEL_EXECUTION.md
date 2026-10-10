@@ -1,3 +1,7 @@
+## Affect inference contracts (ADR 0157)
+
+`affect_selection` is world-blind bounded scoring of explicit Part proposals and maintain/no-change/inquiry options. `affect_inquiry` authors a neutral ordinary deliberation question from that restricted input. `focused_bid_revision` gives an owning Part the identical cycle snapshot plus selected voluntary focus to retain, replace or withdraw its bid, with no memory/prediction/formation product. Jev handles affect scoring; OpenAI/xAI/Ollama handle the generative tasks, and Ollama provides an explicit generative bounded-decision fallback. Separate stateless requests enforce the access boundaries. Adapters and editable prompts are implemented; ordinary runtime orchestration and durable periods remain unfinished.
+
 <!-- Current online flow: ADR 0133 -->
 
 ## Experienced and prospective state (ADR 0136)

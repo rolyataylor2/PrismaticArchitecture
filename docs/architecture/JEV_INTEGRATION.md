@@ -1,3 +1,7 @@
+## Affect selection adapter (ADR 0157)
+
+The separate `chooseAffect` adapter reprojects world-blind proposal/Identity/feedback input, scores every proposal and available control independently, and preserves Score distributions. A proposed focus requires >2. A bounded complementary pass can add one further distinct compatible proposal; no activation or numeric emotional weighting enters either request. Jev's lack of textual rationale is explicitly recorded. Generative affect inquiry and focused Part revision use separate reasoning calls. Runtime integration remains in progress.
+
 <!-- Current online flow: ADR 0133 -->
 
 [ADR 0133](decisions/0133-parallel-assembled-part-cognition.md) defines the current online pipeline: immutable WorldState → JEV disposition activation → parallel chronological memory retrieval and code-owned scope assembly → parallel ordered Part formation/reflection/gist/cognition → world-blind Identity-guided Self → external execution. A Part named `self` uses Identity only when no disposition activates. Primitives remain in the menu but do not participate. Steering and separate online encoding/working-state inference are removed; thought carryover and decay remain. Separate prediction outcome checks and offline consolidation are unchanged.

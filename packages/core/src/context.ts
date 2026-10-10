@@ -1,5 +1,6 @@
 import { referencesMemory, ordinaryMemory } from './domain.js';
 import { SelectedActivitySchema } from './execution-review.js';
+import { SelectedAffectSchema } from './affect-domain.js';
 import { freeze, ProposalSchema, type Cycle, type ThoughtHistory, type Activation, type Contribution, type DeliberationMessage, type Identity, type Part, type SelfContext, type WorldState } from './domain.js';
 import type { PartContext, Store } from './contracts.js';
 
@@ -46,7 +47,8 @@ export function partContext(store: Store, world: WorldState, part: Part, activat
 }
 
 /** Explicit projection prevents extra runtime properties from crossing into Self input. */
-export function selfContext(identity: Identity, contributions: Contribution[], deliberation: DeliberationMessage[], history: Pick<SelfContext, 'contributionHistory' | 'inquiries' | 'completedDeliberationRounds' | 'stanceHistory' | 'ongoingActivity'> = {}): SelfContext {
+export function selfContext(identity: Identity, contributions: Contribution[], deliberation: DeliberationMessage[], history: Pick<SelfContext, 'contributionHistory' | 'inquiries' | 'completedDeliberationRounds' | 'stanceHistory' | 'ongoingActivity' | 'selectedFocus'> = {}): SelfContext {
+  if (history.selectedFocus && history.selectedFocus.agentId !== identity.agentId) throw new Error('Selected focus ownership mismatch');
   return freeze({
     identity: { ...structuredClone(identity), traits: structuredClone(identity.traits.filter(trait => trait.role !== 'autobiographical')) },
     contributions: contributions.map(c => ({ ...(c.sourceKind ? { sourceKind: c.sourceKind } : {}), partId: c.partId, name: c.name, thought: c.thought,
@@ -62,6 +64,7 @@ export function selfContext(identity: Identity, contributions: Contribution[], d
         affect: stance.affect, thought: stance.thought })) })) } : {}),
     deliberation: deliberation.map(d => ({ partId: d.partId, question: d.question, answer: d.answer })),
     ...(history.ongoingActivity ? { ongoingActivity: SelectedActivitySchema.parse(history.ongoingActivity) } : {}),
+    ...(history.selectedFocus ? { selectedFocus: SelectedAffectSchema.parse(history.selectedFocus) } : {}),
   });
 }
 

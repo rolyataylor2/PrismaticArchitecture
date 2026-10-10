@@ -1,6 +1,8 @@
 import { ProcedureConsolidationSchema } from '../../core/src/procedure-consolidation.js';
 import { createHash } from 'node:crypto';
 import { constructedOutputSchema } from './constructed-schema.js';
+import { affectInquirySchema, focusedBidSchema } from './affect-schema.js';
+import { projectAffectSelectionContext } from '../../core/src/affect.js';
 import { predictionEvaluationSchema } from './prediction-evaluation-schema.js';
 import { CognitionSchema, SpeechResultSchema } from '../../core/src/domain.js';
 import { z } from 'zod';
@@ -155,6 +157,15 @@ export class OpenAIProvider implements ReasoningProvider {
   }
   evaluate(context: Parameters<ReasoningProvider['evaluate']>[0]) { return this.request(predictionEvaluationSchema(context.world.id), renderPartPrompt(context.part.agentId, 'evaluation', context, this.promptResolver)); }
   question(context: Parameters<ReasoningProvider['question']>[0]) { return this.request(deliberationSchema(context), renderTaskPrompt(context.identity.agentId, 'deliberation', context, this.promptResolver)); }
+  affectInquiry(input: Parameters<NonNullable<ReasoningProvider['affectInquiry']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return this.request(affectInquirySchema(context), renderTaskPrompt(context.identity.agentId, 'affect_inquiry', context, this.promptResolver),
+      4096, { agentId: context.identity.agentId, cycleId: null, task: 'affect_inquiry' });
+  }
+  reviseFocusedBid(context: Parameters<NonNullable<ReasoningProvider['reviseFocusedBid']>>[0]) {
+    return this.request(focusedBidSchema(context), renderPartPrompt(context.part.agentId, 'focused_bid_revision', context, this.promptResolver),
+      4096, { agentId: context.part.agentId, cycleId: context.world.cycleId, task: 'focused_bid_revision' });
+  }
   answer(context: Parameters<ReasoningProvider['answer']>[0], question: string) { return this.request(partProposalSchema(context).answer, renderPartPrompt(context.part.agentId, 'answer', { currentBid: null, deliberation: [], ...context, question }, this.promptResolver)); }
   consolidate(context: Parameters<ReasoningProvider['consolidate']>[0]) {
     const prompt = (['consolidation', 'reconsolidation', 'formation'] as const)

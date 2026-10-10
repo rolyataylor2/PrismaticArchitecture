@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import type { PrimitiveActivation, PrimitiveContext, PrimitiveSettings, Primitive } from './primitives.js';
 import type { ConsolidationContext, ConsolidationRun, DevelopmentResultSchema, ReplayResultSchema } from './consolidation-domain.js';
 import type {
-  Activation, ActivationScore, ActionBid, Bid, Change, Choice, Cognition, Cycle, DeliberationAnswerSchema, EntityKind, EntityMap,
+  Activation, ActivationScore, ActionBid, Bid, Change, Choice, Cognition, Contribution, Cycle, DeliberationAnswerSchema, EntityKind, EntityMap,
   Execution, Fact, Part, Prediction, PredictionUpdate, QuestionSchema, DeliberationSchema, DeliberationMessage, SelfContext, VersionRecord, WorldState, Memory,
   PromptOverride, PromptTask, PredictionOutcome, PredictionDraftSchema, IdentityTrait,
 } from './domain.js';
@@ -20,6 +20,7 @@ export type ActivationInput = { world: WorldState; candidates: Omit<Part, 'retri
   partActivationContext?: { partId: string; previous: number; memories: { timestamp: string | null; gist: string }[]; prediction: Prediction | null }[] };
 export type MemoryRelevanceInput = { world: WorldState; purpose: 'recall' | 'candidates' | 'search'; entries: { part: Part; memory: Memory; timestamp: string | null }[] };
 export interface DecisionProvider {
+  chooseAffect?(context: import('./affect-domain.js').AffectSelectionContext): Promise<import('./affect-domain.js').AffectChoice>;
   judge?(input: import('./constructed-domain.js').JudgmentInput): Promise<ActivationScore[]>;
   recall?(input: MemoryRelevanceInput): Promise<ActivationScore[]>;
   readonly label: string;
@@ -30,6 +31,8 @@ export interface DecisionProvider {
   checkPrediction(context: PredictionEvidenceContext): Promise<PredictionOutcome>;
 }
 export interface ReasoningProvider {
+  affectInquiry?(context: import('./affect-domain.js').AffectSelectionContext): Promise<z.infer<typeof DeliberationSchema>>;
+  reviseFocusedBid?(context: FocusedBidContext): Promise<z.infer<typeof DeliberationAnswerSchema>>;
   consolidateProcedures?(input: import('./procedure-consolidation.js').ProcedureConsolidationInput): Promise<unknown>;
   constructed?(input: import('./constructed-domain.js').ConstructedInput): Promise<unknown>;
   readonly label: string;
@@ -44,6 +47,9 @@ export interface ReasoningProvider {
   consolidate(context: ConsolidationContext): Promise<z.infer<typeof DevelopmentResultSchema>>;
   reinterpret(context: { part: Part; memory: Memory; ancestor: WorldState; reason: string }): Promise<z.infer<typeof ReplayResultSchema>>;
 }
+export type FocusedBidContext = PartContext & { currentBid: Bid | null;
+  selectedFocus: import('./affect-domain.js').SelectedAffect;
+  expressed: Pick<Contribution, 'thought' | 'interpretation' | 'affect' | 'evidenceSummary'> };
 export interface EmbeddingProvider { readonly label: string; embed(text: string): Promise<number[]> }
 export interface Executor {
   recorded?(execution: Execution): void;
@@ -94,6 +100,10 @@ export type EventPayloads = {
   'part.bid_created': Bid;
   'part.affect_proposals': { partId: string; proposals: import('./affect-domain.js').AffectBid[] };
   'self.arbitration_started': SelfContext;
+  'self.affect_selection_started': import('./affect-domain.js').AffectSelectionContext;
+  'self.affect_inquiry_started': import('./affect-domain.js').AffectSelectionContext;
+  'self.affect_choice': import('./affect-domain.js').AffectChoice;
+  'part.focused_bid_revision_started': FocusedBidContext;
   'self.choice': Choice;
   'self.experienced_transition': import('./domain.js').ExperiencedTransition;
   // Historical audit records remain immutable and readable. New cycles never emit these.

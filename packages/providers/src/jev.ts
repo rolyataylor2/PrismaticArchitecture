@@ -1,4 +1,6 @@
 import { scoreSelf, selfScoreCriteria } from '../../core/src/self-scoring.js';
+import { scoreAffect, affectScoreCriteria } from '../../core/src/affect-scoring.js';
+import { projectAffectSelectionContext } from '../../core/src/affect.js';
 import { selfChoices } from '../../core/src/context.js';
 import { effectivePrimitive, partActivationCriteria, primitiveActivationCriteria } from '../../core/src/primitives.js';
 import { ActivationScoreSchema, ChoiceSchema, PredictionOutcomeSchema, type SelfContext } from '../../core/src/domain.js';
@@ -14,6 +16,16 @@ export interface JevTransport {
 export class JevDecisions implements DecisionProvider {
   readonly label: string;
   constructor(private readonly transport: JevTransport, private readonly promptResolver?: PromptResolver) { this.label = transport.label ?? 'Jev via configured transport'; }
+  async chooseAffect(input: Parameters<NonNullable<DecisionProvider['chooseAffect']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return scoreAffect(context, (choices, selectedBefore) => this.transport.scores({
+      state: renderTaskPrompt(context.identity.agentId, 'affect_selection', { ...context, choices, selectedBefore }, this.promptResolver),
+      questions: choices.map(option => ({ id: option, kind: 'Score', minimum: 0, maximum: 4, criteria: affectScoreCriteria,
+        question: `Score ${option} using only the supplied proposals, Identity and mediated feedback. ${selectedBefore.length
+          ? 'Assess distinct compatible value alongside the already selected orientation; competing or redundant orientations should not be added.'
+          : 'Evaluate independently of activation or experienced emotional intensity.'}` })),
+    }));
+  }
   async score(input: Parameters<DecisionProvider['score']>[0]) {
     const prompt = renderTaskPrompt(input.world.agentId, 'activation', { ...input, primitives: input.primitives ?? [], primitiveSensitivities: input.primitiveSensitivities ?? [], partActivationContext: input.partActivationContext ?? [] }, this.promptResolver);
     return ActivationScoreSchema.array().parse(await this.transport.scores({ state: prompt,

@@ -1,4 +1,6 @@
 import { factualWorld } from '../../core/src/experienced.js';
+import { affectSelectionContext, projectAffectSelectionContext } from '../../core/src/affect.js';
+import { affectChoices } from '../../core/src/affect-scoring.js';
 import { referencesMemory } from '../../core/src/domain.js';
 import { memoryEntries } from '../../core/src/memory-recall.js';
 import { speechContext } from '../../core/src/speech.js';
@@ -18,6 +20,26 @@ function sample<T>(items: T[], missing: string): T {
 /** Read-only researcher preview; never sends a request to a cognitive provider. */
 export function previewPrompt(store: Store, agentId: string, task: PromptTask, text: string) {
   store.get('agent', agentId); validatePromptTemplate(text);
+  if (task === 'affect_selection' || task === 'affect_inquiry') {
+    const type = task === 'affect_selection' ? 'self.affect_selection_started' : 'self.affect_inquiry_started';
+    const recorded = store.eventsByType(agentId, [type]).flatMap(event =>
+      event.type === 'self.affect_selection_started' || event.type === 'self.affect_inquiry_started' ? [event] : []).at(-1);
+    const input = recorded ? projectAffectSelectionContext(recorded.payload)
+      : affectSelectionContext({ identity: store.get('identity', agentId), contributions: [], proposals: [] });
+    const context = task === 'affect_selection' ? { ...input, choices: affectChoices(input), selectedBefore: [] } : input;
+    return { text: renderTaskPrompt(agentId, task, context, () => text), worldId: null, cycleId: recorded?.cycleId ?? null,
+      capturedAt: recorded?.at ?? null, partName: null,
+      note: recorded ? 'Recorded world-blind affect input; no activation, experienced affect, raw memories or WorldState.'
+        : 'Empty world-blind example using current Identity; no proposal or focus is fabricated.' };
+  }
+  if (task === 'focused_bid_revision') {
+    const recorded = store.eventsByType(agentId, ['part.focused_bid_revision_started']).flatMap(event =>
+      event.type === 'part.focused_bid_revision_started' ? [event] : []).at(-1);
+    if (!recorded) throw new Error('No recorded focused bid revision yet. Run cognition with a selected affect proposal first.');
+    return { text: renderTaskPrompt(agentId, task, recorded.payload, () => text), worldId: recorded.payload.world.id,
+      cycleId: recorded.cycleId, capturedAt: recorded.at, partName: recorded.payload.part.name,
+      note: 'Recorded owning-Part revision against the original immutable snapshot; not a new formation or memory request.' };
+  }
   if (task === 'executive_skill_consolidation') {
     const record = store.experiments().filter(run => run.kind === 'executive_consolidation' && run.agentId === agentId).at(-1) as import('./procedure-consolidation.js').ProcedureConsolidationRun | undefined;
     return { text: renderTaskPrompt(agentId, task, record?.input ?? { agentId, episodes: [] }, () => text), worldId: null, cycleId: null,

@@ -3,6 +3,9 @@ import { constructedOutputSchema } from './constructed-schema.js';
 import { predictionEvaluationSchema } from './prediction-evaluation-schema.js';
 import { CognitionSchema, SpeechResultSchema } from '../../core/src/domain.js';
 import { scoreSelf } from '../../core/src/self-scoring.js';
+import { scoreAffect } from '../../core/src/affect-scoring.js';
+import { projectAffectSelectionContext } from '../../core/src/affect.js';
+import { affectInquirySchema, focusedBidSchema } from './affect-schema.js';
 import { selfChoices } from '../../core/src/context.js';
 import { z } from 'zod';
 import { deliberationSchema, partProposalSchema } from './deliberation-schema.js';
@@ -57,6 +60,13 @@ export class OllamaProvider implements ReasoningProvider, DecisionProvider {
   }
   evaluate(context: Parameters<ReasoningProvider['evaluate']>[0]) { return this.request(predictionEvaluationSchema(context.world.id), renderPartPrompt(context.part.agentId, 'evaluation', context, this.promptResolver)); }
   question(context: Parameters<ReasoningProvider['question']>[0]) { return this.request(deliberationSchema(context), renderTaskPrompt(context.identity.agentId, 'deliberation', context, this.promptResolver)); }
+  affectInquiry(input: Parameters<NonNullable<ReasoningProvider['affectInquiry']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return this.request(affectInquirySchema(context), renderTaskPrompt(context.identity.agentId, 'affect_inquiry', context, this.promptResolver));
+  }
+  reviseFocusedBid(context: Parameters<NonNullable<ReasoningProvider['reviseFocusedBid']>>[0]) {
+    return this.request(focusedBidSchema(context), renderPartPrompt(context.part.agentId, 'focused_bid_revision', context, this.promptResolver));
+  }
   answer(context: Parameters<ReasoningProvider['answer']>[0], question: string) { return this.request(partProposalSchema(context).answer, renderPartPrompt(context.part.agentId, 'answer', { currentBid: null, deliberation: [], ...context, question }, this.promptResolver)); }
   consolidate(context: Parameters<ReasoningProvider['consolidate']>[0]) {
     const prompt = (['consolidation', 'reconsolidation', 'formation'] as const)
@@ -76,6 +86,12 @@ export class OllamaProvider implements ReasoningProvider, DecisionProvider {
   choose(context: Parameters<DecisionProvider['choose']>[0]) {
     const choices = selfChoices(context);
     return scoreSelf(context, (options, selected) => this.request(ActivationScoreSchema.array(), renderTaskPrompt(context.identity.agentId, 'arbitration', { ...context, choices }, this.promptResolver) + `\nScore these options: ${JSON.stringify(options)}. Already selected: ${JSON.stringify(selected)}. Return partId (option ID) and score 0–4 for each. Score independently. All external bids strictly above 2 execute when external behavior is chosen; there is no marginal rescoring.`));
+  }
+  chooseAffect(input: Parameters<NonNullable<DecisionProvider['chooseAffect']>>[0]) {
+    const context = projectAffectSelectionContext(input);
+    return scoreAffect(context, (choices, selectedBefore) => this.request(ActivationScoreSchema.array(),
+      renderTaskPrompt(context.identity.agentId, 'affect_selection', { ...context, choices, selectedBefore }, this.promptResolver)
+      + '\nReturn one partId (option ID) and 0–4 score per available option. Score every option independently; do not normalize.'));
   }
   judge(input: Parameters<NonNullable<DecisionProvider['judge']>>[0]) {
     return this.request(ActivationScoreSchema.array(), renderTaskPrompt(input.agentId, input.task, input, this.promptResolver));
