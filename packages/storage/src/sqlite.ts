@@ -552,7 +552,9 @@ export class SqliteStore implements Store {
       for (const agent of this.list('agent')) {
         const grants = this.mcpPermissions(agent.id);
         const tools = grants.tools.filter(tool => surviving.has(tool.serverId));
-        if (tools.length !== grants.tools.length) this.saveMcpPermissions(agent.id, { revision: grants.revision + 1, tools }, grants.revision);
+        const serverIds = grants.serverIds?.filter(serverId => surviving.has(serverId));
+        if (tools.length !== grants.tools.length || serverIds?.length !== grants.serverIds?.length)
+          this.saveMcpPermissions(agent.id, { revision: grants.revision + 1, tools, ...(serverIds !== undefined ? { serverIds } : {}) }, grants.revision);
       }
     });
   }
@@ -572,6 +574,7 @@ export class SqliteStore implements Store {
       const current = this.mcpPermissions(agentId);
       if (current.revision !== expectedRevision || next.revision !== expectedRevision + 1) throw new ConflictError('MCP permissions changed; reload before saving');
       const registered = new Set(this.mcpRegistry().servers.map(server => server.id));
+      if (next.serverIds?.some(serverId => !registered.has(serverId))) throw new Error('MCP membership references an unregistered server');
       if (next.tools.some(tool => !registered.has(tool.serverId))) throw new Error('MCP permission references an unregistered server');
       if (!current.revision) this.#db.prepare('INSERT OR IGNORE INTO mcp_permissions_history VALUES(?,?,?,?)').run(agentId, 0, JSON.stringify(current), now());
       this.#db.prepare('INSERT INTO mcp_permissions VALUES(?,?) ON CONFLICT(agent_id) DO UPDATE SET body=excluded.body').run(agentId, JSON.stringify(next));

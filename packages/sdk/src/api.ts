@@ -1,3 +1,5 @@
+import { registerAgentMcp } from './mcp-registration.js';
+import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
 import { copyExecutiveProfile } from './executive-profile-copy.js';
 import { parseAgentSkillPackage } from '../../core/src/agent-skill-format.js';
@@ -63,6 +65,14 @@ export async function api(app: Application, method: string, path: string, body: 
         ...(input.evaluator.model !== undefined ? { model: input.evaluator.model } : {}),
       } : undefined);
     }
+  }
+  if (resource === 'mcp-registry-search' && method === 'POST') {
+    const input = z.strictObject({ query: z.string().trim().min(1).max(200) }).parse(body);
+    return searchMcpRegistry(input.query);
+  }
+  if (resource === 'mcp-repository-preview' && method === 'POST') {
+    const input = z.strictObject({ url: z.string().max(2000) }).parse(body);
+    return previewMcpRepository(input.url);
   }
   if (resource === 'mcp-servers') {
     if (method === 'GET' && !entityId) return app.executiveConnections.status();
@@ -177,12 +187,14 @@ export async function api(app: Application, method: string, path: string, body: 
         return app.store.executiveProfile(entityId);
       }
     }
+    if (action === 'mcp-connections' && method === 'POST') return registerAgentMcp(app.store, entityId, body);
     if (action === 'mcp-permissions') {
       if (method === 'GET' && subresource === 'history') return app.store.mcpPermissionsHistory(entityId);
       if (method === 'GET' && !subresource) return app.store.mcpPermissions(entityId);
       if (method === 'PUT' && !subresource) {
         const input = McpPermissionsSchema.omit({ revision: true }).extend({ expectedRevision: z.number().int().nonnegative() }).parse(body);
-        app.store.saveMcpPermissions(entityId, { revision: input.expectedRevision + 1, tools: input.tools }, input.expectedRevision);
+        const serverIds = input.serverIds ?? app.store.mcpPermissions(entityId).serverIds;
+        app.store.saveMcpPermissions(entityId, { revision: input.expectedRevision + 1, tools: input.tools, ...(serverIds !== undefined ? { serverIds } : {}) }, input.expectedRevision);
         return app.store.mcpPermissions(entityId);
       }
     }

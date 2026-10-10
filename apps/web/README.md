@@ -274,3 +274,7 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
 Executive → Imports groups configuration copying, skill package folder imports and imported proposal inspection/review in a dedicated tab. Runtime keeps execution settings; Skills & Learning keeps retained procedures and learning controls.
+
+## Reviewed Agent MCP registration (ADR 0156)
+
+Executive uses an Agent MCP list with an empty state and a registration dialog: official MCP Registry search, manual settings, public GitHub declarations, or an existing shared connection. Imported settings are editable and confirmed before saving. Save profile and revision sit beside the Executive heading.

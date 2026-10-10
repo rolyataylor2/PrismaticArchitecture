@@ -1225,3 +1225,11 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .skill-inspector th, .skill-inspector td { padding: 10px; text-align: left; vertical-align: top; border-bottom: 1px solid #ccd6cb; white-space: pre-wrap; overflow-wrap: anywhere; }
 .skill-development-timeline { padding-left: 24px; }
 .skill-development-timeline li { padding: 6px 0 14px; }
+
+.executive-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.executive-header h2 { margin: 0; }
+
+.executive-component-header .executive-header { grid-column: 1 / -1; }
+.component-view .executive-component-header { height: auto; grid-template-rows: auto auto; }
+.executive-component-header .component-header-description { grid-column: 1 / -1; }
+.executive-component-header > .component-header-actions:empty, .executive-component-header > .component-header-tools:empty { display: none; }

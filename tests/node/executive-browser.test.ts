@@ -97,16 +97,42 @@ test('Executive panels persist operational configuration and discover/grant real
     assert.equal(store.executiveProfile(agent.id).attention.awaitCheckpointReview, true);
     assert.deepEqual(store.executiveProfile(agent.id).consolidation, { mode: 'after_repeated_success', requiredSuccesses: 3 });
     await page.getByRole('tab', { name: 'MCP Connections', exact: true }).click();
+    await page.getByText('None. Try importing them.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Add MCP', exact: true }).click();
+    await page.getByLabel('Registration method').selectOption('Specify manually');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByLabel('Server name', { exact: true }).fill('local');
     await page.getByLabel('Transport', { exact: true }).selectOption('stdio');
     await page.getByLabel('Local command', { exact: true }).fill(process.execPath);
     await page.getByLabel('Arguments (one per line)', { exact: true }).fill(fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url)));
     await page.getByLabel('Environment secret references (JSON object, optional)', { exact: true }).fill('{"MCP_TEST_PATH":"env:PATH"}');
+    await page.getByRole('button', { name: 'Review registration', exact: true }).click();
     await page.getByRole('button', { name: 'Register MCP server', exact: true }).click();
     await page.getByRole('heading', { name: 'local (stdio)', exact: true }).waitFor();
     const registered = store.mcpRegistry().servers.find(server => server.id === 'local')!;
     assert.ok(registered.transport === 'stdio');
     assert.deepEqual(registered.envSecretRefs, { MCP_TEST_PATH: 'env:PATH' });
+    assert.deepEqual(store.mcpPermissions(agent.id).serverIds, ['local']);
+    assert.deepEqual(store.mcpPermissions(agent.id).tools, []);
+    await page.route('**/api/mcp-registry-search', route => route.fulfill({ json: { repository: 'https://registry.modelcontextprotocol.io/', notes: [], candidates: [{
+      label: 'Registry fixture', source: 'https://registry.modelcontextprotocol.io/', notes: ['Public metadata fixture'],
+      server: { id: 'registry-fixture', transport: 'http', url: 'https://example.invalid/mcp', timeoutMs: 30000 },
+    }] } }));
+    await page.getByRole('button', { name: 'Add MCP', exact: true }).click();
+    const registrationDialog = page.getByRole('dialog', { name: 'Register MCP connection', exact: true });
+    assert.equal(await registrationDialog.getByLabel('Registration method').inputValue(), 'Import from official MCP Registry');
+    await registrationDialog.getByRole('button', { name: 'Continue', exact: true }).click();
+    await registrationDialog.getByLabel('Search MCP Registry').fill('fixture');
+    await registrationDialog.getByRole('button', { name: 'Search registry', exact: true }).click();
+    await registrationDialog.getByRole('button', { name: 'Review settings', exact: true }).click();
+    assert.equal(await registrationDialog.getByLabel('HTTP endpoint', { exact: true }).inputValue(), 'https://example.invalid/mcp');
+    await registrationDialog.getByRole('button', { name: 'Close', exact: true }).click();
+    assert.equal(store.mcpRegistry().servers.length, 1, 'Cancelled import never registers or starts a connection');
+    const header = page.locator('.executive-header');
+    assert.equal(await header.getByRole('heading', { name: 'Executive', exact: true }).count(), 1);
+    assert.equal(await header.getByRole('button', { name: 'Save Executive profile', exact: true }).count(), 1);
+    assert.equal(await header.getByText('Saved profile revision 1', { exact: true }).count(), 1);
+
     await page.getByRole('button', { name: 'Discover tools', exact: true }).click();
     await page.getByText('Connection status: connected', { exact: true }).waitFor();
     await page.getByRole('checkbox', { name: 'local / echo', exact: true }).check();

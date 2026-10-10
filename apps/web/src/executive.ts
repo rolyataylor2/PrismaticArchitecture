@@ -1,3 +1,4 @@
+import { showMcpRegistration } from './mcp-registration.js';
 import type { ExecutiveProfile } from '../../../packages/core/src/executive-profile.js';
 import type { ExecutiveSkill } from '../../../packages/core/src/executive-skill.js';
 import type { McpRegistry, McpPermissions, CapabilityToolSchema } from '../../../packages/core/src/mcp-configuration.js';
@@ -40,7 +41,13 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   let [profile, registry, grants] = await Promise.all([
     api<ExecutiveProfile>(`${path}/executive-profile`), api<RegistryStatus>('mcp-servers'), api<McpPermissions>(`${path}/mcp-permissions`),
   ]);
-  const toolbar = el('div'); toolbar.className = 'executive-actions'; page.append(toolbar);
+  const toolbar = el('div'); toolbar.className = 'executive-actions';
+  const heading = root.querySelector('h2');
+  const header = el('div'); header.className = 'executive-header';
+  if (heading) {
+    heading.closest('.component-header')?.classList.add('executive-component-header');
+    heading.replaceWith(header); header.append(heading, toolbar);
+  } else { header.append(el('h2', 'Executive'), toolbar); page.append(header); }
   const runtime = panel(page, 'Runtime');
   runtime.append(el('p', 'Native is the available runtime. OpenClaw and custom adapters are not yet available.'));
   const enabled = input(runtime, 'Enable Executive', '', 'checkbox'); enabled.checked = profile.enabled;
@@ -326,7 +333,10 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   };
   const redrawServers = () => {
     serverList.replaceChildren();
-    for (const server of registry.servers) {
+    const assigned = new Set([...(grants.serverIds ?? []), ...grants.tools.map(tool => tool.serverId)]);
+    const servers = registry.servers.filter(server => assigned.has(server.id));
+    if (!servers.length) serverList.append(el('p', 'None. Try importing them.'));
+    for (const server of servers) {
       const row = el('div'); row.append(el('h4', `${server.id} (${server.transport})`),
         el('p', `Connection status: ${registry.health?.[server.id] ?? 'disconnected'}`)); serverList.append(row);
       action(row, 'Discover tools', async () => {
@@ -340,40 +350,27 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
         await api(`mcp-servers/${encodeURIComponent(server.id)}/disconnect`, 'POST', {});
         registry = await api<RegistryStatus>('mcp-servers'); redrawServers();
       }, fail);
-      action(row, 'Remove server', async () => {
-        await api('mcp-servers', 'PUT', { expectedRevision: registry.revision, servers: registry.servers.filter(item => item.id !== server.id) });
+      action(row, 'Remove from Agent', async () => {
+        await api(`${path}/mcp-permissions`, 'PUT', { expectedRevision: grants.revision, serverIds: [...assigned].filter(id => id !== server.id), tools: grants.tools.filter(tool => tool.serverId !== server.id) });
         registry = await api<RegistryStatus>('mcp-servers'); grants = await api<McpPermissions>(`${path}/mcp-permissions`);
         for (const [key, tool] of catalog) if (tool.serverId === server.id) catalog.delete(key);
         for (const key of pendingGrants) if ((JSON.parse(key) as string[])[0] === server.id) pendingGrants.delete(key);
         redrawServers(); redrawTools();
-  action(connections, 'Refresh connection status', async () => { registry = await api<RegistryStatus>('mcp-servers'); redrawServers(); }, fail);
       }, fail);
     }
   };
   redrawServers(); redrawTools();
+  action(connections, 'Refresh connection status', async () => { registry = await api<RegistryStatus>('mcp-servers'); grants = await api<McpPermissions>(`${path}/mcp-permissions`); redrawServers(); redrawTools(); }, fail);
   action(connections, 'Save tool grants', async () => {
     const selected = [...tools.querySelectorAll<HTMLInputElement>('input[data-tool-key]')].filter(control => control.checked).map(control => {
       const [serverId, toolName] = JSON.parse(control.dataset.toolKey!) as [string, string]; return { serverId, toolName };
     });
     grants = await api<McpPermissions>(`${path}/mcp-permissions`, 'PUT', { expectedRevision: grants.revision, tools: selected }); redrawTools();
   }, fail);
-  const registration = el('fieldset'); registration.append(el('legend', 'Register connection')); connections.append(registration);
-  const serverId = input(registration, 'Server name', '');
-  const transport = choice(registration, 'Transport', ['http', 'stdio'], 'http');
-  const endpoint = input(registration, 'HTTP endpoint', ''); const bearer = input(registration, 'Bearer secret reference (optional)', '');
-  const command = input(registration, 'Local command', '');
-  const argumentsLabel = el('label', 'Arguments (one per line)'); const args = el('textarea'); argumentsLabel.append(args); registration.append(argumentsLabel);
-  const environmentLabel = el('label', 'Environment secret references (JSON object, optional)');
-  const environment = el('textarea'); environment.value = '{}'; environmentLabel.append(environment); registration.append(environmentLabel);
-  registration.append(el('p', 'For a local server, map environment variable names to secret references, for example {"API_KEY":"env:MY_SERVICE_API_KEY"}.'));
-  const timeout = input(registration, 'Timeout (ms)', '30000', 'number');
-  action(registration, 'Register MCP server', async () => {
-    const common = { id: serverId.value, timeoutMs: Number(timeout.value) };
-    const server = transport.value === 'http' ? { ...common, transport: 'http', url: endpoint.value,
-      ...(bearer.value ? { bearerSecretRef: bearer.value } : {}) } : { ...common, transport: 'stdio', command: command.value, args: args.value.split('\n').filter(Boolean), envSecretRefs: JSON.parse(environment.value.trim() || '{}') };
-    if (registry.servers.some(item => item.id === server.id)) throw new Error('This server name is already registered');
-    await api('mcp-servers', 'PUT', { expectedRevision: registry.revision, servers: [...registry.servers, server] });
-    registry = await api<RegistryStatus>('mcp-servers'); redrawServers(); serverId.value = '';
+  action(connections, 'Add MCP', async () => {
+    showMcpRegistration(ui.dialog(), api, path, registry, grants, result => {
+      registry = result.registry; grants = result.permissions; redrawServers(); redrawTools();
+    });
   }, fail);
 
   const diagnostics = panel(page, 'Feedback & Diagnostics');

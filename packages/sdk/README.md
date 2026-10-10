@@ -240,3 +240,7 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
 Executive sandbox Simulation Tests explicitly enable execution on their isolated test Agents and disconnect it during cleanup. Ordinary Agents keep the default-off setting. The development demo likewise explicitly opts in to enact its authored encounters.
+
+## Reviewed Agent MCP registration (ADR 0156)
+
+MCP registration atomically associates shared transport settings with an Agent under both configuration revisions. Read-only official Registry search and bounded public GitHub import propose supported declarations for researcher review without installing, discovering tools or invoking cognition.

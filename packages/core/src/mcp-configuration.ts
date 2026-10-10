@@ -19,6 +19,7 @@ export const McpRegistrySchema = z.strictObject({ revision: z.number().int().non
   servers: z.array(McpServerConfigSchema).max(100).refine(servers => new Set(servers.map(server => server.id)).size === servers.length) });
 export type McpRegistry = z.infer<typeof McpRegistrySchema>;
 export const McpPermissionsSchema = z.strictObject({ revision: z.number().int().nonnegative(),
+  serverIds: z.array(Name).max(100).refine(ids => new Set(ids).size === ids.length).optional(),
   tools: z.array(ToolPermissionSchema).max(1000).refine(tools => new Set(tools.map(tool => JSON.stringify(tool))).size === tools.length) });
 export type McpPermissions = z.infer<typeof McpPermissionsSchema>;
 export const CapabilityToolSchema = ToolPermissionSchema.extend({ key: z.string().min(1).max(500),
