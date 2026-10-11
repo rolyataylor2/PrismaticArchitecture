@@ -6,6 +6,8 @@ Simulation Tests contains six keyboard-accessible Cognitive Observatory tabs. Ex
 
 Comparisons aligns saved stages and explicit semantic scope definitions, displays synchronized contributions/outcomes and public configuration differences, and supports explicit before/after stage selection and repeated trial variation. Development retains before/after fields, subjective-memory versions, later recall and disposition lineage without claiming usefulness from counts. Diagnostics & Evidence saves cited human criteria and finding revisions, retains alternatives/follow-ups and exact citation bytes, and shows separate model judgments and failed-cycle audit. Detached views discard late responses; browsing never changes Agent psychology. ADR 0158's audit tracks remaining instrumentation and development metrics.
 
+Run Explorer adds an Evidence-linked run report answering what worked, what was surprising, what remains unknown, what changed and what to inspect next. Every interpretation retains its evidence basis and latest saved review version. Change/event controls navigate the coordinated inspector; other references progressively disclose exact cited evidence, including paired runs.
+
 Development discloses run-wide prediction coverage/censoring, closure delays, subjective usefulness, memory retention, measured component resources and recorded stage history with explicit limitations. Diagnostics & Evidence offers ten separate research dimension reviews, retaining measurement methods, units, limitations and frozen citation history. Comparisons shows method-specific repeated-trial review counts and numerical variation; absent cost and unjustified calibration remain unknown.
 
 ## Affect Analysis

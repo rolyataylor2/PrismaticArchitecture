@@ -1,5 +1,6 @@
 import type { SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
 import type { SimulationAnalysis } from '../../../packages/sdk/src/simulation-analysis.js';
+import type { SimulationReport } from '../../../packages/sdk/src/simulation-report.js';
 import type { SimulationComparison, aggregateSimulations } from '../../../packages/sdk/src/simulation-comparison.js';
 import type { SimulationReview, SimulationMetricReview, SimulationFinding, SimulationCandidate } from '../../../packages/sdk/src/simulation-research.js';
 
@@ -38,7 +39,10 @@ const latest = <T extends { version: number }>(items: T[]) => items.slice().sort
 /** One shared stage/Part selection coordinates heatmap, ledger, memory history and event detail. */
 export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, api: Api, cycle: Cycle, fail: Fail, developmentOnly = false) {
   const host = node('section', '', 'simulation-run-explorer'); root.append(host); host.append(node('p', 'Loading recorded run evidence…'));
-  const analysis = await api<SimulationAnalysis>(`simulation-tests/${encodeURIComponent(run.id)}/analysis`);
+  const [analysis, report] = await Promise.all([
+    api<SimulationAnalysis>(`simulation-tests/${encodeURIComponent(run.id)}/analysis`),
+    api<SimulationReport>(`simulation-tests/${encodeURIComponent(run.id)}/report`),
+  ]);
   if (!host.isConnected) return;
   host.replaceChildren();
   const overview = card(host, 'Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
@@ -63,14 +67,6 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   rerun.disabled = fork.disabled = run.status === 'running' || !run.startingConfiguration || !run.providerRouting;
   if (rerun.disabled) replay.append(node('p', run.status === 'running' ? 'Wait for this run to end.' : 'Historical starting configuration or provider routing is missing.'));
   if (run.error) overview.append(node('p', `Infrastructure failure: ${run.error}`));
-  const worked = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'observed');
-  const surprising = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'not_observed');
-  const unknown = run.measures.filter(item => item.outcome === 'inconclusive' || item.assessmentKind === 'semantic');
-  for (const [title, values] of [['What worked?', worked], ['What deserves inspection?', surprising], ['What remains unknown?', unknown]] as const) {
-    const area = disclosure(overview, title);
-    area.append(node('p', values.map(item => item.criterion).join(' · ') || 'No qualifying observer criterion recorded.'));
-    disclosure(area, 'Supporting observer evidence', values);
-  }
   const controls = node('div', '', 'observatory-filters'); host.append(controls);
   const stageSelect = select(controls, 'Analytics stage', run.stages.map((stage, index) => [String(index), `${index + 1}. ${stage.name} · ${stage.phase}`]));
   const partSelect = select(controls, 'Analytics Part', [['', 'All Parts'], ...analysis.parts.map(item => [item.part.id, `${item.part.name} · ${item.originStage >= 0 ? `from stage ${item.originStage + 1}` : 'origin unavailable'}`] as [string, string])]);
@@ -85,6 +81,34 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   laneSelect.onchange = () => { lane = laneSelect.value; renderInspector(); };
   button(controls, 'Clear coordinated filters', () => { partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; inspect(0); }, fail);
   function source(parent: HTMLElement, stageIndex: number, title = 'Inspect source stage') { button(parent, title, () => inspect(stageIndex), fail); }
+  const contextual = card(overview, 'Evidence-linked run report', 'Researcher analysis over preserved evidence. Human, subjective, operational and unreviewed interpretations retain separate attribution.');
+  for (const [title, entries] of [['What worked?', report.worked], ['What was surprising?', report.surprising], ['What remains unknown?', report.unknown],
+    ['What changed?', report.changed], ['What should I inspect next?', report.inspectNext]] as const) {
+    const area = disclosure(contextual, `${title} (${entries.length})`);
+    if (!entries.length) area.append(node('p', 'No qualifying observation recorded.'));
+    for (const entry of entries) {
+      const item = disclosure(area, `${entry.title} · ${readable(entry.basis)}`);
+      item.append(node('p', entry.body));
+      if (entry.reviewVersion) item.append(node('p', `Saved research version ${entry.reviewVersion} · ${entry.reviewId}`));
+      if (entry.alternatives) item.append(node('p', `Alternative explanations: ${entry.alternatives}`));
+      if (entry.followUp) item.append(node('p', `Next inspection: ${entry.followUp}`));
+      for (const reference of entry.evidenceReferences) {
+        const stage = /^\/stages\/(\d+)(?:\/|$)/.exec(reference);
+        const event = /^\/events\/([^/]+)(?:\/|$)/.exec(reference);
+        const recorded = event ? analysis.stages.flatMap(stage => stage.trace).find(item => item.id === event[1]) : null;
+        if (stage) source(item, Number(stage[1]), `Inspect report evidence ${reference}`);
+        else if (recorded) button(item, `Inspect report event ${event![1]}`, () => { index = recorded.stageIndex; stageSelect.value = String(index); eventId = recorded.id; partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; render(); }, fail);
+        else {
+          const evidence = report.sources.find(item => item.reference === reference);
+          const detail = disclosure(item, `Inspect preserved report evidence ${reference}`, evidence?.citation?.value);
+          if (evidence?.unavailableReason) detail.append(node('p', evidence.unavailableReason));
+          if (evidence?.citation) detail.append(node('p', `Source run ${evidence.citation.runId} · ${readable(evidence.citation.attribution)} · ${evidence.citation.hash}`));
+        }
+      }
+      disclosure(item, 'Exact report references and frozen citations', { references: entry.evidenceReferences, citations: entry.citations ?? [] });
+    }
+  }
+  report.limitations.forEach(value => contextual.append(node('p', value, 'muted')));
   function renderLifecycle(parent: HTMLElement) {
     const life = card(parent, 'Part lifecycle timeline', 'Creation, expressed participation, snapshot presence and retirement are separate. Select a cell to inspect its Part and stage.');
     life.append(node('p', '+ created · ● contributed · × retired · pale background: no contribution captured. Snapshot presence does not establish activation.'));

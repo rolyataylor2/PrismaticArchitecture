@@ -39,6 +39,17 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     const run = listSimulationRuns(app).find(run => run.testId === 'conversation-starters')!;
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Activation heatmap', exact: true }).waitFor();
+    const contextual = panel.getByRole('heading', { name: 'Evidence-linked run report', exact: true }).locator('..');
+    for (const title of ['What worked?', 'What was surprising?', 'What remains unknown?', 'What changed?', 'What should I inspect next?'])
+      assert.equal(await contextual.locator('summary').filter({ hasText: title }).count(), 1);
+    const changesSummary = contextual.locator('summary').filter({ hasText: /^What changed\?/ });
+    await changesSummary.click();
+    const change = changesSummary.locator('..').locator(':scope > details').first();
+    await change.locator(':scope > summary').click();
+    const link = change.getByRole('button', { name: /^Inspect report evidence \/stages\// }).first();
+    const expectedStage = Number((await link.innerText()).match(/\/stages\/(\d+)/)![1]);
+    await link.click(); assert.equal(await panel.getByLabel('Analytics stage').inputValue(), String(expectedStage));
+    await panel.getByRole('button', { name: 'Clear coordinated filters', exact: true }).click();
     for (const title of ['1. What happened?', '2. What became relevant?', '3. How was it interpreted?', '4. What was advocated?', '5. What was actually done?', '6. What changed after experience?'])
       await panel.getByRole('heading', { name: title, exact: true }).waitFor();
     await panel.getByLabel('Analytics stage').selectOption('2');
@@ -143,6 +154,11 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await page.getByRole('table', { name: 'Separate research dimensions', exact: true }).getByText(/inconclusive · v2/).waitFor();
     await page.getByRole('tab', { name: 'Run Explorer', exact: true }).click();
     await page.getByLabel('Observatory run').selectOption(run.id);
+    const refreshedReport = page.getByRole('heading', { name: 'Evidence-linked run report', exact: true }).locator('..');
+    await refreshedReport.locator('summary').filter({ hasText: /^What remains unknown\?/ }).click();
+    const retainedReview = refreshedReport.locator('details').filter({ has: page.getByText('Browser researcher reviewed this as inconclusive: Revised human interpretation; evidence remains a mock fixture.', { exact: true }) }).last();
+    await retainedReview.locator(':scope > summary').click();
+    await retainedReview.getByText(/Saved research version 2/).waitFor();
     await page.getByText('Repeat or fork saved starting conditions', { exact: true }).click();
     await page.getByLabel('Launch reason', { exact: true }).fill('Browser frozen rerun');
     await page.getByRole('button', { name: 'Rerun frozen configuration', exact: true }).click();

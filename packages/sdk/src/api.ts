@@ -1,6 +1,7 @@
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
-import { researchRun, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationMetricReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
+import { simulationReport } from './simulation-report.js';
+import { researchRun, simulationCitation, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationMetricReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
 import { compareSimulations, compareSimulationStages, aggregateSimulations } from './simulation-comparison.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
@@ -85,6 +86,10 @@ export async function api(app: Application, method: string, path: string, body: 
       if (action === 'rerun' && Object.keys(input.activationChanges ?? {}).length) throw new Error('Use fork for explicit configuration changes');
       if (action === 'fork' && !Object.keys(input.activationChanges ?? {}).length) throw new Error('A fork requires an explicit configuration change');
       return replaySimulation(app, entityId, input.reason, input.activationChanges as Parameters<typeof replaySimulation>[3]);
+    }
+    if (method === 'GET' && entityId && action === 'report') {
+      const run = researchRun(app.store, entityId);
+      return simulationReport(run, analyzeSimulation(app.store, run), simulationResearch(app.store, entityId), simulationCandidates(app.store, run), reference => simulationCitation(app.store, run, reference));
     }
     if (method === 'GET' && entityId && action === 'analysis') {
       const run = listSimulationRuns(app).find(item => item.id === entityId);

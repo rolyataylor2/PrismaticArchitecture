@@ -38,7 +38,7 @@ export function simulationResearch(store: Store, runId: string) {
     metricReviews: records.filter(item => item.kind === 'simulation_metric_review') as SimulationMetricReview[] };
 }
 /** Only saved run/stage records and events of this run are valid privileged evidence. */
-function cite(store: Store, run: SimulationRun, reference: string): Citation {
+export function simulationCitation(store: Store, run: SimulationRun, reference: string): Citation {
   let attribution: Citation['attribution'] = 'frozen_run';
   let root: unknown = run;
   let keys = reference.slice(1).split('/');
@@ -46,7 +46,7 @@ function cite(store: Store, run: SimulationRun, reference: string): Citation {
   keys = keys.map(key => key.replace(/~1/g, '/').replace(/~0/g, '~'));
   if (keys[0] === 'runs') {
     const compared = researchRun(store, keys[1] ?? '');
-    const citation = cite(store, compared, '/' + keys.slice(2).map(key => key.replace(/~/g, '~0').replace(/\//g, '~1')).join('/'));
+    const citation = simulationCitation(store, compared, '/' + keys.slice(2).map(key => key.replace(/~/g, '~0').replace(/\//g, '~1')).join('/'));
     return { ...citation, reference };
   }
   if (keys[0] === 'events') {
@@ -81,7 +81,7 @@ export function saveSimulationReview(store: Store, runId: string, body: unknown)
     const record: SimulationReview = { id: id('review'), kind: 'simulation_review', agentId: run.agentId, runId,
       version: input.expectedVersion + 1, previousId: prior?.id ?? null, createdAt: now(), criterionId: input.criterionId,
       outcome: input.outcome, reviewer: input.reviewer, rationale: input.rationale, evidenceBasis: run.evidenceBasis,
-      citations: [...new Set(input.evidenceReferences)].map(reference => cite(store, run, reference)) };
+      citations: [...new Set(input.evidenceReferences)].map(reference => simulationCitation(store, run, reference)) };
     store.saveExperiment(record); return record;
   });
 }
@@ -96,7 +96,7 @@ export function saveSimulationMetricReview(store: Store, runId: string, body: un
     const { expectedVersion, evidenceReferences, ...fields } = input;
     const record: SimulationMetricReview = { ...fields, id: id('metric_review'), kind: 'simulation_metric_review', agentId: run.agentId, runId,
       version: expectedVersion + 1, previousId: prior?.id ?? null, createdAt: now(), evidenceBasis: run.evidenceBasis,
-      citations: [...new Set(evidenceReferences)].map(reference => cite(store, run, reference)) };
+      citations: [...new Set(evidenceReferences)].map(reference => simulationCitation(store, run, reference)) };
     store.saveExperiment(record); return record;
   });
 }
@@ -174,7 +174,7 @@ export function saveSimulationFinding(store: Store, runId: string, body: unknown
       version: input.expectedVersion + 1, previousId: prior?.id ?? null, createdAt: now(), key: input.key,
       title: input.title, claim: input.claim, alternatives: input.alternatives, followUp: input.followUp, reviewer: input.reviewer,
       status: input.status, origin, evidenceBasis: run.evidenceBasis,
-      citations: [...new Set(input.evidenceReferences)].map(reference => cite(store, run, reference)) };
+      citations: [...new Set(input.evidenceReferences)].map(reference => simulationCitation(store, run, reference)) };
     store.saveExperiment(record); return record;
   });
 }
