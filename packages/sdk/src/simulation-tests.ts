@@ -1,3 +1,4 @@
+import { researchStageContext } from './provider-observation.js';
 import { affectSimulations } from './affect-simulations.js';
 import { observatorySimulations } from './observatory-simulations.js';
 import { saveSimulationCandidates } from './simulation-research.js';
@@ -431,7 +432,7 @@ for (const enabled of [false, true]) simulationTests.push({
   limitations: manualProcedureControl.limitations + ' Review policy is an explicit researcher setting. No candidate, activation, approval, selection or reuse is forced. A successful exact-input reuse does not establish transfer, causal learning or human psychology.',
 });
 
-export type SimulationStage = { affectInputs?: EventPayloads['self.affect_selection_started'][]; affectChoices?: EventPayloads['self.affect_choice'][]; affectTrace?: { eventId: string; type: string; sequence: number }[]; affectProposals?: EventPayloads['part.affect_proposals'][]; affectDecisions?: EventPayloads['self.affect_decision'][]; affectBaselines?: EventPayloads['self.affect_baseline'][]; focusedRevisions?: EventPayloads['part.focused_bid_revision'][]; affectCycles?: EventPayloads['self.affect_cycle'][]; procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
+export type SimulationStage = { id?: string; affectInputs?: EventPayloads['self.affect_selection_started'][]; affectChoices?: EventPayloads['self.affect_choice'][]; affectTrace?: { eventId: string; type: string; sequence: number }[]; affectProposals?: EventPayloads['part.affect_proposals'][]; affectDecisions?: EventPayloads['self.affect_decision'][]; affectBaselines?: EventPayloads['self.affect_baseline'][]; focusedRevisions?: EventPayloads['part.focused_bid_revision'][]; affectCycles?: EventPayloads['self.affect_cycle'][]; procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
   temporaryScopeBudgets?: { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] }[];
   coverage?: import('../../core/src/cognition-coverage.js').CognitionCoverage[];
   experienced?: import('../../core/src/domain.js').WorldState['experienced'];
@@ -756,90 +757,99 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
         association.kind === 'disposition' ? { ...association, dispositionId: seedIds.get(association.dispositionId)! } : association) }, current.version,
         { origin: 'researcher_edit', reason: 'Explicit simulation association starting conditions', sourceIds: [run.id, definition.source] });
     }
-    for (const step of definition.steps) {
-      run.currentStep = step.name; app.store.saveExperiment(run);
-      const text = step.text?.replaceAll('{{sandbox}}', sandboxId ?? '') ?? null;
-      let target = step.executiveCheckpoint ? app.store.executions(run.agentId).find(execution => execution.status === 'running'
-        && app.store.cycle(execution.cycleId).threadId === run.id && execution.action.kind === 'operate'
-        && execution.action.operation.steps.some(tool => tool.serverId === sandboxId && tool.toolName === 'hold')) : undefined;
-      let checkpointNote: string | undefined;
-      if (target) {
-        // Observe actual apparatus submission before claiming its hold is underway. No psychological fixture is supplied.
-        const submitted = () => app.store.eventsByType(run.agentId, ['execution.tool_trace'], [target!.cycleId]).some(event =>
-          event.type === 'execution.tool_trace' && event.payload.contractId === target!.contractId && event.payload.phase === 'submitted' && event.payload.toolName === 'hold');
-        const deadline = Date.now() + 5000;
-        while (!submitted() && Date.now() < deadline && app.executiveWorkers.owns(run.agentId, target.id)) await new Promise(resolve => setTimeout(resolve, 10));
-        if (!submitted() || app.store.executions(run.agentId).find(execution => execution.id === target!.id)?.status !== 'running') {
-          checkpointNote = 'The selected apparatus did not reach a live hold within the bounded observation window; this checkpoint was not delivered.';
-          target = undefined;
-        }
+    for (const [stageIndex, step] of definition.steps.entries()) {
+      const stageId = id('simulation_stage');
+      const started = app.store.appendEvent(run.agentId, null, 'simulation.stage_started', { runId: run.id, stageId, stageIndex, name: step.name, phase: step.phase });
+      try {
+        await researchStageContext.run({ agentId: run.agentId, runId: run.id, stageId, stageIndex, startEventId: started.id }, async () => {
+          run.currentStep = step.name; app.store.saveExperiment(run);
+          const text = step.text?.replaceAll('{{sandbox}}', sandboxId ?? '') ?? null;
+          let target = step.executiveCheckpoint ? app.store.executions(run.agentId).find(execution => execution.status === 'running'
+            && app.store.cycle(execution.cycleId).threadId === run.id && execution.action.kind === 'operate'
+            && execution.action.operation.steps.some(tool => tool.serverId === sandboxId && tool.toolName === 'hold')) : undefined;
+          let checkpointNote: string | undefined;
+          if (target) {
+            // Observe actual apparatus submission before claiming its hold is underway. No psychological fixture is supplied.
+            const submitted = () => app.store.eventsByType(run.agentId, ['execution.tool_trace'], [target!.cycleId]).some(event =>
+              event.type === 'execution.tool_trace' && event.payload.contractId === target!.contractId && event.payload.phase === 'submitted' && event.payload.toolName === 'hold');
+            const deadline = Date.now() + 5000;
+            while (!submitted() && Date.now() < deadline && app.executiveWorkers.owns(run.agentId, target.id)) await new Promise(resolve => setTimeout(resolve, 10));
+            if (!submitted() || app.store.executions(run.agentId).find(execution => execution.id === target!.id)?.status !== 'running') {
+              checkpointNote = 'The selected apparatus did not reach a live hold within the bounded observation window; this checkpoint was not delivered.';
+              target = undefined;
+            }
+          }
+          if (step.executiveCheckpoint && !target && !checkpointNote) checkpointNote = 'No live Self-selected activity; this checkpoint was not delivered.';
+          const result = step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
+            : text ? await app.message(run.agentId, text, 'Scenario observer', run.id) : null;
+          if (step.settleExecutive) {
+            // Corrections can schedule a successor while the original worker settles.
+            for (let pass = 0; pass < 8; pass++) {
+              await Promise.all(app.store.executions(run.agentId).filter(execution => app.executiveWorkers.owns(run.agentId, execution.id))
+                .map(execution => app.executiveWorkers.wait(run.agentId, execution.id)));
+              await app.waitForInference(run.agentId);
+              if (!app.store.executions(run.agentId).some(execution => app.executiveWorkers.owns(run.agentId, execution.id))) break;
+              if (pass === 7) checkpointNote = 'The bounded settlement observation ended with live work; do not infer completed correction or verification.';
+            }
+          }
+          const procedureConsolidation = step.consolidateProcedures ? await app.consolidateProcedures(run.agentId)
+            : definition.consolidationPolicy ? app.procedureConsolidation.records(run.agentId).at(-1) : undefined;
+          if (procedureConsolidation?.status === 'failed') throw new Error(`Procedural inference failed: ${procedureConsolidation.error}`);
+          if (step.sleep) await app.consolidation.run(run.agentId);
+          const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
+          run.stages.push({ id: stageId, name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
+            ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {
+              remainderClaims: app.store.eventsByType(run.agentId, ['execution.remainder_claim']).flatMap(event => event.type === 'execution.remainder_claim' ? [event.payload] : []),
+              remainderReady: app.store.eventsByType(run.agentId, ['execution.remainder_ready']).flatMap(event => event.type === 'execution.remainder_ready' ? [event.payload] : []),
+              remainderFailures: app.store.eventsByType(run.agentId, ['execution.remainder_handoff_failed']).flatMap(event => event.type === 'execution.remainder_handoff_failed' ? [event.payload] : []),
+              procedureSkills: app.store.executiveSkills(run.agentId),
+              procedureReviews: app.store.eventsByType(run.agentId, ['execution.procedure_review']).flatMap(event => event.type === 'execution.procedure_review' ? [event.payload] : []),
+              executionContracts: app.store.eventsByType(run.agentId, ['execution.contract']).flatMap(event => event.type === 'execution.contract' ? [event.payload] : []),
+              toolSubmissions: app.store.eventsByType(run.agentId, ['execution.tool_trace']).flatMap(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted' ? [event.payload] : []),
+            } : {}),
+            affectInputs: events.flatMap(event => event.type === 'self.affect_selection_started' ? [event.payload] : []),
+            affectChoices: events.flatMap(event => event.type === 'self.affect_choice' ? [event.payload] : []),
+            affectTrace: events.filter(event => ['part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.affect_baseline', 'self.affect_decision', 'part.focused_bid_revision', 'self.arbitration_started', 'self.choice', 'self.affect_cycle'].includes(event.type))
+              .map(event => ({ eventId: event.id, type: event.type, sequence: event.sequence })),
+            affectProposals: events.flatMap(event => event.type === 'part.affect_proposals' ? [event.payload] : []),
+            affectDecisions: events.flatMap(event => event.type === 'self.affect_decision' ? [event.payload] : []),
+            affectBaselines: events.flatMap(event => event.type === 'self.affect_baseline' ? [event.payload] : []),
+            focusedRevisions: events.flatMap(event => event.type === 'part.focused_bid_revision' ? [event.payload] : []),
+            affectCycles: events.flatMap(event => event.type === 'self.affect_cycle' ? [event.payload] : []),
+            attention: events.flatMap(event => event.type === 'execution.attention' ? [event.payload] : []),
+            reviews: events.flatMap(event => event.type === 'execution.review_completed' ? [event.payload] : []),
+            interventions: events.flatMap(event => event.type === 'execution.intervention' ? [event.payload] : []),
+            activations: events.flatMap(event => event.type === 'construction.judgment' && event.payload.input.task === 'disposition_activation'
+              ? event.payload.scores.filter(score => (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { activationPhase?: string })?.activationPhase !== 'baseline').map(score => {
+                const disposition = (event.payload.input.candidates.find(candidate => candidate.id === score.partId)!.context as { disposition: Disposition }).disposition;
+                return { dispositionId: disposition.id, name: disposition.name,
+                  baselineScore: (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { baselineActivation?: number }).baselineActivation ?? score.score, score: score.score, active: score.score >= disposition.threshold };
+              }) : []),
+            thoughts: events.flatMap(event => event.type === 'part.thought' ? [{ partId: event.payload.partId, name: event.payload.partSnapshot.name,
+              dispositionIds: event.payload.partSnapshot.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? [],
+              thought: event.payload.output.thought, interpretation: event.payload.output.interpretation, evidenceSummary: event.payload.output.evidenceSummary, proposal: event.payload.output.proposal }] : []),
+            recalls: events.flatMap(event => event.type === 'construction.inference_started' && event.payload.task === 'part_cognition'
+              ? [{ partId: event.payload.workingParts?.[0]?.id ?? null, dispositionIds: event.payload.dispositions?.map(d => d.id) ?? [], memoryIds: event.payload.memories?.map(m => m.id) ?? [] }] : []),
+            temporaryScopeBudgets: events.flatMap(event => event.type === 'construction.temporary_scope_budget' ? [event.payload] : []),
+            coverage: events.flatMap(event => event.type === 'cognition.coverage' ? [event.payload] : []),
+            experienced: events.flatMap(event => event.type === 'worldstate.frozen' ? [event.payload.experienced] : []).at(-1),
+            observations: events.flatMap(event => event.type === 'worldstate.frozen' ? [event.payload.facts] : []).at(-1) ?? [],
+            transitions: events.flatMap(event => event.type === 'self.experienced_transition' ? [event.payload] : []),
+            predictionChecks: events.flatMap(event => event.type === 'prediction.outcome_checked'
+              ? [{ predictionId: event.payload.predictionId, outcome: event.payload.outcome }] : []),
+            inquiries: events.flatMap(event => event.type === 'self.question' ? [event.payload] : []),
+            recruitedScopes: events.flatMap(event => event.type === 'construction.inference_started' && event.payload.task === 'part_cognition' && event.payload.question
+              ? event.payload.dispositions?.map(disposition => disposition.id) ?? [] : []),
+            selfChoices: events.flatMap(event => event.type === 'self.choice' ? [event.payload] : []),
+            executions: result ? app.store.executions(run.agentId).filter(execution => execution.cycleId === result.cycle.id) : [],
+            parts: app.store.list('part', run.agentId), predictions: app.store.list('prediction', run.agentId),
+            memories: app.store.list('memory', run.agentId), dispositions: app.store.list('disposition', run.agentId) });
+          app.store.saveExperiment(run);
+        });
+        app.store.appendEvent(run.agentId, null, 'simulation.stage_completed', { runId: run.id, stageId, stageIndex, startEventId: started.id });
+      } catch (error) {
+        app.store.appendEvent(run.agentId, null, 'simulation.stage_failed', { runId: run.id, stageId, stageIndex, startEventId: started.id }); throw error;
       }
-      if (step.executiveCheckpoint && !target && !checkpointNote) checkpointNote = 'No live Self-selected activity; this checkpoint was not delivered.';
-      const result = step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
-        : text ? await app.message(run.agentId, text, 'Scenario observer', run.id) : null;
-      if (step.settleExecutive) {
-        // Corrections can schedule a successor while the original worker settles.
-        for (let pass = 0; pass < 8; pass++) {
-          await Promise.all(app.store.executions(run.agentId).filter(execution => app.executiveWorkers.owns(run.agentId, execution.id))
-            .map(execution => app.executiveWorkers.wait(run.agentId, execution.id)));
-          await app.waitForInference(run.agentId);
-          if (!app.store.executions(run.agentId).some(execution => app.executiveWorkers.owns(run.agentId, execution.id))) break;
-          if (pass === 7) checkpointNote = 'The bounded settlement observation ended with live work; do not infer completed correction or verification.';
-        }
-      }
-      const procedureConsolidation = step.consolidateProcedures ? await app.consolidateProcedures(run.agentId)
-        : definition.consolidationPolicy ? app.procedureConsolidation.records(run.agentId).at(-1) : undefined;
-      if (procedureConsolidation?.status === 'failed') throw new Error(`Procedural inference failed: ${procedureConsolidation.error}`);
-      if (step.sleep) await app.consolidation.run(run.agentId);
-      const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
-      run.stages.push({ name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
-        ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {
-          remainderClaims: app.store.eventsByType(run.agentId, ['execution.remainder_claim']).flatMap(event => event.type === 'execution.remainder_claim' ? [event.payload] : []),
-          remainderReady: app.store.eventsByType(run.agentId, ['execution.remainder_ready']).flatMap(event => event.type === 'execution.remainder_ready' ? [event.payload] : []),
-          remainderFailures: app.store.eventsByType(run.agentId, ['execution.remainder_handoff_failed']).flatMap(event => event.type === 'execution.remainder_handoff_failed' ? [event.payload] : []),
-          procedureSkills: app.store.executiveSkills(run.agentId),
-          procedureReviews: app.store.eventsByType(run.agentId, ['execution.procedure_review']).flatMap(event => event.type === 'execution.procedure_review' ? [event.payload] : []),
-          executionContracts: app.store.eventsByType(run.agentId, ['execution.contract']).flatMap(event => event.type === 'execution.contract' ? [event.payload] : []),
-          toolSubmissions: app.store.eventsByType(run.agentId, ['execution.tool_trace']).flatMap(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted' ? [event.payload] : []),
-        } : {}),
-        affectInputs: events.flatMap(event => event.type === 'self.affect_selection_started' ? [event.payload] : []),
-        affectChoices: events.flatMap(event => event.type === 'self.affect_choice' ? [event.payload] : []),
-        affectTrace: events.filter(event => ['part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.affect_baseline', 'self.affect_decision', 'part.focused_bid_revision', 'self.arbitration_started', 'self.choice', 'self.affect_cycle'].includes(event.type))
-          .map(event => ({ eventId: event.id, type: event.type, sequence: event.sequence })),
-        affectProposals: events.flatMap(event => event.type === 'part.affect_proposals' ? [event.payload] : []),
-        affectDecisions: events.flatMap(event => event.type === 'self.affect_decision' ? [event.payload] : []),
-        affectBaselines: events.flatMap(event => event.type === 'self.affect_baseline' ? [event.payload] : []),
-        focusedRevisions: events.flatMap(event => event.type === 'part.focused_bid_revision' ? [event.payload] : []),
-        affectCycles: events.flatMap(event => event.type === 'self.affect_cycle' ? [event.payload] : []),
-        attention: events.flatMap(event => event.type === 'execution.attention' ? [event.payload] : []),
-        reviews: events.flatMap(event => event.type === 'execution.review_completed' ? [event.payload] : []),
-        interventions: events.flatMap(event => event.type === 'execution.intervention' ? [event.payload] : []),
-        activations: events.flatMap(event => event.type === 'construction.judgment' && event.payload.input.task === 'disposition_activation'
-          ? event.payload.scores.filter(score => (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { activationPhase?: string })?.activationPhase !== 'baseline').map(score => {
-            const disposition = (event.payload.input.candidates.find(candidate => candidate.id === score.partId)!.context as { disposition: Disposition }).disposition;
-            return { dispositionId: disposition.id, name: disposition.name,
-              baselineScore: (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { baselineActivation?: number }).baselineActivation ?? score.score, score: score.score, active: score.score >= disposition.threshold };
-          }) : []),
-        thoughts: events.flatMap(event => event.type === 'part.thought' ? [{ partId: event.payload.partId, name: event.payload.partSnapshot.name,
-          dispositionIds: event.payload.partSnapshot.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? [],
-          thought: event.payload.output.thought, interpretation: event.payload.output.interpretation, evidenceSummary: event.payload.output.evidenceSummary, proposal: event.payload.output.proposal }] : []),
-        recalls: events.flatMap(event => event.type === 'construction.inference_started' && event.payload.task === 'part_cognition'
-          ? [{ partId: event.payload.workingParts?.[0]?.id ?? null, dispositionIds: event.payload.dispositions?.map(d => d.id) ?? [], memoryIds: event.payload.memories?.map(m => m.id) ?? [] }] : []),
-        temporaryScopeBudgets: events.flatMap(event => event.type === 'construction.temporary_scope_budget' ? [event.payload] : []),
-        coverage: events.flatMap(event => event.type === 'cognition.coverage' ? [event.payload] : []),
-        experienced: events.flatMap(event => event.type === 'worldstate.frozen' ? [event.payload.experienced] : []).at(-1),
-        observations: events.flatMap(event => event.type === 'worldstate.frozen' ? [event.payload.facts] : []).at(-1) ?? [],
-        transitions: events.flatMap(event => event.type === 'self.experienced_transition' ? [event.payload] : []),
-        predictionChecks: events.flatMap(event => event.type === 'prediction.outcome_checked'
-          ? [{ predictionId: event.payload.predictionId, outcome: event.payload.outcome }] : []),
-        inquiries: events.flatMap(event => event.type === 'self.question' ? [event.payload] : []),
-        recruitedScopes: events.flatMap(event => event.type === 'construction.inference_started' && event.payload.task === 'part_cognition' && event.payload.question
-          ? event.payload.dispositions?.map(disposition => disposition.id) ?? [] : []),
-        selfChoices: events.flatMap(event => event.type === 'self.choice' ? [event.payload] : []),
-        executions: result ? app.store.executions(run.agentId).filter(execution => execution.cycleId === result.cycle.id) : [],
-        parts: app.store.list('part', run.agentId), predictions: app.store.list('prediction', run.agentId),
-        memories: app.store.list('memory', run.agentId), dispositions: app.store.list('disposition', run.agentId) });
-      app.store.saveExperiment(run);
     }
     run.measures = measureSimulation(definition, run.stages); run.status = 'completed'; run.currentStep = 'Completed';
   } catch (error) {

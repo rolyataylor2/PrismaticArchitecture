@@ -67,7 +67,7 @@ test('dimension reviews preserve operationalization, frozen attribution/history 
       operationalization: 'Count recorded recall groups; quality remains ungraded.', rationale: 'Descriptive fixture measurement only.', limitations: 'Mock behavior and no independent benefit labels.',
       value: 2, unit: 'recall groups', evidenceReferences: [`/events/${unassigned.id}`], expectedVersion: 0 };
     const first = saveSimulationMetricReview(store, left.id, input);
-    assert.equal(first.citations[0]!.attribution, 'run_window_unassigned'); assert.deepEqual(first.citations[0]!.value, unassigned);
+    assert.equal(first.citations[0]!.attribution, 'recorded_stage'); assert.deepEqual(first.citations[0]!.value, unassigned);
     saveSimulationMetricReview(store, right.id, { ...input, value: 4, evidenceReferences: ['/stages/0/thoughts'] });
     const all = () => store.experiments().filter(item => item.kind === 'simulation_metric_review') as typeof first[];
     let group = aggregateSimulations([left, right], all())[0]!.dimensionReviews.find(item => item.metricId === input.metricId)!;

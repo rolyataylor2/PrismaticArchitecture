@@ -1,4 +1,4 @@
-import { observeProvider, providerOperationContext, suppressProviderObservation } from './provider-observation.js';
+import { observeProvider, providerOperationContext, researchStageContext, suppressProviderObservation } from './provider-observation.js';
 import { projectEnvironmentValue } from '../../providers/src/environment.js';
 import { SelectedSkillReview } from './selected-skill-review.js';
 import { ProcedureConsolidator } from './procedure-consolidation.js';
@@ -88,7 +88,13 @@ export class Application {
     this.agentSkillPackages = new AgentSkillPackages(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
     this.agentSkillImports = new AgentSkillImports(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
     this.executiveSkills = new ExecutiveSkills(store, skill => this.agentSkillPackages.schedule(skill));
-    const observeUsage: UsageObserver = record => { if (suppressProviderObservation.getStore()) return; store.appendEvent(record.agentId, record.cycleId, 'provider.usage', { ...record.usage, ...(providerOperationContext.getStore() ? { operationId: providerOperationContext.getStore()! } : {}) }); };
+    const observeUsage: UsageObserver = record => {
+      if (suppressProviderObservation.getStore()) return;
+      const scope = researchStageContext.getStore(); const operationId = providerOperationContext.getStore();
+      store.appendEvent(record.agentId, record.cycleId, 'provider.usage', { ...record.usage,
+        ...(scope?.agentId === record.agentId ? { researchScope: { runId: scope.runId, stageId: scope.stageId, stageIndex: scope.stageIndex, startEventId: scope.startEventId } } : {}),
+        ...(operationId ? { operationId } : {}) });
+    };
     this.providers = { ...providers, decisions: observeProvider(store, providers.decisions, 'decisions'), reasoning: observeProvider(store, new AgentReasoningProvider(providers.reasoning, agentId => {
       const settings = store.agentProviderSettings(agentId);
       if (!settings) return providers.reasoning;

@@ -482,13 +482,15 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     }
 
   const operations = card(host, 'Provider operation diagnostics', `${analysis.providerOperations.length} recorded operations · ${analysis.providerOperations.filter(item => item.phase === 'failed').length} failures`);
-  operations.append(node('p', 'Adapter returns, runtime validation and admission are distinct. Unreported usage, cache, cost and causal parents stay unavailable. Calls without explicit cycle attribution remain unassigned.'));
-  table(operations, ['Component / task', 'Provider', 'Status', 'Elapsed', 'Cycle', 'Diagnostics'], analysis.providerOperations.map(item => {
+  table(operations, ['Stage', 'Phase', 'Status', 'Audit identity'], analysis.stageAttempts.map(attempt => [attempt.name, attempt.phase,
+    attempt.end?.type === 'simulation.stage_completed' ? 'Completed' : attempt.end?.type === 'simulation.stage_failed' ? 'Failed' : 'No terminal capture', `${attempt.stageId} · ${attempt.startEventId}`]), 'Recorded stage attempts');
+  operations.append(node('p', 'Adapter returns, runtime validation and admission are distinct. Unreported usage, cache, cost and causal parents stay unavailable. Calls without a cycle retain recorded stage attribution when available; historical missing scope remains unassigned.'));
+  table(operations, ['Component / task', 'Provider', 'Status', 'Elapsed', 'Recorded attribution', 'Diagnostics'], analysis.providerOperations.map(item => {
     const evidence = disclosure(document.createElement('div'), 'Exact operation input/output and prompts', item);
     const wrapper = document.createElement('div'); wrapper.append(evidence);
     if (item.cycleId) button(wrapper, 'Inspect operation source cycle', () => cycle(item.cycleId!, run.agentId), fail);
     return [`${item.component} · ${readable(item.task)}`, item.provider, item.phase,
-      item.elapsedMs === null ? 'Unavailable' : `${item.elapsedMs.toFixed(1)} ms`, item.cycleId ? 'Recorded source cycle' : 'Unassigned', wrapper];
+      item.elapsedMs === null ? 'Unavailable' : `${item.elapsedMs.toFixed(1)} ms`, item.researchScope ? `Recorded stage ${item.researchScope.stageIndex + 1}` : item.cycleId ? 'Recorded source cycle' : 'Unassigned', wrapper];
   }), 'Provider operations');
   if (!analysis.providerOperations.length) operations.append(node('p', 'This historical run has no operation instrumentation; missing records cannot be reconstructed.'));
   for (const item of analysis.providerOperations.filter(item => item.error)) {

@@ -7,6 +7,7 @@ import type { ProviderOperation } from '../../core/src/provider-operation.js';
 import { promptSettings } from './prompt-settings.js';
 export const suppressProviderObservation = new AsyncLocalStorage<boolean>();
 export const providerOperationContext = new AsyncLocalStorage<string>();
+export const researchStageContext = new AsyncLocalStorage<NonNullable<ProviderOperation['researchScope']> & { agentId: string }>();
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value) ?? 'undefined').digest('hex');
 const tasks: Record<string, string[]> = {
   cognize: ['cognition'], predict: ['prediction'], evaluate: ['evaluation'], question: ['deliberation'], answer: ['answer'],
@@ -36,7 +37,9 @@ export function observeProvider<T extends { label: string }>(store: Store, provi
       const catalog = promptSettings(store, agentId);
       const startedAt = now(); const started = performance.now();
       const inputArguments = structuredClone(args);
+      const scope = researchStageContext.getStore();
       const operation: ProviderOperation = { operationId: id('operation'), parentOperationId: providerOperationContext.getStore() ?? null, component, method,
+        ...(scope?.agentId === agentId ? { researchScope: { runId: scope.runId, stageId: scope.stageId, stageIndex: scope.stageIndex, startEventId: scope.startEventId } } : {}),
         task: taskNames.join(' + ') || method, provider: providerLabel, phase: 'started', startedAt, finishedAt: null, elapsedMs: null,
         input: { id: id('provider_input'), hash: hash(inputArguments), arguments: inputArguments, worldId: context?.world?.id ?? null,
           partId: context?.part?.id ?? null, predictionId: context?.prediction?.id ?? null }, output: null,

@@ -153,6 +153,8 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('tab', { name: 'Diagnostics & Evidence', exact: true }).click(); await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();
     await panel.getByRole('heading', { name: 'Provider operation diagnostics', exact: true }).waitFor();
+    assert.equal(await panel.getByRole('table', { name: 'Recorded stage attempts', exact: true }).locator('tbody tr').count(), run.stages.length);
+    assert.ok(await panel.getByRole('table', { name: 'Provider operations', exact: true }).locator('tbody tr td:nth-child(5)').filter({ hasText: /^Recorded stage \d+$/ }).count() > 0);
     await panel.getByRole('heading', { name: 'Runtime output validation', exact: true }).waitFor();
     assert.ok(await panel.getByRole('table', { name: 'Runtime validation checks', exact: true }).locator('tbody tr').count() > 0);
     assert.ok(await panel.getByRole('table', { name: 'Provider operations', exact: true }).locator('tbody tr').count() > 0);
@@ -162,7 +164,14 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByLabel('Reviewer', { exact: true }).fill('Browser researcher');
     await panel.getByLabel('Review rationale', { exact: true }).fill('The preserved thought exists; mock behavior establishes harness inspection only.');
     await panel.getByLabel('Evidence references (one per line)', { exact: true }).fill('/stages/0/thoughts');
-    await panel.getByRole('button', { name: 'Save criterion review', exact: true }).click();
+    try { await panel.getByRole('button', { name: 'Save criterion review', exact: true }).click(); }
+    catch (error) {
+      await page.screenshot({ path: '/tmp/prism-stage-review-click.png' });
+      process.stderr.write(JSON.stringify(await panel.getByRole('button', { name: 'Save criterion review', exact: true }).evaluate(element => ({
+        disabled: (element as HTMLButtonElement).disabled, rect: element.getBoundingClientRect().toJSON(), display: getComputedStyle(element).display,
+        parentRect: element.parentElement?.getBoundingClientRect().toJSON(), scrollY: window.scrollY,
+      }))) + '\n'); throw error;
+    }
     await panel.getByText(/Browser researcher · v1/).waitFor();
     assert.equal(simulationResearch(store, run.id).reviews[0]!.version, 1);
     await panel.getByLabel('Review rationale', { exact: true }).fill('Revised human interpretation; evidence remains a mock fixture.');

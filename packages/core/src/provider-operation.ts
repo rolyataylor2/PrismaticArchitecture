@@ -1,5 +1,7 @@
 /** Research audit only. An adapter return does not establish downstream contract validity. */
+export type ResearchStageReference = { runId: string; stageId: string; stageIndex: number; startEventId: string };
 export type ProviderOperation = {
+  researchScope?: ResearchStageReference;
   operationId: string; parentOperationId: string | null; component: 'reasoning' | 'decisions'; method: string; task: string;
   provider: string; phase: 'started' | 'returned' | 'failed'; startedAt: string; finishedAt: string | null; elapsedMs: number | null;
   input: { id: string; hash: string; arguments: unknown[]; worldId: string | null; partId: string | null; predictionId: string | null };

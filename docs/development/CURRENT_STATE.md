@@ -1,3 +1,9 @@
+## Observatory explicit invoking-stage scope milestone — 2026-10-11
+
+New simulations record stage start/completion/failure identities. SDK async audit metadata attributes provider operations and usage to the invoking run/stage/start event, including world-blind/offline calls and late descendants. Provider inputs/prompts and cognitive state receive no metadata; absent cycles remain null. Concurrent/unrelated/foreign contexts stay isolated. Projections/citations prioritize recorded scope, retain historical fallback as weaker attribution and show stage attempts separately from completed snapshots.
+
+Corrected provider/scope/projection/metric/research checks pass 12/12, replay/evaluator/lineage checks 10/10 and final actual Chrome 1/1, zero skips (`/tmp/prism-stage-scope-*.log`); strict lint/build pass. Four fresh fixture SQLite/JSON report sets are preserved under ignored `workspace/simulations/observatory-stage-scope-verification`, completed and semantically inconclusive. Full goal remains active: broader offline-event/admission, knowledge provenance, candidate coverage and final scope audit remain. No blocker. Unrelated generated workspace skills remain excluded.
+
 ## Observatory scoped longitudinal judgments milestone — 2026-10-11
 
 Dimension reviews now have whole-run or explicit stage scopes with independent optimistic histories and local evidence requirements. Before/after comparisons select only matching stage judgments, retain exact methods/limitations/citations and compute descriptive numeric differences only for identical methods/units. Missing scoped reviews remain unavailable. Whole-run aggregation excludes all stage reviews. Development and contextual reports preserve chronological latest stage judgments separately from whole-run reviews; no learning verdict or global quality score is inferred.

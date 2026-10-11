@@ -1,5 +1,6 @@
 import { simulationMetrics } from './simulation-metrics.js';
 import { simulationEventFocus } from './simulation-event-focus.js';
+import { simulationEventScope } from './simulation-event-scope.js';
 import type { CognitiveEvent, Store } from '../../core/src/contracts.js';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
 import { simulationLineage } from './simulation-lineage.js';
@@ -8,6 +9,7 @@ import { stageMeasures } from './simulation-comparison.js';
 export const simulationLanes = ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning'] as const;
 type Lane = typeof simulationLanes[number];
 function lane(type: string, payload?: unknown): Lane {
+  if (type.startsWith('simulation.stage_')) return 'Environment';
   if (type === 'provider.operation' || type === 'provider.usage' || type === 'runtime.validation') {
     const task = (payload as { task?: string } | undefined)?.task ?? '';
     if (/activation|hypothesis_outcome|prediction_outcome/.test(task)) return /activation/.test(task) ? 'Activation' : 'Learning';
@@ -38,10 +40,13 @@ function changes<T extends Versioned>(before: T[], after: T[]) {
 export function analyzeSimulation(store: Store, run: SimulationRun) {
   const recorded = store.events(run.agentId);
   const cycleIds = new Set(run.stages.flatMap(stage => stage.cycleId ? [stage.cycleId] : []));
-  const events = recorded.filter(event => event.cycleId && cycleIds.has(event.cycleId));
+  const inRun = (event: CognitiveEvent) => simulationEventScope(event)?.runId === run.id
+    || (!simulationEventScope(event) && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt));
+  const events = recorded.filter(event => simulationEventScope(event)?.runId === run.id || (event.cycleId && cycleIds.has(event.cycleId)));
   const stages = run.stages.map((stage, index) => {
     const previous = run.stages[index - 1];
-    const trace = events.filter(event => event.cycleId === stage.cycleId);
+    const trace = events.filter(event => simulationEventScope(event)?.runId === run.id && simulationEventScope(event)?.stageId === stage.id
+      || (!!stage.cycleId && event.cycleId === stage.cycleId && !simulationEventScope(event)));
     return { index, name: stage.name, phase: stage.phase, cycleId: stage.cycleId,
       measures: stageMeasures(stage),
       lifecycle: { formed: stage.parts.filter(part => part.instance?.createdCycle === stage.cycleId && stage.cycleId).map(part => part.id),
@@ -55,7 +60,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
         dispositions: changes(previous?.dispositions ?? [], stage.dispositions),
       },
       trace: trace.map(event => ({ id: event.id, sequence: event.sequence, at: event.at, type: event.type, lane: lane(event.type, event.payload),
-        runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : null,
+        runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : simulationEventScope(event)?.startEventId === event.id ? null : simulationEventScope(event)?.startEventId ?? null,
         references: simulationEventFocus(run, events, event.payload), provenance: 'recorded audit event' as const, payload: event.payload })),
       traceAvailable: trace.length > 0,
       eligibility: trace.flatMap(event => event.type === 'construction.eligibility' ? [{ eventId: event.id, ...event.payload }] : []),
@@ -130,20 +135,23 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
     && (!run.finishedAt || cycle.startedAt <= run.finishedAt));
   const failedAttempts = relatedCycles.filter(cycle => cycle.status === 'failed').map(cycle => ({ cycle,
     events: recorded.filter(event => event.cycleId === cycle.id) }));
-  const providerEvents = recorded.filter(event => event.type === 'provider.operation' && event.at >= run.createdAt
-    && (!run.finishedAt || event.at <= run.finishedAt));
+  const providerEvents = recorded.filter(event => event.type === 'provider.operation' && inRun(event));
   const providerOperations = [...new Map(providerEvents.flatMap(event => event.type === 'provider.operation'
     ? [[event.payload.operationId, { eventId: event.id, cycleId: event.cycleId, ...event.payload }] as const] : [])).values()];
   const validations = recorded.flatMap(event => event.type === 'runtime.validation' && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt)
     ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);
-  const usage = recorded.flatMap(event => event.type === 'provider.usage' && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt)
+  const usage = recorded.flatMap(event => event.type === 'provider.usage' && inRun(event)
     ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);
+  const stageAttempts = recorded.flatMap(event => event.type === 'simulation.stage_started' && event.payload.runId === run.id ? [{
+    ...event.payload, startEventId: event.id, startedAt: event.at,
+    end: recorded.find(item => (item.type === 'simulation.stage_completed' || item.type === 'simulation.stage_failed') && item.payload.startEventId === event.id) ?? null,
+  }] : []);
   return { runId: run.id, agentId: run.agentId, status: run.status, evidenceBasis: run.evidenceBasis,
     summary: { completedStages: run.stages.length, totalStages: run.totalSteps,
       controls: run.stages.filter(stage => stage.phase === 'control').length,
       hypothesis: 'Review recorded criteria; execution completion does not establish the hypothesis.',
       changedObjects: stages.reduce((count, stage) => count + Object.values(stage.changes).reduce((sum, entries) => sum + entries.length, 0), 0),
-      error: run.error }, stages, activation, predictions, parts, memories, providerOperations, validations, providerUsage: usage, lineage: simulationLineage(run, events), metrics: simulationMetrics(run, recorded.filter(event => event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt))), coactivation: [...coactivation.values()], failedAttempts,
+      error: run.error }, stages, stageAttempts, activation, predictions, parts, memories, providerOperations, validations, providerUsage: usage, lineage: simulationLineage(run, events), metrics: simulationMetrics(run, recorded.filter(inRun)), coactivation: [...coactivation.values()], failedAttempts,
     gaps: ['Causal parents are unavailable unless explicitly recorded; chronological proximity is not causation.',
       'Memory creation and object-version changes do not establish learning effectiveness or transfer.',
       ...(stages.some(stage => !stage.traceAvailable) ? ['Some stages have no recorded cycle trace (including offline-only stages); snapshots remain available.'] : [])] };

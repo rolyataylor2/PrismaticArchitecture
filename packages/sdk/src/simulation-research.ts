@@ -1,3 +1,4 @@
+import { simulationEventScope } from './simulation-event-scope.js';
 import { researchMetricCatalog } from './simulation-metrics.js';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -21,7 +22,7 @@ export const SimulationMetricReviewInput = z.strictObject({ metricId: z.enum(res
   value: z.number().finite().min(-1e9).max(1e9).nullable().default(null), unit: z.string().trim().min(1).max(120).nullable().default(null),
   evidenceReferences: references, expectedVersion: z.number().int().min(0) });
 export type SimulationMetricReview = RecordBase & Omit<z.infer<typeof SimulationMetricReviewInput>, 'expectedVersion' | 'evidenceReferences' | 'stageIndex'> & { kind: 'simulation_metric_review'; stageIndex?: number | null };
-type Citation = { attribution: 'frozen_run' | 'recorded_cycle' | 'run_window_unassigned'; reference: string; runId: string; evidenceBasis: SimulationRun['evidenceBasis']; runStatus: SimulationRun['status']; value: unknown; hash: string };
+type Citation = { attribution: 'frozen_run' | 'recorded_cycle' | 'run_window_unassigned' | 'recorded_stage'; reference: string; runId: string; evidenceBasis: SimulationRun['evidenceBasis']; runStatus: SimulationRun['status']; value: unknown; hash: string };
 type RecordBase = { id: string; agentId: string; runId: string; version: number; previousId: string | null; createdAt: string; citations: Citation[]; evidenceBasis: SimulationRun['evidenceBasis'] };
 export type SimulationReview = RecordBase & Omit<z.infer<typeof SimulationReviewInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_review' };
 export type SimulationFinding = RecordBase & Omit<z.infer<typeof SimulationFindingInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_finding'; origin: 'mechanical_candidate' | 'model_assessment' | 'researcher' };
@@ -54,10 +55,10 @@ export function simulationCitation(store: Store, run: SimulationRun, reference: 
     const eventId = keys[1];
     const cycleIds = new Set(run.stages.flatMap(stage => stage.cycleId ? [stage.cycleId] : []));
     for (const cycle of store.cycles(run.agentId)) if (cycle.threadId === run.id && cycle.startedAt >= run.createdAt && (!run.finishedAt || cycle.startedAt <= run.finishedAt)) cycleIds.add(cycle.id);
-    root = store.events(run.agentId).find(event => event.id === eventId && (event.cycleId ? cycleIds.has(event.cycleId)
+    root = store.events(run.agentId).find(event => event.id === eventId && (simulationEventScope(event) ? simulationEventScope(event)!.runId === run.id : event.cycleId ? cycleIds.has(event.cycleId)
       : ['provider.operation', 'provider.usage', 'runtime.validation', 'construction.inference_started', 'consolidation.started', 'consolidation.completed'].includes(event.type)
         && event.at >= run.createdAt && !!run.finishedAt && event.at <= run.finishedAt));
-    attribution = (root as { cycleId?: string | null } | undefined)?.cycleId ? 'recorded_cycle' : 'run_window_unassigned';
+    attribution = root && simulationEventScope(root as import('../../core/src/contracts.js').CognitiveEvent) ? 'recorded_stage' : (root as { cycleId?: string | null } | undefined)?.cycleId ? 'recorded_cycle' : 'run_window_unassigned';
     keys = keys.slice(2);
   } else if (!['stages', 'measures', 'specification', 'assessments', 'executiveEvidence', 'startingConfiguration', 'error'].includes(keys[0] ?? '')) throw new Error('Reference is outside the preserved research evidence');
   let value = root;

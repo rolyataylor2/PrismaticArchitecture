@@ -10,6 +10,8 @@ Timeline zoom switches between a seven-lane run/stage matrix, stage events and a
 
 Run Explorer adds an Evidence-linked run report answering what worked, what was surprising, what remains unknown, what changed and what to inspect next. Every interpretation retains its evidence basis and latest saved review version. Change/event controls navigate the coordinated inspector; other references progressively disclose exact cited evidence, including paired runs.
 
+Diagnostics displays recorded stage attempts separately from completed snapshots and shows explicit stage attribution for provider operations. Run timelines include stage boundaries and scoped world-blind/offline calls while keeping their null cycle IDs. Failed stage attempts retain their recorded start/failure identities; missing historical scopes remain unavailable.
+
 Dimension evidence scope selects the whole run or a specific recorded stage, preserving independent version histories. Development exposes chronological stage judgments with source inspection. Comparisons shows scope-matched baseline/follow-up judgments, exact evidence and methods/limitations; mismatched methods/units or missing scoped reviews leave the difference unavailable. Whole-run judgments and trial aggregation remain separate.
 
 Diagnostics includes a readable Prediction alignment assessments table with provisional mismatch meaning, model/version provenance, counterevidence, limitations, frozen rubric/citations and authoritative source-cycle links. Linked prediction events open their ledger, owner and recorded memory lineage. Authored browser fixtures verify this navigation without claiming cognitive validity.

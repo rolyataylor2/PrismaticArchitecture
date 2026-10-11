@@ -66,7 +66,10 @@ export type EventPayloads = {
   'execution.procedure_review': { contractId: string; skillId: string; sourceVersion: number; resultVersion: number; decision: 'approval' | 'rejection'; reason: string; packageDigest: string }; 
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
   'provider.operation': import('./provider-operation.js').ProviderOperation;
-  'provider.usage': { operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'provider.usage': { researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'simulation.stage_started': { runId: string; stageId: string; stageIndex: number; name: string; phase: 'control' | 'training' | 'probe' };
+  'simulation.stage_completed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
+  'simulation.stage_failed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
   'construction.inference_started': import('./constructed-domain.js').ConstructedInput;
   'construction.eligibility': { worldId: string; threadId: string | null; inquiry: string | null; scopes: {
     dispositionId: string; name: string; version: number; temporary: boolean; threshold: number; eligible: boolean; reasons: string[] }[] };
