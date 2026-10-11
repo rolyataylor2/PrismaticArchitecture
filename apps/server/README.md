@@ -1,5 +1,7 @@
 Affect Analysis is served as a browser module and uses the shared read-only researcher API. Its POST query receives ordinary same-origin JSON validation without mutating Agent state.
 
+The simulation Observatory is served as `/simulation-observatory.js`. Shared SDK APIs supply read-only analysis/comparisons and separately versioned privileged researcher reviews/findings. Review writes use the same same-origin JSON protections as existing local administration; no public unauthenticated deployment is introduced.
+
 # Local research server
 
 Node HTTP serves the browser and validated shared application API on loopback. SSE carries persisted cognitive events with numeric resume IDs. Inspection is privileged; model contexts remain restricted. Mutating browser requests require same-origin JSON. This local demo is not an authenticated multi-user deployment.

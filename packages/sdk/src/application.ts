@@ -15,7 +15,7 @@ import { NativeExecutiveExecutor } from '../../executive/src/native-executor.js'
 import { BackgroundExecutiveExecutor } from '../../executive/src/background-executor.js';
 import { validateExecutionUpdate } from '../../core/src/execution-lifecycle.js';
 import type { ExternalCapabilities } from '../../core/src/mcp-configuration.js';
-import { ExecutionSchema, id, now, type Change, type Execution, type Fact } from '../../core/src/domain.js';
+import { ExecutionSchema, freeze, id, now, type Change, type Execution, type Fact } from '../../core/src/domain.js';
 import type { DecisionProvider, EmbeddingProvider, Executor, ReasoningProvider, Store } from '../../core/src/contracts.js';
 import { CognitiveRuntime, defaultRuntimeOptions, type RuntimeOptions } from '../../core/src/runtime.js';
 import { Inspection } from '../../core/src/inspection.js';
@@ -46,6 +46,7 @@ export class Application {
   readonly runtime: CognitiveRuntime;
   readonly consolidation: Consolidation;
   readonly providers: { decisions: DecisionProvider; reasoning: ReasoningProvider; embeddings: EmbeddingProvider };
+  readonly runtimeConfiguration: RuntimeOptions;
   readonly #vault: SecretVault;
   readonly executiveWorkers: BackgroundExecutiveExecutor;
   readonly #inference = new Map<string, Promise<void>>();
@@ -55,6 +56,7 @@ export class Application {
     decisions: new MockDecisions(), reasoning: new MockReasoning(), embeddings: new MockEmbeddings(),
   }, executor?: Executor, options: RuntimeOptions = defaultRuntimeOptions,
   vault = new SecretVault()) {
+    this.runtimeConfiguration = freeze(structuredClone(options));
     this.#vault = vault;
     this.executiveConnections = new ExecutiveConnections(store, trace => {
       if (this.#closing || !store.executiveProfile(trace.agentId).enabled || !store.executiveProfile(trace.agentId).attention.enabled) return;

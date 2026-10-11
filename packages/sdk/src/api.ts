@@ -1,5 +1,7 @@
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
+import { researchRun, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
+import { compareSimulations, compareSimulationStages, aggregateSimulations } from './simulation-comparison.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
@@ -55,6 +57,24 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'POST') return runExperiment(app, z.strictObject({ name: z.enum(experimentNames) }).parse(body).name);
   }
   if (resource === 'simulation-tests') {
+    if (method === 'POST' && entityId === 'compare-stages' && !action) {
+      const input = z.strictObject({ leftRunId: Text, rightRunId: Text, leftIndex: z.number().int().min(0), rightIndex: z.number().int().min(0) }).parse(body);
+      return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex);
+    }
+    if (method === 'POST' && entityId === 'compare' && !action) {
+      const input = z.strictObject({ leftRunId: Text, rightRunId: Text }).parse(body);
+      return compareSimulations(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId));
+    }
+    if (method === 'POST' && entityId === 'aggregate' && !action) {
+      const input = z.strictObject({ runIds: z.array(Text).max(200) }).parse(body);
+      return aggregateSimulations([...new Set(input.runIds)].map(runId => researchRun(app.store, runId)));
+    }
+    if (entityId && action === 'research') {
+      if (method === 'GET') return { ...simulationResearch(app.store, entityId), candidates: simulationCandidates(app.store, researchRun(app.store, entityId)) };
+      if (method === 'POST' && subresource === 'reviews') return saveSimulationReview(app.store, entityId, body);
+      if (method === 'POST' && subresource === 'findings') return saveSimulationFinding(app.store, entityId, body);
+      if (method === 'POST' && subresource === 'candidates') return saveSimulationCandidates(app.store, entityId);
+    }
     if (method === 'GET' && entityId && action === 'analysis') {
       const run = listSimulationRuns(app).find(item => item.id === entityId);
       if (!run) throw new Error('Unknown simulation run');

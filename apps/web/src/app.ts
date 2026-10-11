@@ -7,7 +7,7 @@ import type { CognitiveEvent } from '../../../packages/core/src/contracts.js';
 import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { IdentityQuestionGroup } from '../../../packages/sdk/src/identity-questions.js';
 import type { SimulationTestDefinition, SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
-import type { SimulationAnalysis } from '../../../packages/sdk/src/simulation-analysis.js';
+import { simulationRunAnalysis, observatoryShell } from './simulation-observatory.js';
 
 const dispositionAssociations = (item: AgentSnapshot['dispositions'][number]): ActivationAssociation[] =>
   item.activationAssociations ?? item.prerequisites.map(dispositionId => ({ kind: 'disposition', dispositionId, effect: 'contribute' }));
@@ -3645,72 +3645,13 @@ function experiments(): void {
 
 let simulationMode: 'fixture' | 'configured' = 'fixture';
 let simulationTestId = '';
-function simulationRunAnalysis(run: SimulationRun): HTMLElement {
-  const host = node('div');
-  const open = button('Explore run analytics', async () => {
-    const agentAtRequest = selectedAgent;
-    const analysis = await api<SimulationAnalysis>(`simulation-tests/${encodeURIComponent(run.id)}/analysis`);
-    if (!host.isConnected || selectedAgent !== agentAtRequest) return;
-    const overview = card('Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
-    overview.append(node('p', analysis.summary.hypothesis, 'muted'));
-    for (const gap of analysis.gaps) overview.append(node('p', gap, 'muted'));
-    const inspector = node('div');
-    const stageSelect = node('select'); stageSelect.setAttribute('aria-label', 'Analytics stage');
-    run.stages.forEach((stage, index) => { const option = node('option', `${index + 1}. ${stage.name} · ${stage.phase}`); option.value = String(index); stageSelect.append(option); });
-    const inspect = (index: number) => {
-      stageSelect.value = String(index);
-      const stage = run.stages[index]; const projected = analysis.stages[index];
-      if (!stage || !projected) return;
-      inspector.replaceChildren(node('h4', `${index + 1}. ${stage.name}`));
-      inspector.append(node('p', 'External scenario experience'), node('p', stage.text ?? 'Offline or operational stage; no new authored message.'));
-      for (const thought of stage.thoughts) {
-        const contribution = card(thought.name, thought.interpretation ?? 'No interpretation recorded');
-        contribution.append(node('p', thought.thought), details('Advocated proposal', thought.proposal)); inspector.append(contribution);
-      }
-      inspector.append(details('Actual Self choices', stage.selfChoices ?? []), details('Recorded execution outcomes', stage.executions ?? []),
-        details('New and revised cognitive objects', projected.changes));
-      const timeline = card('Cognitive event timeline', projected.traceAvailable ? 'Recorded event order; select an event for exact evidence.' : 'Cycle trace unavailable.');
-      for (const lane of ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning']) {
-        const items = projected.trace.filter(event => event.lane === lane);
-        if (!items.length) continue;
-        timeline.append(node('h4', lane));
-        for (const event of items) timeline.append(details(`${event.sequence} · ${event.type} · ${event.at}`, event));
-      }
-      inspector.append(timeline);
-      if (stage.cycleId) inspector.append(button('Inspect authoritative source cycle', () => showCycleInspector(stage.cycleId!, run.agentId), true));
-      inspector.append(details('Full stage snapshot', stage));
-    };
-    stageSelect.onchange = () => inspect(Number(stageSelect.value));
-    const heatmap = card('Activation heatmap', 'Final recorded round shown; inspect a cell for every round. — means not evaluated. Activation does not imply admission or Self selection.');
-    const scroll = node('div'); scroll.style.overflowX = 'auto';
-    const table = node('table'); const headings = node('tr'); headings.append(node('th', 'Disposition'));
-    run.stages.forEach((stage, index) => { const th = node('th'); th.append(button(String(index + 1), () => inspect(index), true)); th.title = stage.name; headings.append(th); });
-    table.append(headings);
-    for (const row of analysis.activation) {
-      const tr = node('tr'); tr.append(node('th', row.name));
-      for (const cell of row.cells) {
-        const td = node('td'); const last = cell.rounds.at(-1);
-        const b = button(last ? `${last.score.toFixed(2)}${last.active ? ' ●' : ''}` : '—', () => { inspect(cell.stageIndex); inspector.prepend(details(`${row.name} · recorded activation rounds`, cell.rounds)); }, true);
-        if (last) b.style.backgroundColor = `rgba(70, 130, 180, ${Math.max(0.05, Math.min(1, last.score / 4))})`;
-        td.append(b); tr.append(td);
-      }
-      table.append(tr);
-    }
-    scroll.append(table); heatmap.append(scroll);
-    const ledger = card('Prediction ledger', 'Administrative closure and expectation assessment are separate. Exact versions and later checks remain inspectable.');
-    for (const item of analysis.predictions) {
-      const entry = details(`${item.prediction.expectation} · ${item.administrativeStatus} · ${item.expectationAssessment}`, item);
-      if (item.originStage !== null) entry.append(button('Inspect prediction origin', () => inspect(item.originStage!), true));
-      ledger.append(entry);
-    }
-    host.replaceChildren(overview, heatmap, ledger, stageSelect, inspector);
-    if (run.stages.length) inspect(0);
-  }, true);
-  host.append(open); return host;
-}
 function simulationTestPage(): void {
   const sourceAgentId = selectedAgent;
-  const holder = node('div', '', 'simulation-tests'); content.append(holder);
+  const pageRoot = node('div', '', 'simulation-tests'); content.append(pageRoot);
+  const holder = node('div');
+  let loadedRuns: SimulationRun[] = [];
+  const belongs = (run: SimulationRun) => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId;
+  const workspace = observatoryShell(pageRoot, holder, () => loadedRuns.filter(belongs), api, showCycleInspector, showError);
   const controls = node('div', '', 'row');
   const select = node('select'); select.setAttribute('aria-label', 'Simulation hypothesis');
   const mode = node('select'); mode.setAttribute('aria-label', 'Simulation inference mode');
@@ -3725,6 +3666,9 @@ function simulationTestPage(): void {
   const evaluateAutomatically = node('input'); evaluateAutomatically.type = 'checkbox'; evaluateAutomatically.checked = true;
   const evaluateLabel = node('label', 'Automatically assess configured runs'); evaluateLabel.prepend(evaluateAutomatically);
   const specification = node('div'); const reports = node('div');
+  const allScenarios = node('input'); allScenarios.type = 'checkbox';
+  const allLabel = node('label', 'Show all scenarios'); allLabel.prepend(allScenarios);
+  allScenarios.onchange = () => drawRuns(loadedRuns);
   const progress = node('p', 'Loading tests…'); progress.setAttribute('role', 'status');
   holder.append(controls, node('p', 'Configured runs use this Agent’s model and prompt settings and may incur provider costs. Every run creates a separate test Agent. Fixture or mixed-provider observations do not validate the hypothesis.', 'muted'), specification, progress, reports);
   let definitions: SimulationTestDefinition[] = [];
@@ -3736,15 +3680,16 @@ function simulationTestPage(): void {
     panel.append(details('Initial conditions and scenario', { seeds: definition.seeds, stages: definition.steps }),
       details('Criteria and controls', definition.criteria), details('Evaluator rubric', (definition as SimulationTestDefinition & { rubric?: unknown }).rubric), node('p', definition.limitations, 'muted'));
     specification.replaceChildren(panel);
+    drawRuns(loadedRuns);
   };
   const drawRuns = (runs: SimulationRun[]) => {
     reports.replaceChildren(node('h3', 'Run history'));
-    const visible = runs.filter(run => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId).slice().reverse();
+    const visible = runs.filter(run => belongs(run) && (allScenarios.checked || run.testId === select.value)).slice().reverse();
     if (!visible.length) reports.append(node('p', 'No simulation runs for this Agent yet.', 'muted'));
     for (const run of visible) {
       const panel = card(`${run.title} · ${run.status}`, `${run.stages.length}/${run.totalSteps} stages · ${run.currentStep}`);
       panel.dataset.simulationRun = run.id;
-      panel.append(simulationRunAnalysis(run));
+      panel.append(simulationRunAnalysis(run, api, showCycleInspector, showError));
       panel.append(node('p', `${run.evidenceBasis === 'fixture' ? 'Fixture evidence only' : run.evidenceBasis === 'mixed' ? 'Mixed providers · not independent validation' : 'Configured-model observations · review required'} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
       const meter = node('progress'); meter.max = run.totalSteps; meter.value = run.stages.length; meter.setAttribute('aria-label', 'Simulation progress'); panel.append(meter);
       if (run.error) { const error = node('p', `Execution failure: ${run.error}`); error.setAttribute('role', 'alert'); panel.append(error); }
@@ -3801,14 +3746,15 @@ function simulationTestPage(): void {
   };
   const load = async () => {
     const result = await api<{ tests: SimulationTestDefinition[]; runs: SimulationRun[] }>('simulation-tests');
-    if (!holder.isConnected || selectedAgent !== sourceAgentId) return;
+    if (!pageRoot.isConnected || selectedAgent !== sourceAgentId) return;
+    loadedRuns = result.runs;
     if (!definitions.length) {
       definitions = result.tests;
       for (const test of definitions) { const option = node('option', test.title); option.value = test.id; select.append(option); }
-      select.value = definitions.some(test => test.id === simulationTestId) ? simulationTestId : definitions[0]?.id ?? ''; describe();
+      select.value = definitions.some(test => test.id === simulationTestId) ? simulationTestId : result.runs.filter(belongs).at(-1)?.testId ?? definitions[0]?.id ?? ''; describe();
     }
-    drawRuns(result.runs);
-    if (result.runs.some(run => (run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId) && (run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))) setTimeout(() => { if (holder.isConnected) void load().catch(showError); }, 1000);
+    drawRuns(result.runs); workspace.refresh();
+    if (result.runs.some(run => (run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId) && (run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))) setTimeout(() => { if (pageRoot.isConnected) void load().catch(showError); }, 1000);
   };
   select.onchange = describe;
   const runButton = button('Run simulation test', async () => {
@@ -3817,7 +3763,7 @@ function simulationTestPage(): void {
     await load();
   });
   holder.append(node('p', 'Automated assessments cite recorded evidence and remain separate from operational measures. Evaluator calls may incur costs; the selected provider needs its own configured key.', 'muted'));
-  controls.append(select, mode, evaluatorModel, evaluateLabel, runButton, button('Refresh runs', load, true));
+  controls.append(select, mode, evaluatorModel, evaluateLabel, allLabel, runButton, button('Refresh runs', load, true));
   void load().catch(showError);
 }
 // Async settings, popup editors and generated wizard steps use the same field rows.

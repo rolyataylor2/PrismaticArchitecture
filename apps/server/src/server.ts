@@ -68,6 +68,7 @@ export function createResearchServer(app: Application, root = process.cwd(), dat
         '/executive.js': ['dist/apps/web/src/executive.js', 'text/javascript'],
         '/mcp-registration.js': ['dist/apps/web/src/mcp-registration.js', 'text/javascript'],
         '/affect-analysis.js': ['dist/apps/web/src/affect-analysis.js', 'text/javascript'],
+        '/simulation-observatory.js': ['dist/apps/web/src/simulation-observatory.js', 'text/javascript'],
         '/skill-inspector.js': ['dist/apps/web/src/skill-inspector.js', 'text/javascript'],
       };
       const asset = assets[url.pathname];

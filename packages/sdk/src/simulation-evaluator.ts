@@ -61,6 +61,25 @@ export function startSimulationAssessment(app: Application, runId: string, optio
   for (const criterion of rubric.criteria) {
     const index = Number(criterion.criterionId.slice('criterion-'.length)) - 1;
     const missingFirst = currentObserver[0]?.outcome !== 'observed';
+    if ((run.testId === 'observatory-learning-trained' || run.testId === 'observatory-learning-fresh-control') && index === 2) {
+      criterion.blockedReason = 'The paired fresh/experienced run and repeated trials are not part of this single-run evidence packet; causal comparative benefit remains inconclusive.';
+    }
+    if (run.testId === 'observatory-learning-trained' || run.testId === 'observatory-learning-fresh-control') {
+      const baseline = run.stages[0];
+      const forecastIds = new Set(baseline?.predictions.filter(prediction => prediction.createdCycle === baseline.cycleId).map(prediction => prediction.id) ?? []);
+      if (index === 0 && (!forecastIds.size || !run.stages.some(stage => stage.predictionChecks?.some(check => forecastIds.has(check.predictionId))))) {
+        criterion.blockedReason = 'No assessable baseline forecast with a recorded later factual check supports this prediction-correction criterion.';
+      }
+      const episodes = new Set(run.stages.filter(stage => stage.phase === 'training' && stage.cycleId)
+        .flatMap(stage => stage.memories.filter(memory => memory.createdCycle === stage.cycleId).map(memory => memory.id)));
+      const retest = run.stages.find(stage => stage.name === 'Familiar source retest');
+      if (index === 1 && (!episodes.size || !retest?.recalls.some(recall => recall.memoryIds.some(memoryId => episodes.has(memoryId))))) {
+        criterion.blockedReason = 'No training episode with recorded relevant later recall supports memory-driven learning at the familiar retest.';
+      }
+    }
+    if (run.testId.startsWith('observatory-') && run.testId.includes('context') && index === 0) {
+      criterion.blockedReason = 'The matched other-context run is outside this single-run evidence packet; a comparative causal conclusion requires preserved paired evidence.';
+    }
     const initialTraining = run.stages.find(stage => stage.phase === 'training' && stage.cycleId);
     if ((run.testId === 'prediction-contradiction' && index === 2 && (missingFirst || currentObserver[1]?.outcome !== 'observed'))
       || (['prospective-calibration', 'missing-perspective'].includes(run.testId) && index === 2 && (missingFirst || currentObserver[1]?.outcome !== 'observed'))

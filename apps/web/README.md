@@ -2,7 +2,9 @@ Simulation Tests includes eight sourced affect hypotheses. Completed reports exp
 
 ## Simulation run analytics
 
-Simulation Tests → Explore run analytics opens a readable run summary, clickable activation heatmap, exact prediction ledger and coordinated stage selector. Stage inspection shows separate scenario experience, expressed Part interpretations/proposals, Self choices, execution records, object-version changes and seven audit lanes. Raw records and authoritative source cycles are available through disclosure controls. This initial Observatory milestone leaves the full research workspace, reviews and comparison requirements tracked under ADR 0158.
+Simulation Tests contains six keyboard-accessible Cognitive Observatory tabs. Experiments keeps the shared launch registry and shows the selected scenario's history by default, with explicit Show all scenarios. Overview separates execution status, candidate patterns and human review status. Run Explorer coordinates stage/Part/lane filters across activation heatmaps, coactivation graphs, interpretation comparison, prediction histories, memory/development evidence and exact event selection. Stage inspection answers six chronological questions and links authoritative source cycles; raw snapshots remain progressively disclosed.
+
+Comparisons aligns saved stages and explicit semantic scope definitions, displays synchronized contributions/outcomes and public configuration differences, and supports explicit before/after stage selection and repeated trial variation. Development retains before/after fields, subjective-memory versions, later recall and disposition lineage without claiming usefulness from counts. Diagnostics & Evidence saves cited human criteria and finding revisions, retains alternatives/follow-ups and exact citation bytes, and shows separate model judgments and failed-cycle audit. Detached views discard late responses; browsing never changes Agent psychology. ADR 0158's audit tracks remaining instrumentation, rerun/fork and development metrics.
 
 ## Affect Analysis
 

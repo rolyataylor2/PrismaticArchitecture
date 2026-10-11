@@ -15,3 +15,11 @@ Versioned researcher reviews and saved candidate findings cite preserved evidenc
 New instrumentation records factual provider/validation/execution outcomes without assigning psychological meaning or changing cognitive authority. Missing latency, usage, cost, verification, retirement reasons or assessability remain unavailable. Provider failures are infrastructure outcomes, not failed psychological hypotheses. No global reward, intelligence percentage, affect weighting or new Agent subsystem is introduced.
 
 Implementation is tracked requirement by requirement in `docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md`. This decision defines the full requested target; partial projections do not establish completion.
+
+## Research record implementation
+
+Human reviews and saved findings use separate tagged experiment records, each with a new ID, explicit version and previous-record link. Optimistic append checks run synchronously in the existing storage transaction. They never rewrite the simulation record, model assessments, audit events or psychology. Citations preserve exact referenced bytes, hashes, source run identity, run status and provider-evidence basis. Explicit `/runs/:runId/...` references support paired comparisons within the same research database; unqualified event references are restricted to the owning run.
+
+New runs preserve public initial Identity, activation settings, construction-time runtime configuration and Executive profile alongside existing scenario and prompt snapshots. Comparison fingerprints omit generated Identity IDs and timestamps, but retain its psychological content. Historical absent configuration is never reconstructed from current settings and cannot establish controlled repeat trials. Provider labels and prompts are provenance, not a claim of bitwise inference reproducibility.
+
+Transparent researcher rules generate unreviewed candidate findings after terminal runs and admit appropriate concern carryover, incomplete capture and intentional administrative closure as alternatives. Rule findings and human revisions retain independent history. Comparative model verdicts require paired evidence; a single-run evaluator cannot claim the benefit of a missing comparison. The existing evaluator task's access boundaries and factory responsibilities remain unchanged.

@@ -1,4 +1,6 @@
 import { affectSimulations } from './affect-simulations.js';
+import { observatorySimulations } from './observatory-simulations.js';
+import { saveSimulationCandidates } from './simulation-research.js';
 import { startSimulationAssessment, type SimulationAssessment } from './simulation-evaluator.js';
 import { gauntletSimulations } from './gauntlet-simulations.js';
 import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
@@ -19,6 +21,7 @@ export type SimulationTestDefinition = { id: string; title: string; hypothesis: 
 const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepare and arrange painting a surface', cues: ['paint + surface + intention; attend to preparation, progress and remaining work'], scope: 'painting activity' };
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
+  ...observatorySimulations,
   ...([false, true] as const).map(review => ({
     id: review ? 'executive-remainder-review' : 'executive-remainder-monitor-control',
     title: review ? 'Selected remainder correction at a settled checkpoint' : 'Remainder correction monitor-only control',
@@ -445,10 +448,13 @@ export type SimulationStage = { affectInputs?: EventPayloads['self.affect_select
   parts: Part[]; predictions: Prediction[]; memories: Memory[]; dispositions: Disposition[] };
 export type SimulationMeasure = { criterion: string; outcome: 'observed' | 'not_observed' | 'inconclusive'; evidence: string; assessmentKind?: 'operational' | 'prerequisite' | 'semantic' };
 export type SimulationRun = { id: string; kind: 'simulation_test'; testId: string; title: string; source: string; agentId: string;
+  startingConfiguration?: { identity: import('../../core/src/domain.js').Identity; activationSettings: ReturnType<Application['agentActivationSettings']>;
+    runtime: import('../../core/src/runtime.js').RuntimeOptions; executiveProfile: import('../../core/src/executive-profile.js').ExecutiveProfile };
   specification: SimulationTestDefinition;
   sourceAgentId: string | null; mode: 'fixture' | 'configured'; evidenceBasis: 'fixture' | 'mixed' | 'configured_models';
   providers: { reasoning: string; decisions: string }; prompts: { task: string; version: string; text: string }[];
   evaluator?: { enabled: boolean; model?: string }; assessments?: SimulationAssessment[]; assessmentSetupError?: string; assessmentAvailable?: boolean;
+  researchAnalysisError?: string;
   createdAt: string; finishedAt: string | null; status: 'running' | 'completed' | 'failed';
   executiveEvidence?: { cleanup: string; executions: import('../../core/src/domain.js').Execution[] };
   totalSteps: number; currentStep: string; stages: SimulationStage[]; measures: SimulationMeasure[]; error: string | null };
@@ -665,6 +671,8 @@ export function startSimulationTest(app: Application, testId: string, mode: Simu
   const run: SimulationRun = { id: id('simulation'), kind: 'simulation_test', testId, title: definition.title, source: definition.source, specification: structuredClone(definition),
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',
     providers: { reasoning, decisions }, prompts: runner.promptSettings(agent.id).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })),
+    startingConfiguration: { identity: structuredClone(app.store.get('identity', agent.id)), activationSettings: structuredClone(runner.agentActivationSettings(agent.id)),
+      runtime: structuredClone(runner.runtimeConfiguration), executiveProfile: structuredClone(app.store.executiveProfile(agent.id)) },
     evaluator: { enabled: mode === 'configured' && !mockReasoning && evaluator.enabled !== false, ...(evaluator.model ? { model: evaluator.model } : {}) }, assessments: [],
     createdAt: now(), finishedAt: null, status: 'running', totalSteps: definition.steps.length, currentStep: 'Starting', stages: [], measures: [], error: null };
   app.store.saveExperiment(run);
@@ -814,6 +822,8 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
     } catch (error) { run.status = 'failed'; run.error = `${run.error ? run.error + '; ' : ''}Apparatus cleanup failed: ${error instanceof Error ? error.message : String(error)}`; }
   }
   run.finishedAt = now(); app.store.saveExperiment(run);
+  try { saveSimulationCandidates(app.store, run.id); }
+  catch (error) { run.researchAnalysisError = error instanceof Error ? error.message : String(error); app.store.saveExperiment(run); }
   if (run.status === 'completed' && run.evaluator?.enabled && run.measures.some(measure => measure.assessmentKind === 'semantic')) {
     try { startSimulationAssessment(app, run.id, { ...(run.evaluator.model ? { model: run.evaluator.model } : {}) }); }
     catch (error) {

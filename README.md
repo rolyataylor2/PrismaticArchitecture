@@ -1,6 +1,6 @@
 ## Simulation Cognitive Observatory (ADR 0158)
 
-Simulation Tests → Explore run analytics now shows recorded event lanes, a clickable activation heatmap, stage contributions, Self/execution records, prediction versions and cognitive object diffs. This is the first milestone of the broader requested research workspace; reviews, comparisons, development measures and richer instrumentation remain tracked in the [thread audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md).
+Simulation Tests now contains six Cognitive Observatory views: Overview, Experiments, Run Explorer, Comparisons, Development, and Diagnostics & Evidence. Coordinated stage/Part filters connect activation, interpretation, prediction and memory history. Human reviews and saved candidate findings preserve cited evidence and versions; run/configuration/before-after comparisons expose confounds and trial variation. Four sourced normal-pipeline experiments provide matched carryover and learning controls. Richer operational instrumentation, reproducible rerun/fork and remaining development measures stay tracked in the [thread audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md).
 
 ## Self affect extension (ADR 0157)
 
