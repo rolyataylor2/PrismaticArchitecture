@@ -160,7 +160,7 @@ export type EventPayloads = {
   'researcher.recovery': { targetId: string; targetKind: 'cycle' | 'consolidation'; reason: string; origin: 'researcher_edit' };
 };
 export type CognitiveEvent = { [K in keyof EventPayloads]: {
-  id: string; sequence: number; agentId: string; cycleId: string | null; at: string;
+  id: string; sequence: number; agentId: string; cycleId: string | null; at: string; researchScope?: import('./provider-operation.js').ResearchStageReference;
   type: K; payload: EventPayloads[K];
 } }[keyof EventPayloads];
 export interface Store {
@@ -180,7 +180,7 @@ export interface Store {
   saveCycle(cycle: Cycle): void;
   cycles(agentId: string): Cycle[];
   cycle(id: string): Cycle;
-  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K]): CognitiveEvent;
+  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K], researchScope?: import('./provider-operation.js').ResearchStageReference): CognitiveEvent;
   events(agentId: string, after?: number): CognitiveEvent[];
   eventsByType(agentId: string, types: (keyof EventPayloads)[], cycleIds?: string[]): CognitiveEvent[];
   saveEmbedding(partId: string, key: string, vector: number[]): void;

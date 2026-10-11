@@ -3,7 +3,7 @@ import type { CognitiveEvent, EventPayloads, Store } from './contracts.js';
 export class Inspection {
   readonly #listeners = new Set<(event: CognitiveEvent) => void>();
   #pending: CognitiveEvent[] | null = null;
-  constructor(private readonly store: Store) {}
+  constructor(private readonly store: Store, private readonly researchScope?: (agentId: string) => import('./provider-operation.js').ResearchStageReference | undefined) {}
   subscribe(listener: (event: CognitiveEvent) => void): () => void {
     this.#listeners.add(listener);
     return () => { this.#listeners.delete(listener); };
@@ -21,7 +21,9 @@ export class Inspection {
     return result;
   }
   emit<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K]): CognitiveEvent {
-    const event = this.store.appendEvent(agentId, cycleId, type, payload);
+    let scope: import('./provider-operation.js').ResearchStageReference | undefined;
+    try { scope = this.researchScope?.(agentId); } catch { /* Missing observer metadata cannot change cognition. */ }
+    const event = this.store.appendEvent(agentId, cycleId, type, payload, scope);
     if (this.#pending) this.#pending.push(event);
     else this.publish(event);
     return event;

@@ -112,3 +112,5 @@ ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is ex
 ## Reviewed Agent MCP registration (ADR 0156)
 
 MCP permissions may retain explicit serverIds independently from tool grants. Shared server deletion revokes both with immutable history; Agent membership removal preserves shared definitions and other Agents.
+
+Inspection may persist explicit invoking research-stage metadata separately from event payloads. The SDK supplies the async resolver, filtered by Agent identity; core has no research-context dependency. Null-cycle offline events retain stage scope without invented cycles, and failed scope resolution leaves an ordinary unscoped event. Schema 25 adds nullable immutable event metadata; historical bytes remain unchanged and both event query paths preserve scope across restart. Provider arguments and cognitive state receive no metadata.

@@ -103,7 +103,11 @@ export class Application {
       return settings.model === 'grok-4.3' ? new XaiProvider(apiKey, settings.model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, settings.model, fetch, promptResolver(store), 'openai', observeUsage);
     }), 'reasoning') };
     this.procedureConsolidation = new ProcedureConsolidator(store, this.providers.reasoning, this.executiveSkills);
-    this.inspection = new Inspection(store);
+    this.inspection = new Inspection(store, agentId => {
+      const scope = researchStageContext.getStore();
+      if (!scope || scope.agentId !== agentId) return undefined;
+      return { runId: scope.runId, stageId: scope.stageId, stageIndex: scope.stageIndex, startEventId: scope.startEventId };
+    });
     this.executiveTeaching = new ExecutiveTeaching(store, this.executiveSkills, this.inspection);
     this.executiveWorkers = new BackgroundExecutiveExecutor(new NativeExecutiveExecutor(
       new ChatExecutor(store, this.providers.reasoning, this.inspection), contract => this.executiveConnections.executionGateway(contract), undefined,

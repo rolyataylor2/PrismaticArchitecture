@@ -257,3 +257,25 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     assert.equal(store.events(source.id).length, sourceEvents); assert.deepEqual(errors, []);
   } finally { await browser.close(); server.closeAllConnections(); await app.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });
+
+test('Chrome inspects ordinary offline consolidation through explicit null-cycle stage evidence', { skip: !existsSync(executable) }, async () => {
+  const store = new SqliteStore(':memory:'); const app = new Application(store); const source = app.createAgent('Offline source');
+  const started = startSimulationTest(app, 'observatory-learning-trained', 'fixture', source.id);
+  for (let i = 0; i < 1000 && listSimulationRuns(app).find(run => run.id === started.id)!.status === 'running'; i++) await new Promise(resolve => setTimeout(resolve, 10));
+  const run = listSimulationRuns(app).find(item => item.id === started.id)!; assert.equal(run.status, 'completed');
+  const index = run.stages.findIndex(stage => !stage.cycleId); assert.ok(index >= 0);
+  const completed = store.events(run.agentId).find(event => event.type === 'consolidation.completed' && event.researchScope?.stageId === run.stages[index]!.id)!; assert.ok(completed);
+  const audit = JSON.stringify(store.events(run.agentId)); const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const browser = await chromium.launch({ executablePath: executable, headless: true });
+  try {
+    const page = await browser.newPage(); await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('button', { name: 'Simulation Tests', exact: true }).click();
+    const panel = page.locator('.observatory'); await panel.getByRole('tab', { name: 'Run Explorer', exact: true }).click();
+    await panel.getByLabel('Observatory run').selectOption(run.id); await panel.getByLabel('Analytics stage').selectOption(String(index));
+    await panel.locator(`[data-event-id="${completed.id}"]`).click();
+    const evidence = panel.locator(`[data-evidence-reference="/events/${completed.id}"]`);
+    await evidence.waitFor(); const text = await evidence.innerText();
+    assert.ok(text.includes(run.stages[index]!.id!)); assert.ok(text.includes('researchScope')); assert.ok(text.includes('"cycleId": null'));
+    assert.equal(JSON.stringify(store.events(run.agentId)), audit); assert.equal(store.events(source.id).length, 0);
+  } finally { await browser.close(); server.closeAllConnections(); await app.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
+});

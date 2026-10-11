@@ -61,7 +61,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
         dispositions: changes(previous?.dispositions ?? [], stage.dispositions),
       },
       trace: trace.map(event => ({ id: event.id, sequence: event.sequence, at: event.at, type: event.type, lane: lane(event.type, event.payload),
-        runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : simulationEventScope(event)?.startEventId === event.id ? null : simulationEventScope(event)?.startEventId ?? null,
+        runId: run.id, stageIndex: index, cycleId: event.cycleId, researchScope: simulationEventScope(event), parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : simulationEventScope(event)?.startEventId === event.id ? null : simulationEventScope(event)?.startEventId ?? null,
         references: simulationEventFocus(run, events, event.payload), provenance: 'recorded audit event' as const, payload: event.payload })),
       traceAvailable: trace.length > 0,
       eligibility: trace.flatMap(event => event.type === 'construction.eligibility' ? [{ eventId: event.id, ...event.payload }] : []),
@@ -144,7 +144,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
   const providerEvents = recorded.filter(event => event.type === 'provider.operation' && inRun(event));
   const providerOperations = [...new Map(providerEvents.flatMap(event => event.type === 'provider.operation'
     ? [[event.payload.operationId, { eventId: event.id, cycleId: event.cycleId, ...event.payload }] as const] : [])).values()];
-  const validations = recorded.flatMap(event => event.type === 'runtime.validation' && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt)
+  const validations = recorded.flatMap(event => event.type === 'runtime.validation' && inRun(event)
     ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);
   const usage = recorded.flatMap(event => event.type === 'provider.usage' && inRun(event)
     ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);

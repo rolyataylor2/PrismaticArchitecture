@@ -33,11 +33,11 @@ test('version-24 prompt expansion preserves overrides and scopes while admitting
     store = new SqliteStore(database); app = new Application(store);
     assert.deepEqual(store.promptOverrides(), before);
     app.editPrompt(agent.id, 'part_cognition', 'agent', prompts.part_cognition.text);
-    assert.equal(store.promptOverrides({ scope: 'agent', agentId: agent.id, task: 'part_cognition' })[0]!.text, prompts.part_cognition.text.trim());
+    assert.equal(store.promptOverrides({ scope: 'agent', agentId: agent.id, task: 'part_cognition' })[0]!.text, prompts.part_cognition.text);
     assert.throws(() => app.editPrompt(agent.id, 'part_cognition', 'agent', 'x'.repeat(32769)), /32,768/);
     const check = new DatabaseSync(database);
     try {
-      assert.equal((check.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 24);
+      assert.equal((check.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 25);
       assert.throws(() => check.prepare('INSERT INTO prompt_overrides VALUES(?,?,?,?)').run('global', null, 'part_cognition', 'Duplicate'), /UNIQUE/);
       assert.throws(() => check.prepare('INSERT INTO prompt_overrides VALUES(?,?,?,?)').run('agent', null, 'part_cognition', 'Invalid scope'), /CHECK/);
       assert.throws(() => check.prepare('INSERT INTO prompt_overrides VALUES(?,?,?,?)').run('global', null, 'other', 'x'.repeat(32769)), /CHECK/);

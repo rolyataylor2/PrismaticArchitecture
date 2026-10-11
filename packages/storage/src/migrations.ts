@@ -4,7 +4,7 @@ import { readIdentity, now } from '../../core/src/domain.js';
 export function migrate(db: DatabaseSync): void {
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;');
   const version = (db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version;
-  if (version > 24) throw new Error(`Database schema ${version} is newer than this application`);
+  if (version > 25) throw new Error(`Database schema ${version} is newer than this application`);
   if (version < 1) db.exec(`BEGIN IMMEDIATE;
     CREATE TABLE entities (
       kind TEXT NOT NULL, id TEXT NOT NULL, agent_id TEXT NOT NULL,
@@ -268,4 +268,11 @@ export function migrate(db: DatabaseSync): void {
     CREATE UNIQUE INDEX prompt_agent_override ON prompt_overrides(agent_id,task) WHERE scope='agent';
     PRAGMA user_version=24;
     COMMIT;`);
+  if (version < 25) {
+    const columns = db.prepare('PRAGMA table_info(events)').all() as { name: string }[];
+    db.exec(`BEGIN IMMEDIATE;
+      ${columns.some(column => column.name === 'research_scope') ? '' : 'ALTER TABLE events ADD COLUMN research_scope TEXT CHECK(research_scope IS NULL OR json_valid(research_scope));'}
+      PRAGMA user_version = 25; COMMIT;`);
+  }
+
 }

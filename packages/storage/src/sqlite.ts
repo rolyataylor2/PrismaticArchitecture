@@ -371,23 +371,23 @@ export class SqliteStore implements Store {
     this.#db.prepare('INSERT INTO thread_part_stickiness(part_id,thread_id,body,cycle_id) VALUES(?,?,?,?) ON CONFLICT(part_id,thread_id) DO UPDATE SET body=excluded.body,cycle_id=excluded.cycle_id')
       .run(partId, threadId, JSON.stringify(PartSchema.shape.stickiness.parse(stickiness)), cycleId);
   }
-  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K]): CognitiveEvent {
-    const event = { id: id('event'), agentId, cycleId, at: now(), type, payload: structuredClone(payload) };
-    const result = this.#db.prepare('INSERT INTO events(id,agent_id,cycle_id,at,type,payload) VALUES(?,?,?,?,?,?)')
-      .run(event.id, agentId, cycleId, event.at, type, JSON.stringify(payload));
+  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K], researchScope?: import('../../core/src/provider-operation.js').ResearchStageReference): CognitiveEvent {
+    const event = { id: id('event'), agentId, cycleId, at: now(), type, payload: structuredClone(payload), ...(researchScope ? { researchScope: structuredClone(researchScope) } : {}) };
+    const result = this.#db.prepare('INSERT INTO events(id,agent_id,cycle_id,at,type,payload,research_scope) VALUES(?,?,?,?,?,?,?)')
+      .run(event.id, agentId, cycleId, event.at, type, JSON.stringify(payload), researchScope ? JSON.stringify(researchScope) : null);
     return freeze({ ...event, sequence: Number(result.lastInsertRowid) } as CognitiveEvent);
   }
   events(agentId: string, after = 0): CognitiveEvent[] {
     return this.#db.prepare('SELECT * FROM events WHERE agent_id = ? AND sequence > ? ORDER BY sequence').all(agentId, after)
       .map(row => freeze({ id: row.id, sequence: row.sequence, agentId: row.agent_id, cycleId: row.cycle_id, at: row.at,
-        type: row.type, payload: JSON.parse(row.payload as string) } as CognitiveEvent));
+        type: row.type, payload: JSON.parse(row.payload as string), ...(row.research_scope ? { researchScope: JSON.parse(row.research_scope as string) } : {}) } as CognitiveEvent));
   }
   eventsByType(agentId: string, types: (keyof EventPayloads)[], cycleIds?: string[]): CognitiveEvent[] {
     if (!types.length || cycleIds?.length === 0) return [];
     const cycleFilter = cycleIds ? ` AND cycle_id IN (${cycleIds.map(() => '?').join(',')})` : '';
     return this.#db.prepare(`SELECT * FROM events WHERE agent_id = ? AND type IN (${types.map(() => '?').join(',')})${cycleFilter} ORDER BY sequence`)
       .all(agentId, ...types, ...(cycleIds ?? [])).map(row => freeze({ id: row.id, sequence: row.sequence, agentId: row.agent_id,
-        cycleId: row.cycle_id, at: row.at, type: row.type, payload: JSON.parse(row.payload as string) } as CognitiveEvent));
+        cycleId: row.cycle_id, at: row.at, type: row.type, payload: JSON.parse(row.payload as string), ...(row.research_scope ? { researchScope: JSON.parse(row.research_scope as string) } : {}) } as CognitiveEvent));
   }
   embedding(partId: string, key: string): number[] | null {
     const row = this.#db.prepare('SELECT vector FROM embeddings WHERE part_id = ? AND key = ?').get(partId, key);

@@ -30,6 +30,11 @@ test('ordinary stage boundaries and world-blind calls retain explicit audit attr
         assert.ok(!JSON.stringify(operation.input.arguments).includes(operation.researchScope!.startEventId));
       }
     }
+    const offlineIndex = run.stages.findIndex(stage => !stage.cycleId);
+    const offline = analysis.stages[offlineIndex]!.trace.filter(event => event.type.startsWith('consolidation.') || event.type === 'construction.inference_started');
+    assert.ok(offline.some(event => event.type === 'consolidation.started'));
+    assert.ok(offline.some(event => event.type === 'consolidation.completed'));
+    for (const event of offline) { assert.equal(event.cycleId, null); assert.equal(event.researchScope!.stageId, run.stages[offlineIndex]!.id); assert.equal(simulationCitation(store, run, `/events/${event.id}`).attribution, 'recorded_stage'); }
     const blind = analysis.providerOperations.find(item => item.method === 'choose' && item.cycleId === null)!; assert.ok(blind);
     assert.equal(blind.input.worldId, null); assert.equal(simulationCitation(store, run, `/events/${blind.eventId}`).attribution, 'recorded_stage');
     const events = JSON.stringify(store.events(run.agentId)); analyzeSimulation(store, run); assert.equal(JSON.stringify(store.events(run.agentId)), events);
