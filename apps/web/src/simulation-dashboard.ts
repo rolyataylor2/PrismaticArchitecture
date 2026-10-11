@@ -99,7 +99,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
   }
   function render() {
     generation++; if (definitions.length) sessionStorage.setItem(storageKey, JSON.stringify({ testId, groupId, runId, view, basis })); host.replaceChildren(); const allExperiment = runs.filter(r => r.testId === testId); const selected = scope(); const definition = definitions.find(d => d.id === testId);
-    const top = el('header', '', 'rd-top'); const title = el('div'); title.append(el('p', 'RESEARCH WORKSPACE', 'rd-eyebrow'), el('h2', 'Cognitive Observatory')); top.append(title);
+    const top = el('header', '', 'rd-top'); const title = el('div'); title.append(el('p', 'RESEARCH WORKSPACE', 'rd-eyebrow'), el('h2', 'The Simulator')); top.append(title);
     const actions = el('div', '', 'rd-actions'); action(actions, 'New simulation run', () => options.launch(testId), fail, 'rd-primary'); action(actions, 'Refresh', options.refresh, fail); top.append(actions); host.append(top);
     const layout = el('div', '', 'rd-layout'); const nav = el('nav', '', 'rd-directory'); nav.setAttribute('aria-label', 'Research directions'); layout.append(nav); const main = el('main', '', 'rd-main'); layout.append(main); host.append(layout);
     const query = el('input'); query.type = 'search'; query.value = search; query.placeholder = 'Find an experiment'; query.setAttribute('aria-label', 'Find an experiment'); nav.append(query);
