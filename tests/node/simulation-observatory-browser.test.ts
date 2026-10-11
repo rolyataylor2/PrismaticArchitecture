@@ -161,6 +161,9 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();
     await panel.getByRole('heading', { name: 'Provider operation diagnostics', exact: true }).waitFor();
     assert.equal(await panel.getByRole('table', { name: 'Recorded stage attempts', exact: true }).locator('tbody tr').count(), run.stages.length);
+    const cognitiveAttempts = panel.getByRole('table', { name: 'Recorded cognitive attempts', exact: true });
+    assert.ok(await cognitiveAttempts.locator('tbody tr').count() > 0);
+    assert.ok(await cognitiveAttempts.locator('tbody tr td:nth-child(2)').filter({ hasText: /^Completed$/ }).count() > 0);
     assert.ok(await panel.getByRole('table', { name: 'Provider operations', exact: true }).locator('tbody tr td:nth-child(5)').filter({ hasText: /^Recorded stage \d+$/ }).count() > 0);
     await panel.getByRole('heading', { name: 'Runtime output validation', exact: true }).waitFor();
     assert.ok(await panel.getByRole('table', { name: 'Runtime validation checks', exact: true }).locator('tbody tr').count() > 0);

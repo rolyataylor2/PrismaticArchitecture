@@ -493,6 +493,10 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
   const operations = card(host, 'Provider operation diagnostics', `${analysis.providerOperations.length} recorded operations · ${analysis.providerOperations.filter(item => item.phase === 'failed').length} failures`);
   table(operations, ['Stage', 'Phase', 'Status', 'Audit identity'], analysis.stageAttempts.map(attempt => [attempt.name, attempt.phase,
     attempt.end?.type === 'simulation.stage_completed' ? 'Completed' : attempt.end?.type === 'simulation.stage_failed' ? 'Failed' : 'No terminal capture', `${attempt.stageId} · ${attempt.startEventId}`]), 'Recorded stage attempts');
+  table(operations, ['Cycle', 'Recorded status', 'Evidence'], analysis.cycleAttempts.map(attempt => {
+    const evidence = disclosure(document.createElement('div'), 'Exact cognitive attempt records', attempt);
+    return [String(attempt.cycle.sequence), attempt.end?.type === 'cycle.completed' ? 'Completed' : attempt.end?.type === 'infrastructure.error' ? 'Infrastructure failure' : run.status === 'running' ? 'Awaiting terminal capture' : 'No terminal capture', evidence];
+  }), 'Recorded cognitive attempts');
   operations.append(node('p', 'Adapter returns, runtime validation and admission are distinct. Unreported usage, cache, cost and causal parents stay unavailable. Calls without a cycle retain recorded stage attribution when available; historical missing scope remains unassigned.'));
   table(operations, ['Component / task', 'Provider', 'Status', 'Elapsed', 'Recorded attribution', 'Diagnostics'], analysis.providerOperations.map(item => {
     const evidence = disclosure(document.createElement('div'), 'Exact operation input/output and prompts', item);

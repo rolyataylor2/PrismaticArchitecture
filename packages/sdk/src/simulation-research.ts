@@ -54,13 +54,14 @@ export function simulationCitation(store: Store, run: SimulationRun, reference: 
   if (keys[0] === 'events') {
     const eventId = keys[1];
     const cycleIds = new Set(run.stages.flatMap(stage => stage.cycleId ? [stage.cycleId] : []));
+    for (const event of store.events(run.agentId)) if (event.type === 'cycle.started' && event.payload.threadId === run.id) cycleIds.add(event.payload.id);
     for (const cycle of store.cycles(run.agentId)) if (cycle.threadId === run.id && cycle.startedAt >= run.createdAt && (!run.finishedAt || cycle.startedAt <= run.finishedAt)) cycleIds.add(cycle.id);
     root = store.events(run.agentId).find(event => event.id === eventId && (simulationEventScope(event) ? simulationEventScope(event)!.runId === run.id : event.cycleId ? cycleIds.has(event.cycleId)
       : ['provider.operation', 'provider.usage', 'runtime.validation', 'construction.inference_started', 'consolidation.started', 'consolidation.completed'].includes(event.type)
         && event.at >= run.createdAt && !!run.finishedAt && event.at <= run.finishedAt));
     attribution = root && simulationEventScope(root as import('../../core/src/contracts.js').CognitiveEvent) ? 'recorded_stage' : (root as { cycleId?: string | null } | undefined)?.cycleId ? 'recorded_cycle' : 'run_window_unassigned';
     keys = keys.slice(2);
-  } else if (!['stages', 'measures', 'specification', 'assessments', 'executiveEvidence', 'startingConfiguration', 'error'].includes(keys[0] ?? '')) throw new Error('Reference is outside the preserved research evidence');
+  } else if (!['stages', 'measures', 'specification', 'assessments', 'executiveEvidence', 'startingConfiguration', 'error', 'status'].includes(keys[0] ?? '')) throw new Error('Reference is outside the preserved research evidence');
   let value = root;
   for (const key of keys) {
     if (!value || typeof value !== 'object' || !Object.hasOwn(value, key)) throw new Error('Evidence reference does not exist in this run');
@@ -159,6 +160,20 @@ export function simulationCandidates(store: Store, run: SimulationRun): Simulati
     claim: `${operation.provider} / ${operation.task}: ${operation.error?.message ?? 'No terminal operation record was captured.'}`,
     alternatives: 'Provider or recording infrastructure may have failed. Missing terminal capture is not proof of a stalled thought or a psychological failure.',
     followUp: 'Inspect exact operation diagnostics, safe contract locations and source input; distinguish an adapter problem from runtime rejection.', evidenceReferences: [`/events/${operation.eventId}`] });
+  if (run.status !== 'running') {
+    for (const attempt of analysis.cycleAttempts.filter(item => !item.end)) candidates.push({
+      key: `unfinished-cycle:${attempt.cycle.id}`, pattern: 'unfinished-cycle-capture', title: 'Ended run has a cycle start without terminal capture',
+      claim: `Cycle ${attempt.cycle.sequence} has an explicit start but no matching completion or infrastructure-error event in the recorded audit.`,
+      alternatives: 'Execution may have been interrupted, recording may be incomplete, or work may have continued outside this observation. A start record does not prove a currently live or psychologically stalled process.',
+      followUp: 'Inspect the exact start, recorded provider operations and external process state before considering a rerun; distinguish interruption from an ordinary bounded cognitive result.',
+      evidenceReferences: [`/events/${attempt.startEventId}`, '/status'] });
+    for (const attempt of analysis.stageAttempts.filter(item => !item.end)) candidates.push({
+      key: `unfinished-stage:${attempt.stageId}`, pattern: 'unfinished-stage-capture', title: 'Ended run has a stage start without terminal capture',
+      claim: `“${attempt.name}” has an explicit stage start but no completion or failure event referencing that start.`,
+      alternatives: 'Interrupted delivery, offline work, missing recording or continued external work may explain the gap. A missing stage snapshot is not a failed psychological hypothesis.',
+      followUp: 'Inspect stage-scoped operations, exact stage identity and external process status; preserve the original evidence when rerunning.',
+      evidenceReferences: [`/events/${attempt.startEventId}`, '/status'] });
+  }
   for (const validation of analysis.validations.filter(item => item.status === 'rejected')) candidates.push({ key: `validation:${validation.eventId}`,
     pattern: 'runtime-contract-rejection', title: 'Returned product rejected by a runtime contract',
     claim: `${validation.task} failed ${validation.contract} at ${validation.issues.map(issue => issue.path || '(root)').join(', ')}.`,
