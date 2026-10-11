@@ -242,6 +242,15 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       readable(item.key), `${item.operations} / ${item.failed}`, `${item.latencyMs.n} / ${item.latencyMs.mean?.toFixed(1) ?? 'unavailable'}`, `${item.usageReported}/${item.operations}`,
       `${item.inputTokens ?? 'unreported'} / ${item.outputTokens ?? 'unreported'}`, item.cachedInputTokens === null ? 'Unreported / incomplete' : String(item.cachedInputTokens), 'Unreported']), 'Component resources');
     const history = disclosure(area, 'Longitudinal recorded development and behavior');
+    const stageJudgments = disclosure(area, 'Longitudinal independent stage judgments');
+    table(stageJudgments, ['Stage / phase', 'Dimension', 'Judgment / version', 'Measurement', 'Method / limitations', 'Evidence'], report.stageDimensionReviews.map(review => {
+      const stage = run.stages[review.stageIndex!]!; const evidence = node('div');
+      source(evidence, review.stageIndex!, 'Inspect judged development stage'); disclosure(evidence, 'Preserved stage judgment and citations', review);
+      return [`${review.stageIndex! + 1}. ${stage.name} · ${stage.phase}`, analysis.metrics.dimensions.find(item => item.id === review.metricId)!.title,
+        `${readable(review.verdict)} · v${review.version} · ${review.reviewer}`, review.value === null ? 'Not measured' : `${review.value} ${review.unit}`,
+        `${review.operationalization} · ${review.limitations}`, evidence];
+    }), 'Independent development stage judgments');
+    stageJudgments.append(node('p', 'Run-wide chronological researcher judgments, independent of the Part filter. Different methods/units remain separate; missing stage reviews do not establish stability or transfer.'));
     table(history, ['Stage', 'Phase', 'Predictions', 'Memories', 'Recalled memories', 'Proposals', 'Choices', 'Executions'], metrics.stageHistory.map(item => [item.name,
       item.phase, String(item.predictions), String(item.memories), String(item.recalledMemoryIds.length), String(item.proposals), String(item.selectedChoices ?? 'unavailable'), String(item.executions ?? 'unavailable')]), 'Development stage history');
     history.append(node('p', 'Compare explicit baseline, familiar/novel probes, post-consolidation and durability stages. Differences in record counts are not improved learning. Grade transfer and stability with a stated measurement method and controls.'));
@@ -431,7 +440,7 @@ type Research = { reviews: SimulationReview[]; metricReviews: SimulationMetricRe
 export async function renderResearch(root: HTMLElement, run: SimulationRun, api: Api, cycle: Cycle, fail: Fail) {
   const host = node('section', '', 'simulation-research'); root.append(host); host.append(node('p', 'Loading research records…'));
   const [initialResearch, analysis] = await Promise.all([api<Research>(`simulation-tests/${run.id}/research`), api<SimulationAnalysis>(`simulation-tests/${run.id}/analysis`)]);
-  let selectedMetric: string = analysis.metrics.dimensions[0].id;
+  let selectedMetric: string = analysis.metrics.dimensions[0].id; let selectedMetricStage = '';
   let research = initialResearch;
   if (!host.isConnected) return;
   async function refresh() { const next = await api<Research>(`simulation-tests/${run.id}/research`); if (!host.isConnected) return; research = next; render(); }
@@ -439,11 +448,12 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     host.replaceChildren();
     const dimensions = card(host, 'Research dimension reviews', 'Ten dimensions remain separate. State the measurement method, limitations and cited evidence; optional measured values remain researcher-authored.');
     table(dimensions, ['Dimension', 'Latest judgment', 'Measured value', 'Required evidence'], analysis.metrics.dimensions.map(item => {
-      const prior = latest(research.metricReviews.filter(review => review.metricId === item.id));
+      const prior = latest(research.metricReviews.filter(review => review.metricId === item.id && (review.stageIndex ?? null) === (selectedMetricStage ? Number(selectedMetricStage) : null)));
       return [item.title, prior ? `${readable(prior.verdict)} · v${prior.version}` : 'Unreviewed / unavailable', prior?.value === null || prior?.value === undefined ? 'Not measured' : `${prior.value} ${prior.unit}`, item.prerequisite];
     }), 'Separate research dimensions');
     const metricForm = node('form', '', 'observatory-review-form'); dimensions.append(metricForm);
     const metric = select(metricForm, 'Research dimension', analysis.metrics.dimensions.map(item => [item.id, item.title])); metric.value = selectedMetric;
+    const metricStage = select(metricForm, 'Dimension evidence scope', [['', 'Whole run'], ...run.stages.map((stage, index) => [String(index), `${index + 1}. ${stage.name} · ${stage.phase}`] as [string, string])]); metricStage.value = selectedMetricStage;
     const metricVerdict = select(metricForm, 'Dimension verdict', [['inconclusive', 'Inconclusive'], ['supported', 'Supported'], ['not_supported', 'Not supported']]);
     const metricReviewer = field(metricForm, 'Dimension reviewer'); metricReviewer.required = true;
     const method = field(metricForm, 'Measurement method and controls', true); method.required = true;
@@ -452,21 +462,21 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     const numeric = field(metricForm, 'Measured value (optional)') as HTMLInputElement; numeric.type = 'number'; numeric.step = 'any';
     const unit = field(metricForm, 'Measurement unit (optional)');
     const metricRefs = field(metricForm, 'Dimension evidence references', true); metricRefs.placeholder = '/stages/0\n/runs/paired-run/stages/0';
-    const updateMetric = () => { selectedMetric = metric.value; const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value));
+    const updateMetric = () => { selectedMetric = metric.value; const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value && (item.stageIndex ?? null) === (metricStage.value ? Number(metricStage.value) : null)));
       metricVerdict.value = prior?.verdict ?? 'inconclusive'; metricReviewer.value = prior?.reviewer ?? ''; method.value = prior?.operationalization ?? '';
       metricRationale.value = prior?.rationale ?? ''; limitations.value = prior?.limitations ?? ''; numeric.value = prior?.value?.toString() ?? ''; unit.value = prior?.unit ?? '';
       metricRefs.value = prior?.citations.map(item => item.reference).join('\n') ?? ''; };
-    metric.onchange = updateMetric; updateMetric();
+    metric.onchange = updateMetric; metricStage.onchange = () => { selectedMetricStage = metricStage.value; render(); }; updateMetric();
     const metricSubmit = node('button', 'Save dimension review'); metricSubmit.type = 'submit'; metricSubmit.disabled = run.status === 'running'; metricForm.append(metricSubmit);
-    metricForm.onsubmit = event => { event.preventDefault(); const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value)); metricSubmit.disabled = true;
-      void api(`simulation-tests/${run.id}/research/metric-reviews`, 'POST', { metricId: metric.value, verdict: metricVerdict.value, reviewer: metricReviewer.value,
+    metricForm.onsubmit = event => { event.preventDefault(); const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value && (item.stageIndex ?? null) === (metricStage.value ? Number(metricStage.value) : null))); metricSubmit.disabled = true;
+      void api(`simulation-tests/${run.id}/research/metric-reviews`, 'POST', { metricId: metric.value, stageIndex: metricStage.value ? Number(metricStage.value) : null, verdict: metricVerdict.value, reviewer: metricReviewer.value,
         operationalization: method.value, rationale: metricRationale.value, limitations: limitations.value, value: numeric.value.trim() ? Number(numeric.value) : null,
         unit: unit.value.trim() || null, evidenceReferences: metricRefs.value.split('\n').map(value => value.trim()).filter(Boolean), expectedVersion: prior?.version ?? 0 })
         .then(refresh).catch(fail).finally(() => { if (metricSubmit.isConnected) metricSubmit.disabled = run.status === 'running'; }); };
     const dimensionHistory = disclosure(dimensions, 'Preserved dimension review history');
     for (const review of research.metricReviews) {
       const title = analysis.metrics.dimensions.find(item => item.id === review.metricId)!.title;
-      const d = disclosure(dimensionHistory, `${title} · ${readable(review.verdict)} · v${review.version}`);
+      const d = disclosure(dimensionHistory, `${title} · ${review.stageIndex === null || review.stageIndex === undefined ? 'whole run' : `stage ${review.stageIndex + 1}`} · ${readable(review.verdict)} · v${review.version}`);
       d.append(node('p', `${review.reviewer}: ${review.rationale}`), node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
       disclosure(d, 'Exact review and frozen evidence citations', review);
     }
@@ -601,6 +611,16 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
       ? 'Historical starting configuration is incomplete.' : comparison.configurationDifferences.length ? `Differing fields: ${comparison.configurationDifferences.join(', ')}` : 'Recorded comparison configuration matches.');
     disclosure(config, 'Exact reproducibility fingerprints', { left: comparison.leftConfiguration, right: comparison.rightConfiguration });
     for (const limitation of comparison.limitations) config.append(node('p', limitation, 'muted'));
+    const judgments = card(result, 'Scope-matched research dimensions', 'Latest independent review per selected run/stage. Whole-run judgments are never substituted for stage judgments; numeric differences do not establish improvement.');
+    const reviewCell = (review: SimulationMetricReview | null) => {
+      const cell = node('div'); if (!review) { cell.append(node('p', 'Unreviewed / unavailable')); return cell; }
+      cell.append(node('p', `${readable(review.verdict)} · v${review.version} · ${review.reviewer}`), node('p', review.rationale),
+        node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
+      if (review.value !== null) cell.append(node('p', `Measurement: ${review.value} ${review.unit}`));
+      disclosure(cell, 'Preserved comparative judgment and citations', review); return cell;
+    };
+    table(judgments, ['Dimension', 'Baseline judgment', 'Follow-up judgment', 'Descriptive difference / comparability'], comparison.dimensionReviews.map(metric => [metric.title,
+      reviewCell(metric.left), reviewCell(metric.right), `${metric.difference === null ? 'Unavailable' : `${metric.difference} ${metric.unit}`} · ${metric.limitation}`]), 'Scope-matched dimension comparison');
     const aligned = card(result, 'Synchronized run comparison');
     const names = comparison.stages.map((stage, index) => [String(index), `${stage.name} · ${stage.phase}${stage.matched ? '' : ' · unmatched'}`] as [string, string]);
     const choose = select(aligned, 'Aligned comparison stage', names); const detail = node('div'); aligned.append(detail);

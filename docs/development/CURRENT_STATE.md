@@ -1,3 +1,9 @@
+## Observatory scoped longitudinal judgments milestone — 2026-10-11
+
+Dimension reviews now have whole-run or explicit stage scopes with independent optimistic histories and local evidence requirements. Before/after comparisons select only matching stage judgments, retain exact methods/limitations/citations and compute descriptive numeric differences only for identical methods/units. Missing scoped reviews remain unavailable. Whole-run aggregation excludes all stage reviews. Development and contextual reports preserve chronological latest stage judgments separately from whole-run reviews; no learning verdict or global quality score is inferred.
+
+Affected stage/metric/research/report checks pass 7/7 and final actual Chrome 1/1, zero skips (`/tmp/prism-longitudinal-final-tests.log`, `/tmp/prism-longitudinal-final-browser.log`); strict lint/build pass. Original run, source Agent and cognition remain unchanged; SQLite restart and mobile/scoped comparison workflows are verified. Full goal remains active: operation/source/admission attribution, candidate-pattern coverage and final scope audit remain. No blocker. Unrelated generated workspace skills remain excluded.
+
 ## Observatory guarded prediction alignment milestone — 2026-10-11
 
 The external simulation evaluator now checks prediction/evaluation subject alignment and linked-memory expectation fidelity against preserved versions. Missing prerequisites block decisive results; both comparison sides, including the applicable open version, must be cited. Provisional model mismatches create separate unreviewed findings citing the exact frozen assessment packet. Existing evaluator-enabled settings govern automatic inference; inspection remains read-only. The researcher factory is version 2 and Settings descriptions are synchronized. Carryover/control experiments now record drift criteria through ordinary cognition, with no forced forecasts or meaning.

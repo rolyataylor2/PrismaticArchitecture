@@ -60,7 +60,19 @@ function compareStagePair(l: IndexedStage | undefined, r: IndexedStage | undefin
       right: r ? { measures: stageMeasures(r.stage), thoughts: r.stage.thoughts, choices: r.stage.selfChoices ?? [], predictions: r.stage.predictions,
         memories: r.stage.memories, dispositions: r.stage.dispositions, executions: r.stage.executions ?? [] } : null, activation };
 }
-export function compareSimulations(left: SimulationRun, right: SimulationRun) {
+function compareDimensionReviews(left: SimulationRun, right: SimulationRun, reviews: SimulationMetricReview[], leftStage: number | null, rightStage: number | null) {
+  return researchMetricCatalog.map(metric => {
+    const select = (run: SimulationRun, stageIndex: number | null) => reviews.filter(item => item.runId === run.id && item.metricId === metric.id && (item.stageIndex ?? null) === stageIndex)
+      .sort((a, b) => a.version - b.version).at(-1) ?? null;
+    const l = select(left, leftStage); const r = select(right, rightStage);
+    const comparable = !!l && !!r && l.operationalization === r.operationalization && l.unit === r.unit && l.value !== null && r.value !== null;
+    return { metricId: metric.id, title: metric.title, left: l, right: r, leftStage, rightStage,
+      difference: comparable ? r!.value! - l!.value! : null, unit: comparable ? l!.unit : null,
+      limitation: !l || !r ? 'Scope-matched independent review is missing on at least one side.' : !comparable ? 'Methods, units or available numeric values differ; no numeric difference is computed.'
+        : 'Follow-up minus baseline is descriptive, with no automatic improvement/regression or causal judgment.' };
+  });
+}
+export function compareSimulations(left: SimulationRun, right: SimulationRun, reviews: SimulationMetricReview[] = []) {
   const leftConfig = simulationConfiguration(left); const rightConfig = simulationConfiguration(right);
   const configurationDifferences = Object.keys(leftConfig).filter(key => JSON.stringify(leftConfig[key as keyof typeof leftConfig]) !== JSON.stringify(rightConfig[key as keyof typeof rightConfig]));
   const ls = stageKeys(left); const rs = stageKeys(right);
@@ -69,7 +81,7 @@ export function compareSimulations(left: SimulationRun, right: SimulationRun) {
     return compareStagePair(l, r);
   });
   return { leftRunId: left.id, rightRunId: right.id, leftConfiguration: leftConfig, rightConfiguration: rightConfig,
-    configurationDifferences, stages,
+    configurationDifferences, stages, dimensionReviews: compareDimensionReviews(left, right, reviews, null, null),
     limitations: ['One run per side cannot establish provider superiority or a causal learning effect.',
       'Stage names, phases and occurrence align exactly; missing or renamed stages remain unmatched.',
       'Scope roles match exact concern/scope/cues, with ambiguous duplicates left unmatched; generated IDs never establish equivalence.',
@@ -77,12 +89,12 @@ export function compareSimulations(left: SimulationRun, right: SimulationRun) {
       ...(!left.startingConfiguration || !right.startingConfiguration ? ['Historical starting configuration is missing; matches cannot establish controlled conditions and these runs are not grouped into repeated configurations.'] : []),
       ...(left.evidenceBasis !== 'configured_models' || right.evidenceBasis !== 'configured_models' ? ['Fixture/mixed-provider comparisons establish workflow behavior only.'] : [])] };
 }
-export function compareSimulationStages(left: SimulationRun, right: SimulationRun, leftIndex: number, rightIndex: number) {
+export function compareSimulationStages(left: SimulationRun, right: SimulationRun, leftIndex: number, rightIndex: number, reviews: SimulationMetricReview[] = []) {
   const leftStage = left.stages[leftIndex]; const rightStage = right.stages[rightIndex];
   if (!leftStage || !rightStage) throw new Error('Unknown baseline or follow-up stage');
-  const report = compareSimulations(left, right);
+  const report = compareSimulations(left, right, reviews);
   const pair = compareStagePair({ index: leftIndex, stage: leftStage }, { index: rightIndex, stage: rightStage });
-  return { ...report, stages: [{ ...pair, name: `${leftStage.name} → ${rightStage.name}` }],
+  return { ...report, dimensionReviews: compareDimensionReviews(left, right, reviews, leftIndex, rightIndex), stages: [{ ...pair, name: `${leftStage.name} → ${rightStage.name}` }],
     limitations: [...report.limitations.filter(item => !item.startsWith('Stage names')),
       'Baseline and follow-up stages are explicitly researcher-selected; different experiences and same-thread carryover are confounds.',
       'Recorded recall, memory revisions and behavioral differences support inspection; no causal improvement, transfer or durability verdict is inferred.'] };
@@ -103,7 +115,7 @@ export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationM
         sampleStandardDeviation: values.length > 1 && mean !== null ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1)) : null },
       dimensionReviews: researchMetricCatalog.map(metric => {
         const latest = completed.flatMap(run => {
-          const review = reviews.filter(item => item.runId === run.id && item.metricId === metric.id).sort((a, b) => a.version - b.version).at(-1);
+          const review = reviews.filter(item => item.runId === run.id && item.metricId === metric.id && (item.stageIndex ?? null) === null).sort((a, b) => a.version - b.version).at(-1);
           return review ? [review] : [];
         });
         const methods = [...new Set(latest.map(item => JSON.stringify({ method: item.operationalization, unit: item.unit })))];

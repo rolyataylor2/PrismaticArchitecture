@@ -60,11 +60,11 @@ export async function api(app: Application, method: string, path: string, body: 
   if (resource === 'simulation-tests') {
     if (method === 'POST' && entityId === 'compare-stages' && !action) {
       const input = z.strictObject({ leftRunId: Text, rightRunId: Text, leftIndex: z.number().int().min(0), rightIndex: z.number().int().min(0) }).parse(body);
-      return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex);
+      return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex, app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
     }
     if (method === 'POST' && entityId === 'compare' && !action) {
       const input = z.strictObject({ leftRunId: Text, rightRunId: Text }).parse(body);
-      return compareSimulations(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId));
+      return compareSimulations(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
     }
     if (method === 'POST' && entityId === 'aggregate' && !action) {
       const input = z.strictObject({ runIds: z.array(Text).max(200) }).parse(body);

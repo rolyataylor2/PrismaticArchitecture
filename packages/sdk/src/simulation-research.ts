@@ -16,10 +16,11 @@ export const SimulationFindingInput = z.strictObject({ key: z.string().min(1).ma
   alternatives: text, followUp: text, reviewer: text, status: z.enum(['unreviewed', 'supported', 'disputed', 'insufficient_evidence']),
   evidenceReferences: references, expectedVersion: z.number().int().min(0) });
 export const SimulationMetricReviewInput = z.strictObject({ metricId: z.enum(researchMetricCatalog.map(item => item.id)),
+  stageIndex: z.number().int().min(0).nullable().default(null),
   verdict: z.enum(['supported', 'not_supported', 'inconclusive']), reviewer: text, operationalization: text, rationale: text, limitations: text,
   value: z.number().finite().min(-1e9).max(1e9).nullable().default(null), unit: z.string().trim().min(1).max(120).nullable().default(null),
   evidenceReferences: references, expectedVersion: z.number().int().min(0) });
-export type SimulationMetricReview = RecordBase & Omit<z.infer<typeof SimulationMetricReviewInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_metric_review' };
+export type SimulationMetricReview = RecordBase & Omit<z.infer<typeof SimulationMetricReviewInput>, 'expectedVersion' | 'evidenceReferences' | 'stageIndex'> & { kind: 'simulation_metric_review'; stageIndex?: number | null };
 type Citation = { attribution: 'frozen_run' | 'recorded_cycle' | 'run_window_unassigned'; reference: string; runId: string; evidenceBasis: SimulationRun['evidenceBasis']; runStatus: SimulationRun['status']; value: unknown; hash: string };
 type RecordBase = { id: string; agentId: string; runId: string; version: number; previousId: string | null; createdAt: string; citations: Citation[]; evidenceBasis: SimulationRun['evidenceBasis'] };
 export type SimulationReview = RecordBase & Omit<z.infer<typeof SimulationReviewInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_review' };
@@ -90,8 +91,15 @@ export function saveSimulationMetricReview(store: Store, runId: string, body: un
   if ((input.value === null) !== (input.unit === null)) throw new Error('A measured value and unit must be supplied together');
   return store.transaction(() => {
     const run = researchRun(store, runId); terminal(run);
+    if (input.stageIndex !== null && !run.stages[input.stageIndex]) throw new Error('Unknown dimension review stage');
+    if (input.stageIndex !== null && (input.verdict !== 'inconclusive' || input.value !== null)) {
+      const prefix = `/stages/${input.stageIndex}`;
+      if (!input.evidenceReferences.some(reference => [prefix, `/runs/${runId}${prefix}`].some(path => reference === path || reference.startsWith(path + '/')))) {
+        throw new Error('A decisive or measured stage review requires its own stage evidence citation');
+      }
+    }
     if (input.verdict !== 'inconclusive' && !input.evidenceReferences.length) throw new Error('Decisive dimension reviews require evidence citations');
-    const prior = simulationResearch(store, runId).metricReviews.filter(item => item.metricId === input.metricId).at(-1);
+    const prior = simulationResearch(store, runId).metricReviews.filter(item => item.metricId === input.metricId && (item.stageIndex ?? null) === input.stageIndex).at(-1);
     if ((prior?.version ?? 0) !== input.expectedVersion) throw new ConflictError('Dimension review changed; reload its history');
     const { expectedVersion, evidenceReferences, ...fields } = input;
     const record: SimulationMetricReview = { ...fields, id: id('metric_review'), kind: 'simulation_metric_review', agentId: run.agentId, runId,

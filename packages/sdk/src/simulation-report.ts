@@ -32,12 +32,24 @@ export function simulationReport(run: SimulationRun, analysis: SimulationAnalysi
     }
   });
   for (const metric of analysis.metrics.dimensions) {
-    const review = latest(research.metricReviews.filter(item => item.metricId === metric.id));
+    const review = latest(research.metricReviews.filter(item => item.metricId === metric.id && (item.stageIndex ?? null) === null));
     const entry: ReportEntry = review ? { key: `dimension:${metric.id}`, title: metric.title, basis: 'human_review',
       body: `${review.verdict} by ${review.reviewer}. Method: ${review.operationalization}. ${review.rationale} Limitations: ${review.limitations}${review.value === null ? '' : ` Measurement: ${review.value} ${review.unit}.`}`,
       reviewId: review.id, reviewVersion: review.version, citations: review.citations, evidenceReferences: review.citations.map(item => item.reference) }
       : { key: `dimension:${metric.id}`, title: metric.title, basis: 'evidence_gap', body: `Not independently reviewed. ${metric.prerequisite}`, evidenceReferences: [], followUp: metric.prerequisite };
     (!review || review.verdict === 'inconclusive' ? unknown : review.verdict === 'supported' ? worked : surprising).push(entry);
+  }
+  const scopedReviews = new Map<string, SimulationMetricReview>();
+  for (const review of research.metricReviews.filter(item => item.stageIndex !== null && item.stageIndex !== undefined)) {
+    const key = `${review.metricId}:${review.stageIndex}`; const previous = scopedReviews.get(key);
+    if (!previous || previous.version < review.version) scopedReviews.set(key, review);
+  }
+  for (const review of scopedReviews.values()) {
+    const stage = run.stages[review.stageIndex!]; const metric = analysis.metrics.dimensions.find(item => item.id === review.metricId)!;
+    const entry: ReportEntry = { key: `stage-dimension:${review.metricId}:${review.stageIndex}`, title: `${stage?.name ?? 'Unavailable stage'}: ${metric.title}`,
+      basis: 'human_review', body: `Stage-scoped ${review.verdict} by ${review.reviewer}. ${review.rationale} Method: ${review.operationalization}. Limitations: ${review.limitations}`,
+      reviewId: review.id, reviewVersion: review.version, citations: review.citations, evidenceReferences: review.citations.map(item => item.reference) };
+    (review.verdict === 'supported' ? worked : review.verdict === 'not_supported' ? surprising : unknown).push(entry);
   }
   for (const prediction of analysis.predictions.filter(item => item.expectationAssessment === 'contradicted')) {
     const stageIndex = prediction.versions.at(-1)!.stageIndex;
@@ -79,6 +91,7 @@ export function simulationReport(run: SimulationRun, analysis: SimulationAnalysi
   for (const entry of unknown.filter(item => item.followUp)) inspectNext.push(entry);
   return { runId: run.id, agentId: run.agentId, evidenceBasis: run.evidenceBasis, status: run.status,
     hypothesis: run.specification.hypothesis, worked, surprising, unknown, changed, inspectNext,
+    stageDimensionReviews: [...scopedReviews.values()].sort((a, b) => a.stageIndex! - b.stageIndex! || a.metricId.localeCompare(b.metricId)),
     sources: [...new Set([...worked, ...surprising, ...unknown, ...changed, ...inspectNext].flatMap(item => item.evidenceReferences))].map(reference => {
       try { return { reference, citation: resolveEvidence(reference), unavailableReason: null }; }
       catch (error) { return { reference, citation: null, unavailableReason: error instanceof Error ? error.message : 'Recorded evidence is unavailable' }; }
