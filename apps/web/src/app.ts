@@ -1247,7 +1247,7 @@ function render(): void {
   componentHeaderDescriptions = descriptions;
   document.body.classList.toggle('component-view', Boolean(description));
   document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Simulation Tests');
-  content.replaceChildren(...(isChat || isBrain ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
+  content.replaceChildren(...(isChat || isBrain || pageKey === 'Simulation Tests' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
     chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Chat Sessions' : 'Brain'));
@@ -3648,18 +3648,17 @@ function experiments(): void {
 let simulationMode: 'fixture' | 'configured' = 'fixture';
 function simulationTestPage(): void {
   const sourceAgentId = selectedAgent;
-  const pageRoot = node('div', '', 'simulation-tests'); content.append(pageRoot);
   let definitions: SimulationTestDefinition[] = [];
   let request = 0;
   const load = async () => {
     const current = ++request;
     const result = await api<{ tests: SimulationTestDefinition[]; runs: SimulationRun[] }>('simulation-tests');
-    if (!pageRoot.isConnected || selectedAgent !== sourceAgentId || current !== request) return;
+    if (!dashboard.element.isConnected || selectedAgent !== sourceAgentId || current !== request) return;
     definitions = result.tests;
     const runs = result.runs.filter(run => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId);
     await dashboard.update(definitions, runs);
     if (runs.some(run => run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))
-      setTimeout(() => { if (pageRoot.isConnected) void load().catch(showError); }, 1500);
+      setTimeout(() => { if (dashboard.element.isConnected) void load().catch(showError); }, 1500);
   };
   const launch = (testId: string) => {
     const dialog = node('dialog', '', 'rd-dialog'); dialog.setAttribute('aria-label', 'Launch simulation');
@@ -3686,7 +3685,7 @@ function simulationTestPage(): void {
     };
     dialog.append(button('Close', () => dialog.close(), true)); dialog.addEventListener('close', () => dialog.remove(), { once: true }); document.body.append(dialog); dialog.showModal();
   };
-  const dashboard = simulationDashboard(pageRoot, { context: `${selectedDatabase}:${sourceAgentId}`, api, cycle: showCycleInspector, fail: showError, launch, refresh: load,
+  const dashboard = simulationDashboard(content, { context: `${selectedDatabase}:${sourceAgentId}`, api, cycle: showCycleInspector, fail: showError, launch, refresh: load,
     agent: async id => { selectedAgent = id; activeTab = 'Parts'; await agents(); } });
   void load().catch(showError);
 }

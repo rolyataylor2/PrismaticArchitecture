@@ -2,7 +2,7 @@ Simulation Tests includes eight sourced affect hypotheses. Completed reports exp
 
 ## Simulation run analytics
 
-Simulation Tests opens a visual Cognitive Observatory. Read [DASHBOARD_DESIGN.md](../../DASHBOARD_DESIGN.md) before changing analytics. The [discovery and wireframe](../../docs/development/SIMULATION_DASHBOARD_DESIGN.md) document metrics, missing data and interpretation boundaries.
+Simulation Tests opens the Cognitive Observatory directly in the main content area, without a separate Simulation Tests header or wrapper. Read [DASHBOARD_DESIGN.md](../../DASHBOARD_DESIGN.md) before changing analytics. The [discovery and wireframe](../../docs/development/SIMULATION_DASHBOARD_DESIGN.md) document metrics, missing data and interpretation boundaries.
 
 A single searchable research-direction directory and Experiment → Run set → Run selectors lead from combined experiment observations to exact-configuration repetitions and individual trials. Breadcrumbs return to each overview. Navigation is retained per source Agent/database in session storage. Evidence-basis filtering keeps fixture, mixed and configured observations explicit.
 
