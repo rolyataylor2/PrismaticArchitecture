@@ -1,3 +1,9 @@
+## Observatory final delivery — 2026-10-11
+
+The full simulation-analytics source audit is complete; `SIMULATION_ANALYTICS_THREAD_AUDIT.md` maps original requirements to implementation and verification. Synchronized comparisons now show readable prediction/execution outcomes and memory/disposition version changes on both sides, with explicit first-capture and missing-evidence limits.
+
+Final affected regression passed 39/39, zero skips, including actual Chrome workflows and every sourced registry scenario (`/tmp/prism-observatory-final-audit-tests.log`). Strict lint and delivery build passed. Fresh isolated evidence is preserved under `workspace/simulations/observatory-final-audit-20261011-delivery`; all four fixture runs completed 3/5/9/9 stages. Cognitive hypotheses remain inconclusive; missing historical causality, cost/cache and unsupported calibration remain unavailable. No original implementation requirement remains open. Unrelated generated workspace is excluded from delivery.
+
 ## Wrap-up UX audit: readable default identifiers — 2026-10-11
 
 Following the request to wrap up, work is limited to explicit source requirements and final verification. Default engine overview, run ancestry/relaunch status, research version labels, stage-attempt evidence, recalled/prospective source names and generated simulation apparatus labels now use readable titles/status rather than full internal identifiers. Exact engine fingerprints, stage/start-event records, launched run/Agent IDs and source lineage remain available in disclosures; internal API/selection keys and frozen subjective content remain unchanged.

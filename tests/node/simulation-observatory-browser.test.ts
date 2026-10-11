@@ -113,6 +113,7 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('heading', { name: 'Synchronized run comparison', exact: true }).waitFor();
     await panel.getByLabel('Aligned comparison stage').selectOption('2');
     await panel.getByRole('table', { name: 'Aligned stage comparison', exact: true }).waitFor();
+    for (const side of ['Baseline', 'Follow-up']) for (const view of ['prediction outcomes', 'execution outcomes', 'memory changes', 'disposition changes']) await panel.getByRole('table', { name: `${side} ${view}`, exact: true }).waitFor();
     await panel.getByLabel('Comparison mode').selectOption('development');
     await panel.getByLabel('Comparison baseline run').selectOption(run.id);
     await panel.getByLabel('Comparison follow-up run').selectOption(run.id);

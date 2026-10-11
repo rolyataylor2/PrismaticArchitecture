@@ -661,6 +661,24 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
         for (const thought of value.thoughts) side.append(node('h4', thought.name), evidenceText('interpretation', thought.interpretation ?? thought.thought), node('p', thought.thought));
         for (const choice of value.choices) side.append(node('p', `Self: ${choice.explanation}`));
         const run = runs.find(item => item.id === runId)!; const source = stageIndex === null ? null : run.stages[stageIndex];
+        table(side, ['Expectation', 'Administrative status', 'Owning assessment', 'Later evidence'], value.predictions.map(prediction => [evidenceText('prediction', prediction.expectation), prediction.status,
+          prediction.evaluation?.assessment ?? 'Not recorded', prediction.evaluation?.evidence.join(' · ') || 'No captured evaluation evidence']), `${title} prediction outcomes`);
+        table(side, ['Selected action', 'Execution status', 'Verification', 'Observed outcome'], value.executions.map(execution => [execution.action.text, execution.status,
+          execution.operational?.verified ? 'Recorded verification' : 'Not established', execution.facts.map(fact => `${fact.source}: ${fact.text}`).join(' · ') || 'No captured outcome']), `${title} execution outcomes`);
+        const previous = stageIndex !== null && stageIndex > 0 ? run.stages[stageIndex - 1] : undefined;
+        const memoryChanges = value.memories.flatMap(memory => {
+          const before = previous?.memories.find(item => item.id === memory.id);
+          return before?.version === memory.version ? [] : [[memory.gist, before ? `Version ${before.version} → ${memory.version}` : previous ? 'Newly captured' : 'First captured snapshot',
+            before ? evidenceText('interpretation', before.content) : 'No previous captured version', evidenceText('interpretation', memory.content)]];
+        });
+        const dispositionChanges = value.dispositions.flatMap(disposition => {
+          const before = previous?.dispositions.find(item => item.id === disposition.id);
+          return before?.version === disposition.version ? [] : [[disposition.name, before ? `Version ${before.version} → ${disposition.version}` : previous ? 'Newly captured' : 'First captured snapshot',
+            before?.concern ?? 'No previous captured version', disposition.concern]];
+        });
+        table(side, ['Episode', 'Recorded change', 'Previous interpretation', 'Current interpretation'], memoryChanges, `${title} memory changes`);
+        table(side, ['Scope', 'Recorded change', 'Previous concern', 'Current concern'], dispositionChanges, `${title} disposition changes`);
+        side.append(node('p', 'Changes compare this stage with its previous captured stage in the same run. First/newly captured snapshots do not prove formation, usefulness or transfer. Unchanged versions are omitted.', 'muted'));
         if (source?.cycleId) button(side, 'Inspect comparison source cycle', () => cycle(source.cycleId!, run.agentId), fail);
         disclosure(side, 'Predictions, memories, dispositions, choices and actions', value);
       }
