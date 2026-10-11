@@ -7,7 +7,7 @@ import type { CognitiveEvent } from '../../../packages/core/src/contracts.js';
 import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { IdentityQuestionGroup } from '../../../packages/sdk/src/identity-questions.js';
 import type { SimulationTestDefinition, SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
-import { simulationRunAnalysis, observatoryShell } from './simulation-observatory.js';
+import { simulationDashboard } from './simulation-dashboard.js';
 
 const dispositionAssociations = (item: AgentSnapshot['dispositions'][number]): ActivationAssociation[] =>
   item.activationAssociations ?? item.prerequisites.map(dispositionId => ({ kind: 'disposition', dispositionId, effect: 'contribute' }));
@@ -459,6 +459,7 @@ const fieldDescriptions: Record<string, string> = {
 let formDescriptionId = 0;
 function standardizeForms(): void {
   for (const label of document.querySelectorAll<HTMLLabelElement>('label:not(.form-setting)')) {
+    if (label.closest('.research-dashboard, .rd-dialog')) continue;
     if (label.matches('.identity-wizard-question, .identity-version-option') || label.querySelector('input[type="radio"], input[data-filter-group]')) continue;
     const controls = Array.from(label.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'));
     if (!controls.length) continue;
@@ -1024,7 +1025,7 @@ function componentHeader(title: string, description: string): HTMLElement {
 let componentHeaderDescriptions: Record<string, string> = {};
 function sizeComponentHeaders(): void {
   const current = content.querySelector<HTMLElement>('.component-header');
-  if (!current || !document.body.classList.contains('component-view')) return;
+  if (!current || !document.body.classList.contains('component-view') || document.body.classList.contains('simulation-dashboard-view')) return;
   let largest = 0;
   for (const [title, description] of Object.entries(componentHeaderDescriptions)) {
     const probe = componentHeader(({ Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
@@ -1245,6 +1246,7 @@ function render(): void {
   const description = descriptions[pageKey];
   componentHeaderDescriptions = descriptions;
   document.body.classList.toggle('component-view', Boolean(description));
+  document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Simulation Tests');
   content.replaceChildren(...(isChat || isBrain ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
@@ -3644,128 +3646,51 @@ function experiments(): void {
 }
 
 let simulationMode: 'fixture' | 'configured' = 'fixture';
-let simulationTestId = '';
 function simulationTestPage(): void {
   const sourceAgentId = selectedAgent;
   const pageRoot = node('div', '', 'simulation-tests'); content.append(pageRoot);
-  const holder = node('div');
-  let loadedRuns: SimulationRun[] = [];
-  const belongs = (run: SimulationRun) => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId;
-  const workspace = observatoryShell(pageRoot, holder, () => loadedRuns.filter(belongs), api, showCycleInspector, showError);
-  const controls = node('div', '', 'row');
-  const select = node('select'); select.setAttribute('aria-label', 'Simulation hypothesis');
-  const mode = node('select'); mode.setAttribute('aria-label', 'Simulation inference mode');
-  for (const [value, label] of [['fixture', 'Fixture · bundled mock providers'], ['configured', 'Configured models · selected Agent settings']] as const) {
-    const option = node('option', label); option.value = value; mode.append(option);
-  }
-  mode.value = simulationMode; mode.onchange = () => { simulationMode = mode.value as typeof simulationMode; };
-  const evaluatorModel = node('select'); evaluatorModel.setAttribute('aria-label', 'Simulation evaluator model');
-  for (const [value, label] of [['', 'Evaluator · same model as source Agent'], ['gpt-4.1-mini', 'Evaluator · GPT-4.1 mini'], ['gpt-4.1-nano', 'Evaluator · GPT-4.1 nano'], ['gpt-5-nano', 'Evaluator · GPT-5 nano'], ['grok-4.3', 'Evaluator · Grok 4.3']]) {
-    const option = node('option', label); option.value = value!; evaluatorModel.append(option);
-  }
-  const evaluateAutomatically = node('input'); evaluateAutomatically.type = 'checkbox'; evaluateAutomatically.checked = true;
-  const evaluateLabel = node('label', 'Automatically assess configured runs'); evaluateLabel.prepend(evaluateAutomatically);
-  const specification = node('div'); const reports = node('div');
-  const allScenarios = node('input'); allScenarios.type = 'checkbox';
-  const allLabel = node('label', 'Show all scenarios'); allLabel.prepend(allScenarios);
-  allScenarios.onchange = () => drawRuns(loadedRuns);
-  const progress = node('p', 'Loading tests…'); progress.setAttribute('role', 'status');
-  holder.append(controls, node('p', 'Configured runs use this Agent’s model and prompt settings and may incur provider costs. Every run creates a separate test Agent. Fixture or mixed-provider observations do not validate the hypothesis.', 'muted'), specification, progress, reports);
   let definitions: SimulationTestDefinition[] = [];
-  const describe = () => {
-    const definition = definitions.find(test => test.id === select.value); if (!definition) return;
-    simulationTestId = definition.id;
-    const panel = card(definition.title, definition.hypothesis);
-    const link = node('a', 'Source discussion'); link.href = definition.source; link.target = '_blank'; link.rel = 'noreferrer'; panel.append(link);
-    panel.append(details('Initial conditions and scenario', { seeds: definition.seeds, stages: definition.steps }),
-      details('Criteria and controls', definition.criteria), details('Evaluator rubric', (definition as SimulationTestDefinition & { rubric?: unknown }).rubric), node('p', definition.limitations, 'muted'));
-    specification.replaceChildren(panel);
-    drawRuns(loadedRuns);
-  };
-  const drawRuns = (runs: SimulationRun[]) => {
-    reports.replaceChildren(node('h3', 'Run history'));
-    const visible = runs.filter(run => belongs(run) && (allScenarios.checked || run.testId === select.value)).slice().reverse();
-    if (!visible.length) reports.append(node('p', 'No simulation runs for this Agent yet.', 'muted'));
-    for (const run of visible) {
-      const panel = card(`${run.title} · ${run.status}`, `${run.stages.length}/${run.totalSteps} stages · ${run.currentStep}`);
-      panel.dataset.simulationRun = run.id;
-      panel.append(simulationRunAnalysis(run, api, showCycleInspector, showError));
-      panel.append(node('p', `${run.evidenceBasis === 'fixture' ? 'Fixture evidence only' : run.evidenceBasis === 'mixed' ? 'Mixed providers · not independent validation' : 'Configured-model observations · review required'} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
-      const meter = node('progress'); meter.max = run.totalSteps; meter.value = run.stages.length; meter.setAttribute('aria-label', 'Simulation progress'); panel.append(meter);
-      if (run.error) { const error = node('p', `Execution failure: ${run.error}`); error.setAttribute('role', 'alert'); panel.append(error); }
-      if (run.testId.startsWith('affect-')) {
-        panel.append(node('h4', 'Affect exploration evidence'));
-        for (const stage of run.stages) {
-          const evidence = details(`${stage.name} · affect offers, selection and revisions`, {
-            proposals: stage.affectProposals ?? [], inputs: stage.affectInputs ?? [], choices: stage.affectChoices ?? [],
-            decisions: stage.affectDecisions ?? [], baseline: stage.affectBaselines ?? [], revisions: stage.focusedRevisions ?? [],
-            cycle: stage.affectCycles ?? [], order: stage.affectTrace ?? [], transitions: stage.transitions ?? [],
-          });
-          if (stage.cycleId) evidence.append(button('Inspect affect source cycle', () => showCycleInspector(stage.cycleId!, run.agentId)));
-          panel.append(evidence);
-        }
-      }
-      panel.append(node('h4', 'Recorded observer measures'));
-      for (const measurement of run.measures) panel.append(details(`${measurement.assessmentKind === 'semantic' ? 'Original observer · semantic criterion' : measurement.outcome.replace('_', ' ')} · ${measurement.criterion}`, measurement));
-      if (run.assessmentSetupError) panel.append(node('p', `Assessment setup failure: ${run.assessmentSetupError}`));
-      for (const assessment of run.assessments ?? []) {
-        const review = card(`Automated assessment ${assessment.version} · ${assessment.status}`, `${assessment.model} · ${assessment.evidenceBasis}`);
-        if (assessment.error) review.append(node('p', `Evaluator failure: ${assessment.error}`));
-        for (const measure of assessment.measures) {
-          const criterion = assessment.rubric.criteria.find(item => item.criterionId === measure.criterionId)?.criterion ?? measure.criterionId;
-          review.append(details(`${measure.outcome.replace('_', ' ')} · ${criterion}`, measure));
-        }
-        review.append(details('Assessment rubric, prompt and frozen evidence', assessment)); panel.append(review);
-      }
-      if (run.status === 'completed' && run.assessmentAvailable) {
-        const assess = button('Assess saved run', async () => {
-          await api<SimulationRun>(`simulation-tests/${encodeURIComponent(run.id)}/assess`, 'POST', { evaluatorAgentId: sourceAgentId, ...(evaluatorModel.value ? { model: evaluatorModel.value } : {}) });
-          await load();
-        }, true);
-        assess.disabled = Boolean(run.assessments?.some(assessment => assessment.status === 'running'));
-        panel.append(assess);
-      }
-      for (const stage of run.stages) {
-        if (stage.attention?.length || stage.checkpointNote) {
-          const checkpoint = card(`${stage.name} · Executive checkpoint`, stage.checkpointNote ?? stage.attention!.map(record => record.state).join(' → '));
-          for (const thought of stage.thoughts) checkpoint.append(node('p', `${thought.name}: ${thought.thought}`));
-          for (const review of stage.reviews ?? []) checkpoint.append(node('p', `Review outcome: ${review.outcome.replaceAll('_', ' ')}`));
-          for (const choice of stage.selfChoices ?? []) checkpoint.append(details('Self choice and reasons', choice));
-          for (const intervention of stage.interventions ?? []) checkpoint.append(node('p', `Local pause ${intervention.state} · ${intervention.targetExecutionId}`));
-          panel.append(checkpoint);
-        }
-        panel.append(details(`${stage.phase} · ${stage.name}`, stage));
-      }
-      if (run.executiveEvidence) panel.append(details('Final execution evidence and researcher cleanup', run.executiveEvidence));
-      panel.append(details('Run configuration and prompt snapshot', { id: run.id, agentId: run.agentId, sourceAgentId: run.sourceAgentId, specification: run.specification, createdAt: run.createdAt, finishedAt: run.finishedAt, providers: run.providers, prompts: run.prompts }),
-        button('Inspect test Agent', async () => { selectedAgent = run.agentId; activeTab = 'Parts'; await agents(); }, true));
-      reports.append(panel);
-    }
-    const running = visible.filter(run => run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running'));
-    progress.textContent = running.length ? `${running.length} run(s) in progress. ${running.map(run => `${run.status === 'running' ? run.currentStep : 'Evaluating saved evidence'} (${run.stages.length}/${run.totalSteps})`).join('; ')}` : 'No runs in progress.';
-  };
+  let request = 0;
   const load = async () => {
+    const current = ++request;
     const result = await api<{ tests: SimulationTestDefinition[]; runs: SimulationRun[] }>('simulation-tests');
-    if (!pageRoot.isConnected || selectedAgent !== sourceAgentId) return;
-    loadedRuns = result.runs;
-    if (!definitions.length) {
-      definitions = result.tests;
-      for (const test of definitions) { const option = node('option', test.title); option.value = test.id; select.append(option); }
-      select.value = definitions.some(test => test.id === simulationTestId) ? simulationTestId : result.runs.filter(belongs).at(-1)?.testId ?? definitions[0]?.id ?? ''; describe();
-    }
-    drawRuns(result.runs); workspace.refresh();
-    if (result.runs.some(run => (run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId) && (run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))) setTimeout(() => { if (pageRoot.isConnected) void load().catch(showError); }, 1000);
+    if (!pageRoot.isConnected || selectedAgent !== sourceAgentId || current !== request) return;
+    definitions = result.tests;
+    const runs = result.runs.filter(run => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId);
+    await dashboard.update(definitions, runs);
+    if (runs.some(run => run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))
+      setTimeout(() => { if (pageRoot.isConnected) void load().catch(showError); }, 1500);
   };
-  select.onchange = describe;
-  const runButton = button('Run simulation test', async () => {
-    if (!select.value) return;
-    await api<SimulationRun>('simulation-tests', 'POST', { testId: select.value, mode: mode.value, sourceAgentId, evaluator: { enabled: evaluateAutomatically.checked, ...(evaluatorModel.value ? { model: evaluatorModel.value } : {}) } });
-    await load();
-  });
-  holder.append(node('p', 'Automated assessments cite recorded evidence and remain separate from operational measures. Evaluator calls may incur costs; the selected provider needs its own configured key.', 'muted'));
-  controls.append(select, mode, evaluatorModel, evaluateLabel, allLabel, runButton, button('Refresh runs', load, true));
+  const launch = (testId: string) => {
+    const dialog = node('dialog', '', 'rd-dialog'); dialog.setAttribute('aria-label', 'Launch simulation');
+    dialog.append(node('h2', 'Launch simulation'));
+    const form = node('form'); dialog.append(form);
+    const hypothesis = node('select'); hypothesis.setAttribute('aria-label', 'Simulation hypothesis');
+    for (const definition of definitions) hypothesis.append(new Option(definition.title, definition.id)); hypothesis.value = testId;
+    const hypothesisLabel = node('label', 'Simulation hypothesis'); hypothesisLabel.append(hypothesis); form.append(hypothesisLabel);
+    const mode = node('select'); mode.setAttribute('aria-label', 'Simulation inference mode');
+    mode.append(new Option('Fixture · bundled mock providers', 'fixture'), new Option('Configured models · selected Agent settings', 'configured')); mode.value = simulationMode;
+    const modeLabel = node('label', 'Inference mode'); modeLabel.append(mode); form.append(modeLabel);
+    const evaluate = node('input'); evaluate.type = 'checkbox'; evaluate.checked = true; const label = node('label', 'Automatically assess configured runs'); label.prepend(evaluate); form.append(label);
+    const evaluator = node('select'); evaluator.setAttribute('aria-label', 'Simulation evaluator model');
+    for (const [value, title] of [['', 'Same model as source Agent'], ['gpt-4.1-mini', 'GPT-4.1 mini'], ['gpt-4.1-nano', 'GPT-4.1 nano'], ['gpt-5-nano', 'GPT-5 nano'], ['grok-4.3', 'Grok 4.3']]) evaluator.append(new Option(title!, value!));
+    const evaluatorLabel = node('label', 'Evaluator model'); evaluatorLabel.append(evaluator); form.append(evaluatorLabel);
+    form.append(node('p', 'Every run creates a separate test Agent. Configured inference and automated assessment may incur provider costs. Fixture observations validate the apparatus, not the hypothesis.', 'rd-caution'));
+    const start = node('button', 'Run simulation test'); start.type = 'submit'; form.append(start);
+    const status = node('p'); status.setAttribute('role', 'status'); form.append(status);
+    form.onsubmit = event => { event.preventDefault(); start.disabled = true; simulationMode = mode.value as typeof simulationMode;
+      void api<SimulationRun>('simulation-tests', 'POST', { testId: hypothesis.value, mode: mode.value, sourceAgentId,
+        evaluator: { enabled: evaluate.checked, ...(evaluator.value ? { model: evaluator.value } : {}) } }).then(async () => {
+          dashboard.selectExperiment(hypothesis.value); dialog.close(); await load();
+        }).catch(error => { status.textContent = error instanceof Error ? error.message : String(error); showError(error); }).finally(() => { start.disabled = false; });
+    };
+    dialog.append(button('Close', () => dialog.close(), true)); dialog.addEventListener('close', () => dialog.remove(), { once: true }); document.body.append(dialog); dialog.showModal();
+  };
+  const dashboard = simulationDashboard(pageRoot, { context: `${selectedDatabase}:${sourceAgentId}`, api, cycle: showCycleInspector, fail: showError, launch, refresh: load,
+    agent: async id => { selectedAgent = id; activeTab = 'Parts'; await agents(); } });
   void load().catch(showError);
 }
+
 // Async settings, popup editors and generated wizard steps use the same field rows.
 new MutationObserver(() => standardizeForms()).observe(document.body, { childList: true, subtree: true });
 standardizeForms();

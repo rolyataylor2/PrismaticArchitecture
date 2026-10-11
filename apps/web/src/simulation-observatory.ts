@@ -13,9 +13,21 @@ function button(parent: HTMLElement, title: string, action: () => void | Promise
   const b = node('button', title); b.type = 'button'; b.onclick = () => { void Promise.resolve().then(action).catch(fail); }; parent.append(b); return b;
 }
 function disclosure(parent: HTMLElement, title: string, value?: unknown) {
-  const d = node('details'); d.append(node('summary', title));
-  if (value !== undefined) d.append(node('pre', JSON.stringify(value, null, 2))); parent.append(d); return d;
+  const holder = node('div', '', 'observatory-evidence-link');
+  const content = node('div'); content.hidden = true;
+  if (value !== undefined) content.append(node('pre', JSON.stringify(value, null, 2)));
+  const trigger = node('button', title); trigger.type = 'button'; holder.append(trigger, content); parent.append(holder);
+  trigger.onclick = () => {
+    const dialog = node('dialog', '', 'rd-dialog'); dialog.setAttribute('aria-label', title);
+    dialog.append(node('h2', title)); content.hidden = false; dialog.append(content);
+    const close = node('button', 'Close'); close.onclick = () => dialog.close(); dialog.append(close);
+    dialog.addEventListener('close', () => { content.hidden = true; holder.append(content); dialog.remove(); }, { once: true });
+    document.body.append(dialog); dialog.showModal();
+  };
+  // Compatibility for historical explorer callers; evidence now opens only in dialogs.
+  return Object.assign(content, { open: false });
 }
+
 function card(parent: HTMLElement, title: string, subtitle = '') {
   const c = node('article', '', 'observatory-card'); c.append(node('h3', title)); if (subtitle) c.append(node('p', subtitle, 'muted')); parent.append(c); return c;
 }
