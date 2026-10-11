@@ -53,8 +53,8 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   host.replaceChildren();
   const overview = card(host, 'Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
   overview.append(node('p', analysis.summary.hypothesis), node('p', `${readable(run.evidenceBasis)} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
-  overview.append(node('p', run.engine ? `Engine ${run.engine.distribution} · artifact ${run.engine.artifactHash ?? 'unavailable'} · checkout ${run.engine.sourceRevision ?? 'unavailable'} · modified ${run.engine.sourceModified === null ? 'unknown' : String(run.engine.sourceModified)}` : 'Historical engine provenance unavailable.', 'muted'));
-  if (run.lineage) overview.append(node('p', `${readable(run.lineage.kind)} of ${run.lineage.parentRunId}: ${run.lineage.reason}`));
+  overview.append(node('p', run.engine ? `Engine ${run.engine.distribution} · artifact ${run.engine.artifactHash ? 'recorded' : 'unavailable'} · checkout ${run.engine.sourceRevision ? 'recorded' : 'unavailable'} · modified ${run.engine.sourceModified === null ? 'unknown' : String(run.engine.sourceModified)}` : 'Historical engine provenance unavailable.', 'muted'));
+  if (run.lineage) overview.append(node('p', `${readable(run.lineage.kind)} from a preserved run: ${run.lineage.reason}`));
   const replay = disclosure(overview, 'Repeat or fork saved starting conditions');
   disclosure(replay, 'Frozen scenario, configuration and prompts', { specification: run.specification, configuration: run.startingConfiguration,
     engine: run.engine ?? null, providers: run.providers, routing: run.providerRouting, prompts: run.prompts, lineage: run.lineage });
@@ -64,7 +64,8 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   const launch = async (fork: boolean, changes?: Record<string, boolean>) => {
     const created = await api<SimulationRun>(`simulation-tests/${encodeURIComponent(run.id)}/${fork ? 'fork' : 'rerun'}`, 'POST',
       { reason: reason.value, ...(changes ? { activationChanges: changes } : {}) });
-    if (host.isConnected) status.textContent = `Started ${created.id} on a new Agent. Follow progress in Experiments and saved run history.`;
+    if (host.isConnected) { disclosure(replay, 'Exact launched run identity', { runId: created.id, agentId: created.agentId }); }
+    if (host.isConnected) status.textContent = `Started ${created.title} on a new Agent. Follow progress in Experiments and saved run history.`;
   };
   const rerun = button(replay, 'Rerun frozen configuration', () => launch(false), fail);
   const setting = select(replay, 'Fork activation setting', [['vectorSearchEnabled', 'Vector candidate filtering'], ['memorySearchEnabled', 'Memory search'],
@@ -100,7 +101,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     for (const entry of entries) {
       const item = disclosure(area, `${entry.title} · ${readable(entry.basis)}`);
       item.append(evidenceText('research', entry.body));
-      if (entry.reviewVersion) item.append(node('p', `Saved research version ${entry.reviewVersion} · ${entry.reviewId}`));
+      if (entry.reviewVersion) item.append(node('p', `Saved research version ${entry.reviewVersion}`));
       if (entry.alternatives) item.append(node('p', `Alternative explanations: ${entry.alternatives}`));
       if (entry.followUp) item.append(node('p', `Next inspection: ${entry.followUp}`));
       for (const reference of entry.evidenceReferences) {
@@ -304,7 +305,9 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       disclosure(boundary, 'Exact knowledge references and opaque lineage', { references: entry.references, provenanceIds: entry.provenanceIds });
       disclosure(boundary, 'Exact captured knowledge records', entry.references.map(reference => ({ reference, value: reference.slice(1).split('/').reduce<unknown>((value, key) => value && typeof value === 'object' && Object.hasOwn(value, key) ? (value as Record<string, unknown>)[key] : null, run) })));
       const kind: EvidenceKind = entry.kind === 'imagined_future' ? 'prediction' : ['scenario_input', 'reported_utterance', 'external_observation', 'external_action'].includes(entry.kind) ? 'external' : 'interpretation';
-      return [readable(entry.kind), entry.source, evidenceText(kind, entry.text), boundary];
+      const memory = entry.kind === 'subjective_memory' ? stage.memories.find(item => item.id === entry.provenanceIds[0]) : null;
+      const sourceLabel = entry.kind === 'subjective_memory' ? memory ? `${memory.gist} · version ${memory.version}` : 'Missing recalled episode' : entry.kind === 'imagined_future' ? 'Attributed prospective alternative' : entry.source;
+      return [readable(entry.kind), sourceLabel, evidenceText(kind, entry.kind === 'subjective_memory' && !memory ? 'No frozen content for this recalled episode.' : entry.text), boundary];
     }), 'Recorded knowledge sources');
     provenance.gaps.forEach(gap => knowledge.append(node('p', gap, 'muted')));
     const relevant = card(inspector, '2. What became relevant?');
@@ -370,7 +373,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       disclosure(authority, 'Exact selected contracts and immutable method references', { contracts: trail.contracts, knowledge: trail.knowledge });
       const outcomes = disclosure(d, 'Execution, verification and tool history');
       for (const item of trail.finalExecutions) outcomes.append(node('p', `${item.execution.status}: ${item.execution.speech?.text ?? item.execution.action.text} · ${item.execution.operational?.verified ? 'operation verified' : 'operational verification not established'}`));
-      table(outcomes, ['Tool', 'Phase', 'Status', 'Progress'], trail.tools.map(item => [`${item.serverId} / ${item.toolName}`, item.phase,
+      table(outcomes, ['Tool', 'Phase', 'Status', 'Progress'], trail.tools.map(item => [`${item.serverId === `sim_${run.id}` ? 'Simulation apparatus' : item.serverId} / ${item.toolName}`, item.phase,
         String(item.outcome?.status ?? 'No outcome in this event'), item.progress ? `${item.progress.progress}${item.progress.total === undefined ? '' : ` / ${item.progress.total}`}${item.progress.message ? ` · ${item.progress.message}` : ''}` : 'Not reported']), 'Selected tool history');
       disclosure(outcomes, 'Exact outcome and trace records', { executions: trail.executions, tools: trail.tools });
       for (const gap of trail.gaps) d.append(node('p', gap, 'muted'));
@@ -500,8 +503,8 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     }
 
   const operations = card(host, 'Provider operation diagnostics', `${analysis.providerOperations.length} recorded operations · ${analysis.providerOperations.filter(item => item.phase === 'failed').length} failures`);
-  table(operations, ['Stage', 'Phase', 'Status', 'Audit identity'], analysis.stageAttempts.map(attempt => [attempt.name, attempt.phase,
-    attempt.end?.type === 'simulation.stage_completed' ? 'Completed' : attempt.end?.type === 'simulation.stage_failed' ? 'Failed' : 'No terminal capture', `${attempt.stageId} · ${attempt.startEventId}`]), 'Recorded stage attempts');
+  table(operations, ['Stage', 'Phase', 'Status', 'Audit evidence'], analysis.stageAttempts.map(attempt => [attempt.name, attempt.phase,
+    attempt.end?.type === 'simulation.stage_completed' ? 'Completed' : attempt.end?.type === 'simulation.stage_failed' ? 'Failed' : 'No terminal capture', disclosure(document.createElement('div'), 'Exact stage attempt identities', attempt)]), 'Recorded stage attempts');
   table(operations, ['Cycle', 'Recorded status', 'Evidence'], analysis.cycleAttempts.map(attempt => {
     const evidence = disclosure(document.createElement('div'), 'Exact cognitive attempt records', attempt);
     return [String(attempt.cycle.sequence), attempt.end?.type === 'cycle.completed' ? 'Completed' : attempt.end?.type === 'infrastructure.error' ? 'Infrastructure failure' : run.status === 'running' ? 'Awaiting terminal capture' : 'No terminal capture', evidence];

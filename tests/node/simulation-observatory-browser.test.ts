@@ -42,7 +42,8 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     const run = listSimulationRuns(app).find(run => run.testId === 'conversation-starters')!;
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Activation heatmap', exact: true }).waitFor();
-    assert.ok((await panel.innerText()).includes(`artifact ${run.engine!.artifactHash}`));
+    assert.ok((await panel.innerText()).includes('artifact recorded'));
+    assert.ok(!(await panel.innerText()).includes(run.engine!.artifactHash!));
     const contextual = panel.getByRole('heading', { name: 'Evidence-linked run report', exact: true }).locator('..');
     for (const title of ['What worked?', 'What was surprising?', 'What remains unknown?', 'What changed?', 'What should I inspect next?'])
       assert.equal(await contextual.locator('summary').filter({ hasText: title }).count(), 1);
@@ -174,6 +175,11 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();
     await panel.getByRole('heading', { name: 'Provider operation diagnostics', exact: true }).waitFor();
     assert.equal(await panel.getByRole('table', { name: 'Recorded stage attempts', exact: true }).locator('tbody tr').count(), run.stages.length);
+    const stageIdentities = panel.getByRole('table', { name: 'Recorded stage attempts', exact: true }).locator('tbody tr').first();
+    assert.ok(!(await stageIdentities.innerText()).includes(run.stages[0]!.id!));
+    await stageIdentities.locator('summary').click();
+    assert.ok((await stageIdentities.innerText()).includes(run.stages[0]!.id!));
+    await stageIdentities.locator('summary').click();
     const cognitiveAttempts = panel.getByRole('table', { name: 'Recorded cognitive attempts', exact: true });
     assert.ok(await cognitiveAttempts.locator('tbody tr').count() > 0);
     assert.ok(await cognitiveAttempts.locator('tbody tr td:nth-child(2)').filter({ hasText: /^Completed$/ }).count() > 0);
@@ -233,14 +239,14 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await page.getByText('Repeat or fork saved starting conditions', { exact: true }).click();
     await page.getByLabel('Launch reason', { exact: true }).fill('Browser frozen rerun');
     await page.getByRole('button', { name: 'Rerun frozen configuration', exact: true }).click();
-    await page.getByRole('status').filter({ hasText: /Started simulation/ }).waitFor();
+    await page.getByRole('status').filter({ hasText: /Started .+ on a new Agent/ }).waitFor();
     const rerun = listSimulationRuns(app).find(item => item.lineage?.reason === 'Browser frozen rerun')!;
     assert.equal(rerun.lineage!.parentRunId, run.id); assert.notEqual(rerun.agentId, run.agentId);
     await page.getByLabel('Launch reason', { exact: true }).fill('Browser explicit fork');
     await page.getByLabel('Fork activation setting').selectOption('memorySearchEnabled');
     await page.getByLabel('Fork setting value').selectOption('false');
     await page.getByRole('button', { name: 'Launch configuration fork', exact: true }).click();
-    await page.getByRole('status').filter({ hasText: /Started simulation/ }).waitFor();
+    await page.getByRole('status').filter({ hasText: /Started .+ on a new Agent/ }).waitFor();
     for (let attempt = 0; attempt < 1000 && !listSimulationRuns(app).some(item => item.lineage?.reason === 'Browser explicit fork'); attempt++)
       await new Promise(resolve => setTimeout(resolve, 10));
     const fork = listSimulationRuns(app).find(item => item.lineage?.reason === 'Browser explicit fork')!;
