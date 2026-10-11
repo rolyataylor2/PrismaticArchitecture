@@ -1,3 +1,5 @@
+import { researchMetricCatalog } from './simulation-metrics.js';
+import type { SimulationMetricReview } from './simulation-research.js';
 import { createHash } from 'node:crypto';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
 import type { Disposition } from '../../core/src/domain.js';
@@ -87,7 +89,7 @@ export function compareSimulationStages(left: SimulationRun, right: SimulationRu
 }
 export type SimulationComparison = ReturnType<typeof compareSimulations>;
 
-export function aggregateSimulations(runs: SimulationRun[]) {
+export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationMetricReview[] = []) {
   const groups = new Map<string, SimulationRun[]>();
   for (const run of runs) { const key = hash({ configuration: simulationConfiguration(run), missingHistoricalConfiguration: run.startingConfiguration ? null : run.id }); groups.set(key, [...(groups.get(key) ?? []), run]); }
   return [...groups.entries()].map(([configurationId, trials]) => {
@@ -99,6 +101,25 @@ export function aggregateSimulations(runs: SimulationRun[]) {
       runIds: trials.map(run => run.id), activeScopeEvaluations: { n: values.length, mean,
         min: values.length ? Math.min(...values) : null, max: values.length ? Math.max(...values) : null,
         sampleStandardDeviation: values.length > 1 && mean !== null ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1)) : null },
+      dimensionReviews: researchMetricCatalog.map(metric => {
+        const latest = completed.flatMap(run => {
+          const review = reviews.filter(item => item.runId === run.id && item.metricId === metric.id).sort((a, b) => a.version - b.version).at(-1);
+          return review ? [review] : [];
+        });
+        const methods = [...new Set(latest.map(item => JSON.stringify({ method: item.operationalization, unit: item.unit })))];
+        return { metricId: metric.id, title: metric.title, reviewed: latest.length, unreviewed: completed.length - latest.length,
+          supported: latest.filter(item => item.verdict === 'supported').length, notSupported: latest.filter(item => item.verdict === 'not_supported').length,
+          inconclusive: latest.filter(item => item.verdict === 'inconclusive').length,
+          methodGroups: methods.map(key => {
+            const matched = latest.filter(item => JSON.stringify({ method: item.operationalization, unit: item.unit }) === key);
+            const measured = matched.flatMap(item => item.value === null ? [] : [item.value]);
+            const mean = measured.length ? measured.reduce((sum, value) => sum + value, 0) / measured.length : null;
+            return { operationalization: matched[0]!.operationalization, unit: matched[0]!.unit, n: measured.length, mean,
+              min: measured.length ? Math.min(...measured) : null, max: measured.length ? Math.max(...measured) : null,
+              sampleStandardDeviation: measured.length > 1 && mean !== null ? Math.sqrt(measured.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (measured.length - 1)) : null,
+              reviewIds: matched.map(item => item.id), runIds: matched.map(item => item.runId) };
+          }), limitation: 'External researcher measurements; methods/units remain separate and numeric differences do not establish causal effects.' };
+      }),
       criterionOutcomes: trials[0]!.specification.criteria.map((criterion, index) => ({ criterion,
         observed: completed.filter(run => run.measures[index]?.outcome === 'observed').length,
         notObserved: completed.filter(run => run.measures[index]?.outcome === 'not_observed').length,

@@ -1,6 +1,6 @@
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
-import { researchRun, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
+import { researchRun, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationMetricReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
 import { compareSimulations, compareSimulationStages, aggregateSimulations } from './simulation-comparison.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
@@ -67,10 +67,12 @@ export async function api(app: Application, method: string, path: string, body: 
     }
     if (method === 'POST' && entityId === 'aggregate' && !action) {
       const input = z.strictObject({ runIds: z.array(Text).max(200) }).parse(body);
-      return aggregateSimulations([...new Set(input.runIds)].map(runId => researchRun(app.store, runId)));
+      return aggregateSimulations([...new Set(input.runIds)].map(runId => researchRun(app.store, runId)),
+        app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
     }
     if (entityId && action === 'research') {
       if (method === 'GET') return { ...simulationResearch(app.store, entityId), candidates: simulationCandidates(app.store, researchRun(app.store, entityId)) };
+      if (method === 'POST' && subresource === 'metric-reviews') return saveSimulationMetricReview(app.store, entityId, body);
       if (method === 'POST' && subresource === 'reviews') return saveSimulationReview(app.store, entityId, body);
       if (method === 'POST' && subresource === 'findings') return saveSimulationFinding(app.store, entityId, body);
       if (method === 'POST' && subresource === 'candidates') return saveSimulationCandidates(app.store, entityId);

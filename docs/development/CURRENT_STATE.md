@@ -1,3 +1,9 @@
+## Observatory independent metric evidence milestone — 2026-10-11
+
+Read-only metrics now expose explicit prediction coverage/censoring, stage-based closure delay, distinct subjective assessment and administrative status, memory versions/recall groups/retention/attributed usefulness and measured component latency/reported usage. Ten independent research dimension reviews retain operationalization, limitations, citations, optional measurement units and append-only optimistic history. Repeated exact-configuration trials group latest measurements only by identical methods and units, reporting sample counts/variation. Technical and repeated-proposal candidates preserve alternatives; null-cycle citations retain unknown causal attribution. No global quality scalar or cognitive mutation is introduced; inference task responsibilities/prompts are unchanged.
+
+Affected checks pass 6/6 and actual Chrome 1/1, zero skips (`/tmp/prism-metrics-final-tests.log`, `/tmp/prism-metrics-browser.log`); strict lint and delivery build pass. Full thread remains active: contextual run reports, broader longitudinal effectiveness/comparison inspection, remaining source/admission attribution and final scope audit remain. No blocker. Unrelated generated workspace skills are excluded.
+
 ## Observatory activation/lifecycle milestone — 2026-10-10
 
 Scope eligibility/exclusion and admission are now recorded as separate policy facts. The inspector displays direct/associated judgments, frozen contributing/inhibiting signals, thresholds/score differences, unavailable scopes and active temporary scopes deferred by budgets. A clickable/keyboard Part lifecycle chart distinguishes creation, contribution, snapshot presence and retirement and selects the source Part/stage. Historical missing records stay unavailable. No eligibility, threshold, budget, inference task or prompt responsibility changed.

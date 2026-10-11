@@ -41,3 +41,9 @@ Runtime schema validation appends a distinct accepted/rejected record referencin
 ## Activation and lifecycle inspection
 
 Runtime audit snapshots record factual scope eligibility/exclusion and separate admission outcomes under the existing policy. Active, inactive, wrong-thread, same-cycle and ended-investigation records describe availability rather than psychological salience. Association inspection retains each original direct/associated judgment and its frozen contributing/inhibiting signals; numeric differences are score changes, not emotion, influence or learning. Lifecycle charts distinguish creation, expressed participation, snapshot presence and recorded retirement. Researcher selection of a chart cell only navigates preserved evidence and cannot activate or recruit a Part.
+
+## Metric evidence and operationalization
+
+The Observatory keeps ten research dimensions separate. Transparent counts describe prediction/check/closure cohorts, recalled episodes and recorded subjective usefulness, retained versions/lineage, decision/authority/verification references, and provider usage/elapsed time. Their denominators and censoring remain explicit. Numerical conviction is not a calibrated probability; neither lexical matches nor record counts establish relevance, transfer, stability or causal benefit.
+
+Dimension reviews append independent researcher records with an explicit operationalization, verdict, rationale, limitations, citations and optional measured value/unit. Different methods or units cannot be pooled as one measure. Reviews remain external judgments rather than cognitive updates or globally normalized scores. Null-cycle operation/validation citations in the isolated run window explicitly retain unassigned attribution; they never acquire a guessed cycle or causal parent.

@@ -1,3 +1,4 @@
+import { simulationMetrics } from './simulation-metrics.js';
 import type { CognitiveEvent, Store } from '../../core/src/contracts.js';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
 import { simulationLineage } from './simulation-lineage.js';
@@ -141,7 +142,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
       controls: run.stages.filter(stage => stage.phase === 'control').length,
       hypothesis: 'Review recorded criteria; execution completion does not establish the hypothesis.',
       changedObjects: stages.reduce((count, stage) => count + Object.values(stage.changes).reduce((sum, entries) => sum + entries.length, 0), 0),
-      error: run.error }, stages, activation, predictions, parts, memories, providerOperations, validations, providerUsage: usage, lineage: simulationLineage(run, events), coactivation: [...coactivation.values()], failedAttempts,
+      error: run.error }, stages, activation, predictions, parts, memories, providerOperations, validations, providerUsage: usage, lineage: simulationLineage(run, events), metrics: simulationMetrics(run, recorded.filter(event => event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt))), coactivation: [...coactivation.values()], failedAttempts,
     gaps: ['Causal parents are unavailable unless explicitly recorded; chronological proximity is not causation.',
       'Memory creation and object-version changes do not establish learning effectiveness or transfer.',
       ...(stages.some(stage => !stage.traceAvailable) ? ['Some stages have no recorded cycle trace (including offline-only stages); snapshots remain available.'] : [])] };

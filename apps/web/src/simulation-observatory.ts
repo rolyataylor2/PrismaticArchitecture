@@ -1,7 +1,7 @@
 import type { SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
 import type { SimulationAnalysis } from '../../../packages/sdk/src/simulation-analysis.js';
-import type { SimulationComparison } from '../../../packages/sdk/src/simulation-comparison.js';
-import type { SimulationReview, SimulationFinding, SimulationCandidate } from '../../../packages/sdk/src/simulation-research.js';
+import type { SimulationComparison, aggregateSimulations } from '../../../packages/sdk/src/simulation-comparison.js';
+import type { SimulationReview, SimulationMetricReview, SimulationFinding, SimulationCandidate } from '../../../packages/sdk/src/simulation-research.js';
 
 type Api = <T>(path: string, method?: string, body?: unknown) => Promise<T>;
 type Cycle = (cycleId: string, agentId: string) => void;
@@ -201,6 +201,24 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   }
   function renderDevelopment() {
     development.replaceChildren(); const area = card(development, 'Memory and development history', 'Experience → subjective interpretation → memory/prediction evidence → disposition development → later cognition. Links establish provenance, not causal benefit.');
+    const metrics = analysis.metrics;
+    const descriptors = disclosure(area, 'Run-wide prediction, retention and resource measures');
+    descriptors.append(node('p', `${metrics.predictions.checked}/${metrics.predictions.total} recorded predictions have outcome checks; ${metrics.predictions.withoutLaterCycle} have no later recorded cognitive-cycle opportunity.`),
+      node('p', `${metrics.predictions.originInRun} predictions originated here; ${metrics.predictions.inherited} are inherited or have unavailable origins. Closure delay: ${metrics.predictions.closureDelayStages.n} measured cases, mean ${metrics.predictions.closureDelayStages.mean?.toFixed(2) ?? 'unavailable'} scenario stages.`),
+      node('p', `${metrics.memory.retrieved}/${metrics.memory.total} memories were recalled in ${metrics.memory.recallGroups} recorded recall groups; ${metrics.memory.revised} have captured revisions; ${metrics.memory.retainedInFinalSnapshot} remain undeleted in the final snapshot.`),
+      node('p', metrics.predictions.calibration.reason));
+    disclosure(descriptors, 'Separate administrative closure and expectation assessments', { closure: metrics.predictions.administrativeStatus, assessment: metrics.predictions.expectationAssessment });
+    disclosure(descriptors, 'Attributed subjective usefulness (not researcher truth)', metrics.memory.subjectiveUsefulness);
+    table(descriptors, ['Component / task / provider', 'Calls / failures', 'Latency n / mean ms', 'Usage reports', 'Input / output tokens', 'Cached tokens', 'Cost'], metrics.resources.map(item => [
+      readable(item.key), `${item.operations} / ${item.failed}`, `${item.latencyMs.n} / ${item.latencyMs.mean?.toFixed(1) ?? 'unavailable'}`, `${item.usageReported}/${item.operations}`,
+      `${item.inputTokens ?? 'unreported'} / ${item.outputTokens ?? 'unreported'}`, item.cachedInputTokens === null ? 'Unreported / incomplete' : String(item.cachedInputTokens), 'Unreported']), 'Component resources');
+    const history = disclosure(area, 'Longitudinal recorded development and behavior');
+    table(history, ['Stage', 'Phase', 'Predictions', 'Memories', 'Recalled memories', 'Proposals', 'Choices', 'Executions'], metrics.stageHistory.map(item => [item.name,
+      item.phase, String(item.predictions), String(item.memories), String(item.recalledMemoryIds.length), String(item.proposals), String(item.selectedChoices ?? 'unavailable'), String(item.executions ?? 'unavailable')]), 'Development stage history');
+    history.append(node('p', 'Compare explicit baseline, familiar/novel probes, post-consolidation and durability stages. Differences in record counts are not improved learning. Grade transfer and stability with a stated measurement method and controls.'));
+    for (const limitation of metrics.limitations) descriptors.append(node('p', limitation, 'muted'));
+    disclosure(descriptors, 'Exact metric denominators, censoring and source references', metrics);
+
     for (const entry of analysis.memories.filter(item => !partId || item.memory.partId === partId || item.retrievals.some(retrieval => retrieval.partId === partId))) {
       const d = disclosure(area, `${entry.memory.gist} · ${entry.retrievals.length} recorded retrieval(s)`);
       d.append(node('p', entry.memory.content), node('p', entry.effectiveness));
@@ -335,15 +353,50 @@ export function simulationRunAnalysis(run: SimulationRun, api: Api, cycle: Cycle
   return host;
 }
 
-type Research = { reviews: SimulationReview[]; findings: SimulationFinding[]; candidates: SimulationCandidate[] };
+type Research = { reviews: SimulationReview[]; metricReviews: SimulationMetricReview[]; findings: SimulationFinding[]; candidates: SimulationCandidate[] };
 export async function renderResearch(root: HTMLElement, run: SimulationRun, api: Api, cycle: Cycle, fail: Fail) {
   const host = node('section', '', 'simulation-research'); root.append(host); host.append(node('p', 'Loading research records…'));
   const [initialResearch, analysis] = await Promise.all([api<Research>(`simulation-tests/${run.id}/research`), api<SimulationAnalysis>(`simulation-tests/${run.id}/analysis`)]);
+  let selectedMetric: string = analysis.metrics.dimensions[0].id;
   let research = initialResearch;
   if (!host.isConnected) return;
   async function refresh() { const next = await api<Research>(`simulation-tests/${run.id}/research`); if (!host.isConnected) return; research = next; render(); }
   function render() {
     host.replaceChildren();
+    const dimensions = card(host, 'Research dimension reviews', 'Ten dimensions remain separate. State the measurement method, limitations and cited evidence; optional measured values remain researcher-authored.');
+    table(dimensions, ['Dimension', 'Latest judgment', 'Measured value', 'Required evidence'], analysis.metrics.dimensions.map(item => {
+      const prior = latest(research.metricReviews.filter(review => review.metricId === item.id));
+      return [item.title, prior ? `${readable(prior.verdict)} · v${prior.version}` : 'Unreviewed / unavailable', prior?.value === null || prior?.value === undefined ? 'Not measured' : `${prior.value} ${prior.unit}`, item.prerequisite];
+    }), 'Separate research dimensions');
+    const metricForm = node('form', '', 'observatory-review-form'); dimensions.append(metricForm);
+    const metric = select(metricForm, 'Research dimension', analysis.metrics.dimensions.map(item => [item.id, item.title])); metric.value = selectedMetric;
+    const metricVerdict = select(metricForm, 'Dimension verdict', [['inconclusive', 'Inconclusive'], ['supported', 'Supported'], ['not_supported', 'Not supported']]);
+    const metricReviewer = field(metricForm, 'Dimension reviewer'); metricReviewer.required = true;
+    const method = field(metricForm, 'Measurement method and controls', true); method.required = true;
+    const metricRationale = field(metricForm, 'Dimension rationale', true); metricRationale.required = true;
+    const limitations = field(metricForm, 'Dimension limitations', true); limitations.required = true;
+    const numeric = field(metricForm, 'Measured value (optional)') as HTMLInputElement; numeric.type = 'number'; numeric.step = 'any';
+    const unit = field(metricForm, 'Measurement unit (optional)');
+    const metricRefs = field(metricForm, 'Dimension evidence references', true); metricRefs.placeholder = '/stages/0\n/runs/paired-run/stages/0';
+    const updateMetric = () => { selectedMetric = metric.value; const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value));
+      metricVerdict.value = prior?.verdict ?? 'inconclusive'; metricReviewer.value = prior?.reviewer ?? ''; method.value = prior?.operationalization ?? '';
+      metricRationale.value = prior?.rationale ?? ''; limitations.value = prior?.limitations ?? ''; numeric.value = prior?.value?.toString() ?? ''; unit.value = prior?.unit ?? '';
+      metricRefs.value = prior?.citations.map(item => item.reference).join('\n') ?? ''; };
+    metric.onchange = updateMetric; updateMetric();
+    const metricSubmit = node('button', 'Save dimension review'); metricSubmit.type = 'submit'; metricSubmit.disabled = run.status === 'running'; metricForm.append(metricSubmit);
+    metricForm.onsubmit = event => { event.preventDefault(); const prior = latest(research.metricReviews.filter(item => item.metricId === metric.value)); metricSubmit.disabled = true;
+      void api(`simulation-tests/${run.id}/research/metric-reviews`, 'POST', { metricId: metric.value, verdict: metricVerdict.value, reviewer: metricReviewer.value,
+        operationalization: method.value, rationale: metricRationale.value, limitations: limitations.value, value: numeric.value.trim() ? Number(numeric.value) : null,
+        unit: unit.value.trim() || null, evidenceReferences: metricRefs.value.split('\n').map(value => value.trim()).filter(Boolean), expectedVersion: prior?.version ?? 0 })
+        .then(refresh).catch(fail).finally(() => { if (metricSubmit.isConnected) metricSubmit.disabled = run.status === 'running'; }); };
+    const dimensionHistory = disclosure(dimensions, 'Preserved dimension review history');
+    for (const review of research.metricReviews) {
+      const title = analysis.metrics.dimensions.find(item => item.id === review.metricId)!.title;
+      const d = disclosure(dimensionHistory, `${title} · ${readable(review.verdict)} · v${review.version}`);
+      d.append(node('p', `${review.reviewer}: ${review.rationale}`), node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
+      disclosure(d, 'Exact review and frozen evidence citations', review);
+    }
+
   const operations = card(host, 'Provider operation diagnostics', `${analysis.providerOperations.length} recorded operations · ${analysis.providerOperations.filter(item => item.phase === 'failed').length} failures`);
   operations.append(node('p', 'Adapter returns, runtime validation and admission are distinct. Unreported usage, cache, cost and causal parents stay unavailable. Calls without explicit cycle attribution remain unassigned.'));
   table(operations, ['Component / task', 'Provider', 'Status', 'Elapsed', 'Cycle', 'Diagnostics'], analysis.providerOperations.map(item => {
@@ -482,12 +535,18 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
   }, fail);
   button(controls, 'Aggregate repeated configurations', async () => {
     const current = ++request;
-    const aggregate = await api<Array<{ testId: string; trials: number; completed: number; failed: number; activeScopeEvaluations: { n: number; mean: number | null; min: number | null; max: number | null; sampleStandardDeviation: number | null }; limitations: string }>>('simulation-tests/aggregate', 'POST', { runIds: runs.map(run => run.id) });
+    const aggregate = await api<ReturnType<typeof aggregateSimulations>>('simulation-tests/aggregate', 'POST', { runIds: runs.map(run => run.id) });
     if (!host.isConnected || current !== request) return; result.replaceChildren();
     const panel = card(result, 'Repeated trial variation', 'Only exact frozen configurations are grouped; incomplete runs do not enter descriptive activation totals.');
     table(panel, ['Scenario', 'Trials', 'Completed', 'Failed', 'Mean', 'Range', 'Sample SD'], aggregate.map(group => [group.testId, String(group.trials), String(group.completed), String(group.failed),
       group.activeScopeEvaluations.mean?.toFixed(2) ?? 'Unavailable', group.activeScopeEvaluations.n ? `${group.activeScopeEvaluations.min}–${group.activeScopeEvaluations.max}` : 'Unavailable',
       group.activeScopeEvaluations.sampleStandardDeviation?.toFixed(2) ?? 'Insufficient trials']), 'Repeated configuration observations');
+    const dimensions = card(panel, 'Dimension review trial variation', 'Latest external reviews only; different measurement methods and units are never pooled.');
+    table(dimensions, ['Scenario / dimension', 'Reviewed / missing', 'Supported / not / inconclusive', 'Method', 'Measured n / mean / unit', 'Range / sample SD'], aggregate.flatMap(group => group.dimensionReviews.flatMap(metric => {
+      const base = [`${group.testId} · ${metric.title}`, `${metric.reviewed} / ${metric.unreviewed}`, `${metric.supported} / ${metric.notSupported} / ${metric.inconclusive}`];
+      return metric.methodGroups.length ? metric.methodGroups.map(method => [...base, method.operationalization, `${method.n} / ${method.mean?.toFixed(2) ?? 'unavailable'} / ${method.unit ?? 'not measured'}`,
+        `${method.n ? `${method.min}–${method.max}` : 'unavailable'} / ${method.sampleStandardDeviation?.toFixed(2) ?? 'insufficient trials'}`]) : [[...base, 'Unreviewed', 'Unavailable', 'Unavailable']];
+    })), 'Dimension trial variation');
     panel.append(node('p', 'These counts do not measure quality, intelligence or causal learning. Compare criteria, controls and behavioral evidence.'));
     disclosure(panel, 'Full grouped configurations and run evidence', aggregate);
   }, fail);
