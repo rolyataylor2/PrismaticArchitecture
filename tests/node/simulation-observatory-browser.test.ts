@@ -50,6 +50,11 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     const expectedStage = Number((await link.innerText()).match(/\/stages\/(\d+)/)![1]);
     await link.click(); assert.equal(await panel.getByLabel('Analytics stage').inputValue(), String(expectedStage));
     await panel.getByRole('button', { name: 'Clear coordinated filters', exact: true }).click();
+    await panel.getByLabel('Timeline zoom').selectOption('run');
+    assert.equal(await panel.getByRole('table', { name: 'Seven-lane run timeline', exact: true }).locator('tbody tr').count(), 7);
+    await panel.getByRole('button', { name: /^Inspect Cognition, stage 3:/ }).click();
+    assert.equal(await panel.getByLabel('Analytics stage').inputValue(), '2');
+    await panel.getByRole('button', { name: 'Clear coordinated filters', exact: true }).click();
     for (const title of ['1. What happened?', '2. What became relevant?', '3. How was it interpreted?', '4. What was advocated?', '5. What was actually done?', '6. What changed after experience?'])
       await panel.getByRole('heading', { name: title, exact: true }).waitFor();
     await panel.getByLabel('Analytics stage').selectOption('2');
@@ -73,7 +78,14 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await trails.getByText('Self visibility, scores and recorded selections', { exact: true }).first().waitFor();
     await panel.getByLabel('Timeline lane').selectOption('Self');
     const timeline = panel.locator('article').filter({ has: page.getByRole('heading', { name: 'Cognitive event timeline', exact: true }) });
-    await timeline.getByRole('button').first().click();
+    await panel.getByLabel('Timeline zoom').selectOption('run');
+    await panel.getByRole('table', { name: 'Seven-lane run timeline', exact: true }).waitFor();
+    const laneCell = panel.getByRole('button', { name: /^Inspect Self, stage 3:/ });
+    await laneCell.click(); assert.equal(await panel.getByLabel('Timeline zoom').inputValue(), 'stage');
+    await timeline.locator('button[data-event-id]').first().click();
+    assert.equal(await panel.getByLabel('Timeline zoom').inputValue(), 'event');
+    await panel.getByLabel('Event neighborhood radius').selectOption('2');
+    assert.ok(await timeline.locator('button[data-event-id]').count() <= 5);
     await timeline.locator('details[open][data-evidence-reference]').waitFor();
     await panel.getByRole('tab', { name: 'Development', exact: true }).click();
     await panel.getByRole('heading', { name: 'Memory and development history', exact: true }).waitFor();

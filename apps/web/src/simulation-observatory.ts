@@ -71,15 +71,19 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   const stageSelect = select(controls, 'Analytics stage', run.stages.map((stage, index) => [String(index), `${index + 1}. ${stage.name} · ${stage.phase}`]));
   const partSelect = select(controls, 'Analytics Part', [['', 'All Parts'], ...analysis.parts.map(item => [item.part.id, `${item.part.name} · ${item.originStage >= 0 ? `from stage ${item.originStage + 1}` : 'origin unavailable'}`] as [string, string])]);
   const laneSelect = select(controls, 'Timeline lane', [['', 'All lanes'], ...['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning'].map(item => [item, item] as [string, string])]);
+  const zoomSelect = select(controls, 'Timeline zoom', [['run', 'Run lanes'], ['stage', 'Stage events'], ['event', 'Event neighborhood']]); zoomSelect.value = 'stage';
+  const radiusSelect = select(controls, 'Event neighborhood radius', [['2', 'Two events each side'], ['5', 'Five events each side'], ['10', 'Ten events each side']]); radiusSelect.value = '5';
+  const timelineOverview = node('div'); host.append(timelineOverview);
   const chart = node('div'); const ledger = node('div'); const development = node('div'); const inspector = node('div');
   host.append(chart, ledger, development, inspector);
-  let index = 0; let partId = ''; let lane = ''; let eventId: string | null = null;
+  let index = 0; let partId = ''; let lane = ''; let eventId: string | null = null; let focusedPredictionId: string | null = null;
   const scopes = () => new Set(analysis.parts.find(item => item.part.id === partId)?.part.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? []);
-  function inspect(next: number) { index = next; eventId = null; stageSelect.value = String(index); render(); }
+  function inspect(next: number) { index = next; eventId = null; focusedPredictionId = null; stageSelect.value = String(index); render(); }
   stageSelect.onchange = () => inspect(Number(stageSelect.value));
-  partSelect.onchange = () => { partId = partSelect.value; eventId = null; render(); };
-  laneSelect.onchange = () => { lane = laneSelect.value; renderInspector(); };
-  button(controls, 'Clear coordinated filters', () => { partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; inspect(0); }, fail);
+  partSelect.onchange = () => { partId = partSelect.value; eventId = null; focusedPredictionId = null; render(); };
+  laneSelect.onchange = () => { lane = laneSelect.value; render(); };
+  zoomSelect.onchange = () => render(); radiusSelect.onchange = () => renderInspector();
+  button(controls, 'Clear coordinated filters', () => { partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; zoomSelect.value = 'stage'; inspect(0); }, fail);
   function source(parent: HTMLElement, stageIndex: number, title = 'Inspect source stage') { button(parent, title, () => inspect(stageIndex), fail); }
   const contextual = card(overview, 'Evidence-linked run report', 'Researcher analysis over preserved evidence. Human, subjective, operational and unreviewed interpretations retain separate attribution.');
   for (const [title, entries] of [['What worked?', report.worked], ['What was surprising?', report.surprising], ['What remains unknown?', report.unknown],
@@ -97,7 +101,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
         const event = /^\/events\/([^/]+)(?:\/|$)/.exec(reference);
         const recorded = event ? analysis.stages.flatMap(stage => stage.trace).find(item => item.id === event[1]) : null;
         if (stage) source(item, Number(stage[1]), `Inspect report evidence ${reference}`);
-        else if (recorded) button(item, `Inspect report event ${event![1]}`, () => { index = recorded.stageIndex; stageSelect.value = String(index); eventId = recorded.id; partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; render(); }, fail);
+        else if (recorded) button(item, `Inspect report event ${event![1]}`, () => { lane = ''; laneSelect.value = ''; chooseEvent(recorded); }, fail);
         else {
           const evidence = report.sources.find(item => item.reference === reference);
           const detail = disclosure(item, `Inspect preserved report evidence ${reference}`, evidence?.citation?.value);
@@ -206,6 +210,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     if (!entries.length) area.append(node('p', 'No predictions recorded for this view.'));
     for (const entry of entries) {
       const d = disclosure(area, `${entry.prediction.expectation} · ${entry.administrativeStatus} · ${entry.expectationAssessment}`);
+      d.open = focusedPredictionId === entry.prediction.id; d.dataset.predictionId = entry.prediction.id;
       d.append(node('p', `${entry.ownerName} · conviction ${(entry.prediction.confidence * 100).toFixed(1)}% · horizon: ${entry.prediction.horizon}`),
         node('p', `Evidence: ${entry.evidenceSufficiency} · resolution delay: ${entry.resolutionDelayStages ?? 'Unavailable'} stages`),
         node('p', `Selected context: ${entry.prediction.capsule.interpretation}`));
@@ -351,23 +356,68 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     learned.append(node('p', `${projected.changes.memories.length} memory and ${projected.changes.dispositions.length} disposition additions/revisions. These counts do not establish useful learning.`));
     disclosure(learned, 'New and revised cognitive objects', projected.changes);
     const timeline = card(inspector, 'Cognitive event timeline', 'External experience, Part interpretation, imagined futures and researcher judgments have separate provenance. Select an event for exact evidence.');
-    const relatedIds = new Set<string>([partId, ...scopes(), ...analysis.memories.filter(item => item.memory.partId === partId || item.retrievals.some(retrieval => retrieval.partId === partId)).map(item => item.memory.id),
-      ...analysis.predictions.filter(item => item.prediction.partId === partId).map(item => item.prediction.id),
-      ...analysis.stages.flatMap(stage => stage.bids.filter(item => item.bid.partId === partId).map(item => item.bid.id)),
-      ...analysis.stages.flatMap(stage => stage.contracts.filter(item => item.contract.commands.some(command => command.partId === partId)).map(item => item.contract.id))]);
-    function related(value: unknown): boolean { return typeof value === 'string' ? relatedIds.has(value) : Array.isArray(value) ? value.some(related)
-      : value !== null && typeof value === 'object' ? Object.values(value).some(related) : false; }
-    const items = projected.trace.filter(event => !lane || event.lane === lane).filter(event => {
-      return !partId || event.lane === 'Environment' || related(event.payload);
-    });
-    for (const event of items) button(timeline, `${event.lane} · ${readable(event.type)} · ${new Date(event.at).toLocaleTimeString()}`, () => { eventId = event.id; renderInspector(); }, fail);
+    const matching = filteredEvents();
+    let items = matching.filter(event => event.stageIndex === index);
+    if (zoomSelect.value === 'event' && eventId) {
+      const focus = matching.findIndex(event => event.id === eventId); const radius = Number(radiusSelect.value);
+      items = focus < 0 ? [] : matching.slice(Math.max(0, focus - radius), focus + radius + 1);
+      timeline.append(node('p', 'Event neighborhood uses filtered recorded order across stages, not inferred causality or elapsed duration.'));
+    }
+    if (zoomSelect.value === 'run') timeline.append(node('p', 'Select a lane/stage cell above to zoom into its events.'));
+    else {
+      const selectedIndex = matching.findIndex(event => event.id === eventId);
+      const navigation = node('div'); timeline.append(navigation);
+      const previous = button(navigation, 'Previous recorded event', () => chooseEvent(matching[selectedIndex - 1]!), fail);
+      const next = button(navigation, 'Next recorded event', () => chooseEvent(matching[selectedIndex + 1]!), fail);
+      previous.disabled = selectedIndex <= 0; next.disabled = selectedIndex < 0 || selectedIndex + 1 >= matching.length;
+      const lanes = lane ? [lane] : ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning'];
+      for (const name of lanes) {
+        const group = node('section'); group.setAttribute('aria-label', `${name} events`); group.append(node('h4', name)); timeline.append(group);
+        const inLane = items.filter(event => event.lane === name);
+        if (!inLane.length) group.append(node('p', 'No recorded event in this view.', 'muted'));
+        for (const event of inLane) {
+          const eventButton = button(group, `Stage ${event.stageIndex + 1} · ${readable(event.type)} · #${event.sequence} · ${new Date(event.at).toLocaleTimeString()}`, () => chooseEvent(event), fail);
+          eventButton.dataset.eventId = event.id; eventButton.setAttribute('aria-pressed', String(event.id === eventId));
+        }
+      }
+    }
     const selected = projected.trace.find(event => event.id === eventId);
-    if (selected) { const d = disclosure(timeline, `Selected event · ${readable(selected.type)}`, selected); d.open = true; d.dataset.evidenceReference = `/events/${selected.id}`; }
+    if (selected) { timeline.append(node('p', `${selected.references.owningPartIds.length} recorded owner(s); ${selected.references.owningPartIds.length > 1 ? 'multi-owner attribution remains ambiguous' : 'navigation follows explicit frozen identifiers'}.`)); const d = disclosure(timeline, `Selected event · ${readable(selected.type)}`, selected); d.open = true; d.dataset.evidenceReference = `/events/${selected.id}`; }
     if (!projected.traceAvailable) timeline.append(node('p', 'No cycle trace recorded. Snapshot evidence remains available.'));
     if (stage.cycleId) button(inspector, 'Inspect authoritative source cycle', () => cycle(stage.cycleId!, run.agentId), fail);
     disclosure(inspector, 'Full stage snapshot', stage);
   }
-  function render() { if (!developmentOnly) { renderActivation(); renderPredictions(); } renderDevelopment(); renderInspector(); }
+  type RecordedEvent = SimulationAnalysis['stages'][number]['trace'][number];
+  function filteredEvents() {
+    const relatedIds = new Set<string>([partId, ...scopes(), ...analysis.memories.filter(item => item.memory.partId === partId || item.retrievals.some(retrieval => retrieval.partId === partId)).map(item => item.memory.id),
+      ...analysis.predictions.filter(item => item.prediction.partId === partId).map(item => item.prediction.id),
+      ...analysis.stages.flatMap(stage => stage.bids.filter(item => item.bid.partId === partId).map(item => item.bid.id)),
+      ...analysis.stages.flatMap(stage => stage.contracts.filter(item => item.contract.commands.some(command => command.partId === partId)).map(item => item.contract.id))]);
+    function related(value: unknown, key = ''): boolean { return typeof value === 'string' ? /(?:^id$|Ids?$|^choice$)/.test(key) && relatedIds.has(value) : Array.isArray(value) ? value.some(item => related(item, key))
+      : value !== null && typeof value === 'object' ? Object.entries(value).some(([field, item]) => related(item, field)) : false; }
+    return analysis.stages.flatMap(stage => stage.trace).filter(event => !lane || event.lane === lane)
+      .filter(event => !partId || event.lane === 'Environment' || related(event.payload));
+  }
+  function chooseEvent(event: RecordedEvent) {
+    index = event.stageIndex; stageSelect.value = String(index); eventId = event.id; zoomSelect.value = 'event';
+    const owners = event.references.owningPartIds;
+    partId = owners.length === 1 ? owners[0]! : ''; partSelect.value = partId;
+    focusedPredictionId = event.references.predictionIds.length === 1 ? event.references.predictionIds[0]! : null;
+    render();
+  }
+  function renderTimelineOverview() {
+    timelineOverview.replaceChildren(); if (zoomSelect.value !== 'run') return;
+    const area = card(timelineOverview, 'Run timeline lanes', 'Select a recorded lane/stage cell to zoom into stage events. Empty cells are capture gaps, not absence of cognition.');
+    const events = filteredEvents();
+    table(area, ['Lane', ...run.stages.map((stage, i) => `${i + 1}. ${stage.name}`)],
+      ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning'].filter(name => !lane || name === lane).map(name => [name,
+        ...run.stages.map((_stage, i) => {
+          const matches = events.filter(event => event.stageIndex === i && event.lane === name); const wrapper = node('div');
+          const b = button(wrapper, `Inspect ${name}, stage ${i + 1}: ${matches.length} recorded events`, () => { lane = name; laneSelect.value = name; zoomSelect.value = 'stage'; inspect(i); }, fail);
+          b.disabled = !matches.length; b.setAttribute('aria-pressed', String(i === index && lane === name)); return wrapper;
+        })]), 'Seven-lane run timeline');
+  }
+  function render() { renderTimelineOverview(); if (!developmentOnly) { renderActivation(); renderPredictions(); } renderDevelopment(); renderInspector(); }
   render();
 }
 

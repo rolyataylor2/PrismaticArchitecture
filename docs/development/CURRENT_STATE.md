@@ -1,3 +1,9 @@
+## Observatory coordinated timeline zoom milestone — 2026-10-11
+
+Run Explorer now zooms through a seven-lane run/stage matrix, stage events and a bounded filtered event neighborhood. Selection synchronizes exact recorded stage and uniquely captured owner; multiple owners remain ambiguous. Identifier-field references and frozen bid/prediction/memory ownership support navigation, with no prose-derived ownership, inferred causal parents or current-psychology reconstruction. Linked prediction focus is implemented; its rendered verification remains required.
+
+Focus/projection/report checks pass 3/3, Chrome 1/1, zero skips (`/tmp/prism-timeline-tests.log`, `/tmp/prism-timeline-browser.log`); final strict lint and delivery build pass. Full goal remains active: prediction focus verification, semantic evidence alignment, broader longitudinal comparison/development inspection, remaining instrumentation and final scope audit remain. No blocker. Generated unrelated workspace skills remain excluded.
+
 ## Observatory contextual run report milestone — 2026-10-11
 
 The five-question run report now uses frozen evidence and latest separate criterion/dimension/finding versions, preserving operational/observer/human/subjective/candidate/change/gap attribution, exact citation sources and alternatives/next inspections. Initial snapshots and later changes remain distinct; completion is not hypothesis success. Run Explorer navigates report changes/events through coordinated source inspection. Fixture export preserves the generated report; browsing makes no inference or cognitive/audit mutation.

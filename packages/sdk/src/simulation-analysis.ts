@@ -1,4 +1,5 @@
 import { simulationMetrics } from './simulation-metrics.js';
+import { simulationEventFocus } from './simulation-event-focus.js';
 import type { CognitiveEvent, Store } from '../../core/src/contracts.js';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
 import { simulationLineage } from './simulation-lineage.js';
@@ -55,7 +56,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
       },
       trace: trace.map(event => ({ id: event.id, sequence: event.sequence, at: event.at, type: event.type, lane: lane(event.type, event.payload),
         runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : null,
-        provenance: 'recorded audit event' as const, payload: event.payload })),
+        references: simulationEventFocus(run, events, event.payload), provenance: 'recorded audit event' as const, payload: event.payload })),
       traceAvailable: trace.length > 0,
       eligibility: trace.flatMap(event => event.type === 'construction.eligibility' ? [{ eventId: event.id, ...event.payload }] : []),
       admission: trace.flatMap(event => event.type === 'construction.admission' ? [{ eventId: event.id, ...event.payload }] : []),
