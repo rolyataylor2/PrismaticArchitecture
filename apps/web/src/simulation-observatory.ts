@@ -289,6 +289,15 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     const experience = card(inspector, '1. What happened?'); experience.append(node('p', stage.text ?? 'Offline or operational stage; no new authored message.'),
       node('p', 'Authored scenario experience and attributed external records; Part interpretations below remain subjective.', 'muted'));
     disclosure(experience, 'External observations and imagined alternatives (separate records)', { observations: stage.observations ?? [], experienced: stage.experienced });
+    const knowledge = card(inspector, 'Recorded knowledge provenance', 'Scenario input, attributed facts, subjective interpretations, recalled episodes and imagined alternatives retain distinct sources. These are captured views, not new learning events.');
+    const provenance = analysis.knowledge[index]!;
+    table(knowledge, ['Source category', 'Attributed source', 'Recorded content', 'Boundary / evidence'], provenance.entries.filter(entry => !partId || !entry.partId || entry.partId === partId).map(entry => {
+      const boundary = node('div'); boundary.append(node('p', entry.limitation));
+      disclosure(boundary, 'Exact knowledge references and opaque lineage', { references: entry.references, provenanceIds: entry.provenanceIds });
+      disclosure(boundary, 'Exact captured knowledge records', entry.references.map(reference => ({ reference, value: reference.slice(1).split('/').reduce<unknown>((value, key) => value && typeof value === 'object' && Object.hasOwn(value, key) ? (value as Record<string, unknown>)[key] : null, run) })));
+      return [readable(entry.kind), entry.source, entry.text, boundary];
+    }), 'Recorded knowledge sources');
+    provenance.gaps.forEach(gap => knowledge.append(node('p', gap, 'muted')));
     const relevant = card(inspector, '2. What became relevant?');
     const activation = stage.activations.filter(item => !partId || scopes().has(item.dispositionId));
     table(relevant, ['Scope', 'Direct', 'Final', 'Decision'], activation.map(item => [item.name, item.baselineScore === undefined ? 'Unavailable' : item.baselineScore.toFixed(2),

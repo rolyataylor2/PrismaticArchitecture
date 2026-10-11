@@ -60,6 +60,13 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByLabel('Analytics stage').selectOption('2');
     await panel.getByRole('heading', { name: '3. Concrete question', exact: true }).waitFor();
     const part = run.stages[2]!.thoughts[0]!;
+    const knowledge = panel.getByRole('table', { name: 'Recorded knowledge sources', exact: true });
+    await knowledge.waitFor();
+    assert.ok(await knowledge.locator('tbody tr').filter({ hasText: /scenario input/i }).count() > 0);
+    assert.ok(await knowledge.locator('tbody tr').filter({ hasText: /part interpretation/i }).count() > 0);
+    const firstKnowledge = knowledge.locator('tbody tr').first();
+    await firstKnowledge.locator('summary').filter({ hasText: 'Exact captured knowledge records' }).click();
+    assert.ok((await firstKnowledge.innerText()).includes(run.stages[2]!.text!));
     await panel.getByRole('table', { name: 'Scope eligibility and exclusions', exact: true }).waitFor();
     await panel.getByRole('table', { name: 'Direct and associated activation judgments', exact: true }).waitFor();
     await panel.getByRole('table', { name: 'Scope admission decisions', exact: true }).waitFor();
