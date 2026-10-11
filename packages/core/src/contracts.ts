@@ -68,6 +68,10 @@ export type EventPayloads = {
   'provider.operation': import('./provider-operation.js').ProviderOperation;
   'provider.usage': { operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
   'construction.inference_started': import('./constructed-domain.js').ConstructedInput;
+  'construction.eligibility': { worldId: string; threadId: string | null; inquiry: string | null; scopes: {
+    dispositionId: string; name: string; version: number; temporary: boolean; threshold: number; eligible: boolean; reasons: string[] }[] };
+  'construction.admission': { worldId: string; inquiry: string | null; scopes: { dispositionId: string; score: number | null;
+    threshold: number; status: 'admitted' | 'below_threshold' | 'budget_deferred' | 'already_participating' }[] };
   'construction.temporary_scope_budget': { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] };
   'construction.generated': { partId: string; result: z.infer<typeof import('./constructed-domain.js').PartGenerationSchema> };
   'construction.judgment_started': import('./constructed-domain.js').JudgmentInput;

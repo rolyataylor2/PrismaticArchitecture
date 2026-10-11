@@ -153,6 +153,21 @@ export class ConstructedCognition {
         temporary: true, active: true,
       })))];
     const eligible = [...durable, ...temporary];
+    const eligibleIds = new Set(eligible.map(disposition => disposition.id));
+    const persisted = this.store.list('disposition', agentId);
+    const eligibility = [...persisted, ...temporary.filter(disposition => !persisted.some(stored => stored.id === disposition.id))].map(disposition => {
+      const available = eligibleIds.has(disposition.id);
+      const reasons = available ? [disposition.temporary ? 'open prior-cycle investigation in this thread' : 'live durable scope'] : [
+        ...(!disposition.active ? ['inactive scope'] : []),
+        ...(disposition.temporary && !disposition.scaffold ? ['no current persisted scaffold'] : []),
+        ...(disposition.scaffold?.createdCycle === world.cycleId ? ['created in this cycle; later-cycle eligibility required'] : []),
+        ...(disposition.scaffold && disposition.scaffold.threadId !== (threadId ?? null) ? ['different thread'] : []),
+        ...(disposition.temporary && !openPredictions.some(prediction => prediction.id === disposition.sourcePredictionId) ? ['owning investigation is not open'] : []),
+      ];
+      return { dispositionId: disposition.id, name: disposition.name, version: disposition.version, temporary: disposition.temporary,
+        threshold: disposition.threshold, eligible: available, reasons: reasons.length ? reasons : ['not admitted by the current eligibility policy'] };
+    });
+    this.inspection.emit(agentId, world.cycleId, 'construction.eligibility', { worldId: world.id, threadId: threadId ?? null, inquiry: inquiry ?? null, scopes: eligibility });
     // Participating scopes may supply independent signals during recruitment, without regenerating their Parts.
     const candidates = eligible.map(disposition => ({ disposition, entityId: `scope_${encodeURIComponent(disposition.scope ?? 'world')}` }));
     const directScores = await this.judge({ task: 'disposition_activation', agentId, world,
@@ -199,6 +214,11 @@ export class ConstructedCognition {
       .sort((a, b) => scores.find(score => score.partId === b.disposition.id)!.score - scores.find(score => score.partId === a.disposition.id)!.score);
     const admittedTemporary = new Set(qualifiedTemporary.slice(0, temporaryBudget).map(binding => binding.disposition.id));
     const activeBindings = qualifiedBindings.filter(binding => !binding.disposition.temporary || admittedTemporary.has(binding.disposition.id));
+    this.inspection.emit(agentId, world.cycleId, 'construction.admission', { worldId: world.id, inquiry: recruitment?.question ?? null,
+      scopes: assessed.bindings.map(binding => ({ dispositionId: binding.disposition.id, score: scores.find(score => score.partId === binding.disposition.id)?.score ?? null,
+        threshold: binding.disposition.threshold, status: recruitment?.participatingDispositionIds.includes(binding.disposition.id) ? 'already_participating' as const
+          : !qualifiedBindings.some(candidate => candidate.disposition.id === binding.disposition.id) ? 'below_threshold' as const
+          : binding.disposition.temporary && !admittedTemporary.has(binding.disposition.id) ? 'budget_deferred' as const : 'admitted' as const })) });
     if (qualifiedTemporary.length) this.inspection.emit(agentId, world.cycleId, 'construction.temporary_scope_budget', {
       limit: temporaryBudget, activeScopeIds: qualifiedTemporary.map(binding => binding.disposition.id),
       admittedScopeIds: [...admittedTemporary], deferredScopeIds: qualifiedTemporary.filter(binding => !admittedTemporary.has(binding.disposition.id)).map(binding => binding.disposition.id) });

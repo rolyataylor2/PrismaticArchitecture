@@ -85,6 +85,41 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   laneSelect.onchange = () => { lane = laneSelect.value; renderInspector(); };
   button(controls, 'Clear coordinated filters', () => { partId = ''; partSelect.value = ''; lane = ''; laneSelect.value = ''; inspect(0); }, fail);
   function source(parent: HTMLElement, stageIndex: number, title = 'Inspect source stage') { button(parent, title, () => inspect(stageIndex), fail); }
+  function renderLifecycle(parent: HTMLElement) {
+    const life = card(parent, 'Part lifecycle timeline', 'Creation, expressed participation, snapshot presence and retirement are separate. Select a cell to inspect its Part and stage.');
+    life.append(node('p', '+ created · ● contributed · × retired · pale background: no contribution captured. Snapshot presence does not establish activation.'));
+    const parts = analysis.parts.filter(item => !partId || item.part.id === partId);
+    const scroll = node('div', '', 'observatory-scroll'); life.append(scroll);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const width = 240 + run.stages.length * 46; const height = 45 + parts.length * 33;
+    svg.setAttribute('width', String(width)); svg.setAttribute('height', String(height)); svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'group'); svg.setAttribute('aria-label', 'Recorded Part lifecycle chart'); scroll.append(svg);
+    const label = (x: number, y: number, text: string) => { const element = document.createElementNS(svg.namespaceURI, 'text');
+      element.setAttribute('x', String(x)); element.setAttribute('y', String(y)); element.setAttribute('font-size', '12'); element.textContent = text; svg.append(element); return element; };
+    run.stages.forEach((_, index) => label(246 + index * 46, 20, String(index + 1)));
+    parts.forEach((entry, row) => {
+      const text = label(5, 50 + row * 33, entry.part.name.length > 30 ? entry.part.name.slice(0, 27) + '…' : entry.part.name);
+      const title = document.createElementNS(svg.namespaceURI, 'title'); title.textContent = entry.part.name; text.append(title);
+      run.stages.forEach((stage, stageIndex) => {
+        const present = stage.parts.some(part => part.id === entry.part.id);
+        const created = entry.originStage === stageIndex; const contributed = entry.contributions.some(item => item.stageIndex === stageIndex);
+        const retired = !!stage.cycleId && entry.retirement?.cycleId === stage.cycleId;
+        if (!present && !created && !contributed && !retired) return;
+        const states = [created ? 'created' : '', contributed ? 'contributed' : '', retired ? 'retired' : '', present ? 'snapshot present' : ''].filter(Boolean);
+        const g = document.createElementNS(svg.namespaceURI, 'g'); g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
+        g.setAttribute('aria-label', `Inspect ${entry.part.name}, stage ${stageIndex + 1}: ${states.join(', ')}`);
+        const rect = document.createElementNS(svg.namespaceURI, 'rect'); rect.setAttribute('x', String(235 + stageIndex * 46)); rect.setAttribute('y', String(32 + row * 33));
+        rect.setAttribute('width', '39'); rect.setAttribute('height', '27'); rect.setAttribute('rx', '4'); rect.setAttribute('fill', contributed ? '#b5c9b8' : '#e6e9e7'); g.append(rect);
+        const mark = document.createElementNS(svg.namespaceURI, 'text'); mark.setAttribute('x', String(240 + stageIndex * 46)); mark.setAttribute('y', String(51 + row * 33));
+        mark.setAttribute('font-size', '14'); mark.textContent = `${created ? '+' : ''}${contributed ? '●' : ''}${retired ? '×' : ''}`; g.append(mark);
+        const title = document.createElementNS(svg.namespaceURI, 'title'); title.textContent = `${stage.name}: ${states.join(', ')}${retired ? ` · ${entry.retirement!.reason}` : ''}`; g.append(title);
+        const choose = () => { partId = entry.part.id; partSelect.value = partId; inspect(stageIndex); };
+        g.addEventListener('click', choose); g.addEventListener('keydown', event => { const key = (event as KeyboardEvent).key;
+          if (key === 'Enter' || key === ' ') { event.preventDefault(); choose(); } }); svg.append(g);
+      });
+    });
+    if (!parts.length) life.append(node('p', 'No captured Part instances.'));
+  }
   function renderActivation() {
     chart.replaceChildren();
     const heatmap = card(chart, 'Activation heatmap', '● crossed threshold; — not evaluated. Final recorded round shown; select a cell for all rounds. Activation, admission and decision authority are distinct.');
@@ -134,6 +169,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       const entry = node('p', `${name(edge.left)} ↔ ${name(edge.right)} · ${edge.stages.length} stage(s)`); co.append(entry);
       for (const stageIndex of edge.stages) source(co, stageIndex, run.stages[stageIndex]!.name);
     }
+    renderLifecycle(chart);
     const life = disclosure(chart, 'Part lifecycle by cycle');
     table(life, ['Stage', 'Formed', 'Continued', 'Retired', 'Recruited scopes'], analysis.stages.map(stage => [stage.name,
       String(stage.lifecycle.formed.filter(id => !partId || id === partId).length), String(stage.lifecycle.continued.filter(id => !partId || id === partId).length),
@@ -179,6 +215,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       d.append(node('p', change.fields.map(item => `${item.field}: ${JSON.stringify(item.before)} → ${JSON.stringify(item.after)}`).join('\n') || 'First captured version; may be a researcher-authored starting condition.'));
       source(d, stage.index); disclosure(d, 'Exact before/after state', change);
     }
+    if (developmentOnly) renderLifecycle(area);
     const activity = disclosure(area, 'Part activity and interpretation comparison');
     for (const entry of analysis.parts.filter(item => !partId || item.part.id === partId)) {
       const d = disclosure(activity, entry.part.name);
@@ -201,6 +238,30 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     table(relevant, ['Scope', 'Direct', 'Final', 'Decision'], activation.map(item => [item.name, item.baselineScore === undefined ? 'Unavailable' : item.baselineScore.toFixed(2),
       item.score.toFixed(2), item.active ? 'Threshold crossed' : 'Below threshold']), 'Stage activation judgments');
     disclosure(relevant, 'Independent activation and separate admission budgets', { rounds: activation, budgets: stage.temporaryScopeBudgets ?? [], coverage: stage.coverage ?? [] });
+    const eligibility = projected.eligibility.flatMap(round => round.scopes.filter(scope => !partId || scopes().has(scope.dispositionId)).map(scope => [scope.name,
+      scope.eligible ? 'Eligible' : 'Excluded', scope.reasons.join(' · '), round.inquiry ?? 'Ordinary assessment']));
+    table(relevant, ['Scope', 'Eligibility', 'Recorded reason', 'Inquiry'], eligibility, 'Scope eligibility and exclusions');
+    const details = projected.activationDetails.filter(item => !partId || scopes().has(item.dispositionId));
+    table(relevant, ['Scope', 'Judgment phase', 'Score', 'Frozen direct', 'Score difference', 'Threshold'], details.map(item => [item.name,
+      item.phase === 'final' ? 'Direct-only final' : readable(item.phase), item.score === null ? 'Unavailable' : item.score.toFixed(2),
+      item.directScore === null ? 'Not applicable / unreported' : item.directScore.toFixed(2), item.scoreDifference === null ? 'Not applicable' : item.scoreDifference.toFixed(2),
+      item.threshold === null ? 'Unavailable' : String(item.threshold)]), 'Direct and associated activation judgments');
+    for (const item of details.filter(item => item.associationSignals.length)) {
+      const d = disclosure(relevant, `${item.name} · frozen association signals`, { eventId: item.eventId, inquiry: item.inquiry, signals: item.associationSignals });
+      d.append(node('p', 'Contributing and inhibiting signals are frozen direct judgments; a score difference does not establish emotion, authority or learned causation.'));
+      for (const raw of item.associationSignals) {
+        const signal = raw as { kind?: string; effect?: string; keyword?: string; name?: string | null; available?: boolean; baselineActivation?: number };
+        d.append(node('p', signal.kind === 'keyword' ? `Contextual phrase “${signal.keyword ?? 'unreported'}” · ${readable(signal.effect ?? 'unreported effect')}`
+          : `${signal.name ?? 'Unavailable referenced scope'} · ${readable(signal.effect ?? 'unreported effect')} · ${signal.available === false ? 'no available direct signal' : typeof signal.baselineActivation === 'number' ? `frozen direct score ${signal.baselineActivation.toFixed(2)}` : 'direct signal unavailable'}`));
+      }
+
+    }
+    const admission = projected.admission.flatMap(round => round.scopes.filter(scope => !partId || scopes().has(scope.dispositionId)).map(scope => [
+      projected.eligibility.flatMap(item => item.scopes).find(item => item.dispositionId === scope.dispositionId)?.name ?? 'Historical scope',
+      readable(scope.status), scope.score === null ? 'Unavailable' : scope.score.toFixed(2), String(scope.threshold), round.inquiry ?? 'Ordinary admission']));
+    table(relevant, ['Scope', 'Admission outcome', 'Independent score', 'Threshold', 'Inquiry'], admission, 'Scope admission decisions');
+    if (!projected.eligibility.length || !projected.admission.length) relevant.append(node('p', 'Some eligibility/admission records are unavailable in this historical trace; absence is not nonactivation.'));
+
     const interpretations = card(inspector, '3. How was it interpreted?');
     const thoughts = stage.thoughts.filter(item => !partId || item.partId === partId);
     table(interpretations, ['Part', 'Interpretation', 'Thought', 'Affect'], thoughts.map(item => [item.name, item.interpretation ?? 'Not recorded', item.thought,

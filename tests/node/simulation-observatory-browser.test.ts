@@ -44,6 +44,15 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByLabel('Analytics stage').selectOption('2');
     await panel.getByRole('heading', { name: '3. Concrete question', exact: true }).waitFor();
     const part = run.stages[2]!.thoughts[0]!;
+    await panel.getByRole('table', { name: 'Scope eligibility and exclusions', exact: true }).waitFor();
+    await panel.getByRole('table', { name: 'Direct and associated activation judgments', exact: true }).waitFor();
+    await panel.getByRole('table', { name: 'Scope admission decisions', exact: true }).waitFor();
+    const lifecycle = panel.getByRole('group', { name: 'Recorded Part lifecycle chart', exact: true });
+    await lifecycle.waitFor();
+    let clicked = false;
+    for (const cell of await lifecycle.getByRole('button').all()) if ((await cell.getAttribute('aria-label'))?.startsWith(`Inspect ${part.name}, stage 3:`)) { await cell.click(); clicked = true; break; }
+    assert.ok(clicked); assert.equal(await panel.getByLabel('Analytics stage').inputValue(), '2');
+    assert.equal(await panel.getByLabel('Analytics Part').inputValue(), part.partId);
     await panel.getByLabel('Analytics Part').selectOption(part.partId);
     assert.equal(await panel.getByRole('table', { name: 'Parallel interpretations', exact: true }).locator('tbody tr').count(), 1);
     await panel.getByRole('heading', { name: 'Recorded advocacy-to-execution trails', exact: true }).waitFor();
@@ -130,6 +139,19 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     assert.equal(fork.lineage!.kind, 'fork'); assert.equal(fork.startingConfiguration!.activationSettings.memorySearchEnabled, false);
     for (let attempt = 0; attempt < 1000 && listSimulationRuns(app).some(item => item.status === 'running'); attempt++) await new Promise(resolve => setTimeout(resolve, 10));
     assert.ok(listSimulationRuns(app).every(item => item.status === 'completed'));
+    const associated = startSimulationTest(app, 'activation-associations', 'fixture', source.id);
+    for (let attempt = 0; attempt < 1000 && listSimulationRuns(app).find(item => item.id === associated.id)!.status === 'running'; attempt++) await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(listSimulationRuns(app).find(item => item.id === associated.id)!.status, 'completed');
+    await page.reload(); await page.getByRole('button', { name: 'Simulation Tests', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Simulation hypothesis' }).selectOption('activation-associations');
+    await page.getByRole('tab', { name: 'Run Explorer', exact: true }).click();
+    await page.getByLabel('Observatory run').selectOption(associated.id);
+    const judgments = page.getByRole('table', { name: 'Direct and associated activation judgments', exact: true });
+    await judgments.waitFor(); assert.ok((await judgments.innerText()).includes('associated'));
+    const signals = page.locator('summary').filter({ hasText: /frozen association signals$/ });
+    assert.ok(await signals.count() > 0); await signals.first().click();
+    await signals.first().locator('..').getByText(/Contributing and inhibiting signals are frozen/).waitFor();
+    assert.equal(await panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true);
     assert.equal(store.events(source.id).length, sourceEvents); assert.deepEqual(errors, []);
   } finally { await browser.close(); server.closeAllConnections(); await app.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

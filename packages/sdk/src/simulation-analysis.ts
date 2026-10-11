@@ -17,7 +17,7 @@ function lane(type: string, payload?: unknown): Lane {
   if (type.startsWith('execution.')) return 'Executive';
   if (type.startsWith('self.')) return 'Self';
   if (/prediction\.|memory\.|consolidation\.|disposition\./.test(type)) return 'Learning';
-  if (/judgment|activation|scope_budget/.test(type)) return 'Activation';
+  if (/judgment|activation|scope_budget|eligibility|admission/.test(type)) return 'Activation';
   if (/construction\.|part\.(?:created|instance_retired|updated)/.test(type)) return 'Parts';
   if (/worldstate|experience/.test(type)) return 'Environment';
   return 'Cognition';
@@ -56,6 +56,18 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
         runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : null,
         provenance: 'recorded audit event' as const, payload: event.payload })),
       traceAvailable: trace.length > 0,
+      eligibility: trace.flatMap(event => event.type === 'construction.eligibility' ? [{ eventId: event.id, ...event.payload }] : []),
+      admission: trace.flatMap(event => event.type === 'construction.admission' ? [{ eventId: event.id, ...event.payload }] : []),
+      activationDetails: trace.flatMap(event => event.type === 'construction.judgment' && event.payload.input.task === 'disposition_activation'
+        ? event.payload.input.candidates.map(candidate => {
+          const context = candidate.context as { activationPhase?: string; baselineActivation?: number; associationSignals?: unknown[];
+            disposition?: { name: string; threshold: number }; inquiry?: string };
+          const score = event.payload.scores.find(score => score.partId === candidate.id)?.score ?? null;
+          return { eventId: event.id, dispositionId: candidate.id, name: context.disposition?.name ?? 'Historical scope',
+            phase: context.activationPhase ?? 'unreported', score, directScore: context.baselineActivation ?? null,
+            scoreDifference: score !== null && context.baselineActivation !== undefined ? score - context.baselineActivation : null,
+            threshold: context.disposition?.threshold ?? null, associationSignals: context.associationSignals ?? [], inquiry: context.inquiry ?? null };
+        }) : []),
       decisions: trace.flatMap(event => event.type === 'self.choice' ? [{ eventId: event.id, at: event.at, choice: event.payload }] : []),
       bids: trace.flatMap(event => event.type === 'part.bid_created' ? [{ eventId: event.id, bid: event.payload }] : []),
       selfInputs: trace.flatMap(event => event.type === 'self.arbitration_started' ? [{ eventId: event.id, context: event.payload }] : []),
