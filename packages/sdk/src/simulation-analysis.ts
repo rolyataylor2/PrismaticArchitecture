@@ -1,11 +1,12 @@
 import type { CognitiveEvent, Store } from '../../core/src/contracts.js';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
+import { simulationLineage } from './simulation-lineage.js';
 import { stageMeasures } from './simulation-comparison.js';
 
 export const simulationLanes = ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning'] as const;
 type Lane = typeof simulationLanes[number];
 function lane(type: string, payload?: unknown): Lane {
-  if (type === 'provider.operation' || type === 'provider.usage') {
+  if (type === 'provider.operation' || type === 'provider.usage' || type === 'runtime.validation') {
     const task = (payload as { task?: string } | undefined)?.task ?? '';
     if (/activation|hypothesis_outcome|prediction_outcome/.test(task)) return /activation/.test(task) ? 'Activation' : 'Learning';
     if (/arbitration|affect_selection|affect_inquiry|deliberation/.test(task)) return 'Self';
@@ -52,7 +53,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
         dispositions: changes(previous?.dispositions ?? [], stage.dispositions),
       },
       trace: trace.map(event => ({ id: event.id, sequence: event.sequence, at: event.at, type: event.type, lane: lane(event.type, event.payload),
-        runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: null,
+        runId: run.id, stageIndex: index, cycleId: event.cycleId, parentEventId: event.type === 'runtime.validation' ? event.payload.inputEventId : null,
         provenance: 'recorded audit event' as const, payload: event.payload })),
       traceAvailable: trace.length > 0,
       decisions: trace.flatMap(event => event.type === 'self.choice' ? [{ eventId: event.id, at: event.at, choice: event.payload }] : []),
@@ -119,6 +120,8 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
     && (!run.finishedAt || event.at <= run.finishedAt));
   const providerOperations = [...new Map(providerEvents.flatMap(event => event.type === 'provider.operation'
     ? [[event.payload.operationId, { eventId: event.id, cycleId: event.cycleId, ...event.payload }] as const] : [])).values()];
+  const validations = recorded.flatMap(event => event.type === 'runtime.validation' && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt)
+    ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);
   const usage = recorded.flatMap(event => event.type === 'provider.usage' && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt)
     ? [{ eventId: event.id, cycleId: event.cycleId, ...event.payload }] : []);
   return { runId: run.id, agentId: run.agentId, status: run.status, evidenceBasis: run.evidenceBasis,
@@ -126,7 +129,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
       controls: run.stages.filter(stage => stage.phase === 'control').length,
       hypothesis: 'Review recorded criteria; execution completion does not establish the hypothesis.',
       changedObjects: stages.reduce((count, stage) => count + Object.values(stage.changes).reduce((sum, entries) => sum + entries.length, 0), 0),
-      error: run.error }, stages, activation, predictions, parts, memories, providerOperations, providerUsage: usage, coactivation: [...coactivation.values()], failedAttempts,
+      error: run.error }, stages, activation, predictions, parts, memories, providerOperations, validations, providerUsage: usage, lineage: simulationLineage(run, events), coactivation: [...coactivation.values()], failedAttempts,
     gaps: ['Causal parents are unavailable unless explicitly recorded; chronological proximity is not causation.',
       'Memory creation and object-version changes do not establish learning effectiveness or transfer.',
       ...(stages.some(stage => !stage.traceAvailable) ? ['Some stages have no recorded cycle trace (including offline-only stages); snapshots remain available.'] : [])] };

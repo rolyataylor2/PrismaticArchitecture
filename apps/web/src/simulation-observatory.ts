@@ -154,6 +154,12 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       if (entry.originStage !== null) source(d, entry.originStage, 'Inspect prediction origin');
       for (const check of entry.checks) source(d, check.stageIndex, `Inspect later outcome · ${run.stages[check.stageIndex]!.name}`);
       if (entry.learnedMemory) d.append(node('p', `Linked subjective memory: ${entry.learnedMemory.gist}`));
+      const lineage = analysis.lineage.predictions.find(item => item.prediction.id === entry.prediction.id);
+      if (lineage) {
+        const trail = disclosure(d, 'Origin → later checks → interpretation → subjective memory', lineage);
+        for (const gap of lineage.gaps) trail.append(node('p', gap, 'muted'));
+        if (lineage.origin?.cycleId) button(trail, 'Inspect recorded cognition origin', () => cycle(lineage.origin!.cycleId!, run.agentId), fail);
+      }
       disclosure(d, 'Exact conditions, versions and source references', entry);
     }
   }
@@ -209,6 +215,35 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     for (const execution of executionRows) acted.append(node('p', `${execution.status}: ${execution.speech?.text ?? (execution.facts.map(fact => fact.text).join(' · ') || execution.action.text)}${execution.operational ? ` · verification: ${execution.operational.verified === true ? 'verified' : 'not verified'}` : ''}`));
     if (!executionRows.length) acted.append(node('p', 'No stage execution outcome captured; advocacy does not establish action.'));
     disclosure(acted, 'Contracts, tool attempts, progress, outcomes and escalations', { operations: projected.operations, executions: executionRows });
+    const stageEventIds = new Set(projected.trace.map(event => event.id));
+    const trails = analysis.lineage.bids.filter(trail => (!partId || trail.bid.partId === partId) &&
+      [...trail.eventIds, ...trail.expressions.map(item => item.eventId), ...trail.decisions.map(item => item.eventId),
+        ...trail.contracts.map(item => item.eventId), ...trail.executions.map(item => item.eventId)].some(id => stageEventIds.has(id)));
+    const chains = card(acted, 'Recorded advocacy-to-execution trails', 'Explicit references connect full-run evidence for bids participating in this stage. A choice, contract and verified operation are distinct.');
+    for (const trail of trails) {
+      const text = trail.bid.type === 'deliberate' ? trail.bid.question : trail.bid.type === 'navigate' ? 'Internal stance navigation' : trail.bid.action.text;
+      const d = disclosure(chains, `${trail.name}: ${text} · ${trail.status}`);
+      d.append(node('p', `Proposing perspective: ${trail.name}. ${trail.expressions.map(item => item.contribution.interpretation).filter(Boolean).join(' · ') || 'No expressed interpretation context captured.'}`));
+      const selection = disclosure(d, 'Self visibility, scores and recorded selections');
+      for (const item of trail.decisions) selection.append(node('p', `${item.selected ? 'Recorded selection' : 'Scored alternative'}: ${item.choice.explanation}`));
+      table(selection, ['Score', 'Selected', 'Context'], trail.decisions.flatMap(item => item.scores.map(score => [String(score.score), item.selected ? 'Yes in this choice' : 'No in this choice',
+        score.selectedBefore.length ? `Scored after ${score.selectedBefore.length} selections` : 'Initial independent score'])), 'Bid score history');
+      disclosure(selection, 'Exact visibility episodes and decision records', { expressions: trail.expressions, decisions: trail.decisions, withdrawals: trail.withdrawals, replacementOf: trail.replacementOf });
+      const authority = disclosure(d, 'Captured contract authority and knowledge');
+      for (const entry of trail.contracts) authority.append(node('p', `Authority: ${entry.contract.authority.capabilities.join(', ')} · criterion: ${readable(entry.contract.successCriteria)} · ${entry.contract.commands.length} selected commands`));
+      for (const knowledge of trail.knowledge) authority.append(node('p', `Captured known method version ${knowledge.method.version}${knowledge.method.memberVersion ? ` · member version ${knowledge.method.memberVersion}` : ''}. Package provenance is preserved in exact evidence.`));
+      disclosure(authority, 'Exact selected contracts and immutable method references', { contracts: trail.contracts, knowledge: trail.knowledge });
+      const outcomes = disclosure(d, 'Execution, verification and tool history');
+      for (const item of trail.finalExecutions) outcomes.append(node('p', `${item.execution.status}: ${item.execution.speech?.text ?? item.execution.action.text} · ${item.execution.operational?.verified ? 'operation verified' : 'operational verification not established'}`));
+      table(outcomes, ['Tool', 'Phase', 'Status', 'Progress'], trail.tools.map(item => [`${item.serverId} / ${item.toolName}`, item.phase,
+        String(item.outcome?.status ?? 'No outcome in this event'), item.progress ? `${item.progress.progress}${item.progress.total === undefined ? '' : ` / ${item.progress.total}`}${item.progress.message ? ` · ${item.progress.message}` : ''}` : 'Not reported']), 'Selected tool history');
+      disclosure(outcomes, 'Exact outcome and trace records', { executions: trail.executions, tools: trail.tools });
+      for (const gap of trail.gaps) d.append(node('p', gap, 'muted'));
+      for (const entry of trail.contracts) button(d, 'Inspect selected contract source cycle', () => cycle(entry.contract.cycleId, run.agentId), fail);
+      disclosure(d, 'Evidence trail references', trail);
+    }
+    if (!trails.length) chains.append(node('p', 'No linked bid evidence for this stage/Part selection.'));
+
     const learned = card(inspector, '6. What changed after experience?');
     learned.append(node('p', `${projected.changes.memories.length} memory and ${projected.changes.dispositions.length} disposition additions/revisions. These counts do not establish useful learning.`));
     disclosure(learned, 'New and revised cognitive objects', projected.changes);
@@ -262,6 +297,11 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     const error = item.error!; operations.append(node('p', `${item.provider} · ${readable(item.task)}: ${error.message} · HTTP ${error.httpStatus ?? 'unreported'} · retryability ${error.retryable === null ? 'unreported' : error.retryable ? 'reported retryable' : 'reported not retryable'}`));
     if (error.issues.length) disclosure(operations, 'Violated output contract locations', error.issues);
   }
+  const validation = card(host, 'Runtime output validation', `${analysis.validations.length} recorded checks · ${analysis.validations.filter(item => item.status === 'rejected').length} rejections`);
+  validation.append(node('p', 'Schema and candidate-coverage acceptance is separate from psychological truth, adoption and execution authority. Provider failure does not produce a fabricated output-validation result.'));
+  table(validation, ['Task', 'Contract', 'Status', 'Issues'], analysis.validations.map(item => [readable(item.task), item.contract, item.status,
+    item.issues.map(issue => `${issue.path || '(root)'}: ${issue.code}`).join(' · ') || 'None reported']), 'Runtime validation checks');
+  disclosure(validation, 'Exact validation results and input-event references', analysis.validations);
   disclosure(operations, 'Recorded token/cache usage (exact operation attribution where recorded)', analysis.providerUsage);
 
     const reviews = card(host, 'Researcher criterion reviews', 'Human judgments append versions and frozen citations; original observer measures and model assessments remain unchanged. Fixture/mixed evidence remains explicit.');

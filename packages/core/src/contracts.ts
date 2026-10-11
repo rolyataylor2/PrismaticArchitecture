@@ -70,6 +70,9 @@ export type EventPayloads = {
   'construction.inference_started': import('./constructed-domain.js').ConstructedInput;
   'construction.temporary_scope_budget': { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] };
   'construction.generated': { partId: string; result: z.infer<typeof import('./constructed-domain.js').PartGenerationSchema> };
+  'construction.judgment_started': import('./constructed-domain.js').JudgmentInput;
+  'runtime.validation': { inputEventId: string; task: string; contract: string; status: 'accepted' | 'rejected';
+    issues: { path: string; code: string }[]; result: unknown };
   'construction.judgment': { input: import('./constructed-domain.js').JudgmentInput; scores: ActivationScore[] };
   'execution.attention': import('./executive-attention.js').ExecutiveAttentionRecord;
   'execution.remainder_handoff_failed': { contractId: string; stage: 'consume' | 'cancel' | 'wait' | 'ready'; consumed: boolean; reason: string };

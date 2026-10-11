@@ -33,7 +33,7 @@ test('run analytics preserves rounds and version changes, isolates recorded evid
       assert.equal(cell.rounds.length, run.stages[cell.stageIndex]!.activations.filter(item => item.dispositionId === row.dispositionId).length);
     }
     assert.ok(report.stages.some(stage => stage.trace.some(event => event.lane === 'Self')));
-    assert.ok(report.stages.every(stage => stage.trace.every(event => event.cycleId === stage.cycleId && event.runId === run.id && event.parentEventId === null)));
+    assert.ok(report.stages.every(stage => stage.trace.every(event => event.cycleId === stage.cycleId && event.runId === run.id && event.parentEventId === (event.type === 'runtime.validation' ? (event.payload as { inputEventId: string }).inputEventId : null))));
     assert.ok(!JSON.stringify(report).includes('Private source conversation'));
     assert.deepEqual(await api(app, 'GET', `/api/simulation-tests/${run.id}/analysis`), report);
     await assert.rejects(() => api(app, 'GET', '/api/simulation-tests/missing/analysis'));

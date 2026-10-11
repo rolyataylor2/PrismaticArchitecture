@@ -1,3 +1,4 @@
+import { analyzeSimulation } from '../../packages/sdk/src/simulation-analysis.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -119,6 +120,14 @@ test('paired checkpoint apparatus records real operations and review provenance 
       assert.ok(checkpoints.every(stage => !(stage.interventions?.length)));
       assert.match(run.executiveEvidence!.cleanup, /Researcher cleanup/);
       assert.equal(run.executiveEvidence!.executions.find(execution => execution.action.kind === 'operate')!.status, 'unverified');
+      const lineage = analyzeSimulation(store, run).lineage;
+      const trail = lineage.bids.find(item => item.contracts.some(entry => entry.contract.commands.some(command => command.action.kind === 'operate')))!;
+      assert.ok(trail, 'selected apparatus has an exact bid-to-contract trail');
+      assert.ok(trail.decisions.some(item => item.selected));
+      assert.ok(trail.expressions.length > 0);
+      assert.equal(trail.tools.filter(item => item.phase === 'submitted').length, 2);
+      assert.ok(trail.finalExecutions.some(item => item.execution.status === 'unverified'));
+      assert.notEqual(trail.status, 'verified operation recorded');
       assert.equal(store.mcpRegistry().servers.length, 0);
       assert.equal(store.eventsByType(run.agentId, ['execution.tool_trace']).filter(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted').length, 2);
     }

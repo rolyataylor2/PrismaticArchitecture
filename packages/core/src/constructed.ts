@@ -73,8 +73,15 @@ export class ConstructedCognition {
       ...(input.learningTraces ? { learningTraces: DispositionLearningTraceSchema.array().parse(input.learningTraces) } : {}),
       ...(input.identity ? { identity: input.identity } : {}), ...(input.question !== undefined ? { question: input.question } : {}),
     });
-    this.inspection.emit(input.agentId, input.world?.cycleId ?? null, 'construction.inference_started', request);
-    return constructedOutputs[task].parse(await this.reasoning.constructed(request)) as z.infer<typeof constructedOutputs[T]>;
+    const started = this.inspection.emit(input.agentId, input.world?.cycleId ?? null, 'construction.inference_started', request);
+    const raw = await this.reasoning.constructed(request);
+    const result = constructedOutputs[task].safeParse(raw);
+    this.inspection.emit(input.agentId, input.world?.cycleId ?? null, 'runtime.validation', { inputEventId: started.id,
+      task, contract: `constructedOutputs.${task}`, status: result.success ? 'accepted' : 'rejected',
+      issues: result.success ? [] : result.error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })),
+      result: result.success ? result.data : null });
+    if (!result.success) throw result.error;
+    return result.data as z.infer<typeof constructedOutputs[T]>;
   }
   private async judge(input: JudgmentInput) {
     if (!input.candidates.length) return [];
@@ -85,8 +92,19 @@ export class ConstructedCognition {
     if (!this.decisions.judge) throw new InfrastructureError(input.task, 'Decision provider does not support constructed judgments');
     const judgeBatch = async (candidates: JudgmentInput['candidates']): Promise<z.infer<typeof ActivationScoreSchema>[]> => {
       const batch = freeze({ ...input, candidates });
+      const started = this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment_started', batch);
       let result: z.infer<typeof ActivationScoreSchema>[];
-      try { result = ActivationScoreSchema.array().parse(await this.decisions.judge!(batch)); }
+      try {
+        const raw = await this.decisions.judge!(batch);
+        const parsed = ActivationScoreSchema.array().safeParse(raw);
+        if (!parsed.success) {
+          this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+            contract: 'ActivationScoreSchema[]', status: 'rejected', result: null,
+            issues: parsed.error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })) });
+          throw parsed.error;
+        }
+        result = parsed.data;
+      }
       catch (error) {
         if (!(error instanceof ContextLimitError) || candidates.length <= 1) throw error;
         const midpoint = Math.ceil(candidates.length / 2);
@@ -94,7 +112,13 @@ export class ConstructedCognition {
       }
       const expected = new Set(batch.candidates.map(candidate => candidate.id));
       if (result.length !== expected.size || new Set(result.map(score => score.partId)).size !== expected.size
-        || result.some(score => !expected.has(score.partId))) throw new InfrastructureError(input.task, 'Every supplied candidate must be scored exactly once');
+        || result.some(score => !expected.has(score.partId))) {
+        this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+          contract: 'independent candidate coverage', status: 'rejected', result: null, issues: [{ path: 'candidates', code: 'each_supplied_id_exactly_once' }] });
+        throw new InfrastructureError(input.task, 'Every supplied candidate must be scored exactly once');
+      }
+      this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+        contract: 'ActivationScoreSchema[] + independent candidate coverage', status: 'accepted', result, issues: [] });
       this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment', { input: batch, scores: result });
       return result;
     };

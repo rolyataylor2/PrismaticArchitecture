@@ -122,3 +122,5 @@ ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is ex
 Prompt overrides preserve exact text bytes, including intentional boundary whitespace, while rejecting blank templates. Frozen simulation reruns must not alter prompt fingerprints through storage normalization. Cognitive task responsibilities and access remain unchanged.
 
 `ProviderOperation` is a researcher audit record, separate from cognitive inputs/memory. Input/output IDs and hashes, provider diagnostics and explicitly correlated usage describe factual adapter operations; a returned adapter product is not a claim of runtime schema validity or psychological success. Infrastructure errors can retain safe optional HTTP/retryability/contract-location diagnostics.
+
+Constructed generation and independent candidate judgments emit separate `runtime.validation` records referencing their exact input events. Accepted output schema/candidate coverage does not grant psychological truth, structural adoption or execution authority. Provider failures produce no fabricated output-validation result. Existing schemas, errors, context ownership and admission rules are unchanged.

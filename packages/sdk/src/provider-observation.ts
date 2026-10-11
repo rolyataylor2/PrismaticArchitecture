@@ -5,6 +5,7 @@ import { InfrastructureError, type Store } from '../../core/src/contracts.js';
 import { id, now } from '../../core/src/domain.js';
 import type { ProviderOperation } from '../../core/src/provider-operation.js';
 import { promptSettings } from './prompt-settings.js';
+export const suppressProviderObservation = new AsyncLocalStorage<boolean>();
 export const providerOperationContext = new AsyncLocalStorage<string>();
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value) ?? 'undefined').digest('hex');
 const tasks: Record<string, string[]> = {
@@ -28,7 +29,7 @@ export function observeProvider<T extends { label: string }>(store: Store, provi
     const observed = async (...args: unknown[]) => {
       const context = args[0] as Context | undefined;
       const agentId = context?.agentId ?? context?.world?.agentId ?? context?.part?.agentId ?? context?.identity?.agentId;
-      if (!agentId) return value.apply(target, args);
+      if (!agentId || suppressProviderObservation.getStore()) return value.apply(target, args);
       const taskNames = context?.task ? [context.task] : tasks[method] ?? [];
       const selectedModel = component === 'reasoning' ? store.agentProviderSettings(agentId)?.model : null;
       const providerLabel = selectedModel ? `${selectedModel === 'grok-4.3' ? 'xai' : 'openai'}/${selectedModel}` : provider.label;

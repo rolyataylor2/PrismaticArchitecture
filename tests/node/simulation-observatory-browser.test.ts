@@ -46,6 +46,11 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     const part = run.stages[2]!.thoughts[0]!;
     await panel.getByLabel('Analytics Part').selectOption(part.partId);
     assert.equal(await panel.getByRole('table', { name: 'Parallel interpretations', exact: true }).locator('tbody tr').count(), 1);
+    await panel.getByRole('heading', { name: 'Recorded advocacy-to-execution trails', exact: true }).waitFor();
+    const trails = panel.locator('article').filter({ has: page.getByRole('heading', { name: 'Recorded advocacy-to-execution trails', exact: true }) }).last();
+    assert.ok(await trails.locator(':scope > details').count() > 0);
+    await trails.locator(':scope > details > summary').first().click();
+    await trails.getByText('Self visibility, scores and recorded selections', { exact: true }).first().waitFor();
     await panel.getByLabel('Timeline lane').selectOption('Self');
     const timeline = panel.locator('article').filter({ has: page.getByRole('heading', { name: 'Cognitive event timeline', exact: true }) });
     await timeline.getByRole('button').first().click();
@@ -69,6 +74,8 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();
     await panel.getByRole('heading', { name: 'Provider operation diagnostics', exact: true }).waitFor();
+    await panel.getByRole('heading', { name: 'Runtime output validation', exact: true }).waitFor();
+    assert.ok(await panel.getByRole('table', { name: 'Runtime validation checks', exact: true }).locator('tbody tr').count() > 0);
     assert.ok(await panel.getByRole('table', { name: 'Provider operations', exact: true }).locator('tbody tr').count() > 0);
     const operationEvidence = panel.getByText('Exact operation input/output and prompts', { exact: true }).first();
     await operationEvidence.click();
