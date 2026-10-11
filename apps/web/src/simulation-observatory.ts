@@ -33,6 +33,12 @@ function table(parent: HTMLElement, headings: string[], rows: (string | HTMLElem
   const body = node('tbody'); for (const row of rows) { const r = node('tr'); row.forEach((value, index) => { const cell = node(index === 0 ? 'th' : 'td'); cell.append(value); r.append(cell); }); body.append(r); }
   t.append(body); scroll.append(t); parent.append(scroll); return t;
 }
+type EvidenceKind = 'external' | 'interpretation' | 'prediction' | 'research';
+const evidenceLabels: Record<EvidenceKind, string> = { external: 'External record', interpretation: 'Part interpretation', prediction: 'Imagined prediction', research: 'Researcher commentary' };
+function evidenceText(kind: EvidenceKind, text: string) {
+  const wrapper = node('div', '', `observatory-evidence observatory-evidence-${kind}`); wrapper.dataset.evidenceKind = kind;
+  wrapper.append(node('span', evidenceLabels[kind], 'observatory-evidence-label'), node('p', text)); return wrapper;
+}
 const readable = (text: string) => text.replaceAll('_', ' ').replaceAll('.', ' · ');
 const latest = <T extends { version: number }>(items: T[]) => items.slice().sort((a, b) => a.version - b.version).at(-1);
 
@@ -93,7 +99,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     if (!entries.length) area.append(node('p', 'No qualifying observation recorded.'));
     for (const entry of entries) {
       const item = disclosure(area, `${entry.title} · ${readable(entry.basis)}`);
-      item.append(node('p', entry.body));
+      item.append(evidenceText('research', entry.body));
       if (entry.reviewVersion) item.append(node('p', `Saved research version ${entry.reviewVersion} · ${entry.reviewId}`));
       if (entry.alternatives) item.append(node('p', `Alternative explanations: ${entry.alternatives}`));
       if (entry.followUp) item.append(node('p', `Next inspection: ${entry.followUp}`));
@@ -211,6 +217,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     if (!entries.length) area.append(node('p', 'No predictions recorded for this view.'));
     for (const entry of entries) {
       const d = disclosure(area, `${entry.prediction.expectation} · ${entry.administrativeStatus} · ${entry.expectationAssessment}`);
+      d.append(evidenceText('prediction', entry.prediction.expectation));
       d.open = focusedPredictionId === entry.prediction.id; d.dataset.predictionId = entry.prediction.id;
       d.append(node('p', `${entry.ownerName} · conviction ${(entry.prediction.confidence * 100).toFixed(1)}% · horizon: ${entry.prediction.horizon}`),
         node('p', `Evidence: ${entry.evidenceSufficiency} · resolution delay: ${entry.resolutionDelayStages ?? 'Unavailable'} stages`),
@@ -287,7 +294,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     inspector.replaceChildren(); const stage = run.stages[index]; const projected = analysis.stages[index];
     if (!stage || !projected) { inspector.append(node('p', 'No completed stage snapshot. Inspect diagnostics for any failed attempt.')); return; }
     inspector.append(node('h4', `${index + 1}. ${stage.name}`));
-    const experience = card(inspector, '1. What happened?'); experience.append(node('p', stage.text ?? 'Offline or operational stage; no new authored message.'),
+    const experience = card(inspector, '1. What happened?'); experience.append(evidenceText('external', stage.text ?? 'Offline or operational stage; no new authored message.'),
       node('p', 'Authored scenario experience and attributed external records; Part interpretations below remain subjective.', 'muted'));
     disclosure(experience, 'External observations and imagined alternatives (separate records)', { observations: stage.observations ?? [], experienced: stage.experienced });
     const knowledge = card(inspector, 'Recorded knowledge provenance', 'Scenario input, attributed facts, subjective interpretations, recalled episodes and imagined alternatives retain distinct sources. These are captured views, not new learning events.');
@@ -296,7 +303,8 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
       const boundary = node('div'); boundary.append(node('p', entry.limitation));
       disclosure(boundary, 'Exact knowledge references and opaque lineage', { references: entry.references, provenanceIds: entry.provenanceIds });
       disclosure(boundary, 'Exact captured knowledge records', entry.references.map(reference => ({ reference, value: reference.slice(1).split('/').reduce<unknown>((value, key) => value && typeof value === 'object' && Object.hasOwn(value, key) ? (value as Record<string, unknown>)[key] : null, run) })));
-      return [readable(entry.kind), entry.source, entry.text, boundary];
+      const kind: EvidenceKind = entry.kind === 'imagined_future' ? 'prediction' : ['scenario_input', 'reported_utterance', 'external_observation', 'external_action'].includes(entry.kind) ? 'external' : 'interpretation';
+      return [readable(entry.kind), entry.source, evidenceText(kind, entry.text), boundary];
     }), 'Recorded knowledge sources');
     provenance.gaps.forEach(gap => knowledge.append(node('p', gap, 'muted')));
     const relevant = card(inspector, '2. What became relevant?');
@@ -330,7 +338,7 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
 
     const interpretations = card(inspector, '3. How was it interpreted?');
     const thoughts = stage.thoughts.filter(item => !partId || item.partId === partId);
-    table(interpretations, ['Part', 'Interpretation', 'Thought', 'Affect'], thoughts.map(item => [item.name, item.interpretation ?? 'Not recorded', item.thought,
+    table(interpretations, ['Part', 'Interpretation', 'Thought', 'Affect'], thoughts.map(item => [item.name, evidenceText('interpretation', item.interpretation ?? 'Not recorded'), evidenceText('interpretation', item.thought),
       stage.parts.find(part => part.id === item.partId)?.emotionalCharge ?? 'Not expressed']), 'Parallel interpretations');
     const advocated = card(inspector, '4. What was advocated?');
     for (const thought of thoughts) { const d = disclosure(advocated, thought.name); d.append(node('p', thought.proposal ? JSON.stringify(thought.proposal) : 'No proposal')); }
@@ -487,7 +495,7 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     for (const review of research.metricReviews) {
       const title = analysis.metrics.dimensions.find(item => item.id === review.metricId)!.title;
       const d = disclosure(dimensionHistory, `${title} · ${review.stageIndex === null || review.stageIndex === undefined ? 'whole run' : `stage ${review.stageIndex + 1}`} · ${readable(review.verdict)} · v${review.version}`);
-      d.append(node('p', `${review.reviewer}: ${review.rationale}`), node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
+      d.append(evidenceText('research', `${review.reviewer}: ${review.rationale}`), node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
       disclosure(d, 'Exact review and frozen evidence citations', review);
     }
 
@@ -567,7 +575,7 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     for (const findingKey of new Set(research.findings.map(item => item.key))) {
       const versions = research.findings.filter(item => item.key === findingKey); const finding = latest(versions)!;
       const d = disclosure(insights, `${finding.title} · ${readable(finding.status)} · v${finding.version}`);
-      d.append(node('p', finding.claim), node('p', `Alternatives: ${finding.alternatives}`), node('p', `Follow-up: ${finding.followUp}`));
+      d.append(evidenceText('research', finding.claim), node('p', `Alternatives: ${finding.alternatives}`), node('p', `Follow-up: ${finding.followUp}`));
       button(d, 'Review this finding', () => { populate(finding); findingForm.scrollIntoView({ block: 'nearest' }); }, fail);
       disclosure(d, 'Frozen cited evidence and prior versions', versions);
     }
@@ -630,7 +638,7 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
     const judgments = card(result, 'Scope-matched research dimensions', 'Latest independent review per selected run/stage. Whole-run judgments are never substituted for stage judgments; numeric differences do not establish improvement.');
     const reviewCell = (review: SimulationMetricReview | null) => {
       const cell = node('div'); if (!review) { cell.append(node('p', 'Unreviewed / unavailable')); return cell; }
-      cell.append(node('p', `${readable(review.verdict)} · v${review.version} · ${review.reviewer}`), node('p', review.rationale),
+      cell.append(node('p', `${readable(review.verdict)} · v${review.version} · ${review.reviewer}`), evidenceText('research', review.rationale),
         node('p', `Method: ${review.operationalization}`), node('p', `Limitations: ${review.limitations}`));
       if (review.value !== null) cell.append(node('p', `Measurement: ${review.value} ${review.unit}`));
       disclosure(cell, 'Preserved comparative judgment and citations', review); return cell;
@@ -647,7 +655,7 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
       const sides = node('div', '', 'observatory-comparison-sides'); detail.append(sides);
       for (const [title, value, runId, stageIndex] of [['Baseline', stage.left, comparison.leftRunId, stage.leftIndex], ['Follow-up', stage.right, comparison.rightRunId, stage.rightIndex]] as const) {
         const side = card(sides, title); if (!value) { side.append(node('p', 'No matching stage.')); continue; }
-        for (const thought of value.thoughts) side.append(node('h4', thought.name), node('p', thought.interpretation ?? thought.thought), node('p', thought.thought));
+        for (const thought of value.thoughts) side.append(node('h4', thought.name), evidenceText('interpretation', thought.interpretation ?? thought.thought), node('p', thought.thought));
         for (const choice of value.choices) side.append(node('p', `Self: ${choice.explanation}`));
         const run = runs.find(item => item.id === runId)!; const source = stageIndex === null ? null : run.stages[stageIndex];
         if (source?.cycleId) button(side, 'Inspect comparison source cycle', () => cycle(source.cycleId!, run.agentId), fail);
@@ -686,6 +694,9 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
 /** The shared registry remains the launch surface; this shell coordinates six researcher views. */
 export function observatoryShell(root: HTMLElement, experiments: HTMLElement, getRuns: () => SimulationRun[], api: Api, cycle: Cycle, fail: Fail) {
   const shell = node('section', '', 'observatory'); root.append(shell); shell.append(node('h2', 'Cognitive Observatory'));
+  const legend = node('div', '', 'observatory-evidence-legend'); legend.setAttribute('role', 'group'); legend.setAttribute('aria-label', 'Evidence provenance legend');
+  for (const kind of Object.keys(evidenceLabels) as EvidenceKind[]) legend.append(evidenceText(kind, kind === 'external' ? 'Attributed external records; testimony content is not automatically verified.' : kind === 'interpretation' ? 'Subjective expressed meaning, including recalled episodes and selected stance.' : kind === 'prediction' ? 'Prospective alternatives; neither occurred events nor calibrated probabilities.' : 'External reviews, provisional findings and research analysis.'));
+  shell.append(legend);
   const tabs = node('div', '', 'observatory-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Simulation research views');
   const panel = node('div'); panel.setAttribute('role', 'tabpanel'); shell.append(tabs, panel);
   const titles = ['Overview', 'Experiments', 'Run Explorer', 'Comparisons', 'Development', 'Diagnostics & Evidence'] as const;
@@ -720,7 +731,7 @@ export function observatoryShell(root: HTMLElement, experiments: HTMLElement, ge
         }
         saved.append(node('p', `${reviews.size} reviewed criteria · ${[...findings.values()].filter(item => item.status === 'unreviewed').length} unreviewed findings`));
         for (const finding of [...findings.values()].slice(-8).reverse()) {
-          const d = disclosure(saved, `${finding.title} · ${readable(finding.status)}`); d.append(node('p', finding.claim), node('p', `Alternative explanations: ${finding.alternatives}`));
+          const d = disclosure(saved, `${finding.title} · ${readable(finding.status)}`); d.append(evidenceText('research', finding.claim), node('p', `Alternative explanations: ${finding.alternatives}`));
           button(d, 'Inspect finding history', () => { active = 'Diagnostics & Evidence'; render(); const control = panel.querySelector<HTMLSelectElement>('[aria-label="Observatory run"]');
             if (control) { control.value = finding.runId; control.dispatchEvent(new Event('change')); } }, fail);
         }

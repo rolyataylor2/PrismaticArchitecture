@@ -1269,3 +1269,13 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .observatory th, .observatory td { padding: 8px 12px; border-bottom: 1px solid #dce3d8; text-align: left; vertical-align: top; min-width: 100px; max-width: 360px; overflow-wrap: anywhere; }
 .observatory-comparison-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 700px) { .observatory-comparison-sides { grid-template-columns: minmax(0, 1fr); } .observatory-card { padding: 12px; } .observatory-filters label { width: 100%; } }
+
+/* Provenance categories express source ownership, never a psychological grade. */
+.observatory-evidence { border-inline-start: 3px solid var(--evidence-color); padding: .35rem .65rem; min-width: 0; overflow-wrap: anywhere; }
+.observatory-evidence p { margin: .3rem 0; }
+.observatory-evidence-label { font-size: .78rem; font-weight: 650; }
+.observatory-evidence-external { --evidence-color: #588ab5; }
+.observatory-evidence-interpretation { --evidence-color: #529988; }
+.observatory-evidence-prediction { --evidence-color: #9381b7; }
+.observatory-evidence-research { --evidence-color: #949292; }
+.observatory-evidence-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: .6rem; margin: .7rem 0; }

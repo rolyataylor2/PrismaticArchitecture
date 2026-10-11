@@ -54,6 +54,8 @@ test('Chrome authored research fixture displays provisional alignment evidence a
     await page.getByLabel('Timeline lane').selectOption('Cognition'); await page.locator(`button[data-event-id="${event.id}"]`).click();
     assert.equal(await page.getByLabel('Analytics Part').inputValue(), owner.id); assert.equal(await page.getByLabel('Timeline zoom').inputValue(), 'event');
     const ledger = page.locator(`details[data-prediction-id="${open.id}"][open]`); await ledger.waitFor();
+    assert.ok((await ledger.locator('[data-evidence-kind=prediction]').innerText()).includes(open.expectation));
+    assert.ok((await page.getByRole('group', { name: 'Evidence provenance legend', exact: true }).innerText()).includes('neither occurred events nor calibrated probabilities'));
     await ledger.getByText('Linked subjective memory: Authored linked episode', { exact: true }).waitFor();
     await ledger.getByText('Origin → later checks → interpretation → subjective memory', { exact: true }).waitFor();
     assert.equal(JSON.stringify(store.events(run.agentId)), audit); assert.equal(store.events(source.id).length, 0); assert.deepEqual(errors, []);

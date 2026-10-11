@@ -28,6 +28,9 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await page.getByRole('button', { name: 'Simulation Tests', exact: true }).click();
     const panel = page.locator('.observatory'); await panel.getByRole('heading', { name: 'Cognitive Observatory', exact: true }).waitFor();
     assert.equal(await panel.getByRole('tab').count(), 6);
+    const legend = panel.getByRole('group', { name: 'Evidence provenance legend', exact: true });
+    assert.equal(await legend.locator('[data-evidence-kind]').count(), 4);
+    for (const label of ['External record', 'Part interpretation', 'Imagined prediction', 'Researcher commentary']) assert.ok((await legend.innerText()).includes(label));
     await page.getByRole('combobox', { name: 'Simulation hypothesis' }).selectOption('conversation-starters');
     assert.equal(await panel.locator('[data-simulation-run]').count(), 1);
     await page.getByLabel('Show all scenarios', { exact: true }).check();
@@ -65,6 +68,9 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await knowledge.waitFor();
     assert.ok(await knowledge.locator('tbody tr').filter({ hasText: /scenario input/i }).count() > 0);
     assert.ok(await knowledge.locator('tbody tr').filter({ hasText: /part interpretation/i }).count() > 0);
+    assert.ok(await knowledge.locator('[data-evidence-kind=external]').count() > 0);
+    assert.ok(await knowledge.locator('[data-evidence-kind=interpretation]').count() > 0);
+    assert.ok(await panel.getByRole('table', { name: 'Parallel interpretations', exact: true }).locator('[data-evidence-kind=interpretation]').count() > 0);
     const firstKnowledge = knowledge.locator('tbody tr').first();
     await firstKnowledge.locator('summary').filter({ hasText: 'Exact captured knowledge records' }).click();
     assert.ok((await firstKnowledge.innerText()).includes(run.stages[2]!.text!));
