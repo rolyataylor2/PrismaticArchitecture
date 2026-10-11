@@ -1,5 +1,5 @@
 import { researchMetricCatalog } from './simulation-metrics.js';
-import type { SimulationMetricReview } from './simulation-research.js';
+import type { SimulationMetricReview, SimulationCandidate } from './simulation-research.js';
 import { createHash } from 'node:crypto';
 import type { SimulationRun, SimulationStage } from './simulation-tests.js';
 import type { Disposition } from '../../core/src/domain.js';
@@ -101,7 +101,7 @@ export function compareSimulationStages(left: SimulationRun, right: SimulationRu
 }
 export type SimulationComparison = ReturnType<typeof compareSimulations>;
 
-export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationMetricReview[] = []) {
+export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationMetricReview[] = [], candidateSets: { runId: string; candidates: SimulationCandidate[] }[] = []) {
   const groups = new Map<string, SimulationRun[]>();
   for (const run of runs) { const key = hash({ configuration: simulationConfiguration(run), missingHistoricalConfiguration: run.startingConfiguration ? null : run.id }); groups.set(key, [...(groups.get(key) ?? []), run]); }
   return [...groups.entries()].map(([configurationId, trials]) => {
@@ -110,7 +110,22 @@ export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationM
     const mean = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
     return { configurationId, testId: trials[0]!.testId, configuration: simulationConfiguration(trials[0]!),
       trials: trials.length, completed: completed.length, failed: trials.filter(run => run.status === 'failed').length,
-      runIds: trials.map(run => run.id), activeScopeEvaluations: { n: values.length, mean,
+      runIds: trials.map(run => run.id), candidatePatterns: (() => {
+        const observed = new Map(candidateSets.map(item => [item.runId, item.candidates]));
+        const patterns = [...new Set(candidateSets.filter(item => runs.some(run => run.id === item.runId && run.status !== 'running')).flatMap(item => item.candidates.map(candidate => candidate.pattern)))].sort();
+        const analyzed = trials.filter(run => run.status !== 'running' && observed.has(run.id));
+        return { analyzed: analyzed.length, missingAnalysis: trials.filter(run => run.status !== 'running' && !observed.has(run.id)).length,
+          runningExcluded: trials.filter(run => run.status === 'running').length,
+          patterns: patterns.map(pattern => {
+            const cohort = (status: 'completed' | 'failed') => {
+              const eligible = analyzed.filter(run => run.status === status);
+              const affected = eligible.filter(run => observed.get(run.id)!.some(candidate => candidate.pattern === pattern));
+              return { n: eligible.length, affected: affected.length, rate: eligible.length ? affected.length / eligible.length : null,
+                runIds: affected.map(run => run.id), candidates: affected.flatMap(run => observed.get(run.id)!.filter(candidate => candidate.pattern === pattern).map(candidate => ({ runId: run.id, ...candidate }))) };
+            };
+            return { pattern, completed: cohort('completed'), failed: cohort('failed') };
+          }), limitation: 'Runs with recorded candidate analysis, not independent findings or confirmed regressions. Failed cohorts, missing analysis and live runs stay separate. Configuration/scenario differences are confounds; engine source revision is not recorded in historical configurations. Review exact evidence and matched repeated controls.' };
+      })(), activeScopeEvaluations: { n: values.length, mean,
         min: values.length ? Math.min(...values) : null, max: values.length ? Math.max(...values) : null,
         sampleStandardDeviation: values.length > 1 && mean !== null ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1)) : null },
       dimensionReviews: researchMetricCatalog.map(metric => {

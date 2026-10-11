@@ -68,8 +68,10 @@ export async function api(app: Application, method: string, path: string, body: 
     }
     if (method === 'POST' && entityId === 'aggregate' && !action) {
       const input = z.strictObject({ runIds: z.array(Text).max(200) }).parse(body);
-      return aggregateSimulations([...new Set(input.runIds)].map(runId => researchRun(app.store, runId)),
-        app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
+      const selected = [...new Set(input.runIds)].map(runId => researchRun(app.store, runId));
+      return aggregateSimulations(selected,
+        app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[],
+        selected.filter(run => run.status !== 'running').map(run => ({ runId: run.id, candidates: simulationCandidates(app.store, run) })));
     }
     if (entityId && action === 'research') {
       if (method === 'GET') return { ...simulationResearch(app.store, entityId), candidates: simulationCandidates(app.store, researchRun(app.store, entityId)) };

@@ -113,6 +113,12 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('heading', { name: 'Simple greeting → Concrete question', exact: true }).waitFor();
     await panel.getByRole('button', { name: 'Aggregate repeated configurations', exact: true }).click();
     await panel.getByRole('table', { name: 'Repeated configuration observations', exact: true }).waitFor();
+    const patternTable = panel.getByRole('table', { name: 'Configuration candidate patterns', exact: true });
+    await patternTable.waitFor();
+    assert.ok(await patternTable.locator('tbody tr').count() > 0);
+    const patternEvidence = patternTable.locator('tbody tr').first();
+    await patternEvidence.locator('summary').filter({ hasText: 'Exact configuration and candidate evidence' }).click();
+    assert.ok((await patternEvidence.innerText()).includes('promptHash'));
     await panel.getByRole('tab', { name: 'Diagnostics & Evidence', exact: true }).click();
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();

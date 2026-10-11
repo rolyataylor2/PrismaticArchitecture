@@ -671,6 +671,13 @@ export async function renderComparisons(root: HTMLElement, runs: SimulationRun[]
         `${method.n ? `${method.min}–${method.max}` : 'unavailable'} / ${method.sampleStandardDeviation?.toFixed(2) ?? 'insufficient trials'}`]) : [[...base, 'Unreviewed', 'Unavailable', 'Unavailable']];
     })), 'Dimension trial variation');
     panel.append(node('p', 'These counts do not measure quality, intelligence or causal learning. Compare criteria, controls and behavioral evidence.'));
+    const patterns = card(panel, 'Candidate patterns by recorded configuration', 'Compare affected-run frequencies under frozen settings. Completed and failed cohorts stay separate; model, prompt, scenario and other configuration differences are confounds, not confirmed regressions.');
+    table(patterns, ['Scenario / configuration', 'Pattern', 'Analyzed / missing / running excluded', 'Completed affected / trials', 'Failed affected / trials', 'Evidence'], aggregate.flatMap(group => group.candidatePatterns.patterns.map(pattern => {
+      const evidence = disclosure(document.createElement('div'), 'Exact configuration and candidate evidence', { configurationId: group.configurationId, configuration: group.configuration, pattern });
+      return [`${group.testId} · ${group.configurationId.slice(0, 10)}`, readable(pattern.pattern), `${group.candidatePatterns.analyzed} / ${group.candidatePatterns.missingAnalysis} / ${group.candidatePatterns.runningExcluded}`,
+        `${pattern.completed.affected} / ${pattern.completed.n}`, `${pattern.failed.affected} / ${pattern.failed.n}`, evidence];
+    })), 'Configuration candidate patterns');
+    if (!aggregate.some(group => group.candidatePatterns.patterns.length)) patterns.append(node('p', 'No candidate pattern is recorded for these trials; this is not proof of learning stability.'));
     disclosure(panel, 'Full grouped configurations and run evidence', aggregate);
   }, fail);
 }
