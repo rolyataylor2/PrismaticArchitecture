@@ -1388,11 +1388,13 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .research-dashboard .rd-section > header { display:block; position:static; z-index:auto; min-height:0; padding:0; background:transparent; border:0; }
 .research-dashboard .rd-main { width:auto; padding:22px 26px 28px; }
 .research-dashboard .rd-directory { max-height:820px; overflow-y:auto; align-self:start; }
-.simulation-dashboard-view .component-header { height:auto; min-height:0; grid-template-rows:auto; margin-bottom:18px; padding-bottom:18px; }
-.simulation-dashboard-view .component-header-actions:empty, .simulation-dashboard-view .component-header-tools:empty { display:none; }
 .simulation-dashboard-view .shell, .simulation-dashboard-view .shell > main { min-width:0; }
+.simulation-dashboard-view .shell > main { display:flex; flex-direction:column; }
+.simulation-dashboard-view #content { display:flex; flex:1; padding:0; }
+.simulation-dashboard-view .research-dashboard { display:flex; flex-direction:column; flex:1; width:100%; border:0; }
+.simulation-dashboard-view .rd-layout { flex:1; }
 @media(max-width:1100px) { .research-dashboard .rd-main { padding:18px; } }
-@media(max-width:700px) { .research-dashboard .rd-main { padding:16px 12px; } .research-dashboard .rd-directory { max-height:185px; } .research-dashboard nav button { white-space:normal; } .simulation-dashboard-view > header .header-brand { flex-wrap:wrap; min-width:0; } .simulation-dashboard-view > header h1 { white-space:normal; } .simulation-dashboard-view #content { padding:16px 12px; } .simulation-dashboard-view .component-header { margin:-16px -12px 18px; padding:16px 12px; } }
+@media(max-width:700px) { .research-dashboard .rd-main { padding:16px 12px; } .research-dashboard .rd-directory { max-height:185px; } .research-dashboard nav button { white-space:normal; } .simulation-dashboard-view > header .header-brand { flex-wrap:wrap; min-width:0; } .simulation-dashboard-view > header h1 { white-space:normal; } }
 .rd-affect-language { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0; }
 .rd-affect-language > div { padding:12px; background:#f0eef5; border-top:2px solid #aaa2c2; min-width:0; }
 .rd-affect-language small { color:#7c7098; font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
