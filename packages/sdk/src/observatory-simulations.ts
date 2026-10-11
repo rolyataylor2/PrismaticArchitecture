@@ -8,7 +8,7 @@ export const observatorySimulations: SimulationTestDefinition[] = [
   ...([false, true] as const).map(experienced => ({
     id: experienced ? 'observatory-context-carryover' : 'observatory-fresh-context-control',
     title: experienced ? 'Control context after conversation' : 'Fresh scene control without conversation', source,
-    hypothesis: 'Conversational activation after a quoted greeting may reflect appropriate unresolved concerns or inappropriate historical carryover; matched fresh-scene controls can distinguish these possibilities.',
+    hypothesis: 'Conversational activation after a quoted greeting may reflect appropriate unresolved concerns or inappropriate historical carryover; a topic switch may also expose prediction/evaluation or remembered-expectation drift. Matched fresh-scene controls distinguish these possibilities without forcing forecasts or outcomes.',
     seeds: conversationStarters.map(({ name, concern, cues, scope }) => ({ name, concern, cues, scope })),
     steps: [
       ...(experienced ? [
@@ -21,7 +21,8 @@ export const observatorySimulations: SimulationTestDefinition[] = [
     ],
     criteria: ['Compare final scope scores, expressed concern continuity and Self choices at the archived-sign control with the matched fresh-scene run.',
       'Review whether any plant concern is preserved as unresolved history rather than asserted as a new external request.',
-      'Compare the live new question and unrelated calendar for contextual discrimination and emitted behavior.'],
+      'Compare the live new question and unrelated calendar for contextual discrimination and emitted behavior.',
+      'For any ordinary prediction, compare preserved open versions with later checks, evaluations and exact linked memories across the topic switch; missing forecasts or memory evidence leave alignment inconclusive.'],
     limitations: 'Initial attention and all messages are researcher-authored. Run both entries with matching model, prompt and activation settings; conversation length and ordinary thought carryover differ intentionally. No fixture forces activation, recall, proposal, action or learned conclusion. A single run cannot establish causal carryover quality; use the paired comparison and repeated trials. Mock/mixed evidence verifies workflow only. Missing speech or missing contextual products is inconclusive for behavioral/semantic claims, not a provider failure. No human psychology claim is supported.',
   })),
   ...([false, true] as const).map(trained => ({

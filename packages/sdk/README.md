@@ -12,6 +12,8 @@ Projected trace events include explicit identifier-field references and frozen o
 
 GET `/:runId/report` answers five contextual questions using frozen run evidence and latest saved research versions. Entries distinguish operational records, observer measures, human reviews, subjective assessments, recorded changes, candidates and gaps. Exact source citations retain hashes and paired/unassigned attribution; unavailable sources remain explicit. Initial snapshots are excluded from later-change claims. Fixture exports preserve this report alongside run, research and analysis records.
 
+Research evaluation also includes prediction/evaluation alignment and fidelity of explicitly linked memories. Preserved pre-evaluation versions, revisions and linked episodes become frozen rubric prerequisites; decisive checks must cite both sides, including the latest applicable open version. Missing origin/memory evidence blocks decisive outcomes. Model-reported mismatches create cited `model_assessment` findings with unreviewed status, counterevidence and limitations, separate from observer measures and Agent learning. Automatic inference follows the existing explicit evaluator-enabled setting; analysis/report inspection makes no model call.
+
 Four `observatory-` hypotheses exercise carryover versus fresh controls and trained versus no-discrepancy experiences, with baseline, consolidation, familiar/novel retests and stability/unrelated controls. `npx tsx scripts/observe-observatory.ts` runs fixture observations into a fresh durable evidence directory. All psychological criteria require review; mocks do not establish learning or causal benefit. Single-run model assessments cannot fabricate paired comparative conclusions.
 
 ## Sourced affect Simulation Tests

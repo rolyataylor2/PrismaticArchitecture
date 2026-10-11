@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { predictionAlignmentCriteria } from './simulation-alignment.js';
+import { saveSimulationCandidates } from './simulation-research.js';
 import type { Application } from './application.js';
 import { id, now } from '../../core/src/domain.js';
 import { SimulationEvaluationSchema, type SimulationEvaluation } from '../../providers/src/simulation-evaluation.js';
@@ -29,6 +31,9 @@ export function semanticSimulationCriteria(run: SimulationRun): number[] {
   return run.measures.flatMap((measure, index) => measure.assessmentKind === 'semantic'
     || (measure.assessmentKind === undefined && observer[index]?.assessmentKind === 'semantic') ? [index] : []);
 }
+export function simulationAssessmentAvailable(run: SimulationRun): boolean {
+  return semanticSimulationCriteria(run).length > 0 || predictionAlignmentCriteria(run).length > 0;
+}
 
 /** No Store/provider handles are passed to the model. Only an immutable evidence packet. */
 export function startSimulationAssessment(app: Application, runId: string, options: { model?: string; evaluatorAgentId?: string } = {}): SimulationRun {
@@ -39,7 +44,8 @@ export function startSimulationAssessment(app: Application, runId: string, optio
   if (run.assessments?.some(assessment => assessment.status === 'running')) throw new Error('An assessment is already running');
   const currentObserver = measureSimulation(run.specification, run.stages);
   const indexes = semanticSimulationCriteria(run);
-  if (!indexes.length) throw new Error('This run has no semantic criteria requiring model assessment');
+  const alignment = predictionAlignmentCriteria(run);
+  if (!indexes.length && !alignment.length) throw new Error('This run has no semantic criteria requiring model assessment');
   const evaluatorAgentId = options.evaluatorAgentId ?? run.sourceAgentId ?? run.agentId;
   app.store.get('agent', evaluatorAgentId);
   const evidence: SimulationAssessment['evidence'] = structuredClone({ testId: run.testId, evidenceBasis: run.evidenceBasis, providers: run.providers, stages: run.stages, supplementalEvidence: [] });
@@ -99,6 +105,8 @@ export function startSimulationAssessment(app: Application, runId: string, optio
       criterion.blockedReason = 'No recorded prediction outcome check supports the feedback-learning criterion.';
     }
   }
+  if (alignment.length) { rubric.version += '-prediction-alignment-v1'; rubric.criteria.push(...alignment);
+    rubric.assessmentScope += ' Includes separate candidate prediction/evidence alignment and remembered-expectation fidelity checks; an observed mismatch remains a provisional machine interpretation.'; }
   const template = app.promptSettings(evaluatorAgentId).find(prompt => prompt.task === 'simulation_evaluation')!.effective;
   const rendered = renderTaskPrompt(evaluatorAgentId, 'simulation_evaluation', { rubric, evidence }, () => template);
   const assessment: SimulationAssessment = { id: id('assessment'), version: (run.assessments?.length ?? 0) + 1, status: 'running',
@@ -125,10 +133,18 @@ async function evaluate(app: Application, run: SimulationRun, assessment: Simula
       if (blocked && measure.outcome !== 'inconclusive') throw new Error('Evaluator issued a decisive verdict despite a missing required prerequisite');
       if (measure.outcome !== 'inconclusive' && !measure.evidenceReferences.length) throw new Error('Decisive evaluator verdicts require evidence citations');
       if (measure.evidenceReferences.some(reference => !referenceExists(assessment.evidence, reference))) throw new Error('Evaluator cited an invalid evidence reference');
+      const groups = assessment.rubric.criteria.find(criterion => criterion.criterionId === measure.criterionId)?.requiredEvidenceGroups;
+      if (measure.outcome !== 'inconclusive' && groups?.some(group => !group.some(prefix => measure.evidenceReferences.some(reference => reference === prefix || reference.startsWith(prefix + '/'))))) {
+        throw new Error('Decisive alignment verdicts require citations to both preserved sides of the comparison');
+      }
     }
     assessment.measures = result.measures; assessment.status = 'completed';
   } catch (error) {
     assessment.status = 'failed'; assessment.error = error instanceof Error ? error.message : String(error);
   }
   assessment.finishedAt = now(); app.store.saveExperiment(run);
+  if (assessment.status === 'completed') {
+    try { saveSimulationCandidates(app.store, run.id); }
+    catch (error) { run.researchAnalysisError = error instanceof Error ? error.message : String(error); app.store.saveExperiment(run); }
+  }
 }

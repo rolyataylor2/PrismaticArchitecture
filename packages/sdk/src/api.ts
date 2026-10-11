@@ -8,7 +8,7 @@ import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
 import { copyExecutiveProfile } from './executive-profile-copy.js';
 import { parseAgentSkillPackage } from '../../core/src/agent-skill-format.js';
-import { semanticSimulationCriteria, startSimulationAssessment } from './simulation-evaluator.js';
+import { simulationAssessmentAvailable, startSimulationAssessment } from './simulation-evaluator.js';
 import { simulationRubric } from './simulation-rubrics.js';
 import { dispositionStatistics } from './disposition-statistics.js';
 import { createComponent, draftComponent } from './component-authoring.js';
@@ -96,7 +96,7 @@ export async function api(app: Application, method: string, path: string, body: 
       if (!run) throw new Error('Unknown simulation run');
       return analyzeSimulation(app.store, run);
     }
-    if (method === 'GET' && !entityId) return { tests: simulationTests.map(test => ({ ...test, rubric: simulationRubric(test) })), runs: listSimulationRuns(app).map(run => ({ ...run, assessmentAvailable: semanticSimulationCriteria(run).length > 0 })) };
+    if (method === 'GET' && !entityId) return { tests: simulationTests.map(test => ({ ...test, rubric: simulationRubric(test) })), runs: listSimulationRuns(app).map(run => ({ ...run, assessmentAvailable: simulationAssessmentAvailable(run) })) };
     if (method === 'POST' && entityId && action === 'assess') {
       const input = z.strictObject({ model: z.enum(['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3']).optional(), evaluatorAgentId: Text.optional() }).parse(body ?? {});
       return startSimulationAssessment(app, entityId, { ...(input.model ? { model: input.model } : {}), ...(input.evaluatorAgentId ? { evaluatorAgentId: input.evaluatorAgentId } : {}) });

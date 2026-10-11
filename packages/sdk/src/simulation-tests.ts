@@ -1,7 +1,7 @@
 import { affectSimulations } from './affect-simulations.js';
 import { observatorySimulations } from './observatory-simulations.js';
 import { saveSimulationCandidates } from './simulation-research.js';
-import { startSimulationAssessment, type SimulationAssessment } from './simulation-evaluator.js';
+import { startSimulationAssessment, simulationAssessmentAvailable, type SimulationAssessment } from './simulation-evaluator.js';
 import { gauntletSimulations } from './gauntlet-simulations.js';
 import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
 import { predictionScaffoldSimulations } from './prediction-scaffold-simulations.js';
@@ -871,7 +871,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
   run.finishedAt = now(); app.store.saveExperiment(run);
   try { saveSimulationCandidates(app.store, run.id); }
   catch (error) { run.researchAnalysisError = error instanceof Error ? error.message : String(error); app.store.saveExperiment(run); }
-  if (run.status === 'completed' && run.evaluator?.enabled && run.measures.some(measure => measure.assessmentKind === 'semantic')) {
+  if (run.status === 'completed' && run.evaluator?.enabled && simulationAssessmentAvailable(run)) {
     try { startSimulationAssessment(app, run.id, { ...(run.evaluator.model ? { model: run.evaluator.model } : {}) }); }
     catch (error) {
       // Setup errors stay separate from successful scenario execution.

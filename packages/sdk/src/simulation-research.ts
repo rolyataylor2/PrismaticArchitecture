@@ -23,7 +23,7 @@ export type SimulationMetricReview = RecordBase & Omit<z.infer<typeof Simulation
 type Citation = { attribution: 'frozen_run' | 'recorded_cycle' | 'run_window_unassigned'; reference: string; runId: string; evidenceBasis: SimulationRun['evidenceBasis']; runStatus: SimulationRun['status']; value: unknown; hash: string };
 type RecordBase = { id: string; agentId: string; runId: string; version: number; previousId: string | null; createdAt: string; citations: Citation[]; evidenceBasis: SimulationRun['evidenceBasis'] };
 export type SimulationReview = RecordBase & Omit<z.infer<typeof SimulationReviewInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_review' };
-export type SimulationFinding = RecordBase & Omit<z.infer<typeof SimulationFindingInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_finding'; origin: 'mechanical_candidate' | 'researcher' };
+export type SimulationFinding = RecordBase & Omit<z.infer<typeof SimulationFindingInput>, 'expectedVersion' | 'evidenceReferences'> & { kind: 'simulation_finding'; origin: 'mechanical_candidate' | 'model_assessment' | 'researcher' };
 
 export function researchRun(store: Store, runId: string): SimulationRun {
   const run = store.experiments().find(item => item.kind === 'simulation_test' && item.id === runId) as SimulationRun | undefined;
@@ -105,6 +105,17 @@ export type SimulationCandidate = { key: string; title: string; claim: string; a
 export function simulationCandidates(store: Store, run: SimulationRun): SimulationCandidate[] {
   const analysis = analyzeSimulation(store, run);
   const candidates: SimulationCandidate[] = [];
+  for (const [assessmentIndex, assessment] of (run.assessments ?? []).entries()) if (assessment.status === 'completed') {
+    for (const [measureIndex, measure] of assessment.measures.entries()) if (/^prediction-(alignment|memory)-\d+$/.test(measure.criterionId) && measure.outcome === 'observed') {
+      const criterion = assessment.rubric.criteria.find(item => item.criterionId === measure.criterionId);
+      candidates.push({ key: `model-alignment:${assessment.id}:${measure.criterionId}`, pattern: 'model-prediction-alignment',
+        title: criterion?.criterion ?? 'Possible prediction provenance mismatch',
+        claim: `Provisional researcher model ${assessment.model}: ${measure.explanation}`,
+        alternatives: `${measure.counterevidence} Limitations: ${measure.limitations} This is an external machine interpretation, not Agent learning or independently verified research truth.`,
+        followUp: 'Review original open versions, legitimate revisions, horizons, factual checks and linked memory versions. Repeat under matching settings with alignment-preserving controls.',
+        evidenceReferences: [`/assessments/${assessmentIndex}/measures/${measureIndex}`, ...measure.evidenceReferences.map(reference => `/assessments/${assessmentIndex}/evidence${reference}`)] });
+    }
+  }
   for (const entry of analysis.predictions) {
     if (entry.prediction.status === 'resolved' && entry.evidenceSufficiency === 'not established') candidates.push({
       key: `uncertain-closure:${entry.prediction.id}`, pattern: 'uncertain-closure', title: 'Closed prediction with nondecisive evidence',
@@ -184,5 +195,5 @@ export function saveSimulationCandidates(store: Store, runId: string) {
   return store.transaction(() => simulationCandidates(store, run).filter(candidate => !existing.has(candidate.key)).map(candidate =>
     saveSimulationFinding(store, runId, { key: candidate.key, title: candidate.title, claim: candidate.claim,
       alternatives: candidate.alternatives, followUp: candidate.followUp, evidenceReferences: candidate.evidenceReferences,
-      reviewer: 'Mechanical candidate analysis', status: 'unreviewed', expectedVersion: 0 }, 'mechanical_candidate')));
+      reviewer: candidate.pattern === 'model-prediction-alignment' ? 'Recorded model assessment candidate' : 'Mechanical candidate analysis', status: 'unreviewed', expectedVersion: 0 }, candidate.pattern === 'model-prediction-alignment' ? 'model_assessment' : 'mechanical_candidate')));
 }

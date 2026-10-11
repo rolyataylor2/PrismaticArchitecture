@@ -546,6 +546,20 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
       disclosure(d, 'Frozen cited evidence and prior versions', versions);
     }
     disclosure(host, 'Model assessments (separate from human review)', run.assessments ?? []);
+    const alignment = card(host, 'Prediction alignment assessments', 'External machine interpretations compare preserved expectations, later evaluations and linked subjective memories. Observed means a possible mismatch; it is never an automatic psychological correction.');
+    const alignmentRows = (run.assessments ?? []).flatMap(assessment => assessment.rubric.criteria.filter(item => /^prediction-(alignment|memory)-\d+$/.test(item.criterionId)).map(criterion => {
+      const measure = assessment.measures.find(item => item.criterionId === criterion.criterionId); const evidence = node('div');
+      evidence.append(node('p', measure?.explanation ?? criterion.blockedReason ?? 'Awaiting a completed assessment.'));
+      if (measure) evidence.append(node('p', `Counterevidence: ${measure.counterevidence}`), node('p', `Limitations: ${measure.limitations}`));
+      disclosure(evidence, 'Frozen alignment rubric and citations', { assessmentId: assessment.id, evidenceHash: assessment.evidenceHash, criterion, measure });
+      for (const reference of measure?.evidenceReferences ?? []) {
+        const source = /^\/stages\/(\d+)(?:\/|$)/.exec(reference); const stage = source ? assessment.evidence.stages[Number(source[1])] : null;
+        if (stage?.cycleId) button(evidence, `Inspect alignment source ${reference}`, () => cycle(stage.cycleId!, run.agentId), fail);
+      }
+      return [criterion.criterion, `${assessment.status} · ${measure?.outcome ?? 'unassessed'}`, assessment.model, evidence];
+    }));
+    table(alignment, ['Research check', 'Assessment / outcome', 'Evaluator', 'Evidence and alternatives'], alignmentRows, 'Recorded prediction alignment');
+    if (!alignmentRows.length) alignment.append(node('p', 'No prediction alignment assessment is recorded. An evaluated prediction and captured open pre-evaluation versions are required; missing evidence stays inconclusive.'));
     disclosure(host, 'Provider or infrastructure errors', { runError: run.error, researchAnalysisError: run.researchAnalysisError, assessmentSetupError: run.assessmentSetupError });
     const failures = card(host, 'Failed cognitive attempts', 'Failures preserve audit evidence without being counted as completed stages or failed psychological hypotheses.');
     if (!analysis.failedAttempts.length) failures.append(node('p', 'No failed cognitive attempt recorded for this run.'));

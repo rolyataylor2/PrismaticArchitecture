@@ -1,7 +1,7 @@
 import type { SimulationTestDefinition } from './simulation-tests.js';
 
 export type SimulationRubric = { version: string; assessmentScope: string; testId: string; hypothesis: string; controls: string[]; limitations: string;
-  criteria: { criterionId: string; criterion: string; observed: string; notObserved: string; prerequisites: string; guidance: string; blockedReason: string | null }[] };
+  criteria: { criterionId: string; criterion: string; observed: string; notObserved: string; prerequisites: string; guidance: string; blockedReason: string | null; requiredEvidenceGroups?: string[][] }[] };
 
 const guidance: Record<string, string> = {
   'conversation-starters': 'For greeting, shared experience and concrete question, inspect emitted replies for direct situated participation. Generic requests to be told how to converse count against relevance/proportionality. Compare quoted Hello: recognizing an archived sign should not be treated as a live greeting. Track which Part products supplied conversational context to world-blind Self. Do not infer benefit over an unseeded baseline without that separate comparison.',

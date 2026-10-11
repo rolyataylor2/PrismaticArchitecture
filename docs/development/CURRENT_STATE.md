@@ -1,3 +1,9 @@
+## Observatory guarded prediction alignment milestone — 2026-10-11
+
+The external simulation evaluator now checks prediction/evaluation subject alignment and linked-memory expectation fidelity against preserved versions. Missing prerequisites block decisive results; both comparison sides, including the applicable open version, must be cited. Provisional model mismatches create separate unreviewed findings citing the exact frozen assessment packet. Existing evaluator-enabled settings govern automatic inference; inspection remains read-only. The researcher factory is version 2 and Settings descriptions are synchronized. Carryover/control experiments now record drift criteria through ordinary cognition, with no forced forecasts or meaning.
+
+Alignment/evaluator/research checks pass 11/11, projection/report/metric/replay checks 6/6 and final citation checks 1/1. Two Chrome workflows pass, zero skips; authored alignment UI evidence verifies prediction owner/ledger/memory focus but does not validate psychology. Strict lint/build pass. Four completed, semantically inconclusive fixture reports are preserved under ignored `workspace/simulations/observatory-alignment-verification`. Full goal remains active: further longitudinal comparisons, operational attribution/admission, candidate coverage and final source audit remain. No blocker. Unrelated generated workspace skills remain excluded.
+
 ## Observatory coordinated timeline zoom milestone — 2026-10-11
 
 Run Explorer now zooms through a seven-lane run/stage matrix, stage events and a bounded filtered event neighborhood. Selection synchronizes exact recorded stage and uniquely captured owner; multiple owners remain ambiguous. Identifier-field references and frozen bid/prediction/memory ownership support navigation, with no prose-derived ownership, inferred causal parents or current-psychology reconstruction. Linked prediction focus is implemented; its rendered verification remains required.
