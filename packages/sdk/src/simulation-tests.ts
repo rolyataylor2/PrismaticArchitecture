@@ -1,3 +1,4 @@
+import { affectSimulations } from './affect-simulations.js';
 import { startSimulationAssessment, type SimulationAssessment } from './simulation-evaluator.js';
 import { gauntletSimulations } from './gauntlet-simulations.js';
 import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
@@ -171,6 +172,7 @@ export const simulationTests: SimulationTestDefinition[] = [
     limitations: 'Researcher-authored attention and links are explicit starting conditions, not learned discoveries. Compare both catalog entries using the same configured providers. Mocks use literal overlap and validate plumbing only, so quoted-cue semantics remain inconclusive. Outcomes require semantic review; infrastructure failure is separate. No automatic Hebbian learning or human psychology validation is claimed.',
   })),
   ...predictionScaffoldSimulations,
+  ...affectSimulations,
   ...concernInheritanceSimulations,
   ...gauntletSimulations,
   { id: 'fantastical-interpretation', title: 'Fantastical subjective interpretation',
@@ -426,7 +428,7 @@ for (const enabled of [false, true]) simulationTests.push({
   limitations: manualProcedureControl.limitations + ' Review policy is an explicit researcher setting. No candidate, activation, approval, selection or reuse is forced. A successful exact-input reuse does not establish transfer, causal learning or human psychology.',
 });
 
-export type SimulationStage = { procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
+export type SimulationStage = { affectInputs?: EventPayloads['self.affect_selection_started'][]; affectChoices?: EventPayloads['self.affect_choice'][]; affectTrace?: { eventId: string; type: string; sequence: number }[]; affectProposals?: EventPayloads['part.affect_proposals'][]; affectDecisions?: EventPayloads['self.affect_decision'][]; affectBaselines?: EventPayloads['self.affect_baseline'][]; focusedRevisions?: EventPayloads['part.focused_bid_revision'][]; affectCycles?: EventPayloads['self.affect_cycle'][]; procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
   temporaryScopeBudgets?: { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] }[];
   coverage?: import('../../core/src/cognition-coverage.js').CognitionCoverage[];
   experienced?: import('../../core/src/domain.js').WorldState['experienced'];
@@ -507,6 +509,21 @@ export function measureSimulation(definition: SimulationTestDefinition, stages: 
       measure(definition.criteria[1]!, inherited.length ? true : eligible.length ? false : null,
         JSON.stringify({ inherited, eligible, consolidation: stages.filter(stage => stage.name.includes('institutionalization')) })),
       ...definition.criteria.slice(2).map(criterion => semantic(criterion, 'Review attributed concern inheritance, preserved source thoughts, source sufficiency and paired desire/inquiry controls. Association is not proof of a motive.'))];
+  }
+  if (definition.id.startsWith('affect-') && affectSimulations.some(test => test.id === definition.id)) {
+    const offers = stages.flatMap(stage => stage.affectProposals ?? []).flatMap(product => product.proposals);
+    const decisions = stages.flatMap(stage => stage.affectDecisions ?? []);
+    const qualifying = stages.filter(stage => stage.affectProposals?.some(product => product.proposals.length));
+    const ordered = qualifying.every(stage => {
+      const trace = stage.affectTrace ?? []; const selected = trace.find(item => item.type === 'self.affect_selection_started');
+      const choice = trace.find(item => item.type === 'self.affect_choice');
+      return !!selected && !!choice && selected.sequence < choice.sequence
+        && trace.filter(item => item.type === 'part.focused_bid_revision').every(item => item.sequence > choice.sequence)
+        && trace.filter(item => item.type === 'self.arbitration_started').every(item => item.sequence > choice.sequence);
+    });
+    return [measure(definition.criteria[0]!, offers.length ? decisions.length > 0 && ordered : null,
+      JSON.stringify({ offers, decisions, focusedRevisions: stages.map(stage => stage.focusedRevisions), cycles: stages.map(stage => stage.affectCycles) })),
+      ...definition.criteria.slice(1).map(criterion => semantic(criterion, 'Review attributed focus, original affect, baseline/revision/choice lineage, origin prediction evidence and the stated controls. Missing qualifying products or comparisons are inconclusive; no automatic psychological verdict.'))];
   }
   if (definition.id.startsWith('scaffold-')) {
     const hypotheses = last.predictions.filter(prediction => prediction.gapOrigin);
@@ -719,7 +736,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
         : definition.consolidationPolicy ? app.procedureConsolidation.records(run.agentId).at(-1) : undefined;
       if (procedureConsolidation?.status === 'failed') throw new Error(`Procedural inference failed: ${procedureConsolidation.error}`);
       if (step.sleep) await app.consolidation.run(run.agentId);
-      const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
+      const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
       run.stages.push({ name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
         ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {
           remainderClaims: app.store.eventsByType(run.agentId, ['execution.remainder_claim']).flatMap(event => event.type === 'execution.remainder_claim' ? [event.payload] : []),
@@ -730,6 +747,15 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
           executionContracts: app.store.eventsByType(run.agentId, ['execution.contract']).flatMap(event => event.type === 'execution.contract' ? [event.payload] : []),
           toolSubmissions: app.store.eventsByType(run.agentId, ['execution.tool_trace']).flatMap(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted' ? [event.payload] : []),
         } : {}),
+        affectInputs: events.flatMap(event => event.type === 'self.affect_selection_started' ? [event.payload] : []),
+        affectChoices: events.flatMap(event => event.type === 'self.affect_choice' ? [event.payload] : []),
+        affectTrace: events.filter(event => ['part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.affect_baseline', 'self.affect_decision', 'part.focused_bid_revision', 'self.arbitration_started', 'self.choice', 'self.affect_cycle'].includes(event.type))
+          .map(event => ({ eventId: event.id, type: event.type, sequence: event.sequence })),
+        affectProposals: events.flatMap(event => event.type === 'part.affect_proposals' ? [event.payload] : []),
+        affectDecisions: events.flatMap(event => event.type === 'self.affect_decision' ? [event.payload] : []),
+        affectBaselines: events.flatMap(event => event.type === 'self.affect_baseline' ? [event.payload] : []),
+        focusedRevisions: events.flatMap(event => event.type === 'part.focused_bid_revision' ? [event.payload] : []),
+        affectCycles: events.flatMap(event => event.type === 'self.affect_cycle' ? [event.payload] : []),
         attention: events.flatMap(event => event.type === 'execution.attention' ? [event.payload] : []),
         reviews: events.flatMap(event => event.type === 'execution.review_completed' ? [event.payload] : []),
         interventions: events.flatMap(event => event.type === 'execution.intervention' ? [event.payload] : []),

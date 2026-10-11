@@ -6,7 +6,7 @@
 - [x] Connect bounded first-pass deliberation, baseline scoring and final bid selection to ordinary runtime.
 - [x] Persist periods, renewals/expiry/navigation and delayed prediction attribution across restart.
 - [x] Add lifetime/timeframe affect panel, per-period statistics and source inspection.
-- [ ] Add sourced normal-pipeline Simulation Tests and verify every audit requirement.
+- [x] Add sourced normal-pipeline Simulation Tests and verify every audit requirement.
 
 # Completed requested prediction scaffold work
 

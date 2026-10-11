@@ -21,10 +21,10 @@ function statistics(parent: HTMLElement, lifetime: AffectFeedback, window: Affec
   const header = node('tr'); for (const label of ['Measure', 'Lifetime period', 'Window origins']) header.append(node('th', label));
   const head = node('thead'); head.append(header); table.append(head); const body = node('tbody');
   const keys = ['completedCycles', 'baselinePredictions', 'originatedPredictions', 'supported', 'contradicted', 'partlySupported',
-    'ambiguous', 'selfInfluenced', 'notTestable', 'unresolved', 'untested', 'abandoned', 'expired', 'invalidated'] as const;
+    'ambiguous', 'selfInfluenced', 'externalCircumstances', 'interrupted', 'notTestable', 'unresolved', 'untested', 'abandoned', 'expired', 'invalidated'] as const;
   const titles: Record<typeof keys[number], string> = { completedCycles: 'Exposed cycles', baselinePredictions: 'Predictions open at entry',
     originatedPredictions: 'Predictions originating during use', supported: 'Supported', contradicted: 'Contradicted', partlySupported: 'Partly supported',
-    ambiguous: 'Ambiguous', selfInfluenced: 'Self influenced', notTestable: 'Not testable', unresolved: 'Unresolved', untested: 'Untested',
+    ambiguous: 'Ambiguous', selfInfluenced: 'Self influenced', externalCircumstances: 'External circumstances', interrupted: 'Interrupted', notTestable: 'Not testable', unresolved: 'Unresolved', untested: 'Untested',
     abandoned: 'Abandoned', expired: 'Expired', invalidated: 'Invalidated' };
   for (const key of keys) { const row = node('tr'); row.append(node('th', titles[key]), node('td', String(lifetime[key])), node('td', String(window[key]))); body.append(row); }
   for (const [title, key] of [['Resolved fraction', 'resolvedFraction'], ['Supported among decisive outcomes', 'supportedFractionAmongDecisive']] as const) {
@@ -70,7 +70,7 @@ export async function affectAnalysisPage(root: HTMLElement, agentId: string, api
       ...(thread.value === 'all' ? {} : { threadId: thread.value === 'null' ? null : thread.value.slice(7) }), ...(part.value ? { partId: part.value } : {}) });
   };
   button(controls, 'Lifetime', () => { from.value = ''; to.value = ''; thread.value = 'all'; part.value = ''; void refresh({}); });
-  button(controls, 'Last 7 days', () => { const now = new Date(); from.value = new Date(now.getTime() - 7 * 86400000 - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16); to.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  button(controls, 'Last 7 days', () => { const now = new Date(); const weekAgo = new Date(now.getTime() - 7 * 86400000); from.value = new Date(weekAgo.getTime() - weekAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 16); to.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     void refresh({ from: new Date(now.getTime() - 7 * 86400000).toISOString(), to: now.toISOString(), ...(thread.value === 'all' ? {} : { threadId: thread.value === 'null' ? null : thread.value.slice(7) }), ...(part.value ? { partId: part.value } : {}) }); });
   function inspectPeriod(period: AffectAnalysis['periods'][number], parent: HTMLElement) {
     const panel = details(parent, `${period.focus.proposals.map(offer => offer.orientation).join(' + ')} · ${date(period.startAt)}`);

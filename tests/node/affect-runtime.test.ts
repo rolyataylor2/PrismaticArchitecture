@@ -283,3 +283,51 @@ test('multiple scoped Parts revise concurrently while retaining their independen
     assert.equal(store.eventsByType(agent.id, ['part.focused_bid_revision']).length, 2);
   } finally { store.close(); }
 });
+
+test('completed monitor cycles do not consume the next ordinary focus opportunity', async () => {
+  const store = new SqliteStore(':memory:');
+  try {
+    const { app, decisions, reasoning } = application(store); const agent = app.createAgent();
+    await app.message(agent.id, 'Begin a focus before monitoring', 'host', 'monitor-age');
+    const original = affectCycles(store, agent.id)[0]!.focusAfter!;
+    // Explicit host monitor records for lifetime plumbing, not a psychological fixture.
+    for (let index = 0; index < 3; index++) {
+      const monitor = store.startCycle(agent.id, 'monitor-age');
+      store.saveCycle({ ...monitor, kind: 'attention_monitor', status: 'completed' });
+    }
+    reasoning.offer = false; decisions.affectMode = 'no_change';
+    await app.message(agent.id, 'The next ordinary experience', 'host', 'monitor-age');
+    const record = affectCycles(store, agent.id).at(-1)!;
+    assert.equal(record.sequence, 2); assert.equal(record.usedFocus!.periodId, original.periodId);
+    assert.equal(record.focusAfter!.expiresAfterSequence, 2);
+    await app.message(agent.id, 'Another ordinary experience', 'host', 'monitor-age');
+    assert.equal(affectCycles(store, agent.id).at(-1)!.focusAfter, null);
+  } finally { store.close(); }
+});
+
+test('behavioral Self can select another perspective instead of the owner of its chosen affect', async () => {
+  const store = new SqliteStore(':memory:');
+  try {
+    const { app, decisions, reasoning } = application(store); const agent = app.createAgent();
+    for (const name of ['Boundary concern', 'Care concern']) store.save('disposition', {
+      id: `reject-focus-${name}`, agentId: agent.id, version: 1, schemaVersion: 1, name, concern: `Explicit authored ${name}`,
+      cues: ['A relationship concern'], scope: name, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true,
+    }, 0, { origin: 'seed', reason: 'Explicit behavioral-authority plumbing starting conditions', sourceIds: [] });
+    decisions.judge = async input => input.candidates.map(candidate => ({ partId: candidate.id, score: 4 }));
+    const choose = decisions.choose.bind(decisions);
+    decisions.choose = async context => {
+      if (!context.selectedFocus) return choose(context);
+      const favoredOwner = context.selectedFocus.proposals[0]!.partId;
+      const alternative = context.contributions.find(contribution => contribution.partId !== favoredOwner && contribution.bid)!.bid!;
+      return { choice: alternative.id, selectedBidIds: [alternative.id], explanation: 'Explicit fixture rejects focus-owner behavior while retaining the lens', identityConflict: '' };
+    };
+    const result = await app.message(agent.id, 'Consider a relationship concern.', 'host', 'behavioral-authority');
+    const record = affectCycles(store, agent.id)[0]!;
+    const chosen = store.eventsByType(agent.id, ['part.focused_bid_revision']).find(event => event.type === 'part.focused_bid_revision'
+      && event.payload.resultingBid?.id === result.cycle.selectedBidId)!;
+    if (chosen.type !== 'part.focused_bid_revision') throw new Error('Missing selected alternative');
+    assert.notEqual(chosen.payload.partId, record.usedFocus!.proposals[0]!.partId);
+    assert.equal(record.focusAfter!.periodId, record.usedFocus!.periodId);
+    assert.equal(reasoning.focused.length, 2); assert.equal(store.executions(agent.id).length, 0);
+  } finally { store.close(); }
+});

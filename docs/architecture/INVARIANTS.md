@@ -1,6 +1,6 @@
 ## Affect selection boundaries (ADR 0157)
 
-Affect and bid selection are two modes of the same Self. The affect mode receives explicit proposals and mediated period feedback, never current affect levels, activation scores, raw WorldState, memories or private Part state. Voluntary focus does not overwrite experienced affect or establish facts. Outcome counts do not establish learning progress, disposition maturity or causal usefulness. See [ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md); full integration remains in progress.
+Affect and bid selection are two modes of the same Self. The affect mode receives explicit proposals and mediated period feedback, never current affect levels, activation scores, raw WorldState, memories or private Part state. Voluntary focus does not overwrite experienced affect or establish facts. Outcome counts do not establish learning progress, disposition maturity or causal usefulness. See [ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md); runtime and researcher inspection are integrated, with sourced experiments and measurement limitations recorded in the implementation audit.
 
 ## Executive connection (ADR 0155)
 

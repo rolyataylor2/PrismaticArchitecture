@@ -70,6 +70,12 @@ export function startSimulationAssessment(app: Application, runId: string, optio
       || (run.testId.startsWith('scaffold-') && index === 3 && !run.stages.at(-1)?.predictions.some(prediction => prediction.gapOrigin))) {
       criterion.blockedReason = 'Required earlier forecast, investigation or subjective episode is absent; the dependent semantic criterion must remain inconclusive.';
     }
+    if (run.testId.startsWith('affect-') && !run.testId.startsWith('affect-relational-') && index >= 1 && !run.stages.some(stage => stage.affectCycles?.some(record => record.usedFocus))) {
+      criterion.blockedReason = 'No committed selected affect period supports this dependent exploration criterion; keep it inconclusive.';
+    }
+    if (['affect-disconfirmation', 'affect-generalization'].includes(run.testId) && index >= 1 && !run.stages.some(stage => stage.predictionChecks?.length)) {
+      criterion.blockedReason = 'No recorded prediction outcome check supports the reliability or generalization comparison; keep it inconclusive.';
+    }
     if (run.testId === 'subjective-path-forward' && index === 1 && !run.stages.some(stage => stage.predictionChecks?.length)) {
       criterion.blockedReason = 'No recorded prediction outcome check supports the feedback-learning criterion.';
     }

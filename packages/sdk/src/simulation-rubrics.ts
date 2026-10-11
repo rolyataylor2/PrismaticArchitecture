@@ -48,7 +48,9 @@ const observedRules: Record<string, string[]> = {
 
 /** Criterion text stays authoritative; guidance makes comparisons and invalid shortcuts explicit. */
 export function simulationRubric(definition: SimulationTestDefinition, criterionIndexes = definition.criteria.map((_, index) => index)): SimulationRubric {
-  const specific = guidance[definition.id] ?? (definition.id.startsWith('scaffold-')
+  const specific = guidance[definition.id] ?? (definition.id.startsWith('affect-')
+    ? 'Require explicit attributed affect offers, separately recorded Self decisions and qualifying baseline/revision/choice evidence before interpreting affect exploration. Inspect original experienced affect separately. Compare control and probe stages; preserve unresolved, untested, self-influenced and late-resolved origin evidence. No focus or forecast makes dependent conclusions inconclusive. Counts cannot establish learning progress, maturity or causality, and a selected recommendation is not executed behavior. Paired plurality tests change initial psychology and do not isolate learned association effects.'
+    : definition.id.startsWith('scaffold-')
     ? 'Distinguish prediction correctness from repeated recorded usefulness. Inspect source distinctions, discriminating evidence, later-cycle investigation/recall, ending and preserved lineage. Without repeated appropriate use and a recorded offline descendant, durable institutionalization is unestablished.'
     : definition.id.startsWith('experiential-')
       ? 'Compare original subjective episodes, later recalls, counterexamples and preserved versions. A wording change or same-thread retest alone cannot establish memory-driven durable refinement.'

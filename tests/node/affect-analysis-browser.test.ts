@@ -36,6 +36,8 @@ test('Chrome affect panel shows period use, original affect, source inspection a
     assert.ok((await panel.innerText()).includes('After: Revised recommendation'));
     await panel.getByRole('button', { name: 'Inspect revision cycle', exact: true }).first().click();
     await page.getByText('Experienced WorldState', { exact: true }).waitFor();
+    await page.getByText('Self affect selection', { exact: true }).waitFor();
+    await page.getByText('Non-enacting bid baseline', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Close inspector' }).click();
     const transition = panel.locator('summary').filter({ hasText: 'self experienced_transition' }).first(); await transition.click();
     assert.ok((await panel.innerText()).includes('Sadness alongside curiosity'));

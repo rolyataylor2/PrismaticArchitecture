@@ -1295,12 +1295,12 @@ function render(): void {
 }
 
 let cycleInspectionRequest = 0;
-function showCycleInspector(cycleId: string): void {
+function showCycleInspector(cycleId: string, expectedAgentId = selectedAgent): void {
   const request = ++cycleInspectionRequest;
   const agentId = selectedAgent; const database = selectedDatabase;
   void api<{ cycle: Cycle; events: CognitiveEvent[] }>(`cycles/${encodeURIComponent(cycleId)}`).then(record => {
     if (request !== cycleInspectionRequest || selectedAgent !== agentId || selectedDatabase !== database) return;
-    if (record.cycle.id !== cycleId || record.cycle.agentId !== agentId) throw new Error('Cycle inspection returned an unrelated record');
+    if (record.cycle.id !== cycleId || record.cycle.agentId !== expectedAgentId) throw new Error('Cycle inspection returned an unrelated record');
     renderCycleInspector(record.cycle, record.events);
   }).catch(showError);
 }
@@ -1361,6 +1361,29 @@ function renderCycleInspector(cycle: Cycle, recordedEvents: CognitiveEvent[]): v
     if (snapshot?.type === 'worldstate.frozen') body.append(details('Recorded external observations', snapshot.payload.facts));
   }
 
+  for (const event of cycleEvents) {
+    if (event.type === 'self.affect_selection_started') {
+      const section = card('Self affect selection', 'World-blind first pass over explicit orientations and mediated period feedback.');
+      section.append(details('Restricted affect input', event.payload)); body.append(section);
+    }
+    if (event.type === 'self.affect_choice') {
+      const section = card(`Affect choice: ${event.payload.mode}`, event.payload.reason);
+      section.append(details('Independent proposal and control scores', event.payload.scores ?? [])); body.append(section);
+    }
+    if (event.type === 'self.affect_baseline') {
+      const section = card('Non-enacting bid baseline', event.payload.choice.explanation);
+      section.append(details('Original contributions and baseline choice', event.payload)); body.append(section);
+    }
+    if (event.type === 'self.affect_decision') {
+      const section = card(`Focus boundary: ${event.payload.boundary}`, event.payload.selection.reason);
+      section.append(details('Attributed period decision', event.payload)); body.append(section);
+    }
+    if (event.type === 'part.focused_bid_revision') {
+      const section = card(`Focused bid revision: ${event.payload.bid_disposition}`, event.payload.response);
+      section.append(details('Original and revised bid lineage', event.payload)); body.append(section);
+    }
+  }
+
   const thoughts = cycleEvents.filter(e => e.type === 'part.thought');
   const scores = cycleEvents.flatMap(e => e.type === 'activation.scored' ? e.payload.results : []);
   const primitiveScores = cycleEvents.flatMap(event => event.type === 'activation.scored' ? event.payload.primitives ?? [] : []);
@@ -1377,7 +1400,8 @@ function renderCycleInspector(cycle: Cycle, recordedEvents: CognitiveEvent[]): v
       details('Action-conditioned futures', layers.prospective.filter(entry => entry.kind === 'action_conditioned')),
       details('Unresolved-state hypotheses', layers.prospective.filter(entry => entry.kind === 'state_hypothesis')),
       details('Unclassified future alternatives', layers.prospective.filter(entry => entry.kind === 'unclassified')),
-      details('Available expressed stance history', layers.stanceHistory ?? []));
+      details('Available expressed stance history', layers.stanceHistory ?? []),
+      details('Carried voluntary focus', layers.selectedFocus ?? null));
     body.append(experienceCard);
   }
   const transition = cycleEvents.findLast(event => event.type === 'self.experienced_transition');
@@ -3659,6 +3683,18 @@ function simulationTestPage(): void {
       panel.append(node('p', `${run.evidenceBasis === 'fixture' ? 'Fixture evidence only' : run.evidenceBasis === 'mixed' ? 'Mixed providers · not independent validation' : 'Configured-model observations · review required'} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
       const meter = node('progress'); meter.max = run.totalSteps; meter.value = run.stages.length; meter.setAttribute('aria-label', 'Simulation progress'); panel.append(meter);
       if (run.error) { const error = node('p', `Execution failure: ${run.error}`); error.setAttribute('role', 'alert'); panel.append(error); }
+      if (run.testId.startsWith('affect-')) {
+        panel.append(node('h4', 'Affect exploration evidence'));
+        for (const stage of run.stages) {
+          const evidence = details(`${stage.name} · affect offers, selection and revisions`, {
+            proposals: stage.affectProposals ?? [], inputs: stage.affectInputs ?? [], choices: stage.affectChoices ?? [],
+            decisions: stage.affectDecisions ?? [], baseline: stage.affectBaselines ?? [], revisions: stage.focusedRevisions ?? [],
+            cycle: stage.affectCycles ?? [], order: stage.affectTrace ?? [], transitions: stage.transitions ?? [],
+          });
+          if (stage.cycleId) evidence.append(button('Inspect affect source cycle', () => showCycleInspector(stage.cycleId!, run.agentId)));
+          panel.append(evidence);
+        }
+      }
       panel.append(node('h4', 'Recorded observer measures'));
       for (const measurement of run.measures) panel.append(details(`${measurement.assessmentKind === 'semantic' ? 'Original observer · semantic criterion' : measurement.outcome.replace('_', ' ')} · ${measurement.criterion}`, measurement));
       if (run.assessmentSetupError) panel.append(node('p', `Assessment setup failure: ${run.assessmentSetupError}`));
