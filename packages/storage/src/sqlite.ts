@@ -35,6 +35,58 @@ export class SqliteStore implements Store {
     this.#db = new DatabaseSync(path);
     migrate(this.#db);
   }
+  branchAgent(sourceAgentId: string, targetAgentId: string): Record<string, string> {
+    return this.transaction(() => {
+      this.get('agent', sourceAgentId);
+      if (this.#db.prepare("SELECT 1 FROM entities WHERE kind='agent' AND id=?").get(targetAgentId)) throw new ConflictError('Branch target already exists');
+      if (this.cycles(sourceAgentId).some(cycle => cycle.status === 'running') || this.consolidations(sourceAgentId).some(run => run.status === 'running')
+        || this.executions(sourceAgentId).some(execution => execution.status === 'running' || execution.status === 'pending')) throw new ConflictError('Wait for active Agent work before branching');
+      const mapping: Record<string, string> = { [sourceAgentId]: targetAgentId };
+      const tables = this.#db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[];
+      const batches: { table: string; rows: Record<string, unknown>[] }[] = [];
+      const quote = (name: string) => '"' + name.replaceAll('"', '""') + '"';
+      for (const { name } of tables) {
+        // Reports and grants remain outside the cognitive branch. Shared registry rows are never copied.
+        if (['experiments', 'deleted_agents', 'mcp_permissions', 'mcp_permissions_history'].includes(name)) continue;
+        const columns = this.#db.prepare(`PRAGMA table_info(${quote(name)})`).all() as { name: string }[];
+        let rows: Record<string, unknown>[] = [];
+        if (columns.some(column => column.name === 'agent_id')) rows = this.#db.prepare(`SELECT * FROM ${quote(name)} WHERE agent_id=?`).all(sourceAgentId);
+        else if (name === 'versions') rows = this.#db.prepare('SELECT v.* FROM versions v JOIN entities e ON e.kind=v.kind AND e.id=v.id WHERE e.agent_id=?').all(sourceAgentId);
+        else if (name === 'embeddings' || name === 'thread_part_stickiness') rows = this.#db.prepare(`SELECT t.* FROM ${quote(name)} t JOIN entities e ON e.kind='part' AND e.id=t.part_id WHERE e.agent_id=?`).all(sourceAgentId);
+        if (rows.length) batches.push({ table: name, rows });
+      }
+      const register = (value: string) => { if (!mapping[value]) mapping[value] = id(value.split('_')[0] || 'branch'); };
+      const collect = (value: unknown): void => {
+        if (Array.isArray(value)) value.forEach(collect);
+        else if (value && typeof value === 'object') for (const [key, item] of Object.entries(value)) {
+          if (['id', 'bidId', 'proposalId', 'contractId', 'operationId', 'traceId'].includes(key) && typeof item === 'string'
+            && /^[a-z][a-z0-9_]*_[0-9a-f-]{36}$/.test(item)) register(item);
+          else if (item && typeof item === 'object') collect(item);
+        }
+      };
+      for (const batch of batches) for (const row of batch.rows) {
+        if (typeof row.id === 'string') register(row.id);
+        for (const [key, value] of Object.entries(row)) {
+          if (typeof value !== 'string' || key === 'encrypted_api_key') continue;
+          if (['body', 'change', 'payload', 'research_scope'].includes(key)) { try { collect(JSON.parse(value)); } catch { /* Non-JSON legacy field. */ } }
+        }
+      }
+      const remap = (value: unknown): unknown => typeof value === 'string' ? mapping[value] ?? value
+        : Array.isArray(value) ? value.map(remap) : value && typeof value === 'object'
+          ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, remap(item)])) : value;
+      for (const batch of batches) for (const row of batch.rows) {
+        const entries = Object.entries(row).filter(([key]) => !(batch.table === 'events' && key === 'sequence'));
+        const values = entries.map(([key, value]) => {
+          if (typeof value !== 'string' || key === 'encrypted_api_key' || key === 'model' || key === 'task') return value;
+          if (['body', 'change', 'payload', 'research_scope'].includes(key)) { try { return JSON.stringify(remap(JSON.parse(value))); } catch { return value; } }
+          return mapping[value] ?? value;
+        });
+        this.#db.prepare(`INSERT INTO ${quote(batch.table)} (${entries.map(([key]) => quote(key)).join(',')}) VALUES (${entries.map(() => '?').join(',')})`)
+          .run(...values as import('node:sqlite').SQLInputValue[]);
+      }
+      return mapping;
+    });
+  }
   deleteAgent(agentId: string): void {
     this.transaction(() => {
       const agent = this.#db.prepare("SELECT id FROM entities WHERE kind = 'agent' AND id = ?").get(agentId);

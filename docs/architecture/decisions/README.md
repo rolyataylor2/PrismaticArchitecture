@@ -93,3 +93,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0155 — Executive disconnected by default](0155-executive-disconnected-by-default.md)
 
 - [0156 — Agent MCP membership and reviewed registration](0156-agent-mcp-registration.md)
+
+- [0159 — Agent-based dream experiences](0159-agent-based-dream-experiences.md)

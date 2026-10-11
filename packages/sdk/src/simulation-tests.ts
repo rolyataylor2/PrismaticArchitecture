@@ -1,3 +1,4 @@
+import { dreamState, type DreamState } from './dream-state.js';
 import { engineProvenance, type EngineProvenance } from './engine-provenance.js';
 import { researchStageContext } from './provider-observation.js';
 import { affectSimulations } from './affect-simulations.js';
@@ -23,6 +24,19 @@ export type SimulationTestDefinition = { id: string; title: string; hypothesis: 
 const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepare and arrange painting a surface', cues: ['paint + surface + intention; attend to preparation, progress and remaining work'], scope: 'painting activity' };
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
+  { id: 'dream-context-continuity', title: 'Remembered context across dream experiences',
+    source: 'Researcher Dreams request, 2026-10-11; ADR 0159',
+    hypothesis: 'A developed Agent may interpret analogous dream experiences through its existing subjective memories, with later expressions reflecting ordinary experience and offline consolidation.',
+    seeds: [], steps: [
+      { name: 'Unrelated comparison', phase: 'control', text: 'A room has a clock and a chair. Someone asks whether you would like to sit down.' },
+      { name: 'An uncertain invitation', phase: 'training', text: 'Someone you know invites you to discuss something personal. They say you can decline and that they will listen without interrupting.' },
+      { name: 'Later response', phase: 'training', text: 'The person listens to what you choose to share, thanks you, and asks whether another conversation would be welcome.' },
+      { name: 'Offline integration', phase: 'training', sleep: true },
+      { name: 'An analogous encounter', phase: 'probe', text: 'Another person invites a personal conversation and says you can decline. What seems relevant to you now?' },
+    ], criteria: ['Review whether recalled subjective memories actually inform interpretation rather than merely coinciding with activation.',
+      'Compare the unrelated control, invitation and later analogous encounter while preserving differing interpretations.',
+      'Inspect recorded memory/disposition versions and later expressed cognition; distinguish ordinary development, compliance, pretraining and missing evidence.'],
+    limitations: 'Use paired fresh-start and developed-base runs. The starting Agent history is researcher-selected, not controlled by a fixture. Mock outcomes and software retention checks do not validate dream psychology. A single run cannot establish durable benefit.' },
   ...observatorySimulations,
   ...([false, true] as const).map(review => ({
     id: review ? 'executive-remainder-review' : 'executive-remainder-monitor-control',
@@ -449,7 +463,7 @@ export type SimulationStage = { id?: string; affectInputs?: EventPayloads['self.
   executions?: import('../../core/src/domain.js').Execution[];
   parts: Part[]; predictions: Prediction[]; memories: Memory[]; dispositions: Disposition[] };
 export type SimulationMeasure = { criterion: string; outcome: 'observed' | 'not_observed' | 'inconclusive'; evidence: string; assessmentKind?: 'operational' | 'prerequisite' | 'semantic' };
-export type SimulationRun = { engine?: EngineProvenance; id: string; kind: 'simulation_test'; testId: string; title: string; source: string; agentId: string;
+export type SimulationRun = { dream?: { hostPid: number; keepChanges: boolean; sourceBefore: DreamState; before: DreamState; after?: DreamState; identifierMap: Record<string, string> }; engine?: EngineProvenance; id: string; kind: 'simulation_test'; testId: string; title: string; source: string; agentId: string;
   startingConfiguration?: { identity: import('../../core/src/domain.js').Identity; activationSettings: ReturnType<Application['agentActivationSettings']>;
     runtime: import('../../core/src/runtime.js').RuntimeOptions; executiveProfile: import('../../core/src/executive-profile.js').ExecutiveProfile };
   specification: SimulationTestDefinition;
@@ -660,12 +674,30 @@ export function startSimulationTest(app: Application, testId: string, mode: Simu
   return launchSimulation(app, definition, mode, sourceAgentId, evaluator);
 }
 
+/** Dreams preserve developed psychology; permanence is chosen explicitly before experience. */
+export function startDream(app: Application, testId: string, mode: SimulationRun['mode'], sourceAgentId: string, keepChanges = false,
+  evaluator: { enabled?: boolean | undefined; model?: string | undefined } = {}): SimulationRun {
+  const original = simulationTests.find(test => test.id === testId);
+  if (!original) throw new Error('Unknown dream scenario');
+  if (original.executiveSandbox || original.procedureLearning || original.steps.some(step => step.executiveCheckpoint || step.settleExecutive || step.consolidateProcedures))
+    throw new Error('Executive apparatus scenarios are not available as dreams');
+  if (app.store.executiveProfile(sourceAgentId).enabled) throw new Error('Disconnect the base Agent Executive before a dream; dream experiences do not authorize external tools');
+  if (mode === 'fixture' && app.store.agentProviderSettings(sourceAgentId)) throw new Error('Use configured mode for a base Agent with saved model routing');
+  if (app.store.cycles(sourceAgentId).some(cycle => cycle.status === 'running') || app.store.consolidations(sourceAgentId).some(run => run.status === 'running')
+    || app.store.executions(sourceAgentId).some(execution => execution.status === 'running' || execution.status === 'pending')
+    || listSimulationRuns(app).some(run => run.status === 'running' && run.dream && (run.agentId === sourceAgentId || run.sourceAgentId === sourceAgentId)))
+    throw new Error('Wait for active base Agent work or dreams to finish');
+  const definition = structuredClone(original); definition.seeds = [];
+  return launchSimulation(app, definition, mode, sourceAgentId, evaluator, undefined, { keepChanges });
+}
+
 type Replay = { parent: SimulationRun; reason: string; activationChanges: Partial<ReturnType<Application['agentActivationSettings']>> };
 /** Repeat preserved starting conditions; never clone developed psychology or silently use current source settings. */
 export function replaySimulation(app: Application, runId: string, reason: string, activationChanges: Replay['activationChanges'] = {}): SimulationRun {
   const parent = listSimulationRuns(app).find(run => run.id === runId);
   if (!parent) throw new Error('Unknown simulation run');
   if (parent.status === 'running') throw new Error('Wait for the source run to end');
+  if (parent.dream) throw new Error('Dreams use developed Agent state; launch a new dream from the chosen base instead of a fresh-test rerun');
   if (!parent.startingConfiguration || !parent.providerRouting) throw new Error('Frozen starting configuration/provider routing is missing; exact rerun is unavailable');
   if (!reason.trim()) throw new Error('Record a researcher reason');
   const catalog = app.promptSettings(parent.agentId);
@@ -687,11 +719,14 @@ export function replaySimulation(app: Application, runId: string, reason: string
 }
 
 function launchSimulation(app: Application, definition: SimulationTestDefinition, mode: SimulationRun['mode'], sourceAgentId: string,
-  evaluator: { enabled?: boolean | undefined; model?: string | undefined }, replay?: Replay): SimulationRun {
+  evaluator: { enabled?: boolean | undefined; model?: string | undefined }, replay?: Replay, dream?: { keepChanges: boolean }): SimulationRun {
   app.store.get('agent', sourceAgentId);
   const runner = mode === 'fixture' ? new Application(app.store, undefined, undefined, replay?.parent.startingConfiguration?.runtime) : app;
-  const agent = runner.createAgent(`Simulation · ${definition.title}`);
-  if (mode === 'configured') {
+  const sourceBefore = dream ? structuredClone(dreamState(app.store, sourceAgentId)) : undefined;
+  const targetId = dream ? dream.keepChanges ? sourceAgentId : id('agent') : null;
+  const identifierMap = dream && !dream.keepChanges ? app.store.branchAgent(sourceAgentId, targetId!) : {};
+  const agent = dream ? app.store.get('agent', targetId!) : runner.createAgent(`Simulation · ${definition.title}`);
+  if (mode === 'configured' && !dream) {
     const settings = app.store.agentProviderSettings(sourceAgentId);
     if (settings) app.store.saveAgentProviderSettings(agent.id, settings);
     app.store.saveAgentActivationSettings(agent.id, app.store.agentActivationSettings(sourceAgentId));
@@ -714,7 +749,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   catch (error) { setupError = error instanceof Error ? error.message : String(error); }
   const decisions = runner.providers.decisions.label;
   const mockReasoning = /mock|deterministic/i.test(reasoning); const mockDecisions = /mock|deterministic/i.test(decisions);
-  const run: SimulationRun = { engine: engineProvenance(), id: id('simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
+  const run: SimulationRun = { ...(dream ? { dream: { hostPid: process.pid, keepChanges: dream.keepChanges, sourceBefore: sourceBefore!, before: structuredClone(dreamState(app.store, agent.id)), identifierMap } } : {}), engine: engineProvenance(), id: id(dream ? 'experience' : 'simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',
     ...(replay ? { lineage: { parentRunId: replay.parent.id, kind: Object.keys(replay.activationChanges).length ? 'fork' as const : 'rerun' as const,
       reason: replay.reason, activationChanges: structuredClone(replay.activationChanges) } } : {}),
@@ -726,6 +761,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     createdAt: now(), finishedAt: null, status: 'running', totalSteps: definition.steps.length, currentStep: 'Starting', stages: [], measures: [], error: null };
   app.store.saveExperiment(run);
   if (setupError) {
+    if (run.dream) run.dream.after = structuredClone(dreamState(app.store, run.agentId));
     run.status = 'failed'; run.error = setupError; run.currentStep = 'Provider setup failed'; run.finishedAt = now(); app.store.saveExperiment(run);
   } else void executeSimulation(runner, definition, run);
   return structuredClone(run);
@@ -782,7 +818,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
           }
           if (step.executiveCheckpoint && !target && !checkpointNote) checkpointNote = 'No live Self-selected activity; this checkpoint was not delivered.';
           const result = step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
-            : text ? await app.message(run.agentId, text, 'Scenario observer', run.id) : null;
+            : text ? await app.message(run.agentId, text, run.dream ? 'Experience' : 'Scenario observer', run.id) : null;
           if (step.settleExecutive) {
             // Corrections can schedule a successor while the original worker settles.
             for (let pass = 0; pass < 8; pass++) {
@@ -879,6 +915,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
       app.store.saveMcpRegistry({ revision: registry.revision + 1, servers: registry.servers.filter(server => server.id !== sandboxId) }, registry.revision);
     } catch (error) { run.status = 'failed'; run.error = `${run.error ? run.error + '; ' : ''}Apparatus cleanup failed: ${error instanceof Error ? error.message : String(error)}`; }
   }
+  if (run.dream) run.dream.after = structuredClone(dreamState(app.store, run.agentId));
   run.finishedAt = now(); app.store.saveExperiment(run);
   try { saveSimulationCandidates(app.store, run.id); }
   catch (error) { run.researchAnalysisError = error instanceof Error ? error.message : String(error); app.store.saveExperiment(run); }

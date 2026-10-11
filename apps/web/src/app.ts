@@ -983,7 +983,7 @@ function renderNavigation(): void {
   header.append(toggle, title); section.append(header);
   if (expandedSections.operations) {
     const children = node('div', '', 'nav-children');
-    for (const tab of ['Sleep', 'Simulator']) {
+    for (const tab of ['Sleep', 'Dreams']) {
       const item = button(tab, () => { activeTab = tab; render(); });
       item.className = 'nav-item' + (activeTab === tab ? ' selected' : ''); children.append(item);
     }
@@ -1226,13 +1226,13 @@ function render(): void {
     Activation: 'Activation settings are researcher controls for how subjective memories become accessible during cognition. They configure recall limits and relevance thresholds without assigning psychological meaning or decision authority to retrieval scores.',
     'Delete Agent': 'Agent deletion is a researcher operation that removes an Agent and its stored psychology and audit history. It acts outside cognition and requires confirmation before permanent removal.',
     Sleep: 'Offline consolidation of selected cognitive experiences, with preserved sleep-cycle history.',
-    Simulator: 'Explore research hypotheses through ordinary experiences on isolated Agents.',
+    Dreams: 'Explore experiences from a chosen Agent base and inspect preserved before-and-after evidence.',
   };
   const description = descriptions[pageKey];
   componentHeaderDescriptions = descriptions;
   document.body.classList.toggle('component-view', Boolean(description));
-  document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Simulator' || pageKey === 'Sleep');
-  content.replaceChildren(...(isChat || isBrain || pageKey === 'Simulator' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
+  document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Dreams' || pageKey === 'Sleep');
+  content.replaceChildren(...(isChat || isBrain || pageKey === 'Dreams' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
     chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Chat Sessions' : 'Brain'));
@@ -1267,7 +1267,7 @@ function render(): void {
     Settings: settings,
     'Model & key': () => { settingsSection = 'Model & key'; settings(); },
     Prompts: () => { settingsSection = 'Prompts'; settings(); },
-    'Simulator': simulationTestPage,
+    'Dreams': simulationTestPage,
   };
   views[activeTab]?.();
   sizeComponentHeaders();
@@ -3544,26 +3544,37 @@ function simulationTestPage(): void {
       setTimeout(() => { if (dashboard.element.isConnected) void load().catch(showError); }, 1500);
   };
   const launch = (testId: string) => {
-    const dialog = node('dialog', '', 'rd-dialog'); dialog.setAttribute('aria-label', 'Launch simulation');
-    dialog.append(node('h2', 'Launch simulation'));
+    const dialog = node('dialog', '', 'rd-dialog'); dialog.setAttribute('aria-label', 'Launch dream');
+    dialog.append(node('h2', 'Launch dream'));
     const form = node('form'); dialog.append(form);
-    const hypothesis = node('select'); hypothesis.setAttribute('aria-label', 'Simulation hypothesis');
-    for (const definition of definitions) hypothesis.append(new Option(definition.title, definition.id)); hypothesis.value = testId;
-    const hypothesisLabel = node('label', 'Simulation hypothesis'); hypothesisLabel.append(hypothesis); form.append(hypothesisLabel);
+    const launchMode = node('select'); launchMode.setAttribute('aria-label', 'Experience mode');
+    launchMode.append(new Option('Dream · developed Agent base', 'dream'), new Option('Research test · fresh starting conditions', 'test'));
+    const launchModeLabel = node('label', 'Experience mode'); launchModeLabel.append(launchMode); form.append(launchModeLabel);
+    const base = node('select'); base.setAttribute('aria-label', 'Base Agent'); base.disabled = true;
+    const baseLabel = node('label', 'Base Agent'); baseLabel.append(base); form.append(baseLabel);
+    void api<Agent[]>('agents').then(agents => { if (!dialog.isConnected) return; for (const agent of agents) base.append(new Option(`${agent.name} · ${agent.id.slice(-8)}`, agent.id)); base.value = sourceAgentId; base.disabled = false; start.disabled = false; }).catch(showError);
+    const keep = node('input'); keep.type = 'checkbox'; keep.checked = false;
+    const keepLabel = node('label', 'Keep dream changes in the base Agent'); keepLabel.prepend(keep); form.append(keepLabel);
+    const permanence = node('p', '', 'rd-caution'); form.append(permanence);
+    const hypothesis = node('select'); hypothesis.setAttribute('aria-label', 'Scenario');
+    const populate = () => { const value = hypothesis.value || testId; hypothesis.replaceChildren(); for (const definition of definitions.filter(item => launchMode.value === 'test' || (!item.executiveSandbox && !item.procedureLearning && !item.steps.some(step => step.executiveCheckpoint || step.settleExecutive || step.consolidateProcedures)))) hypothesis.append(new Option(definition.title, definition.id)); if ([...hypothesis.options].some(option => option.value === value)) hypothesis.value = value; }; populate();
+    const hypothesisLabel = node('label', 'Scenario'); hypothesisLabel.append(hypothesis); form.append(hypothesisLabel);
     const mode = node('select'); mode.setAttribute('aria-label', 'Simulation inference mode');
-    mode.append(new Option('Fixture · bundled mock providers', 'fixture'), new Option('Configured models · selected Agent settings', 'configured')); mode.value = simulationMode;
+    mode.append(new Option('Fixture · bundled mock providers', 'fixture'), new Option('Configured models · selected Agent settings', 'configured')); mode.value = 'configured';
     const modeLabel = node('label', 'Inference mode'); modeLabel.append(mode); form.append(modeLabel);
     const evaluate = node('input'); evaluate.type = 'checkbox'; evaluate.checked = true; const label = node('label', 'Automatically assess configured runs'); label.prepend(evaluate); form.append(label);
     const evaluator = node('select'); evaluator.setAttribute('aria-label', 'Simulation evaluator model');
     for (const [value, title] of [['', 'Same model as source Agent'], ['gpt-4.1-mini', 'GPT-4.1 mini'], ['gpt-4.1-nano', 'GPT-4.1 nano'], ['gpt-5-nano', 'GPT-5 nano'], ['grok-4.3', 'Grok 4.3']]) evaluator.append(new Option(title!, value!));
     const evaluatorLabel = node('label', 'Evaluator model'); evaluatorLabel.append(evaluator); form.append(evaluatorLabel);
-    form.append(node('p', 'Every run creates a separate test Agent. Configured inference and automated assessment may incur provider costs. Fixture observations validate the apparatus, not the hypothesis.', 'rd-caution'));
-    const start = node('button', 'Run simulation test'); start.type = 'submit'; form.append(start);
+    form.append(node('p', 'Dreams inherit the chosen Agent’s developed state without injecting scenario seeds. The base Executive must be disconnected. Research framing is kept outside cognitive inputs. Configured inference may incur provider costs.', 'rd-caption'));
+    const explain = () => { keep.disabled = launchMode.value !== 'dream'; permanence.textContent = launchMode.value !== 'dream' ? 'Fresh research tests leave the base Agent unchanged.' : keep.checked ? 'Changes remain in the base Agent as experiences occur, including changes before a failure. Before-and-after records are preserved.' : 'Default: the base Agent stays unchanged. An isolated continuation and its changes remain available for analysis.'; };
+    launchMode.onchange = () => { populate(); explain(); }; keep.onchange = explain; explain();
+    const start = node('button', 'Start experience'); start.type = 'submit'; start.disabled = true; form.append(start);
     const status = node('p'); status.setAttribute('role', 'status'); form.append(status);
-    form.onsubmit = event => { event.preventDefault(); start.disabled = true; simulationMode = mode.value as typeof simulationMode;
-      void api<SimulationRun>('simulation-tests', 'POST', { testId: hypothesis.value, mode: mode.value, sourceAgentId,
+    form.onsubmit = event => { event.preventDefault(); if (!dashboard.element.isConnected || base.disabled || !base.value) return; start.disabled = true; simulationMode = mode.value as typeof simulationMode;
+      void api<SimulationRun>('simulation-tests', 'POST', { testId: hypothesis.value, mode: mode.value, sourceAgentId: base.value, ...(launchMode.value === 'dream' ? { dream: { keepChanges: keep.checked } } : {}),
         evaluator: { enabled: evaluate.checked, ...(evaluator.value ? { model: evaluator.value } : {}) } }).then(async () => {
-          dashboard.selectExperiment(hypothesis.value); dialog.close(); await load();
+          dashboard.selectExperiment(hypothesis.value); dialog.close(); if (base.value !== selectedAgent) { selectedAgent = base.value; await agents(); } else await load();
         }).catch(error => { status.textContent = error instanceof Error ? error.message : String(error); showError(error); }).finally(() => { start.disabled = false; });
     };
     dialog.append(button('Close', () => dialog.close(), true)); dialog.addEventListener('close', () => dialog.remove(), { once: true }); document.body.append(dialog); dialog.showModal();

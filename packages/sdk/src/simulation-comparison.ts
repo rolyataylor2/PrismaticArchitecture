@@ -17,6 +17,7 @@ export function simulationConfiguration(run: SimulationRun) {
     activationSettingsHash: start ? hash(start.activationSettings) : null, runtimeHash: start ? hash(start.runtime) : null,
     identityHash: start ? hash({ traits: start.identity.traits.map(({ question, answer, keywords, role }) => ({ question, answer, keywords, role })), mask: start.identity.mask }) : null,
     executiveProfileHash: start ? hash({ ...start.executiveProfile, revision: undefined }) : null,
+    dream: run.dream ? { keepChanges: run.dream.keepChanges, basePsychologyHash: hash(run.dream.sourceBefore) } : null,
     startingConfigurationAvailable: !!start };
 }
 export function stageMeasures(stage: SimulationStage) {

@@ -1,3 +1,4 @@
+import { recoverInterruptedDreams } from './dream-state.js';
 import { observeProvider, providerOperationContext, researchStageContext, suppressProviderObservation } from './provider-observation.js';
 import { projectEnvironmentValue } from '../../providers/src/environment.js';
 import { SelectedSkillReview } from './selected-skill-review.js';
@@ -17,6 +18,7 @@ import { BackgroundExecutiveExecutor } from '../../executive/src/background-exec
 import { validateExecutionUpdate } from '../../core/src/execution-lifecycle.js';
 import type { ExternalCapabilities } from '../../core/src/mcp-configuration.js';
 import { ExecutionSchema, freeze, id, now, type Change, type Execution, type Fact } from '../../core/src/domain.js';
+import { ConflictError } from '../../core/src/contracts.js';
 import type { DecisionProvider, EmbeddingProvider, Executor, ReasoningProvider, Store } from '../../core/src/contracts.js';
 import { CognitiveRuntime, defaultRuntimeOptions, type RuntimeOptions } from '../../core/src/runtime.js';
 import { Inspection } from '../../core/src/inspection.js';
@@ -169,6 +171,7 @@ export class Application {
           deadlineAt: prepared.deadlineAt, limits: prepared.limits });
       });
     this.consolidation = new Consolidation(store, this.providers.reasoning, this.runtime.mutations, this.inspection, this.runtime.constructed);
+    recoverInterruptedDreams(store, (cycleId, reason) => this.recoverCycle(cycleId, reason), (agentId, runId, reason) => this.recoverConsolidation(agentId, runId, reason));
   }
   identityAuthoringProvider(agentId: string): OpenAIProvider { return this.researcherAuthoringProvider(agentId); }
   researcherAuthoringProvider(agentId: string): OpenAIProvider {
@@ -292,6 +295,8 @@ export class Application {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }
   async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = []) {
+    const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && run.status === 'running' && run.agentId === agentId && run.dream);
+    if (activeDream && (threadId !== activeDream.id || researchStageContext.getStore()?.runId !== activeDream.id)) throw new ConflictError('Agent is experiencing a dream; wait for it to finish');
     const fact: Fact = { source, kind: 'says', text, referenceId: null, timestamp: now() };
     return this.#coordinate(agentId, async () => {
       if (skillDocumentIds.length > 10 || new Set(skillDocumentIds).size !== skillDocumentIds.length) throw new Error('Request at most ten distinct skill documents');

@@ -1,3 +1,5 @@
+Dreams uses a chosen developed Agent as its base, preserves changes on an isolated continuation by default, and optionally retains ordinary experience on the base when explicitly selected. The dashboard freezes before/after evidence; see [ADR 0159](docs/architecture/decisions/0159-agent-based-dream-experiences.md).
+
 ## Simulation Cognitive Observatory (ADR 0158)
 
 Simulation Tests now contains six Cognitive Observatory views: Overview, Experiments, Run Explorer, Comparisons, Development, and Diagnostics & Evidence. Coordinated stage/Part filters connect activation, interpretation, prediction and memory history. Recorded bid-to-Self-to-contract/tool trails expose explicit provenance; runtime schema checks remain separate from provider return. Human reviews and saved candidate findings preserve cited evidence and versions; run/configuration/before-after comparisons expose confounds and trial variation. Four sourced normal-pipeline experiments provide matched carryover and learning controls. Saved starting configurations can be rerun or forked onto fresh Agents with explicit provenance. Richer operational instrumentation and remaining development measures stay tracked in the [thread audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md).
@@ -82,7 +84,7 @@ Agent Operations → Sleep induces offline memory/disposition consolidation and 
 
 ## Validation
 
-Use **Agent Operations → Simulator** in the sidebar to run sourced research hypotheses through ordinary cognition on fresh test Agents. The initial catalog covers the disposition discussion, including contradiction, learning/generalization and negative controls. Reports preserve stage progress, provider provenance, observations and inconclusive/failed states. Fixture mode checks the workflow with bundled mocks; configured mode uses the selected Agent's model/prompt settings and may incur provider costs. Neither a single observation nor a completed run proves a psychological theory. Future testable developer-thread hypotheses belong in this registry, as required by AGENTS.md. See [ADR 0135](docs/architecture/decisions/0135-simulation-hypothesis-tests.md).
+Use **Agent Operations → Dreams** in the sidebar to run sourced research hypotheses through ordinary cognition on fresh test Agents. The initial catalog covers the disposition discussion, including contradiction, learning/generalization and negative controls. Reports preserve stage progress, provider provenance, observations and inconclusive/failed states. Fixture mode checks the workflow with bundled mocks; configured mode uses the selected Agent's model/prompt settings and may incur provider costs. Neither a single observation nor a completed run proves a psychological theory. Future testable developer-thread hypotheses belong in this registry, as required by AGENTS.md. See [ADR 0135](docs/architecture/decisions/0135-simulation-hypothesis-tests.md).
 
 ```sh
 npm test

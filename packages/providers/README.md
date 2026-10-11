@@ -1,3 +1,5 @@
+Simulation evaluator factory v3 recognizes inherited dream starting and terminal snapshots as external research evidence. Validated citations may refer to stages or frozen dream states. Permanence, copy retention and version counts do not establish psychological benefit; Agent prompts and Self access are unchanged.
+
 ## Researcher prediction alignment (ADR 0158)
 
 The existing `simulation_evaluation` factory is version 2 and includes separate prediction/evaluation subject-alignment and remembered-expectation fidelity criteria supplied by a frozen external rubric. Runtime guards missing pre-evaluation/linked-memory evidence and requires both comparison sides for decisive outcomes. Observed mismatch remains a provisional researcher interpretation. The Settings task description is synchronized; provider routing and schemas are unchanged, and Agent cognition/Self receive no research findings.

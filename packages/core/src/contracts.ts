@@ -165,6 +165,8 @@ export type CognitiveEvent = { [K in keyof EventPayloads]: {
 } }[keyof EventPayloads];
 export interface Store {
   deleteAgent(agentId: string): void;
+  /** Researcher branching preserves scoped history with remapped internal identities. */
+  branchAgent(sourceAgentId: string, targetAgentId: string): Record<string, string>;
   transaction<T>(operation: () => T): T;
   get<K extends EntityKind>(kind: K, id: string): EntityMap[K];
   list<K extends EntityKind>(kind: K, agentId?: string): EntityMap[K][];

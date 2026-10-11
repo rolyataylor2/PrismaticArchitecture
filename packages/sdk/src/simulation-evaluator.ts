@@ -11,11 +11,11 @@ import { measureSimulation, type SimulationRun, type SimulationStage } from './s
 export type SimulationAssessment = { id: string; version: number; status: 'running' | 'completed' | 'failed';
   createdAt: string; finishedAt: string | null; model: string; evaluatorAgentId: string;
   evidenceBasis: SimulationRun['evidenceBasis']; rubric: SimulationRubric; prompt: { version: string; template: string; rendered: string };
-  evidence: { testId: string; evidenceBasis: SimulationRun['evidenceBasis']; providers: SimulationRun['providers']; stages: SimulationStage[]; supplementalEvidence: string[] };
+  evidence: { dream?: SimulationRun['dream']; testId: string; evidenceBasis: SimulationRun['evidenceBasis']; providers: SimulationRun['providers']; stages: SimulationStage[]; supplementalEvidence: string[] };
   evidenceHash: string; measures: SimulationEvaluation['measures']; error: string | null };
 
 function referenceExists(evidence: SimulationAssessment['evidence'], reference: string): boolean {
-  if (!/^\/stages\/(0|[1-9]\d*)(?:\/|$)/.test(reference)) return false;
+  if (!/^\/stages\/(0|[1-9]\d*)(?:\/|$)/.test(reference) && !/^\/dream\/(before|after|sourceBefore)(?:\/|$)/.test(reference)) return false;
   let value: unknown = evidence;
   for (const encoded of reference.slice(1).split('/')) {
     if (/~(?![01])/.test(encoded)) return false;
@@ -48,7 +48,7 @@ export function startSimulationAssessment(app: Application, runId: string, optio
   if (!indexes.length && !alignment.length) throw new Error('This run has no semantic criteria requiring model assessment');
   const evaluatorAgentId = options.evaluatorAgentId ?? run.sourceAgentId ?? run.agentId;
   app.store.get('agent', evaluatorAgentId);
-  const evidence: SimulationAssessment['evidence'] = structuredClone({ testId: run.testId, evidenceBasis: run.evidenceBasis, providers: run.providers, stages: run.stages, supplementalEvidence: [] });
+  const evidence: SimulationAssessment['evidence'] = structuredClone({ ...(run.dream ? { dream: run.dream } : {}), testId: run.testId, evidenceBasis: run.evidenceBasis, providers: run.providers, stages: run.stages, supplementalEvidence: [] });
   // Historical reports predate emitted-speech/selection capture. Read existing audit products by exact cycle;
   // preserve the original stage and clearly record the supplemental evidence's origin.
   const executions = app.store.executions(run.agentId);

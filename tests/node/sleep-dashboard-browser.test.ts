@@ -55,8 +55,8 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await panel.getByText('Authored provider interruption', { exact: true }).waitFor();
     const failedRecord = store.consolidations(agent.id).find(cycle => cycle.id === 'authored-failed-sleep')!;
     assert.equal(failedRecord.status, 'failed');
-    await page.getByRole('button', { name: 'Simulator', exact: true }).click();
-    await page.locator('.research-dashboard').getByRole('heading', { name: 'The Simulator', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Dreams', exact: true }).click();
+    await page.locator('.research-dashboard').getByRole('heading', { name: 'Dreams', exact: true }).waitFor();
     assert.deepEqual(errors, []);
   } finally { await browser.close(); server.closeAllConnections(); await app.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

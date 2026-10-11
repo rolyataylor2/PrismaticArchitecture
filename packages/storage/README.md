@@ -1,3 +1,5 @@
+Researcher dream branching transactionally copies same-Agent entities, immutable versions, experiences, cycles, audit, settings and selected caches with an explicit internal identifier map. Reports, shared registry and MCP grants are excluded. Source rows are never edited; ciphertext remains solely in protected settings. Branch histories retain source provenance, and default discard preserves the developed branch for inspection. See ADR 0159.
+
 ## Conditional procedural consolidation (ADR 0147)
 
 Conditional skill versions use existing immutable skill JSON history. Storage checks same-Agent scope-compatible exact member versions, preserves branch metadata during ordinary lifecycle transitions and requires current active permitted members for family activation/restoration. Branch refresh is an explicit revision; no migration rewrites old exact skills or evidence.

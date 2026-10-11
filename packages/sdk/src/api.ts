@@ -23,7 +23,7 @@ import { DispositionSchema, AgentActivationSettingsSchema, IdentitySchema, Ident
 import type { Application } from './application.js';
 import { experimentNames, runExperiment } from './experiments.js';
 import { identityAnswerGuidance, identityQuestionLibrary } from './identity-questions.js';
-import { simulationTests, listSimulationRuns, startSimulationTest, replaySimulation } from './simulation-tests.js';
+import { simulationTests, listSimulationRuns, startSimulationTest, startDream, replaySimulation } from './simulation-tests.js';
 import { McpRegistrySchema, McpPermissionsSchema } from '../../core/src/mcp-configuration.js';
 import { ExecutiveProfileSchema } from '../../core/src/executive-profile.js';
 import { SkillProposalSchema, SkillMaturityAssessmentSchema } from '../../core/src/executive-skill.js';
@@ -45,6 +45,11 @@ export async function api(app: Application, method: string, path: string, body: 
   const route = path.split('/').filter(Boolean).map(decodeURIComponent);
   const [prefix, resource, entityId, action, subresource, operation, traitOperation] = route;
   if (prefix !== 'api') throw new Error('Unknown route');
+  if (method !== 'GET' && entityId && ['parts', 'memories', 'predictions', 'dispositions'].includes(resource ?? '')) {
+    const kind = ({ parts: 'part', memories: 'memory', predictions: 'prediction', dispositions: 'disposition' } as const)[resource as 'parts' | 'memories' | 'predictions' | 'dispositions'];
+    const owner = app.store.get(kind, entityId).agentId;
+    if (listSimulationRuns(app).some(run => run.status === 'running' && run.dream && run.agentId === owner)) throw new ConflictError('Wait for the Agent dream to finish before editing its psychology');
+  }
   if (resource === 'identity-questions' && method === 'GET' && !entityId) return identityQuestionLibrary;
   if (resource === 'identity-guidance' && method === 'GET' && !entityId) return { guidance: identityAnswerGuidance };
   if (resource === 'agents' && !entityId) {
@@ -104,11 +109,13 @@ export async function api(app: Application, method: string, path: string, body: 
       return startSimulationAssessment(app, entityId, { ...(input.model ? { model: input.model } : {}), ...(input.evaluatorAgentId ? { evaluatorAgentId: input.evaluatorAgentId } : {}) });
     }
     if (method === 'POST' && !entityId) {
-      const input = z.strictObject({ evaluator: z.strictObject({ enabled: z.boolean().optional(), model: z.enum(['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3']).optional() }).optional(), testId: Text, mode: z.enum(['fixture', 'configured']), sourceAgentId: Text }).parse(body);
-      return startSimulationTest(app, input.testId, input.mode, input.sourceAgentId, input.evaluator ? {
+      const input = z.strictObject({ dream: z.strictObject({ keepChanges: z.boolean().default(false) }).optional(), evaluator: z.strictObject({ enabled: z.boolean().optional(), model: z.enum(['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3']).optional() }).optional(), testId: Text, mode: z.enum(['fixture', 'configured']), sourceAgentId: Text }).parse(body);
+      const evaluation = input.evaluator ? {
         ...(input.evaluator.enabled !== undefined ? { enabled: input.evaluator.enabled } : {}),
         ...(input.evaluator.model !== undefined ? { model: input.evaluator.model } : {}),
-      } : undefined);
+      } : undefined;
+      return input.dream ? startDream(app, input.testId, input.mode, input.sourceAgentId, input.dream.keepChanges, evaluation)
+        : startSimulationTest(app, input.testId, input.mode, input.sourceAgentId, evaluation);
     }
   }
   if (resource === 'mcp-registry-search' && method === 'POST') {
@@ -132,6 +139,7 @@ export async function api(app: Application, method: string, path: string, body: 
   }
   if (!entityId) throw new Error('Missing resource ID');
   if (resource === 'agents') {
+    if (method !== 'GET' && listSimulationRuns(app).some(run => run.status === 'running' && run.dream && run.agentId === entityId)) throw new ConflictError('Wait for the Agent dream to finish before editing or starting other work');
     if (action === 'affect-analysis' && method === 'GET') return analyzeAffect(app.store, entityId);
     if (action === 'affect-analysis' && method === 'POST') return analyzeAffect(app.store, entityId, AffectAnalysisFilterSchema.parse(body ?? {}));
     if (method === 'DELETE' && !action) {
