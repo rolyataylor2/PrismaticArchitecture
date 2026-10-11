@@ -43,6 +43,25 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   host.replaceChildren();
   const overview = card(host, 'Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
   overview.append(node('p', analysis.summary.hypothesis), node('p', `${readable(run.evidenceBasis)} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
+  if (run.lineage) overview.append(node('p', `${readable(run.lineage.kind)} of ${run.lineage.parentRunId}: ${run.lineage.reason}`));
+  const replay = disclosure(overview, 'Repeat or fork saved starting conditions');
+  disclosure(replay, 'Frozen scenario, configuration and prompts', { specification: run.specification, configuration: run.startingConfiguration,
+    providers: run.providers, routing: run.providerRouting, prompts: run.prompts, lineage: run.lineage });
+  replay.append(node('p', 'Launches a fresh isolated Agent. Developed psychology is not copied. Models and external tools can vary; automatic assessment is disabled.'));
+  const reason = field(replay, 'Launch reason'); reason.setAttribute('aria-label', 'Launch reason');
+  const status = node('p'); status.setAttribute('role', 'status'); replay.append(status);
+  const launch = async (fork: boolean, changes?: Record<string, boolean>) => {
+    const created = await api<SimulationRun>(`simulation-tests/${encodeURIComponent(run.id)}/${fork ? 'fork' : 'rerun'}`, 'POST',
+      { reason: reason.value, ...(changes ? { activationChanges: changes } : {}) });
+    if (host.isConnected) status.textContent = `Started ${created.id} on a new Agent. Follow progress in Experiments and saved run history.`;
+  };
+  const rerun = button(replay, 'Rerun frozen configuration', () => launch(false), fail);
+  const setting = select(replay, 'Fork activation setting', [['vectorSearchEnabled', 'Vector candidate filtering'], ['memorySearchEnabled', 'Memory search'],
+    ['primitivesFirst', 'Primitive consideration'], ['reevaluateAfterDeliberation', 'Reevaluate after deliberation']]);
+  const value = select(replay, 'Fork setting value', [['true', 'Enabled'], ['false', 'Disabled']]);
+  const fork = button(replay, 'Launch configuration fork', () => launch(true, { [setting.value]: value.value === 'true' }), fail);
+  rerun.disabled = fork.disabled = run.status === 'running' || !run.startingConfiguration || !run.providerRouting;
+  if (rerun.disabled) replay.append(node('p', run.status === 'running' ? 'Wait for this run to end.' : 'Historical starting configuration or provider routing is missing.'));
   if (run.error) overview.append(node('p', `Infrastructure failure: ${run.error}`));
   const worked = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'observed');
   const surprising = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'not_observed');

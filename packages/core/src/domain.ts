@@ -19,7 +19,7 @@ export type AgentActivationSettings = z.infer<typeof AgentActivationSettingsSche
 export const PromptTaskSchema = z.enum(['executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'effortful_recall']);
 export type PromptTask = z.infer<typeof PromptTaskSchema>;
 export const PromptOverrideSchema = z.strictObject({
-  scope: z.enum(['global', 'agent']), agentId: z.string().nullable(), task: PromptTaskSchema, text: z.string().trim().min(1).max(32768),
+  scope: z.enum(['global', 'agent']), agentId: z.string().nullable(), task: PromptTaskSchema, text: z.string().min(1).max(32768).refine(value => Boolean(value.trim()), 'Prompt cannot be empty'),
 }).refine(value => value.scope === 'agent' ? value.agentId !== null : value.agentId === null);
 export type PromptOverride = z.infer<typeof PromptOverrideSchema>;
 const Version = { id: Id, agentId: Id, version: z.number().int().positive(), schemaVersion: z.literal(1) };

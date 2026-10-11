@@ -11,7 +11,7 @@ export function simulationConfiguration(run: SimulationRun) {
   const start = run.startingConfiguration;
   return { scenarioHash: hash(run.specification), startingConditionsHash: hash(run.specification.seeds),
     promptHash: hash(run.prompts.slice().sort((a, b) => a.task.localeCompare(b.task))), providers: run.providers,
-    mode: run.mode, evidenceBasis: run.evidenceBasis,
+    mode: run.mode, evidenceBasis: run.evidenceBasis, providerRouting: run.providerRouting ?? null,
     activationSettingsHash: start ? hash(start.activationSettings) : null, runtimeHash: start ? hash(start.runtime) : null,
     identityHash: start ? hash({ traits: start.identity.traits.map(({ question, answer, keywords, role }) => ({ question, answer, keywords, role })), mask: start.identity.mask }) : null,
     executiveProfileHash: start ? hash({ ...start.executiveProfile, revision: undefined }) : null,

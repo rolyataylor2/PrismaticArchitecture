@@ -451,8 +451,10 @@ export type SimulationRun = { id: string; kind: 'simulation_test'; testId: strin
   startingConfiguration?: { identity: import('../../core/src/domain.js').Identity; activationSettings: ReturnType<Application['agentActivationSettings']>;
     runtime: import('../../core/src/runtime.js').RuntimeOptions; executiveProfile: import('../../core/src/executive-profile.js').ExecutiveProfile };
   specification: SimulationTestDefinition;
+  providerRouting?: { model: string | null };
+  lineage?: { parentRunId: string; kind: 'rerun' | 'fork'; reason: string; activationChanges: Record<string, unknown> };
   sourceAgentId: string | null; mode: 'fixture' | 'configured'; evidenceBasis: 'fixture' | 'mixed' | 'configured_models';
-  providers: { reasoning: string; decisions: string }; prompts: { task: string; version: string; text: string }[];
+  providers: { reasoning: string; decisions: string; embeddings?: string }; prompts: { task: string; version: string; text: string }[];
   evaluator?: { enabled: boolean; model?: string }; assessments?: SimulationAssessment[]; assessmentSetupError?: string; assessmentAvailable?: boolean;
   researchAnalysisError?: string;
   createdAt: string; finishedAt: string | null; status: 'running' | 'completed' | 'failed';
@@ -653,8 +655,39 @@ export function listSimulationRuns(app: Application): SimulationRun[] {
 export function startSimulationTest(app: Application, testId: string, mode: SimulationRun['mode'], sourceAgentId: string, evaluator: { enabled?: boolean | undefined; model?: string | undefined } = {}): SimulationRun {
   const definition = simulationTests.find(test => test.id === testId);
   if (!definition) throw new Error('Unknown simulation test');
+  return launchSimulation(app, definition, mode, sourceAgentId, evaluator);
+}
+
+type Replay = { parent: SimulationRun; reason: string; activationChanges: Partial<ReturnType<Application['agentActivationSettings']>> };
+/** Repeat preserved starting conditions; never clone developed psychology or silently use current source settings. */
+export function replaySimulation(app: Application, runId: string, reason: string, activationChanges: Replay['activationChanges'] = {}): SimulationRun {
+  const parent = listSimulationRuns(app).find(run => run.id === runId);
+  if (!parent) throw new Error('Unknown simulation run');
+  if (parent.status === 'running') throw new Error('Wait for the source run to end');
+  if (!parent.startingConfiguration || !parent.providerRouting) throw new Error('Frozen starting configuration/provider routing is missing; exact rerun is unavailable');
+  if (!reason.trim()) throw new Error('Record a researcher reason');
+  const catalog = app.promptSettings(parent.agentId);
+  if (catalog.length !== parent.prompts.length || parent.prompts.some(prompt => !catalog.some(current => current.task === prompt.task && current.version === prompt.version)))
+    throw new Error('Inference task catalog/version changed; exact rerun is unavailable');
+  if (parent.mode === 'configured') {
+    if (JSON.stringify(parent.startingConfiguration.runtime) !== JSON.stringify(app.runtimeConfiguration)) throw new Error('Current runtime differs from the frozen runtime; rerun is unavailable');
+    if (app.providers.embeddings.label !== parent.providers.embeddings) throw new Error('Current embedding adapter differs from the recorded provider');
+    const label = app.providers.decisions.label;
+    if (label !== parent.providers.decisions) throw new Error('Current decision adapter differs from the recorded provider');
+    const model = parent.providerRouting.model;
+    if (model === null) {
+      const reasoning = app.providers.reasoning as typeof app.providers.reasoning & { labelForAgent?: (agentId: string) => string };
+      if (app.store.agentProviderSettings(parent.agentId) || (reasoning.labelForAgent?.(parent.agentId) ?? reasoning.label) !== parent.providers.reasoning)
+        throw new Error('Current reasoning adapter differs from the recorded provider');
+    } else if (app.store.agentProviderSettings(parent.agentId)?.model !== model) throw new Error('Recorded model credential routing changed; restore that model before rerunning');
+  }
+  return launchSimulation(app, structuredClone(parent.specification), parent.mode, parent.agentId, { enabled: false }, { parent, reason: reason.trim(), activationChanges });
+}
+
+function launchSimulation(app: Application, definition: SimulationTestDefinition, mode: SimulationRun['mode'], sourceAgentId: string,
+  evaluator: { enabled?: boolean | undefined; model?: string | undefined }, replay?: Replay): SimulationRun {
   app.store.get('agent', sourceAgentId);
-  const runner = mode === 'fixture' ? new Application(app.store) : app;
+  const runner = mode === 'fixture' ? new Application(app.store, undefined, undefined, replay?.parent.startingConfiguration?.runtime) : app;
   const agent = runner.createAgent(`Simulation · ${definition.title}`);
   if (mode === 'configured') {
     const settings = app.store.agentProviderSettings(sourceAgentId);
@@ -662,15 +695,29 @@ export function startSimulationTest(app: Application, testId: string, mode: Simu
     app.store.saveAgentActivationSettings(agent.id, app.store.agentActivationSettings(sourceAgentId));
     for (const prompt of app.promptSettings(sourceAgentId)) app.editPrompt(agent.id, prompt.task, 'agent', prompt.effective);
   }
+  if (replay) {
+    const start = replay.parent.startingConfiguration!;
+    const identity = app.store.get('identity', agent.id);
+    app.store.save('identity', { ...structuredClone(start.identity), id: agent.id, agentId: agent.id, version: identity.version + 1,
+      traits: start.identity.traits.map(trait => ({ ...structuredClone(trait), id: id('trait'), createdAt: now() })) }, identity.version,
+      { origin: 'researcher_edit', reason: replay.reason, sourceIds: [replay.parent.id] });
+    app.store.saveAgentActivationSettings(agent.id, { ...structuredClone(start.activationSettings), ...replay.activationChanges });
+    const profile = app.store.executiveProfile(agent.id);
+    app.store.saveExecutiveProfile(agent.id, { ...structuredClone(start.executiveProfile), revision: profile.revision + 1 }, profile.revision);
+    for (const prompt of replay.parent.prompts) app.editPrompt(agent.id, prompt.task as import('../../core/src/domain.js').PromptTask, 'agent', prompt.text);
+  }
   let setupError: string | null = null;
   let reasoning = runner.providers.reasoning.label;
   try { reasoning = (runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string }).labelForAgent?.(agent.id) ?? reasoning; }
   catch (error) { setupError = error instanceof Error ? error.message : String(error); }
   const decisions = runner.providers.decisions.label;
   const mockReasoning = /mock|deterministic/i.test(reasoning); const mockDecisions = /mock|deterministic/i.test(decisions);
-  const run: SimulationRun = { id: id('simulation'), kind: 'simulation_test', testId, title: definition.title, source: definition.source, specification: structuredClone(definition),
+  const run: SimulationRun = { id: id('simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',
-    providers: { reasoning, decisions }, prompts: runner.promptSettings(agent.id).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })),
+    ...(replay ? { lineage: { parentRunId: replay.parent.id, kind: Object.keys(replay.activationChanges).length ? 'fork' as const : 'rerun' as const,
+      reason: replay.reason, activationChanges: structuredClone(replay.activationChanges) } } : {}),
+    providerRouting: { model: runner.store.agentProviderSettings(agent.id)?.model ?? null },
+    providers: { reasoning, decisions, embeddings: runner.providers.embeddings.label }, prompts: runner.promptSettings(agent.id).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })),
     startingConfiguration: { identity: structuredClone(app.store.get('identity', agent.id)), activationSettings: structuredClone(runner.agentActivationSettings(agent.id)),
       runtime: structuredClone(runner.runtimeConfiguration), executiveProfile: structuredClone(app.store.executiveProfile(agent.id)) },
     evaluator: { enabled: mode === 'configured' && !mockReasoning && evaluator.enabled !== false, ...(evaluator.model ? { model: evaluator.model } : {}) }, assessments: [],

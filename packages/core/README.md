@@ -118,3 +118,5 @@ Researcher-only approval remains the default. The opt-in `self_selected` profile
 Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
 
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
+
+Prompt overrides preserve exact text bytes, including intentional boundary whitespace, while rejecting blank templates. Frozen simulation reruns must not alter prompt fingerprints through storage normalization. Cognitive task responsibilities and access remain unchanged.

@@ -99,6 +99,25 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await page.getByRole('tab', { name: 'Diagnostics & Evidence', exact: true }).click();
     await page.getByLabel('Observatory run').selectOption(run.id);
     await page.getByText(/Browser researcher · v2/).waitFor();
+    await page.getByRole('tab', { name: 'Run Explorer', exact: true }).click();
+    await page.getByLabel('Observatory run').selectOption(run.id);
+    await page.getByText('Repeat or fork saved starting conditions', { exact: true }).click();
+    await page.getByLabel('Launch reason', { exact: true }).fill('Browser frozen rerun');
+    await page.getByRole('button', { name: 'Rerun frozen configuration', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: /Started simulation/ }).waitFor();
+    const rerun = listSimulationRuns(app).find(item => item.lineage?.reason === 'Browser frozen rerun')!;
+    assert.equal(rerun.lineage!.parentRunId, run.id); assert.notEqual(rerun.agentId, run.agentId);
+    await page.getByLabel('Launch reason', { exact: true }).fill('Browser explicit fork');
+    await page.getByLabel('Fork activation setting').selectOption('memorySearchEnabled');
+    await page.getByLabel('Fork setting value').selectOption('false');
+    await page.getByRole('button', { name: 'Launch configuration fork', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: /Started simulation/ }).waitFor();
+    for (let attempt = 0; attempt < 1000 && !listSimulationRuns(app).some(item => item.lineage?.reason === 'Browser explicit fork'); attempt++)
+      await new Promise(resolve => setTimeout(resolve, 10));
+    const fork = listSimulationRuns(app).find(item => item.lineage?.reason === 'Browser explicit fork')!;
+    assert.equal(fork.lineage!.kind, 'fork'); assert.equal(fork.startingConfiguration!.activationSettings.memorySearchEnabled, false);
+    for (let attempt = 0; attempt < 1000 && listSimulationRuns(app).some(item => item.status === 'running'); attempt++) await new Promise(resolve => setTimeout(resolve, 10));
+    assert.ok(listSimulationRuns(app).every(item => item.status === 'completed'));
     assert.equal(store.events(source.id).length, sourceEvents); assert.deepEqual(errors, []);
   } finally { await browser.close(); server.closeAllConnections(); await app.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

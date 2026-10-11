@@ -126,8 +126,8 @@ test('the complete Part factory can be saved and cloned within the existing 3276
     const agent = app.createAgent('Factory clone');
     assert.ok(prompts.part_cognition.text.length > 16000 && prompts.part_cognition.text.length <= 32768);
     await api(app, 'PATCH', `/api/agents/${agent.id}/prompts/part_cognition`, { scope: 'agent', text: prompts.part_cognition.text });
-    assert.equal(promptResolver(store)(agent.id, 'part_cognition'), prompts.part_cognition.text.trim());
+    assert.equal(promptResolver(store)(agent.id, 'part_cognition'), prompts.part_cognition.text);
     await assert.rejects(api(app, 'PATCH', `/api/agents/${agent.id}/prompts/part_cognition`, { scope: 'agent', text: 'x'.repeat(32769) }));
-    assert.equal(promptResolver(store)(agent.id, 'part_cognition'), prompts.part_cognition.text.trim());
+    assert.equal(promptResolver(store)(agent.id, 'part_cognition'), prompts.part_cognition.text);
   } finally { store.close(); }
 });

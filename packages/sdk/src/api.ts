@@ -22,7 +22,7 @@ import { DispositionSchema, AgentActivationSettingsSchema, IdentitySchema, Ident
 import type { Application } from './application.js';
 import { experimentNames, runExperiment } from './experiments.js';
 import { identityAnswerGuidance, identityQuestionLibrary } from './identity-questions.js';
-import { simulationTests, listSimulationRuns, startSimulationTest } from './simulation-tests.js';
+import { simulationTests, listSimulationRuns, startSimulationTest, replaySimulation } from './simulation-tests.js';
 import { McpRegistrySchema, McpPermissionsSchema } from '../../core/src/mcp-configuration.js';
 import { ExecutiveProfileSchema } from '../../core/src/executive-profile.js';
 import { SkillProposalSchema, SkillMaturityAssessmentSchema } from '../../core/src/executive-skill.js';
@@ -74,6 +74,15 @@ export async function api(app: Application, method: string, path: string, body: 
       if (method === 'POST' && subresource === 'reviews') return saveSimulationReview(app.store, entityId, body);
       if (method === 'POST' && subresource === 'findings') return saveSimulationFinding(app.store, entityId, body);
       if (method === 'POST' && subresource === 'candidates') return saveSimulationCandidates(app.store, entityId);
+    }
+    if (method === 'POST' && entityId && (action === 'rerun' || action === 'fork')) {
+      const settings = z.strictObject({ vectorSearchEnabled: z.boolean().optional(), memorySearchEnabled: z.boolean().optional(),
+        memoryRelevanceThreshold: z.number().min(0).max(1).optional(), memoryRecallLimit: z.number().int().min(1).max(10000).nullable().optional(),
+        primitivesFirst: z.boolean().optional(), reevaluateAfterDeliberation: z.boolean().optional() });
+      const input = z.strictObject({ reason: z.string().trim().min(1).max(4000), activationChanges: settings.optional() }).parse(body);
+      if (action === 'rerun' && Object.keys(input.activationChanges ?? {}).length) throw new Error('Use fork for explicit configuration changes');
+      if (action === 'fork' && !Object.keys(input.activationChanges ?? {}).length) throw new Error('A fork requires an explicit configuration change');
+      return replaySimulation(app, entityId, input.reason, input.activationChanges as Parameters<typeof replaySimulation>[3]);
     }
     if (method === 'GET' && entityId && action === 'analysis') {
       const run = listSimulationRuns(app).find(item => item.id === entityId);

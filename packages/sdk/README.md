@@ -266,3 +266,5 @@ Executive sandbox Simulation Tests explicitly enable execution on their isolated
 ## Reviewed Agent MCP registration (ADR 0156)
 
 MCP registration atomically associates shared transport settings with an Agent under both configuration revisions. Read-only official Registry search and bounded public GitHub import propose supported declarations for researcher review without installing, discovering tools or invoking cognition.
+
+Saved simulations now support POST `simulation-tests/:id/rerun` with a reason, and `/:id/fork` with a reason and explicit `activationChanges`. Both launch a fresh Agent from the frozen scenario, Identity content, runtime, activation configuration, Executive profile and exact prompts; developed psychology remains with the source. New runs capture public model routing and embedding-provider provenance without secrets. Catalog/runtime/provider drift or missing historical configuration blocks exact configured launch. Credentials remain in existing secret storage and must still be available. Forks preserve parent ID/reason/changed settings; repeated configurations remain nondeterministic.
