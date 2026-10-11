@@ -35,6 +35,13 @@ test('Simulation Tests sidebar runs an honest fixture, displays progress/evidenc
     assert.equal(await page.getByRole('progressbar', { name: 'Simulation progress' }).getAttribute('value'), '5');
     assert.ok((await page.locator('.simulation-tests').innerText()).includes('Fixture evidence only'));
     assert.ok((await page.locator('.simulation-tests').innerText()).includes('inconclusive'));
+    await page.getByRole('button', { name: 'Explore run analytics', exact: true }).click();
+    await page.getByRole('heading', { name: 'Activation heatmap', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Prediction ledger', exact: true }).waitFor();
+    await page.getByLabel('Analytics stage').selectOption('1');
+    await page.getByRole('heading', { name: '2. Contradicting observation', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Inspect authoritative source cycle', exact: true }).click();
+    await page.getByRole('button', { name: 'Close inspector' }).click();
     await page.getByText('training · Prediction opportunity', { exact: true }).click();
     assert.ok((await page.locator('.simulation-tests').innerText()).includes('exactly one red token'));
     app.simulationEvaluatorProvider = () => ({ label: 'test/browser-evaluator', author: async schema => schema.parse({ measures: [{

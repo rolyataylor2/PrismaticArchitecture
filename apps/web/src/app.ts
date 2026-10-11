@@ -7,6 +7,7 @@ import type { CognitiveEvent } from '../../../packages/core/src/contracts.js';
 import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { IdentityQuestionGroup } from '../../../packages/sdk/src/identity-questions.js';
 import type { SimulationTestDefinition, SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
+import type { SimulationAnalysis } from '../../../packages/sdk/src/simulation-analysis.js';
 
 const dispositionAssociations = (item: AgentSnapshot['dispositions'][number]): ActivationAssociation[] =>
   item.activationAssociations ?? item.prerequisites.map(dispositionId => ({ kind: 'disposition', dispositionId, effect: 'contribute' }));
@@ -3644,6 +3645,69 @@ function experiments(): void {
 
 let simulationMode: 'fixture' | 'configured' = 'fixture';
 let simulationTestId = '';
+function simulationRunAnalysis(run: SimulationRun): HTMLElement {
+  const host = node('div');
+  const open = button('Explore run analytics', async () => {
+    const agentAtRequest = selectedAgent;
+    const analysis = await api<SimulationAnalysis>(`simulation-tests/${encodeURIComponent(run.id)}/analysis`);
+    if (!host.isConnected || selectedAgent !== agentAtRequest) return;
+    const overview = card('Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
+    overview.append(node('p', analysis.summary.hypothesis, 'muted'));
+    for (const gap of analysis.gaps) overview.append(node('p', gap, 'muted'));
+    const inspector = node('div');
+    const stageSelect = node('select'); stageSelect.setAttribute('aria-label', 'Analytics stage');
+    run.stages.forEach((stage, index) => { const option = node('option', `${index + 1}. ${stage.name} · ${stage.phase}`); option.value = String(index); stageSelect.append(option); });
+    const inspect = (index: number) => {
+      stageSelect.value = String(index);
+      const stage = run.stages[index]; const projected = analysis.stages[index];
+      if (!stage || !projected) return;
+      inspector.replaceChildren(node('h4', `${index + 1}. ${stage.name}`));
+      inspector.append(node('p', 'External scenario experience'), node('p', stage.text ?? 'Offline or operational stage; no new authored message.'));
+      for (const thought of stage.thoughts) {
+        const contribution = card(thought.name, thought.interpretation ?? 'No interpretation recorded');
+        contribution.append(node('p', thought.thought), details('Advocated proposal', thought.proposal)); inspector.append(contribution);
+      }
+      inspector.append(details('Actual Self choices', stage.selfChoices ?? []), details('Recorded execution outcomes', stage.executions ?? []),
+        details('New and revised cognitive objects', projected.changes));
+      const timeline = card('Cognitive event timeline', projected.traceAvailable ? 'Recorded event order; select an event for exact evidence.' : 'Cycle trace unavailable.');
+      for (const lane of ['Environment', 'Activation', 'Parts', 'Cognition', 'Self', 'Executive', 'Learning']) {
+        const items = projected.trace.filter(event => event.lane === lane);
+        if (!items.length) continue;
+        timeline.append(node('h4', lane));
+        for (const event of items) timeline.append(details(`${event.sequence} · ${event.type} · ${event.at}`, event));
+      }
+      inspector.append(timeline);
+      if (stage.cycleId) inspector.append(button('Inspect authoritative source cycle', () => showCycleInspector(stage.cycleId!, run.agentId), true));
+      inspector.append(details('Full stage snapshot', stage));
+    };
+    stageSelect.onchange = () => inspect(Number(stageSelect.value));
+    const heatmap = card('Activation heatmap', 'Final recorded round shown; inspect a cell for every round. — means not evaluated. Activation does not imply admission or Self selection.');
+    const scroll = node('div'); scroll.style.overflowX = 'auto';
+    const table = node('table'); const headings = node('tr'); headings.append(node('th', 'Disposition'));
+    run.stages.forEach((stage, index) => { const th = node('th'); th.append(button(String(index + 1), () => inspect(index), true)); th.title = stage.name; headings.append(th); });
+    table.append(headings);
+    for (const row of analysis.activation) {
+      const tr = node('tr'); tr.append(node('th', row.name));
+      for (const cell of row.cells) {
+        const td = node('td'); const last = cell.rounds.at(-1);
+        const b = button(last ? `${last.score.toFixed(2)}${last.active ? ' ●' : ''}` : '—', () => { inspect(cell.stageIndex); inspector.prepend(details(`${row.name} · recorded activation rounds`, cell.rounds)); }, true);
+        if (last) b.style.backgroundColor = `rgba(70, 130, 180, ${Math.max(0.05, Math.min(1, last.score / 4))})`;
+        td.append(b); tr.append(td);
+      }
+      table.append(tr);
+    }
+    scroll.append(table); heatmap.append(scroll);
+    const ledger = card('Prediction ledger', 'Administrative closure and expectation assessment are separate. Exact versions and later checks remain inspectable.');
+    for (const item of analysis.predictions) {
+      const entry = details(`${item.prediction.expectation} · ${item.administrativeStatus} · ${item.expectationAssessment}`, item);
+      if (item.originStage !== null) entry.append(button('Inspect prediction origin', () => inspect(item.originStage!), true));
+      ledger.append(entry);
+    }
+    host.replaceChildren(overview, heatmap, ledger, stageSelect, inspector);
+    if (run.stages.length) inspect(0);
+  }, true);
+  host.append(open); return host;
+}
 function simulationTestPage(): void {
   const sourceAgentId = selectedAgent;
   const holder = node('div', '', 'simulation-tests'); content.append(holder);
@@ -3680,6 +3744,7 @@ function simulationTestPage(): void {
     for (const run of visible) {
       const panel = card(`${run.title} · ${run.status}`, `${run.stages.length}/${run.totalSteps} stages · ${run.currentStep}`);
       panel.dataset.simulationRun = run.id;
+      panel.append(simulationRunAnalysis(run));
       panel.append(node('p', `${run.evidenceBasis === 'fixture' ? 'Fixture evidence only' : run.evidenceBasis === 'mixed' ? 'Mixed providers · not independent validation' : 'Configured-model observations · review required'} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
       const meter = node('progress'); meter.max = run.totalSteps; meter.value = run.stages.length; meter.setAttribute('aria-label', 'Simulation progress'); panel.append(meter);
       if (run.error) { const error = node('p', `Execution failure: ${run.error}`); error.setAttribute('role', 'alert'); panel.append(error); }

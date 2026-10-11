@@ -1,4 +1,5 @@
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
+import { analyzeSimulation } from './simulation-analysis.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
@@ -54,6 +55,11 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'POST') return runExperiment(app, z.strictObject({ name: z.enum(experimentNames) }).parse(body).name);
   }
   if (resource === 'simulation-tests') {
+    if (method === 'GET' && entityId && action === 'analysis') {
+      const run = listSimulationRuns(app).find(item => item.id === entityId);
+      if (!run) throw new Error('Unknown simulation run');
+      return analyzeSimulation(app.store, run);
+    }
     if (method === 'GET' && !entityId) return { tests: simulationTests.map(test => ({ ...test, rubric: simulationRubric(test) })), runs: listSimulationRuns(app).map(run => ({ ...run, assessmentAvailable: semanticSimulationCriteria(run).length > 0 })) };
     if (method === 'POST' && entityId && action === 'assess') {
       const input = z.strictObject({ model: z.enum(['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3']).optional(), evaluatorAgentId: Text.optional() }).parse(body ?? {});

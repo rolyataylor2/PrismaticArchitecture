@@ -1,3 +1,7 @@
+## Simulation Cognitive Observatory (ADR 0158)
+
+Simulation Tests → Explore run analytics now shows recorded event lanes, a clickable activation heatmap, stage contributions, Self/execution records, prediction versions and cognitive object diffs. This is the first milestone of the broader requested research workspace; reviews, comparisons, development measures and richer instrumentation remain tracked in the [thread audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md).
+
 ## Self affect extension (ADR 0157)
 
 [ADR 0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md) defines separate world-blind affect and bid selection passes, focused bid revision and attributed affect periods. Part cognition records explicit affect proposals separately from experienced affect. Selection/lifecycle/feedback contracts, provider affect scoring/inquiry/focused-revision adapters and editable prompt/previews are implemented. Ordinary runtime now sequences baseline scoring, bounded affect inquiry, focused bid revision and behavioral selection. Completed same-thread cycles persist focus periods across restart; the Affect Analysis panel now provides lifetime/timeframe history, period statistics and source inspection. Eight sourced Simulation Tests preserve ordinary-pipeline evidence and explicit inconclusive/failure distinctions. The implementation audit records verification and measurement limitations. See the [implementation audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md).

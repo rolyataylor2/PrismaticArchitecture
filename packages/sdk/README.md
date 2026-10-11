@@ -1,3 +1,7 @@
+## Simulation run analytics
+
+GET `/api/simulation-tests/:runId/analysis` provides a read-only researcher projection over saved stages and their recorded cycle events. It retains each activation round, deduplicates unchanged object versions, separates administrative prediction closure from expectation assessments, and links every event to its run/stage/cycle. Absent traces and causal parents remain explicit gaps. It makes no model calls or cognitive mutations and does not use current psychology to fill historical evidence. ADR 0158 and the simulation analytics audit track the full Observatory target.
+
 ## Sourced affect Simulation Tests
 
 Eight ADR 0157 scenarios cover protective unpleasant focus, meaningful retention without learning, competing/complementary proposals, expiry/renewal/navigation, disconfirmation, context transfer and paired single/plural relational concerns. Reports preserve actual offers, restricted inputs, scoring choices, decisions, non-enacting baselines, revisions, cycle records and ordered source-event references. Original affect, prediction versions and ordinary recall/consolidation remain available. No provider fixture forces the hypothesis; mock abstention leaves dependent criteria inconclusive. Configured-provider failure is a failed run, separate from a hypothesis not observed. The evaluator blocks dependent affect conclusions when committed periods or outcome checks are missing.

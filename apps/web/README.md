@@ -1,5 +1,9 @@
 Simulation Tests includes eight sourced affect hypotheses. Completed reports expose an Affect exploration evidence section with actual offers, world-blind input, choices, decisions, baseline/revision lineage, experienced transitions, event order and source-cycle links. Mock/mixed provenance and inconclusive prerequisites remain explicit.
 
+## Simulation run analytics
+
+Simulation Tests → Explore run analytics opens a readable run summary, clickable activation heatmap, exact prediction ledger and coordinated stage selector. Stage inspection shows separate scenario experience, expressed Part interpretations/proposals, Self choices, execution records, object-version changes and seven audit lanes. Raw records and authoritative source cycles are available through disclosure controls. This initial Observatory milestone leaves the full research workspace, reviews and comparison requirements tracked under ADR 0158.
+
 ## Affect Analysis
 
 Agent Components → Affect Analysis renders the read-only SDK lifetime projection. A clickable period chart, lifetime/last-seven-day/custom-timeframe controls and thread/Part filters refine the view. Period inspectors keep lifetime and window-origin statistics separate, show proposal reasons, renewals/boundaries, actual choices, original/revised bids, non-enacting baseline evaluations, prediction versions and contributing disposition IDs. Experienced affect remains a separate chronological stream, including cycles without voluntary focus. Source links use the authoritative cycle inspector. Detached pages discard late responses; browsing does not create cognitive state.

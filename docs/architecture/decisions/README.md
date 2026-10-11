@@ -1,5 +1,7 @@
 # Architecture Decision Records
 
+ADR 0158 defines the simulation Cognitive Observatory: privileged researcher analytics, preserved evidence, separate judgments and comparisons without cognitive authority. Its full implementation target is tracked in the simulation analytics thread audit.
+
 ADR 0157 extends experienced posture with explicit Part affect proposals, separate world-blind affect/bid Self invocations, focused revision and attributed exploration periods. Its implementation status is tracked in the Self affect thread audit.
 
 This directory records significant architectural decisions.
