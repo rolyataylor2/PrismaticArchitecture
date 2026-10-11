@@ -1,10 +1,13 @@
 import type { PrimitiveContext } from './primitives.js';
-import { ChoiceSchema, DeliberationAnswerSchema, DeliberationSchema, ProposalSchema, freeze, id,
+import { ChoiceSchema, DeliberationAnswerSchema, AffectDeliberationAnswerSchema, DeliberationSchema, ProposalSchema, freeze, id,
   type ActionBid, type NavigationBid, type Bid, type Contribution, type DeliberationMessage, type Identity, type WorldState } from './domain.js';
 import { InfrastructureError, type DecisionProvider, type PartContext, type ReasoningProvider } from './contracts.js';
 import { selfContext, selfChoices } from './context.js';
 import type { Inspection } from './inspection.js';
 import type { SelectedActivity } from './execution-review.js';
+import { AffectChoiceSchema, type AffectDecision, type AffectFeedback, type SelectedAffect } from './affect-domain.js';
+import { activeAffect, affectSelectionContext, decideAffect } from './affect.js';
+import { reviseFocusedContributions } from './focused-revision.js';
 
 export async function select(input: {
   world: WorldState; identity: Identity; contributions: Contribution[]; contexts: Map<string, PartContext>;
@@ -14,6 +17,8 @@ export async function select(input: {
   onNavigation?: (bid: NavigationBid) => void;
   ongoingActivity?: SelectedActivity;
   selectedFocus?: import('./affect-domain.js').SelectedAffect;
+  affect?: { sequence: number; threadId: string | null; currentFocus: SelectedAffect | null;
+    feedback: AffectFeedback | null; onDecision: (decision: AffectDecision) => void };
   onContinue?: () => void;
   answerContext?: (context: PartContext, question: string) => Promise<PartContext>;
   afterDeliberation?: (contributions: Contribution[], deliberation: DeliberationMessage[]) => Promise<void>;
@@ -23,6 +28,9 @@ export async function select(input: {
   const deliberation: DeliberationMessage[] = [];
   const contributionHistory = structuredClone(contributions);
   const inquiries: NonNullable<import('./domain.js').SelfContext['inquiries']> = [];
+  let focus = input.selectedFocus ?? input.affect?.currentFocus ?? null;
+  let affectPending = Boolean(input.affect);
+  let baselineRecorded = false;
   const validateTargets = (targets: string[]) => {
     if (!targets.length || new Set(targets).size !== targets.length || targets.some(target => {
       const contribution = contributions.find(c => c.partId === target);
@@ -30,42 +38,97 @@ export async function select(input: {
     })) throw new InfrastructureError('self', 'Inquiry refers to unavailable or duplicate contributors');
   };
   for (let round = 0; round <= input.maxDeliberationRounds; round++) {
+    let affectInquiry: import('./domain.js').Deliberation | undefined;
+    if (affectPending && input.affect) {
+      const options = input.affect;
+      const proposals = contributions.flatMap(c => c.sourceKind !== 'primitive' ? c.affectProposals ?? [] : []);
+      const expired = focus && !activeAffect(focus, world.agentId, options.threadId, options.sequence);
+      const recordDecision = (decision: AffectDecision) => {
+        inspection.emit(world.agentId, world.cycleId, 'self.affect_decision', decision);
+        options.onDecision(decision); focus = decision.resultingFocus;
+      };
+      if (expired) recordDecision(decideAffect({ context: affectSelectionContext({ identity, contributions, proposals, currentFocus: focus }),
+        cycleId: world.cycleId, threadId: options.threadId, sequence: options.sequence,
+        selection: { mode: 'no_change', selectedProposalIds: [], reason: 'The recorded voluntary focus reached its completed-thread-cycle expiry.', explorationRequest: null } }));
+      if (proposals.length || focus) {
+        if (!baselineRecorded) {
+          const baseline = selfContext(identity, contributions, deliberation, { contributionHistory, inquiries, completedDeliberationRounds: round,
+            ...(input.ongoingActivity ? { ongoingActivity: input.ongoingActivity } : {}),
+            ...(world.experienced ? { stanceHistory: world.experienced.stanceHistory ?? [] } : {}) });
+          const choice = ChoiceSchema.parse(await decisions.choose(baseline));
+          if (!selfChoices(baseline).includes(choice.choice) || choice.selectedBidIds?.some(bidId => !contributions.some(c => c.bid?.id === bidId)))
+            throw new InfrastructureError('self', 'Baseline evaluation selected an unavailable proposal');
+          inspection.emit(world.agentId, world.cycleId, 'self.affect_baseline', { context: baseline, choice });
+          baselineRecorded = true;
+        }
+        if (!decisions.chooseAffect) throw new InfrastructureError('affect_selection', 'Decision provider lacks affect selection');
+        const affectContext = affectSelectionContext({ identity, contributions, proposals, currentFocus: focus,
+          previousPeriodFeedback: options.feedback, canDeliberate: round < input.maxDeliberationRounds });
+        inspection.emit(world.agentId, world.cycleId, 'self.affect_selection_started', affectContext);
+        const choice = AffectChoiceSchema.parse(await decisions.chooseAffect(affectContext));
+        inspection.emit(world.agentId, world.cycleId, 'self.affect_choice', choice);
+        if (choice.mode === 'deliberate') {
+          if (!affectContext.canDeliberate) throw new InfrastructureError('affect_selection', 'Affect inquiry exceeds the ordinary deliberation budget');
+          if (!reasoning.affectInquiry) throw new InfrastructureError('affect_selection', 'Reasoning provider lacks affect inquiry');
+          inspection.emit(world.agentId, world.cycleId, 'self.affect_inquiry_started', affectContext);
+          affectInquiry = DeliberationSchema.parse(await reasoning.affectInquiry(affectContext));
+          validateTargets(affectInquiry.target_parts);
+          const { scores: _scores, ...selection } = choice;
+          recordDecision(decideAffect({ context: affectContext, cycleId: world.cycleId, threadId: options.threadId, sequence: options.sequence,
+            selection: { ...selection, explorationRequest: { target_parts: affectInquiry.target_parts, question: affectInquiry.question } } }));
+        } else {
+          const { scores: _scores, ...selection } = choice;
+          recordDecision(decideAffect({ context: affectContext, cycleId: world.cycleId, threadId: options.threadId, sequence: options.sequence,
+            selection: { ...selection, explorationRequest: null } }));
+          affectPending = false;
+          if (focus) await reviseFocusedContributions({ world, focus, contributions, contexts, reasoning, inspection,
+            deliberation, history: contributionHistory, validateTargets });
+        }
+      } else affectPending = false;
+    }
     const context = selfContext(identity, contributions, deliberation, { contributionHistory, inquiries, completedDeliberationRounds: round,
       ...(input.ongoingActivity ? { ongoingActivity: input.ongoingActivity } : {}),
-      ...(input.selectedFocus ? { selectedFocus: input.selectedFocus } : {}),
+      ...(focus ? { selectedFocus: focus } : {}),
       ...(world.experienced ? { stanceHistory: world.experienced.stanceHistory ?? [] } : {}) });
-    inspection.emit(world.agentId, world.cycleId, 'self.arbitration_started', context);
-    const choice = ChoiceSchema.parse(await decisions.choose(context));
-    const selected = contributions.find(c => c.bid?.id === choice.choice)?.bid;
-    if (!selfChoices(context).includes(choice.choice)) throw new InfrastructureError('self', 'Self selected an option not proposed by an available contribution');
-    inspection.emit(world.agentId, world.cycleId, 'self.choice', choice);
-    if (choice.choice === 'CONTINUE_EXECUTION') {
-      if (choice.selectedBidIds?.length) throw new InfrastructureError('self', 'Continuation must exclusively retain the selected activity');
-      input.onSelection?.(contributions); input.onContinue?.(); return null;
-    }
-    if (choice.choice === 'NOTHING') { input.onSelection?.(contributions); return null; }
-    if (selected?.type === 'navigate') {
-      if ((choice.selectedBidIds && (choice.selectedBidIds.length !== 1 || choice.selectedBidIds[0] !== selected.id))
-        || !context.stanceHistory?.some(record => record.id === selected.stateId))
-        throw new InfrastructureError('self', 'Navigation must exclusively select an available mediated stance');
-      input.onSelection?.(contributions);
-      input.onNavigation?.(selected);
-      return null;
-    }
-    if (selected && selected.type !== 'deliberate') {
-      const ids = choice.selectedBidIds ?? [selected.id];
-      if (!ids.length || ids[0] !== selected.id || new Set(ids).size !== ids.length) throw new InfrastructureError('self', 'Invalid selected bid set');
-      input.onSelection?.(contributions);
-      return ids.map(bidId => {
-        const bid = contributions.find(c => c.bid?.id === bidId)?.bid;
-        if (!bid || bid.type === 'deliberate' || bid.type === 'navigate') throw new InfrastructureError('self', 'Unavailable external bid in selected set');
-        return bid;
-      });
+    let selected: Bid | undefined;
+    if (!affectInquiry) {
+      inspection.emit(world.agentId, world.cycleId, 'self.arbitration_started', context);
+      const choice = ChoiceSchema.parse(await decisions.choose(context));
+      selected = contributions.find(c => c.bid?.id === choice.choice)?.bid ?? undefined;
+      if (!selfChoices(context).includes(choice.choice)) throw new InfrastructureError('self', 'Self selected an option not proposed by an available contribution');
+      inspection.emit(world.agentId, world.cycleId, 'self.choice', choice);
+      if (choice.choice === 'CONTINUE_EXECUTION') {
+        if (choice.selectedBidIds?.length) throw new InfrastructureError('self', 'Continuation must exclusively retain the selected activity');
+        input.onSelection?.(contributions); input.onContinue?.(); return null;
+      }
+      if (choice.choice === 'NOTHING') { input.onSelection?.(contributions); return null; }
+      if (selected?.type === 'navigate') {
+        const stateId = selected.stateId;
+        if ((choice.selectedBidIds && (choice.selectedBidIds.length !== 1 || choice.selectedBidIds[0] !== selected.id))
+          || !context.stanceHistory?.some(record => record.id === stateId))
+          throw new InfrastructureError('self', 'Navigation must exclusively select an available mediated stance');
+        input.onSelection?.(contributions);
+        input.onNavigation?.(selected);
+        return null;
+      }
+      if (selected && selected.type !== 'deliberate') {
+        const ids = choice.selectedBidIds ?? [selected.id];
+        if (!ids.length || ids[0] !== selected.id || new Set(ids).size !== ids.length) throw new InfrastructureError('self', 'Invalid selected bid set');
+        input.onSelection?.(contributions);
+        return ids.map(bidId => {
+          const bid = contributions.find(c => c.bid?.id === bidId)?.bid;
+          if (!bid || bid.type === 'deliberate' || bid.type === 'navigate') throw new InfrastructureError('self', 'Unavailable external bid in selected set');
+          return bid;
+        });
+      }
     }
     if (round === input.maxDeliberationRounds || !contributions.length) { input.onSelection?.(contributions); return null; }
     inspection.emit(world.agentId, world.cycleId, 'self.deliberation_started', { round: round + 1, sourceBidId: selected?.id ?? null });
     let inquiry: { target_parts: string[]; question: string };
-    if (selected?.type === 'deliberate') {
+    if (affectInquiry) {
+      inspection.emit(world.agentId, world.cycleId, 'self.deliberation_planned', affectInquiry);
+      inquiries.push({ ...affectInquiry, sourceBidId: null }); inquiry = affectInquiry;
+    } else if (selected?.type === 'deliberate') {
       inquiries.push({ question: selected.question, target_parts: [...selected.target_parts], sourceBidId: selected.id });
       inquiry = selected; // Preserve the proposing Part's intention; no Self reinterpretation.
     } else {
@@ -99,9 +162,17 @@ export async function select(input: {
       } else {
         const original = contexts.get(target)!;
         const part = input.answerContext ? await input.answerContext(original, inquiry.question) : original;
-        response = DeliberationAnswerSchema.parse(await reasoning.answer(freeze({ ...part,
-          currentBid: contribution.bid, deliberation: mediated, availableContributors: contributions.map(c => ({ partId: c.partId, name: c.name })) }), inquiry.question));
+        response = AffectDeliberationAnswerSchema.parse(await reasoning.answer(freeze({ ...part,
+          currentBid: contribution.bid, currentAffectProposals: contribution.affectProposals ?? [],
+          ...(focus ? { selectedFocus: focus } : {}),
+          deliberation: mediated, availableContributors: contributions.map(c => ({ partId: c.partId, name: c.name })) }), inquiry.question));
         if (response.new_bid?.type === 'deliberate') validateTargets(response.new_bid.target_parts);
+        if (response.affectProposals !== undefined) {
+          if (response.affectProposals.some(proposal => proposal.supportingPredictionIds.some(predictionId => predictionId !== part.prediction?.id)))
+            throw new InfrastructureError('self', 'Affect inquiry response cited an unavailable owning-Part prediction');
+          contribution.affectProposals = response.affectProposals.map(proposal => ({ ...proposal, id: id('affect_bid'), partId: target, name: contribution.name }));
+          inspection.emit(world.agentId, world.cycleId, 'part.affect_proposals', { partId: target, proposals: contribution.affectProposals });
+        }
         inspection.emit(world.agentId, world.cycleId, 'part.deliberation_response', { partId: target, ...response });
       }
       deliberation.push({ ...question, answer: response.response });

@@ -48,6 +48,7 @@ export type AffectSelectionContext = {
   currentFocus: SelectedAffect | null;
   previousPeriodFeedback: AffectFeedback | null;
   availableContributors: { partId: string; name: string }[];
+  canDeliberate: boolean;
 };
 /** Bounded first-pass choice; a deliberate result subsequently requests generative inquiry. */
 export const AffectChoiceSchema = z.strictObject({
@@ -79,3 +80,14 @@ export const AffectDecisionSchema = z.strictObject({
   boundary: z.enum(['started', 'switched', 'renewed', 'unchanged', 'expired', 'inquiry']),
 });
 export type AffectDecision = z.infer<typeof AffectDecisionSchema>;
+
+/** Committed only with completed cognition. Failed calls remain audit, never carried state. */
+export const AffectCycleSchema = z.strictObject({
+  cycleId: Reference, threadId: Reference.nullable(), sequence: z.number().int().positive(),
+  focusBefore: SelectedAffectSchema.nullable(), focusAfter: SelectedAffectSchema.nullable(), usedFocus: SelectedAffectSchema.nullable(),
+  decisions: z.array(AffectDecisionSchema), baselinePredictionIds: z.array(Reference),
+  originated: z.array(z.strictObject({ predictionId: Reference, periodId: Reference,
+    stage: z.enum(['part_cognition', 'coverage']) })),
+  selectedBidIds: z.array(Reference), navigationStateId: Reference.nullable(),
+});
+export type AffectCycle = z.infer<typeof AffectCycleSchema>;

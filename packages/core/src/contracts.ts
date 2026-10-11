@@ -3,7 +3,7 @@ import type { PrimitiveActivation, PrimitiveContext, PrimitiveSettings, Primitiv
 import type { ConsolidationContext, ConsolidationRun, DevelopmentResultSchema, ReplayResultSchema } from './consolidation-domain.js';
 import type {
   Activation, ActivationScore, ActionBid, Bid, Change, Choice, Cognition, Contribution, Cycle, DeliberationAnswerSchema, EntityKind, EntityMap,
-  Execution, Fact, Part, Prediction, PredictionUpdate, QuestionSchema, DeliberationSchema, DeliberationMessage, SelfContext, VersionRecord, WorldState, Memory,
+  Execution, Fact, Part, Prediction, PredictionUpdate, QuestionSchema, DeliberationSchema, DeliberationMessage, SelfContext, VersionRecord, WorldState, Memory, AffectDeliberationAnswerSchema,
   PromptOverride, PromptTask, PredictionOutcome, PredictionDraftSchema, IdentityTrait,
 } from './domain.js';
 
@@ -42,7 +42,9 @@ export interface ReasoningProvider {
   cognize(context: PartContext): Promise<Cognition>;
   predict(context: PredictionContext): Promise<z.infer<typeof PredictionDraftSchema>>;
   question(context: SelfContext): Promise<z.infer<typeof DeliberationSchema>>;
-  answer(context: PartContext & { currentBid?: Bid | null; deliberation?: DeliberationMessage[] }, question: string): Promise<z.infer<typeof DeliberationAnswerSchema>>;
+  answer(context: PartContext & { currentBid?: Bid | null; deliberation?: DeliberationMessage[];
+    currentAffectProposals?: import('./affect-domain.js').AffectBid[]; selectedFocus?: import('./affect-domain.js').SelectedAffect },
+    question: string): Promise<z.infer<typeof AffectDeliberationAnswerSchema>>;
   evaluate(context: PredictionEvidenceContext & { outcome: 'correct' | 'incorrect' }): Promise<PredictionUpdate>;
   consolidate(context: ConsolidationContext): Promise<z.infer<typeof DevelopmentResultSchema>>;
   reinterpret(context: { part: Part; memory: Memory; ancestor: WorldState; reason: string }): Promise<z.infer<typeof ReplayResultSchema>>;
@@ -103,7 +105,11 @@ export type EventPayloads = {
   'self.affect_selection_started': import('./affect-domain.js').AffectSelectionContext;
   'self.affect_inquiry_started': import('./affect-domain.js').AffectSelectionContext;
   'self.affect_choice': import('./affect-domain.js').AffectChoice;
+  'self.affect_decision': import('./affect-domain.js').AffectDecision;
+  'self.affect_baseline': { context: SelfContext; choice: Choice };
+  'self.affect_cycle': import('./affect-domain.js').AffectCycle;
   'part.focused_bid_revision_started': FocusedBidContext;
+  'part.focused_bid_revision': { partId: string; focusId: string; previousBid: Bid | null; resultingBid: Bid | null } & z.infer<typeof DeliberationAnswerSchema>;
   'self.choice': Choice;
   'self.experienced_transition': import('./domain.js').ExperiencedTransition;
   // Historical audit records remain immutable and readable. New cycles never emit these.
@@ -115,7 +121,7 @@ export type EventPayloads = {
   'part.bid_withdrawn': { partId: string; bidId: string | null };
   'primitive.bid_withdrawn': { primitiveId: string; bidId: string | null };
   'self.question': z.infer<typeof QuestionSchema>;
-  'part.deliberation_response': { partId: string } & z.infer<typeof DeliberationAnswerSchema>;
+  'part.deliberation_response': { partId: string } & z.infer<typeof AffectDeliberationAnswerSchema>;
   'speech.realization_started': import('./domain.js').SpeechContext;
   'execution.handoff': { bid: ActionBid };
   'execution.contract': import('./execution-contract.js').ExecutionContract;

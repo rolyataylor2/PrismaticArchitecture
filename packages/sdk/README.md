@@ -1,6 +1,6 @@
 ## Self affect prompt previews (ADR 0157)
 
-Settings exposes `affect_selection`, `affect_inquiry` and `focused_bid_revision`. Affect previews reproject recorded restricted Self inputs or an explicit empty Identity-only example; they never query WorldState to fill missing proposals. Focused revision previews require its recorded owning-Part request and preserve its original snapshot. These read-only previews make no inference call or cognitive mutation. Runtime orchestration remains unfinished.
+Settings exposes `affect_selection`, `affect_inquiry` and `focused_bid_revision`. Affect previews reproject recorded restricted Self inputs or an explicit empty Identity-only example; they never query WorldState to fill missing proposals. Focused revision previews require its recorded owning-Part request and preserve its original snapshot. These read-only previews make no inference call or cognitive mutation. Ordinary runtime produces these recorded inputs; end-to-end SQLite tests verify recorded preview boundaries. Lifetime analytics remain unfinished.
 
 ## Conditional procedural consolidation (ADR 0147)
 

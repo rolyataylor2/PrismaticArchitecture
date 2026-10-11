@@ -48,8 +48,11 @@ test('ordinary Part cognition persists attributed affect offers separately from 
     assert.equal(thought.payload.output.affect, 'I feel sadness and uncertainty.');
     assert.equal(thought.payload.output.affectProposals![0]!.orientation, proposal.orientation);
     assert.equal(store.get('part', proposal.partId).emotionalCharge, 'I feel sadness and uncertainty.');
-    // This milestone records offers; it does not falsely claim an affect-selection pass ran.
-    assert.equal(store.events(agentId).some(event => String(event.type) === 'self.affect_decision'), false);
+    const decisions = store.eventsByType(agentId, ['self.affect_decision']);
+    assert.equal(decisions.length, 1);
+    if (decisions[0]!.type !== 'self.affect_decision') throw new Error('Missing affect decision');
+    assert.equal(decisions[0]!.payload.selection.mode, 'no_change');
+    assert.equal(decisions[0]!.payload.resultingFocus, null);
   } finally { store.close(); }
   try {
     const reopened = new SqliteStore(path);

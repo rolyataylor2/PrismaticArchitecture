@@ -11,6 +11,8 @@ import { Inspection } from './inspection.js';
 import { PartMutations } from './mutations.js';
 import { Predictions } from './predictions.js';
 import { select } from './self.js';
+import { priorAffect } from './affect-history.js';
+import { AffectCycleSchema, type AffectDecision } from './affect-domain.js';
 import { experiencedState, factualWorld } from './experienced.js';
 import { compileExecutionContract } from './execution-contract.js';
 import { prepareGuidanceContinuation, acceptGuidanceContinuation, currentExecutionRequests, GuidanceResponseError } from './guidance-continuation.js';
@@ -193,15 +195,29 @@ export class CognitiveRuntime {
       };
       for (const context of contexts.values()) contributions.push(publish(context, constructedState.generatedCognition[context.part.id]!));
       stage = 'self';
+      const affectState = priorAffect(this.store, cycle);
+      const affectDecisions: AffectDecision[] = [];
+      let finalFocus = affectState.activeFocus;
+      let usedFocus = affectState.activeFocus;
+      const beforeSelfPredictionIds = this.store.list('prediction', agentId).filter(prediction => prediction.status === 'open'
+        && this.store.cycle(prediction.createdCycle).threadId === cycle.threadId).map(prediction => prediction.id);
+      let baselinePredictionIds = beforeSelfPredictionIds;
       let navigation: import('./domain.js').NavigationBid | undefined;
       let finalContributions = contributions;
       let continued = false;
-      const thoughtsOnly = Boolean(activity) && !contributions.some(contribution => contribution.bid);
+      const thoughtsOnly = Boolean(activity) && !contributions.some(contribution => contribution.bid || contribution.affectProposals?.length)
+        && !affectState.focusBefore;
       const selected = thoughtsOnly ? null : await select({ world, identity, contributions, contexts, decisions: this.decisions,
         reasoning: this.reasoning, inspection: this.inspection,
+        affect: { sequence: affectState.sequence, threadId: threadId ?? null, currentFocus: affectState.focusBefore,
+          feedback: affectState.feedback, onDecision: decision => {
+            affectDecisions.push(decision); finalFocus = decision.resultingFocus; usedFocus = decision.resultingFocus;
+            if (decision.boundary === 'started' || decision.boundary === 'switched') baselinePredictionIds = this.store.list('prediction', agentId)
+              .filter(prediction => prediction.status === 'open' && this.store.cycle(prediction.createdCycle).threadId === cycle.threadId).map(prediction => prediction.id);
+          } },
         onSelection: items => { finalContributions = items; },
         ...(activity ? { ongoingActivity: activity, onContinue: () => { continued = true; } } : {}),
-        onNavigation: bid => { navigation = bid; },
+        onNavigation: bid => { navigation = bid; finalFocus = null; },
         answerContext: async (context: PartContext, question: string): Promise<PartContext> => {
           if (!context.memories.length) return context;
           const recollection = await this.constructed.infer('effortful_recall', { agentId, question,
@@ -375,8 +391,19 @@ export class CognitiveRuntime {
       stage = 'experiential_formation';
       await this.constructed.formFromExperience(agentId, cycle.id);
       cycle = { ...cycle, status: 'completed' };
-      this.store.saveCycle(cycle);
-      this.inspection.emit(agentId, cycle.id, 'cycle.completed', cycle);
+      this.inspection.atomic(() => {
+        if (affectState.focusBefore || affectDecisions.length || contributions.some(contribution => contribution.affectProposals?.length)) {
+          const cyclePredictions = this.store.list('prediction', agentId).filter(prediction => prediction.createdCycle === cycle.id);
+          this.inspection.emit(agentId, cycle.id, 'self.affect_cycle', AffectCycleSchema.parse({ cycleId: cycle.id,
+            threadId: threadId ?? null, sequence: affectState.sequence, focusBefore: affectState.focusBefore, focusAfter: finalFocus, usedFocus,
+            decisions: affectDecisions, baselinePredictionIds,
+            originated: [...(affectState.activeFocus ? cyclePredictions.filter(prediction => !prediction.gapOrigin).map(prediction => ({ predictionId: prediction.id, periodId: affectState.activeFocus!.periodId, stage: 'part_cognition' })) : []),
+              ...(usedFocus ? cyclePredictions.filter(prediction => prediction.gapOrigin).map(prediction => ({ predictionId: prediction.id, periodId: usedFocus!.periodId, stage: 'coverage' })) : [])],
+            selectedBidIds: navigation ? [navigation.id] : selected?.map(bid => bid.id) ?? [], navigationStateId: navigation?.stateId ?? null }));
+        }
+        this.store.saveCycle(cycle);
+        this.inspection.emit(agentId, cycle.id, 'cycle.completed', cycle);
+      });
       return { cycle, execution, executions };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

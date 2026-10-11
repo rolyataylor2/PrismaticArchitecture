@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DeliberationSchema } from '../../core/src/domain.js';
+import { DeliberationSchema, DeliberationAnswerSchema } from '../../core/src/domain.js';
 import type { AffectSelectionContext } from '../../core/src/affect-domain.js';
 import { SelectedAffectSchema } from '../../core/src/affect-domain.js';
 import type { FocusedBidContext } from '../../core/src/contracts.js';
@@ -19,5 +19,6 @@ export function focusedBidSchema(context: FocusedBidContext) {
   if (context.activation.partId !== context.part.id || (context.currentBid && context.currentBid.partId !== context.part.id)) {
     throw new InfrastructureError('focused_bid_revision', 'Focused revision requires the owning Part activation and bid');
   }
-  return partProposalSchema(context).answer;
+  return DeliberationAnswerSchema.safeExtend({ new_bid: partProposalSchema(context).answer.shape.new_bid })
+    .refine(value => value.new_bid?.type !== 'deliberate' || new Set(value.new_bid.target_parts).size === value.new_bid.target_parts.length, 'Inquiry targets must be unique');
 }

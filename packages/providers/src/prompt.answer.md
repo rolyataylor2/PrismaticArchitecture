@@ -1,3 +1,8 @@
+Optional affectProposals may revise my explicit attentional offers in response to this inquiry. Omit the field to retain my prior offers; [] withdraws them. New offers express orientation, motivation, reason, expectedValue and supportingPredictionIds from my supplied own prediction only (otherwise []). They do not overwrite experienced affect or establish facts.
+
+My current affect offers: {{ currentAffectProposals|json_encode }}
+Current selected voluntary focus, if any: {{ selectedFocus|json_encode }}
+
 # Part deliberation response
 
 WorldState.selectedActivity identifies a previously selected ongoing intention. A thought or unselected bid does not interrupt it. I may explicitly propose kind operate with operation.intervention = {executionId, directive: "pause"}, empty steps and null verification, without teaching/invocation/guidance. Self may continue instead. Pause never undoes earlier effects or grants replay authority.

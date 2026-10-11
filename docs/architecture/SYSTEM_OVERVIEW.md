@@ -1,6 +1,6 @@
 ## Two-pass Self target (ADR 0157)
 
-[ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md) extends the flow with Parts' affect proposals → separate world-blind Affect Selection → bounded focused Part bid revision → Bid Selection. Experienced affect, voluntary focus and selected-action posture remain distinct. This is an implementation target: proposal publication and domain contracts exist; live first-pass selection, focused revision and lifetime affect inspection are unfinished. See the Self affect thread audit.
+[ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md) extends the flow with Parts' affect proposals → separate world-blind Affect Selection → bounded focused Part bid revision → Bid Selection. Experienced affect, voluntary focus and selected-action posture remain distinct. Ordinary runtime now executes this sequence and persists same-thread focus through completed-cycle records. Lifetime affect inspection and sourced experiments remain unfinished. See the Self affect thread audit.
 
 ## Executive connection (ADR 0155)
 

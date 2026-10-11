@@ -6,7 +6,7 @@ import { ExternalCapabilitiesSchema } from './mcp-configuration.js';
 import { ExecutiveDiagnosticsSchema } from './executive-sensitivity.js';
 import { ExecutionGuidanceSchema, ExternalExecutionRequestSchema } from './execution-guidance.js';
 import { PublicExecutiveSkillSchema } from './executive-skill.js';
-import { AffectProposalSchema, type AffectBid, type SelectedAffect } from './affect-domain.js';
+import { AffectProposalSchema, SelectedAffectSchema, type AffectBid, type SelectedAffect } from './affect-domain.js';
 
 export const id = (prefix: string): string => `${prefix}_${randomUUID()}`;
 export const now = (): string => new Date().toISOString();
@@ -183,6 +183,7 @@ export const ExperiencedStateSchema = z.strictObject({
     interpretation: Text, evidenceSummary: z.array(Text) })),
   posture: z.array(ExpressedStanceSchema),
   stanceHistory: z.array(StanceRecordSchema).optional(),
+  selectedFocus: SelectedAffectSchema.optional(),
 });
 export const WorldStateSchema = z.strictObject({
   id: Id, agentId: Id, cycleId: Id, sequence: z.number().int().positive(), capturedAt: Text,
@@ -262,6 +263,9 @@ export const DeliberationAnswerSchema = z.strictObject({
   bid_disposition: z.enum(['retain', 'replace', 'withdraw']),
   new_bid: ProposalSchema.nullable(),
 }).refine(value => (value.bid_disposition === 'replace') === (value.new_bid !== null), 'Only replace requires a new bid');
+export const AffectDeliberationAnswerSchema = DeliberationAnswerSchema.safeExtend({
+  affectProposals: z.array(AffectProposalSchema).max(4).optional(),
+});
 export const PredictionUpdateSchema = z.strictObject({
   operation: z.enum(['continue', 'revise', 'resolve', 'abandon', 'expire', 'invalidate']),
   revision: PredictionDraftSchema.nullable(), evaluation: EvaluationSchema.nullable(),

@@ -21,7 +21,7 @@ export const prompts = {
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-checkpoints-v9', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-affect-proposals-v27', text: loadFactoryPrompt('part_cognition') },
+  part_cognition: { version: 'part-cognition-selected-focus-v28', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-concern-inheritance-v7', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
@@ -39,7 +39,7 @@ export const prompts = {
   prediction_outcome: { version: 'prediction-outcome-branches-v2', text: loadFactoryPrompt('prediction_outcome') },
   prediction: { version: 'prediction-twig-v5', text: loadFactoryPrompt('prediction') },
   evaluation: { version: 'prediction-evaluation-shared-evidence-v12', text: loadFactoryPrompt('evaluation') },
-  answer: { version: 'part-deliberation-executive-opt-in-v27', text: loadFactoryPrompt('answer') },
+  answer: { version: 'part-deliberation-affect-offers-v28', text: loadFactoryPrompt('answer') },
   deliberation: { version: 'self-deliberation-experienced-v9', text: loadFactoryPrompt('deliberation') },
   consolidation: { version: 'offline-consolidation-twig-v5', text: loadFactoryPrompt('consolidation') },
   reconsolidation: { version: 'memory-reconsolidation-twig-v3', text: loadFactoryPrompt('reconsolidation') },
@@ -87,6 +87,7 @@ export function resolvePrompt(agentId: string, task: PromptTask, resolver?: Prom
 }
 
 export function renderTaskPrompt(agentId: string, task: PromptTask, data: object, resolver?: PromptResolver): string {
+  if (task === 'answer') data = { currentAffectProposals: [], selectedFocus: null, ...data };
   if ((constructedPromptTasks as readonly string[]).includes(task)) data = { task, world: null, identity: null, dispositions: [], dispositionBindings: [], memories: [], workingParts: [], predictions: [], coverageProducts: [], hypothesisLimit: 3, hypothesis: null, hypothesisHistory: [], predictionTrajectories: [], outcome: null, laterEvidence: [], memory: null, question: null, candidates: [], ...data };
   // Legacy owning-Part snapshots have implicit full conviction. Never add Part state to world-blind contexts.
   const owningPart = (data as { part?: { beliefConfidence?: number; instance?: unknown } }).part;

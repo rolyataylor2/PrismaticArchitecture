@@ -23,6 +23,7 @@ function feedbackProjection(feedback: AffectFeedback): AffectFeedback {
 export function affectSelectionContext(input: {
   identity: Identity; contributions: Contribution[]; proposals: AffectBid[];
   currentFocus?: SelectedAffect | null; previousPeriodFeedback?: AffectFeedback | null;
+  canDeliberate?: boolean;
 }): AffectSelectionContext {
   const participants = new Map(input.contributions.map(c => [c.partId, c.name]));
   const proposals = input.proposals.map(proposalProjection);
@@ -39,6 +40,7 @@ export function affectSelectionContext(input: {
     proposals, currentFocus,
     previousPeriodFeedback: input.previousPeriodFeedback ? feedbackProjection(input.previousPeriodFeedback) : null,
     availableContributors: [...participants].map(([partId, name]) => ({ partId, name })),
+    canDeliberate: input.canDeliberate ?? true,
   });
 }
 
@@ -46,6 +48,7 @@ export function affectSelectionContext(input: {
 export function projectAffectSelectionContext(context: AffectSelectionContext): AffectSelectionContext {
   return affectSelectionContext({ identity: context.identity, proposals: context.proposals,
     currentFocus: context.currentFocus, previousPeriodFeedback: context.previousPeriodFeedback,
+    canDeliberate: context.canDeliberate,
     contributions: context.availableContributors.map(({ partId, name }) => ({ partId, name,
       thought: '', interpretation: '', evidenceSummary: [], prediction: null, bid: null })) });
 }

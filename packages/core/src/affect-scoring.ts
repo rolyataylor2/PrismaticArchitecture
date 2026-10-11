@@ -7,7 +7,7 @@ export const affectScoreCriteria = ['No useful contribution or incompatible', 'L
   'Essential supported contribution to an enduring commitment'];
 export function affectChoices(context: AffectSelectionContext): string[] {
   return [...context.proposals.map(proposal => proposal.id), ...(context.currentFocus ? ['MAINTAIN_AFFECT'] : []),
-    'NO_AFFECT_CHANGE', ...(context.availableContributors.length ? ['DELIBERATE_AFFECT'] : [])];
+    'NO_AFFECT_CHANGE', ...(context.canDeliberate && context.availableContributors.length ? ['DELIBERATE_AFFECT'] : [])];
 }
 
 /** First judge every proposal; only a separate complementary judgment can add a second. */

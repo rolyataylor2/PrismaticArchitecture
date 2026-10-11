@@ -1,6 +1,6 @@
 ## Self affect extension target (ADR 0157)
 
-[ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md) adds separately invoked affect selection before focused bid revision and final behavioral arbitration. Both Self modes remain world-blind; Parts supply proposals and interpretation against the unchanged cycle snapshot. Routine cycles without proposals or active voluntary focus retain ordinary arbitration. This extension is not fully integrated yet; the implementation audit records remaining dispatch, persistence, analytics and experiment work.
+[ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md) adds separately invoked affect selection before focused bid revision and final behavioral arbitration. Both Self modes remain world-blind; Parts supply proposals and interpretation against the unchanged cycle snapshot. Routine cycles without proposals or active voluntary focus retain ordinary arbitration. Ordinary runtime integrates dispatch and completed-cycle persistence; the implementation audit records remaining analytics and experiment work.
 
 ## Executive connection (ADR 0155)
 

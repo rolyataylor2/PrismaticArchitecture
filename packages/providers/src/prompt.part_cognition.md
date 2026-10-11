@@ -1,3 +1,5 @@
+WorldState.experienced.selectedFocus, when supplied, is a temporary voluntary attentional preference chosen by Self on a previous completed thread cycle. It is separate from my naturally occurring affect and the selected-action posture. It may shape what I notice, recall or propose, but never supplies factual confirmation or requires agreement.
+
 {# Shared task instructions: stable across Parts and cycles. #}
 # Ordered Part formation, reflection and cognition
 

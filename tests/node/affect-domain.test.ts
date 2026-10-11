@@ -25,7 +25,7 @@ test('affect Self context excludes experienced affect, activation and wider runt
     contributions: contributions.map(contribution => ({ ...contribution, world: { secret: 'raw-world' }, activation: 4 })),
     proposals: proposals.map(proposal => ({ ...proposal, affect: 'raw-affect', memories: ['private'] })),
   });
-  assert.deepEqual(Object.keys(value).sort(), ['availableContributors', 'currentFocus', 'identity', 'previousPeriodFeedback', 'proposals']);
+  assert.deepEqual(Object.keys(value).sort(), ['availableContributors', 'canDeliberate', 'currentFocus', 'identity', 'previousPeriodFeedback', 'proposals']);
   const serialized = JSON.stringify(value);
   for (const forbidden of ['raw-world', 'raw-affect', 'Naturally occurring sadness', 'Private expressed content', 'activation', 'memories']) {
     assert.equal(serialized.includes(forbidden), false, forbidden);

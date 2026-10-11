@@ -1,6 +1,6 @@
 ## Affect selection adapter (ADR 0157)
 
-The separate `chooseAffect` adapter reprojects world-blind proposal/Identity/feedback input, scores every proposal and available control independently, and preserves Score distributions. A proposed focus requires >2. A bounded complementary pass can add one further distinct compatible proposal; no activation or numeric emotional weighting enters either request. Jev's lack of textual rationale is explicitly recorded. Generative affect inquiry and focused Part revision use separate reasoning calls. Runtime integration remains in progress.
+The separate `chooseAffect` adapter reprojects world-blind proposal/Identity/feedback input, scores every proposal and available control independently, and preserves Score distributions. A proposed focus requires >2. A bounded complementary pass can add one further distinct compatible proposal; no activation or numeric emotional weighting enters either request. Jev's lack of textual rationale is explicitly recorded. Generative affect inquiry and focused Part revision use separate reasoning calls. Ordinary runtime invokes this adapter before focused revision and behavioral arbitration; it omits inquiry when the shared budget is exhausted.
 
 <!-- Current online flow: ADR 0133 -->
 
