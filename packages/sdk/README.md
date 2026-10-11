@@ -1,6 +1,10 @@
+## Lifetime affect analysis (ADR 0157)
+
+`analyzeAffect` is a read-only researcher projection over ordinary completed affect-cycle history, experienced transitions, choices, bids and current prediction versions. GET `agents/:id/affect-analysis` returns lifetime history; POST to the same endpoint accepts optional ISO `from`/`to`, `threadId` (null means unthreaded) and `partId`. Windows select cycle start timestamps. Overlapping periods retain lifetime statistics alongside separate window-origin cohort counts; later outcome resolutions remain attributed to prediction origins. Failed attempts appear only as audit rows. No inference, execution or psychological mutation occurs. The browser's Affect Analysis panel exposes period use, source-cycle links, bid changes, outcome versions and explicit measurement limitations.
+
 ## Self affect prompt previews (ADR 0157)
 
-Settings exposes `affect_selection`, `affect_inquiry` and `focused_bid_revision`. Affect previews reproject recorded restricted Self inputs or an explicit empty Identity-only example; they never query WorldState to fill missing proposals. Focused revision previews require its recorded owning-Part request and preserve its original snapshot. These read-only previews make no inference call or cognitive mutation. Ordinary runtime produces these recorded inputs; end-to-end SQLite tests verify recorded preview boundaries. Lifetime analytics remain unfinished.
+Settings exposes `affect_selection`, `affect_inquiry` and `focused_bid_revision`. Affect previews reproject recorded restricted Self inputs or an explicit empty Identity-only example; they never query WorldState to fill missing proposals. Focused revision previews require its recorded owning-Part request and preserve its original snapshot. These read-only previews make no inference call or cognitive mutation. Ordinary runtime produces these recorded inputs; end-to-end SQLite tests verify recorded preview boundaries. Lifetime analytics are available through the read-only Affect Analysis projection and panel.
 
 ## Conditional procedural consolidation (ADR 0147)
 

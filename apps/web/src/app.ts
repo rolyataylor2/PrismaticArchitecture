@@ -1,3 +1,4 @@
+import { affectAnalysisPage } from './affect-analysis.js';
 import type { MemoryOverview, MemorySearchResult } from '../../../packages/sdk/src/memory-search.js';
 import { executivePage } from './executive.js';
 import type { PrimitiveSettings, Primitive } from '../../../packages/core/src/primitives.js';
@@ -925,7 +926,7 @@ function renderNavigation(): void {
       ['Primitives', 'Primitives'], ['Identity', 'Identity'],
       ['Dispositions', 'Dispositions'], ['Memories', 'Memories'],
       ['Parts', 'Part History'], ['Predictions', 'Predictions'],
-      ['Network', 'Analytics'], ['History', 'Logs'],
+      ['Network', 'Analytics'], ['Affect', 'Affect Analysis'], ['History', 'Logs'],
       ['Executive', 'Executive'],
     ];
     for (const [tab, label] of brainTabs) {
@@ -1025,7 +1026,7 @@ function sizeComponentHeaders(): void {
   if (!current || !document.body.classList.contains('component-view')) return;
   let largest = 0;
   for (const [title, description] of Object.entries(componentHeaderDescriptions)) {
-    const probe = componentHeader(({ Parts: 'Part History', Network: 'Analytics', History: 'Logs' } as Record<string, string>)[title] ?? title, description);
+    const probe = componentHeader(({ Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
     Object.assign(probe.style, { position: 'fixed', visibility: 'hidden', pointerEvents: 'none', width: `${current.getBoundingClientRect().width}px`, height: 'auto', minHeight: '0', margin: '0', top: '0', left: '0', gridTemplateRows: 'auto auto' });
     const actions = probe.querySelector('.component-header-actions')!;
     actions.append(node('button', '+', 'secondary'), node('button', '🧠', 'secondary'), node('button', '↺', 'secondary'));
@@ -1218,7 +1219,7 @@ function render(): void {
   const isPrompts = activeTab === 'Prompts' || (activeTab === 'Settings' && settingsSection === 'Prompts');
   document.body.classList.toggle('prompts-view', isPrompts);
   const pageKey = activeTab === 'Settings' ? settingsSection : activeTab;
-  const displayTitle = ({ Parts: 'Part History', Network: 'Analytics', History: 'Logs' } as Record<string, string>)[pageKey] ?? pageKey;
+  const displayTitle = ({ Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
   const descriptions: Record<string, string> = {
     Primitives: 'Primitives are basic appraisals and action tendencies representing the Agent’s immediate reactions, such as curiosity, pleasure or aversion. Their trigger instructions describe when they would respond, but the current online architecture does not activate them; they remain available for researcher configuration.',
     Identity: 'Identity is the Agent’s persistent self-definition: its sense of who it is and how it wants to relate to the world. Self consults its self-definition traits when choosing among Part proposals; autobiographical traits preserve background without directly guiding that choice.',
@@ -1252,6 +1253,7 @@ function render(): void {
   if (!state) { content.append(card('Start with an Agent', 'Create an Agent to begin its subjective autobiography and inspect the perspectives that form during conversation.')); return; }
   if (threadLoading) { content.append(node('p', 'Loading thread…', 'muted')); return; }
   const views: Record<string, () => void> = {
+    Affect: () => { void affectAnalysisPage(content, state!.agent.id, api, showCycleInspector, showError).catch(showError); },
     Executive: () => {
       const agentId = state!.agent.id; const databaseId = selectedDatabase;
       void executivePage(content, agentId, api, showError, { dialog: () => node('dialog'), cycle: showCycleInspector,

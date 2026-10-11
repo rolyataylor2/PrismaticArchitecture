@@ -1,3 +1,9 @@
+## Lifetime affect analysis milestone — 2026-10-10
+
+Agent Components → Affect Analysis now provides a lifetime clickable period chart, timeframe/thread/Part filters, lifetime versus window-origin statistics, original expressed affect, actual Self selections, bid revisions, baseline evaluations, contributing disposition IDs and versioned prediction evidence with authoritative cycle links. Read-only GET/POST `agents/:id/affect-analysis` uses completed cognitive period records and separates failed attempts. Later resolutions remain attributed to their origin periods; unavailable learning/calibration measures stay explicit.
+
+Verification: 4/4 API, SQLite-reopen and actual Chrome checks pass with zero skips (`/tmp/prism-affect-panel-tests.log`), including read-only behavior, Agent isolation, late outcomes, timeframe filters, original affect and mobile panel width. Build passes (`/tmp/prism-affect-panel-build3.log`) and strict TypeScript/dependency lint passes (`/tmp/prism-affect-panel-lint.log`). All processes are terminal. Sourced normal-pipeline Simulation Tests and final completion audit remain required.
+
 ## Self affect runtime milestone — 2026-10-10
 
 Ordinary runtime now records a non-enacting baseline, runs restricted affect selection/inquiry within the shared deliberation budget, revises participating Parts independently against the same snapshot and performs behavioral selection. Original expressed affect and bid lineage remain inspectable. Completed-cycle records persist focus across SQLite restart; no-change permits expiry, explicit maintenance renews, navigation ends focus, and failed/other-thread/monitor cycles do not advance its lifetime. Prediction cohorts distinguish entry baseline from pre-selection carried-focus and post-selection coverage exposure. Late outcomes use current prediction versions without rewriting period history.

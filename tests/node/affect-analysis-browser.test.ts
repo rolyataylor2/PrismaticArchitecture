@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { once } from 'node:events';
+import type { AddressInfo } from 'node:net';
+import { chromium } from '@playwright/test';
+import { SqliteStore } from '../../packages/storage/src/sqlite.js';
+import { createResearchServer } from '../../apps/server/src/server.js';
+import { affectFixture } from './affect-analysis-fixture.js';
+
+const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+test('Chrome affect panel shows period use, original affect, source inspection and timeframe filters', { skip: !existsSync(executable) }, async () => {
+  const store = new SqliteStore(':memory:'); const { app, decisions } = affectFixture(store);
+  const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const browser = await chromium.launch({ executablePath: executable, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Affect panel fixture');
+    await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
+    const agent = store.list('agent')[0]!;
+    await app.message(agent.id, 'An uncertain fixture experience', 'host', 'panel-thread'); decisions.mode = 'no_change';
+    await app.message(agent.id, 'An ordinary follow-up', 'host', 'panel-thread');
+    const before = store.events(agent.id).length;
+    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
+    await page.getByRole('button', { name: 'Affect Analysis', exact: true }).click();
+    await page.getByRole('heading', { name: 'Affect periods', exact: true }).waitFor();
+    const panel = page.locator('.affect-analysis');
+    await panel.locator('summary').filter({ hasText: /^Careful curiosity ·/ }).click();
+    await panel.getByText('Motivation: Understand while caring', { exact: true }).waitFor();
+    assert.ok((await panel.innerText()).includes('Lifetime period'));
+    await panel.getByText('How bids changed', { exact: true }).click();
+    assert.ok((await panel.innerText()).includes('Before: Original recommendation'));
+    assert.ok((await panel.innerText()).includes('After: Revised recommendation'));
+    await panel.getByRole('button', { name: 'Inspect revision cycle', exact: true }).first().click();
+    await page.getByText('Experienced WorldState', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Close inspector' }).click();
+    const transition = panel.locator('summary').filter({ hasText: 'self experienced_transition' }).first(); await transition.click();
+    assert.ok((await panel.innerText()).includes('Sadness alongside curiosity'));
+    await panel.getByLabel('From', { exact: true }).fill('2099-01-01T00:00');
+    await panel.getByRole('button', { name: 'Apply filters', exact: true }).click();
+    await panel.getByText('No affect records in this view.', { exact: true }).waitFor();
+    await panel.getByRole('button', { name: 'Lifetime', exact: true }).click();
+    await panel.locator('summary').filter({ hasText: /^Careful curiosity ·/ }).waitFor();
+    await panel.getByLabel('Thread', { exact: true }).selectOption('thread:panel-thread');
+    await panel.getByRole('button', { name: 'Apply filters', exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('.affect-filters button[type=submit]')?.disabled);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1), true);
+    assert.deepEqual(errors, []); assert.equal(store.events(agent.id).length, before);
+  } finally { await browser.close(); await app.executiveConnections.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
+});

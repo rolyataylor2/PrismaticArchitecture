@@ -1,3 +1,4 @@
+import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
@@ -87,6 +88,8 @@ export async function api(app: Application, method: string, path: string, body: 
   }
   if (!entityId) throw new Error('Missing resource ID');
   if (resource === 'agents') {
+    if (action === 'affect-analysis' && method === 'GET') return analyzeAffect(app.store, entityId);
+    if (action === 'affect-analysis' && method === 'POST') return analyzeAffect(app.store, entityId, AffectAnalysisFilterSchema.parse(body ?? {}));
     if (method === 'DELETE' && !action) {
       z.strictObject({}).parse(body);
       app.store.deleteAgent(entityId);

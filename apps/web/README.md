@@ -1,3 +1,7 @@
+## Affect Analysis
+
+Agent Components → Affect Analysis renders the read-only SDK lifetime projection. A clickable period chart, lifetime/last-seven-day/custom-timeframe controls and thread/Part filters refine the view. Period inspectors keep lifetime and window-origin statistics separate, show proposal reasons, renewals/boundaries, actual choices, original/revised bids, non-enacting baseline evaluations, prediction versions and contributing disposition IDs. Experienced affect remains a separate chronological stream, including cycles without voluntary focus. Source links use the authoritative cycle inspector. Detached pages discard late responses; browsing does not create cognitive state.
+
 ## Conditional procedural consolidation (ADR 0147)
 
 Skills & Learning can consolidate ended procedural experience and inspect preserved inference reports. Conditional inspectors show branch conditions/reasons, escalation and member-version links; source bids/thoughts remain in each member inspector. Explicit branch-version refresh requires approved unchanged members and does not approve the family. Reports and model fixture limitations are separate from execution authority.
