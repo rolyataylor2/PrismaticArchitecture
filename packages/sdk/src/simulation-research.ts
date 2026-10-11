@@ -181,6 +181,23 @@ export function simulationCandidates(store: Store, run: SimulationRun): Simulati
     claim: `The recorded subjective development evidence for “${memory.gist}” labels this retrieval misleading: ${evidence.reason}`,
     alternatives: 'This is an attributed cognitive interpretation, not an independent judgment of memory accuracy or benefit.',
     followUp: 'Compare later relevant and unrelated probes; preserve competing interpretations and grade retrieval with an explicit researcher criterion.', evidenceReferences: [evidence.reference] });
+  const noncontributing = analysis.parts.filter(item => item.originStage >= 0 && run.stages[item.originStage]!.parts.some(part => part.id === item.part.id) && item.contributions.length === 0);
+  if (noncontributing.length) candidates.push({ key: 'formation-without-captured-contribution', pattern: 'formation-without-captured-contribution',
+    title: 'Newly formed Parts have no captured contribution',
+    claim: `${noncontributing.length} distinct Part(s) formed during this run have no recorded thought contribution in its saved stages. Repeated snapshots count once.`,
+    alternatives: 'Formation may support recognition or a later concern without advocacy. Computation admission, missing capture or the observation horizon may explain absence; this does not establish unnecessary Part proliferation.',
+    followUp: 'Inspect formation, eligibility/admission, retirement and later comparable encounters. Compare matched starting conditions and budgets before judging whether formation was useful.',
+    evidenceReferences: noncontributing.slice(0, 40).map(item => `/stages/${item.originStage}/parts/${run.stages[item.originStage]!.parts.findIndex(part => part.id === item.part.id)}`) });
+  const unrecalled = analysis.memories.filter(item => item.originStage >= 0 && run.stages[item.originStage]!.memories.some(memory => memory.id === item.memory.id) && !item.retrievals.some(retrieval => retrieval.stageIndex > item.originStage));
+  if (unrecalled.length) {
+    const censored = unrecalled.filter(item => item.originStage === run.stages.length - 1).length;
+    candidates.push({ key: 'new-memory-without-later-recall', pattern: 'new-memory-without-later-recall',
+      title: 'New subjective episodes have no later captured recall',
+      claim: `${unrecalled.length} distinct new episode(s) have no later-stage recorded recall; ${censored} originated in the final stage and have no later-stage observation opportunity. Same-stage recall is not later retention evidence.`,
+      alternatives: 'Later stages may provide no relevant cue, memory may remain useful without recall in this window, or capture may be incomplete. Counts do not establish failed retention, transfer or learning.',
+      followUp: 'Inspect exact subjective versions and subsequent experiences; author relevant, novel analogous and unrelated probes with a matched untrained control, preserving the original Agent.',
+      evidenceReferences: [...unrecalled.slice(0, 39).map(item => `/stages/${item.originStage}/memories/${run.stages[item.originStage]!.memories.findIndex(memory => memory.id === item.memory.id)}`), '/stages'] });
+  }
   return candidates;
 }
 export function saveSimulationFinding(store: Store, runId: string, body: unknown, origin: SimulationFinding['origin'] = 'researcher'): SimulationFinding {
