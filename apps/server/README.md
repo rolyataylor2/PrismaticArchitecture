@@ -1,3 +1,5 @@
+The Sleep dashboard is served as `/sleep-dashboard.js` and uses the existing same-origin consolidation API and saved Agent snapshot records. It adds no cognitive runtime, background worker or storage schema.
+
 Affect Analysis is served as a browser module and uses the shared read-only researcher API. Its POST query receives ordinary same-origin JSON validation without mutating Agent state.
 
 The simulation Observatory is served as `/simulation-observatory.js`. Shared SDK APIs supply read-only analysis/comparisons and separately versioned privileged researcher reviews/findings. Review writes use the same same-origin JSON protections as existing local administration; no public unauthenticated deployment is introduced.

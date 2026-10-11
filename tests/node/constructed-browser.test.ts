@@ -108,9 +108,10 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     assert.ok((await scaffoldInspector.innerText()).includes('Continuing versus different source'));
     assert.ok((await scaffoldInspector.innerText()).includes('Matching source identifier'));
     await scaffoldInspector.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
-    await page.getByRole('button', { name: 'Experiments', exact: true }).click();
-    await page.getByRole('button', { name: 'Dream', exact: true }).click();
-    await page.getByRole('button', { name: 'Run consolidation', exact: true }).click();
+    await page.getByRole('button', { name: 'Sleep', exact: true }).click();
+    await page.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Induce sleep cycle' }).getByRole('button', { name: 'Induce sleep', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Induce sleep cycle' }).waitFor({ state: 'detached' });
     await page.waitForFunction(async () => {
       const agents = await (await fetch('/api/agents')).json();
       const snapshot = await (await fetch(`/api/agents/${agents[0].id}`)).json();

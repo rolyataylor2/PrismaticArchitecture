@@ -25,7 +25,7 @@ test('research dashboard navigates real trials, plots, evidence, reviews, compar
   try {
     const page=await browser.newPage({viewport:{width:1600,height:1100}});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button',{name:'Simulation Tests',exact:true}).click();
+    await page.getByRole('button',{name:'Simulator',exact:true}).click();
     const panel=page.locator('.research-dashboard');await panel.getByRole('heading',{name:'The Simulator',exact:true}).waitFor();
     await panel.getByLabel('Experiment',{exact:true}).selectOption('conversation-starters');
     await panel.getByRole('heading',{name:'What recurs, what wavers?',exact:true}).waitFor();

@@ -1401,3 +1401,16 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .rd-affect-language p { font-size:12px; line-height:1.6; }
 @media(max-width:700px) { .rd-affect-language { grid-template-columns:minmax(0,1fr); } }
 .rd-source { display:inline-block; color:#317b7b; font-size:11px; margin-top:10px; text-underline-offset:3px; }
+
+/* Sleep observes the existing offline consolidation records. */
+.sleep-dashboard > .rd-main { flex:1; }
+.sleep-dashboard .rd-section > label { display:flex; gap:12px; align-items:center; margin:16px 0; }
+.sleep-dashboard .rd-section > label select { width:auto; }
+.sleep-timeline { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:10px; }
+.sleep-timeline .sleep-cycle { text-align:left; line-height:1.6; border-left:3px solid #71848d; overflow-wrap:anywhere; }
+.sleep-timeline .sleep-completed { border-left-color:#257b78; }
+.sleep-timeline .sleep-failed { border-left-color:#ba6557; }
+.sleep-timeline .sleep-running { border-left-color:#a18a55; }
+.sleep-timeline .sleep-cycle[aria-pressed=true] { background:#e0ecec; outline:1px solid #257b78; }
+
+.sleep-dashboard .rd-section button:not(.sleep-cycle) { margin:4px 6px 4px 0; }

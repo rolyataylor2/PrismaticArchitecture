@@ -8,6 +8,7 @@ import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { IdentityQuestionGroup } from '../../../packages/sdk/src/identity-questions.js';
 import type { SimulationTestDefinition, SimulationRun } from '../../../packages/sdk/src/simulation-tests.js';
 import { simulationDashboard } from './simulation-dashboard.js';
+import { sleepDashboard } from './sleep-dashboard.js';
 
 const dispositionAssociations = (item: AgentSnapshot['dispositions'][number]): ActivationAssociation[] =>
   item.activationAssociations ?? item.prerequisites.map(dispositionId => ({ kind: 'disposition', dispositionId, effect: 'contribute' }));
@@ -82,7 +83,7 @@ const expandedSections = {
   chat: true,
   brain: false,
   settings: false,
-  experiments: false,
+  operations: true,
 };
 let showAllSessions = false;
 let sessions: ChatSession[] = [];
@@ -402,7 +403,6 @@ function field(parent: HTMLElement, title: string, value: string, multiline = fa
 const fieldDescriptions: Record<string, string> = {
   'Name': 'Use a short, recognizable name.',
   'Agent Name': 'The name shown in the Agent selector.',
-  'Offline consolidation profile': 'Choose the development process used during offline consolidation.',
   'Experiment': 'Choose a benchmark to run on a fresh Agent.',
   'Trait Role': 'Enable sorting by the role of each Trait.',
   'Icon category': 'Enable sorting by the category of each Trait.',
@@ -972,35 +972,24 @@ function renderNavigation(): void {
   }
   nav.append(settingsSectionEl);
 
-  // 4. Experiments (collapsible menu)
-  const expSection = node('div', '', 'nav-section');
-  const expHeader = node('div', '', 'nav-header');
-  const expToggle = node('button', expandedSections.experiments ? '▾' : '▸', 'nav-toggle');
-  expToggle.setAttribute('aria-label', 'Toggle Experiments');
-  expToggle.setAttribute('aria-expanded', String(expandedSections.experiments));
-  expToggle.onclick = (e) => { e.stopPropagation(); expandedSections.experiments = !expandedSections.experiments; render(); };
-  const expTitle = button('Experiments', () => {
-    expandedSections.experiments = !expandedSections.experiments;
-    render();
-  });
-  expTitle.className = 'nav-title';
-  expTitle.setAttribute('aria-expanded', String(expandedSections.experiments));
-  expHeader.append(expToggle, expTitle);
-  expSection.append(expHeader);
-  if (expandedSections.experiments) {
-    const expChildren = node('div', '', 'nav-children');
-    for (const [label, tab] of [['Run', 'Experiments'], ['Dream', 'Dream'], ['Part Formation', 'Part Formation'], ['Part Split Evaluation', 'Part Split Evaluation'], ['Part Merge Evaluation', 'Part Merge Evaluation']] as const) {
-      const item = button(label, () => { activeTab = tab; render(); });
-      item.className = 'nav-item' + (tab === activeTab ? ' selected' : '');
-      expChildren.append(item);
+  // Offline operations and external simulation share one navigation group.
+  const section = node('div', '', 'nav-section');
+  const header = node('div', '', 'nav-header');
+  const toggle = button(expandedSections.operations ? '▾' : '▸', () => { expandedSections.operations = !expandedSections.operations; render(); });
+  toggle.className = 'nav-toggle'; toggle.setAttribute('aria-label', 'Toggle Agent Operations');
+  toggle.setAttribute('aria-expanded', String(expandedSections.operations));
+  const title = button('Agent Operations', () => { expandedSections.operations = !expandedSections.operations; render(); });
+  title.className = 'nav-title'; title.setAttribute('aria-expanded', String(expandedSections.operations));
+  header.append(toggle, title); section.append(header);
+  if (expandedSections.operations) {
+    const children = node('div', '', 'nav-children');
+    for (const tab of ['Sleep', 'Simulator']) {
+      const item = button(tab, () => { activeTab = tab; render(); });
+      item.className = 'nav-item' + (activeTab === tab ? ' selected' : ''); children.append(item);
     }
-    expSection.append(expChildren);
+    section.append(children);
   }
-  nav.append(expSection);
-  const simulationSection = node('div', '', 'nav-section');
-  const simulationLink = button('Simulation Tests', () => { activeTab = 'Simulation Tests'; render(); });
-  simulationLink.className = 'nav-title' + (activeTab === 'Simulation Tests' ? ' selected' : '');
-  simulationSection.append(simulationLink); nav.append(simulationSection);
+  nav.append(section);
 }
 
 function threadViewButton(view: 'Brain' | 'Chat Sessions'): HTMLButtonElement {
@@ -1236,18 +1225,14 @@ function render(): void {
     Prompts: 'Inspect and edit inference instructions for the Agent’s cognitive processes. Runtime boundaries still determine each process’s access and authority.',
     Activation: 'Activation settings are researcher controls for how subjective memories become accessible during cognition. They configure recall limits and relevance thresholds without assigning psychological meaning or decision authority to retrieval scores.',
     'Delete Agent': 'Agent deletion is a researcher operation that removes an Agent and its stored psychology and audit history. It acts outside cognition and requires confirmation before permanent removal.',
-    Experiments: 'Explore developmental research processes separately from ordinary online cognition.',
-    'Simulation Tests': 'Test research hypotheses through ordinary experiences on fresh Agents. Inspect observations and controls; a completed run does not mean a hypothesis is proven.',
-    Dream: 'Offline consolidation considers meaningful traces across experiences to support conservative psychological development.',
-    'Part Formation': 'Explore how experience can reveal a need for a new bounded perspective while preserving existing development and provenance.',
-    'Part Split Evaluation': 'Explore whether a perspective contains distinct concerns or relationships that warrant separate Parts while preserving continuity.',
-    'Part Merge Evaluation': 'Explore whether combining perspectives would preserve their meaning, history and meaningful disagreements.',
+    Sleep: 'Offline consolidation of selected cognitive experiences, with preserved sleep-cycle history.',
+    Simulator: 'Explore research hypotheses through ordinary experiences on isolated Agents.',
   };
   const description = descriptions[pageKey];
   componentHeaderDescriptions = descriptions;
   document.body.classList.toggle('component-view', Boolean(description));
-  document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Simulation Tests');
-  content.replaceChildren(...(isChat || isBrain || pageKey === 'Simulation Tests' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
+  document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Simulator' || pageKey === 'Sleep');
+  content.replaceChildren(...(isChat || isBrain || pageKey === 'Simulator' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
     chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Chat Sessions' : 'Brain'));
@@ -1276,17 +1261,13 @@ function render(): void {
     Predictions: predictionsPage,
     Memories: memoriesPage,
     Network: network,
-    Dream: dream,
-    'Part Formation': partFormation,
-    'Part Split Evaluation': partSplitEvaluation,
-    'Part Merge Evaluation': partMergeEvaluation,
+    Sleep: () => sleepDashboard(content, { snapshot: state!, api, fail: showError }),
     History: history,
     Identity: identity,
     Settings: settings,
     'Model & key': () => { settingsSection = 'Model & key'; settings(); },
     Prompts: () => { settingsSection = 'Prompts'; settings(); },
-    Experiments: experiments,
-    'Simulation Tests': simulationTestPage,
+    'Simulator': simulationTestPage,
   };
   views[activeTab]?.();
   sizeComponentHeaders();
@@ -2716,94 +2697,6 @@ function dispositionsPage(): void {
   componentSearchControls(search, ...browse.controls); search.oninput = draw; draw(); content.append(list);
 }
 
-function partFormation(): void {
-  content.append(card('Constructed perspectives', 'Parts form during ordinary cognition from disposition scopes and chronological subjective autobiography. Each scope develops independently. With no active disposition, a Part named self forms around Identity. Retired instances remain in Parts, while a later recurrence creates a new instance.'));
-  for (const part of state!.parts.filter(part => part.instance)) content.append(button(`${part.name} · ${part.instance!.retirement ? 'retired' : 'working'}`, () => showPart(part.id), true));
-  content.append(node('h3', 'Offline Part-development research'));
-  content.append(
-    card('Under construction', 'Planned process: create a new Part when an experience reveals a meaningful gap in relational understanding. This page does not run inference or create Parts yet.'),
-    card('Recognize a relational gap', 'Review the experience through psychologically digested thoughts, subjective memories, predictions and outcomes. Identify a relationship that matters to the Agent but is not adequately represented by existing Parts. Encountering a person, animal or object alone does not require a new Part.'),
-    card('Consider existing perspectives', 'Evaluate whether an existing Part can adapt or whether specialization or a split would better preserve the meaning. Propose a new bounded perspective when the relational gap warrants one, with a motivated name, mission, beliefs, strategies and relevant triggers.'),
-    card('Preserve specific and general learning', 'A relationship with a specific dog may deserve its own relational Part while a generalized fear-of-dogs Part retains transferable expectations. Preserve the originating experience references, developmental lineage and meaningful associations without turning provenance into activation triggers.'),
-  );
-}
-
-function partSplitEvaluation(): void {
-  content.append(
-    card('Under construction', 'Planned process: evaluate a Part internally to see whether it covers too much ground or contains knowledge that belongs in a distinct perspective. This page does not run inference or split Parts yet.'),
-    card('Evaluate scope and coherence', 'Review the Part’s mission, beliefs, strategies, thoughts, subjective memories and predictions. Ask whether its concerns still serve one bounded perspective, or whether distinct relationships and motivations warrant adaptation, specialization or a split.'),
-    card('Separate relational knowledge', 'For a generalized fear-of-dogs Part, examine whether details about a specific dog express a distinct learned relationship. Also examine a developing relationship to another fear: it may be a meaningful association, or it may reveal a separate perspective. A specific mention or an association alone does not justify splitting.'),
-    card('Review a proposed split', 'Describe which knowledge belongs with each perspective and what transferable learning stays with the original Part. Preserve earlier versions, memory provenance, ancestry and meaningful associations. Keep the existing structure when evidence is ambiguous; no information is silently discarded.'),
-  );
-}
-
-function partMergeEvaluation(): void {
-  content.append(
-    card('Under construction', 'Planned process: compare Parts and evaluate whether merging them would preserve their psychological meaning. This page does not run comparisons or merge Parts yet.'),
-    card('Compare evidence across Parts', 'Compare co-activation across experiences, expressed thought similarity and subjective memory similarity alongside missions, beliefs, strategies and relational referents. These comparisons are researcher or offline development operations; they do not give Parts access to each other’s private memories.'),
-    card('Evaluate similarity and differences', 'Consider whether similar traces reflect the same underlying perspective or distinct needs, biases and learned relationships. Frequent co-activation may indicate complementary Parts rather than duplication. Similarity alone does not decide whether to merge.'),
-    card('Choose whether to merge', 'Present the evidence, meaningful differences and a proposed combined perspective for review. A future merge should preserve source lineage, subjective memory history, provenance and unresolved predictions. Preserve separate Parts when merging would erase meaningful disagreement or the evidence is uncertain.'),
-  );
-}
-
-function dream(): void {
-  const profile = node('select'); profile.setAttribute('aria-label', 'Offline consolidation profile');
-  for (const value of ['constructed', 'persistent']) {
-    const option = node('option', value === 'constructed' ? 'Memory and disposition consolidation' : 'Part-development consolidation');
-    option.value = value; profile.append(option);
-  }
-  profile.value = state!.agent.architecture ?? 'constructed';
-  const profileLabel = node('label', 'Offline consolidation profile'); profileLabel.append(profile);
-  content.append(node('p', 'This profile controls offline development. Chat always uses constructed perspectives.', 'muted'), profileLabel,
-    button('Save consolidation profile', async () => {
-      await api(`agents/${selectedAgent}/consolidation-profile`, 'PATCH', { profile: profile.value }); await refresh();
-    }));
-  if (state!.agent.architecture !== 'persistent') {
-    const panel = card('Offline consolidation', 'Reinterpret selected subjective episodes and conservatively create or refine attention dispositions using memories, resolved predictions and recurring activation patterns. Retired Parts remain inspection records.');
-    const from = field(panel, 'From cycle', '1'); if (from instanceof HTMLInputElement) from.type = 'number';
-    const to = field(panel, 'Through cycle', String(state!.cycles.at(-1)?.sequence ?? 1)); if (to instanceof HTMLInputElement) to.type = 'number';
-    panel.append(button('Run consolidation', async () => {
-      await api(`agents/${selectedAgent}/consolidate`, 'POST', { fromCycle: Number(from.value), toCycle: Number(to.value) });
-      await refresh();
-    }));
-    content.append(panel);
-    for (const run of state!.consolidations.slice().reverse()) content.append(details(`Consolidation ${run.status} · cycles ${run.fromCycle}–${run.toCycle}`, run));
-    return;
-  }
-  content.append(
-    card('Under construction', 'Choose a Part, then one of its memories. Dream is not available yet; these selections do not run a model or change the Agent.'),
-    card('Reliving a memory', 'Dream will let a Part in its current, more mature form revisit a past experience behind one of its memories. It can interpret that experience through the perspective it has developed since then and propose an updated meaning for the memory. The Part may also preserve its original interpretation or resist revision. Accepted updates will create a new memory version, preserving earlier versions and provenance.'),
-  );
-  const controls = node('div', '', 'row');
-  const partLabel = node('label', 'Part');
-  const partSelect = node('select');
-  const partPlaceholder = node('option', 'Choose a Part'); partPlaceholder.value = '';
-  partSelect.append(partPlaceholder);
-  for (const part of state!.parts) {
-    const option = node('option', part.name); option.value = part.id; partSelect.append(option);
-  }
-  partLabel.append(partSelect);
-  const memoryLabel = node('label', 'Memory');
-  const memorySelect = node('select');
-  memoryLabel.append(memorySelect);
-  const updateMemories = (): void => {
-    const memories = state!.memories.filter(memory => memory.partId === partSelect.value);
-    const placeholder = node('option', !partSelect.value ? 'Choose a Part first' : memories.length ? 'Choose a memory' : 'This Part has no memories');
-    placeholder.value = '';
-    memorySelect.replaceChildren(placeholder);
-    for (const memory of memories) {
-      const option = node('option', memory.gist); option.value = memory.id; memorySelect.append(option);
-    }
-    memorySelect.disabled = memories.length === 0;
-  };
-  partSelect.onchange = updateMemories;
-  updateMemories();
-  const dreamButton = button('Dream', () => {});
-  dreamButton.disabled = true;
-  dreamButton.title = 'Under construction';
-  controls.append(partLabel, memoryLabel, dreamButton);
-  content.append(controls);
-}
 function history(): void {
   const filter = node('input'); filter.placeholder = 'Filter by cycle, Part ID, type, memory or prediction'; filter.setAttribute('aria-label', 'Logs filter');
   const list = node('div'); const draw = (): void => { list.replaceChildren(); for (const event of events.filter(e => JSON.stringify(e).toLowerCase().includes(filter.value.toLowerCase())).slice().reverse()) list.append(details(`${event.sequence} · ${event.type} · ${event.at}`, event)); };
@@ -3632,16 +3525,6 @@ function promptSettings(): void {
       body.append(editor, reference); panel.append(body); workspace.append(panel);
     }
     select(selectedPromptTask);
-  }).catch(showError);
-}
-
-function experiments(): void {
-  const container = node('div'); content.append(container);
-  void api<{ names: string[]; runs: unknown[] }>('experiments').then(result => {
-    const select = node('select'); select.setAttribute('aria-label', 'Experiment'); for (const name of result.names) { const option = node('option', name); option.value = name; select.append(option); }
-    const experimentLabel = node('label', 'Experiment'); experimentLabel.append(select);
-    container.append(experimentLabel, button('Run experiment on a fresh Agent', async () => { const run = await api<{ agentId: string }>('experiments', 'POST', { name: select.value }); selectedAgent = run.agentId; await agents(); }));
-    for (const run of result.runs.slice().reverse()) container.append(details('Saved experiment · stages, predictions and persistent change', run));
   }).catch(showError);
 }
 

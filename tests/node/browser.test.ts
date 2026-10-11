@@ -66,7 +66,7 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
     await page.getByText('Exactly what Self receives', { exact: true }).click();
     assert.ok((await page.locator('#content').innerText()).includes('self.arbitration_started'));
     assert.ok((await page.locator('#content').innerText()).includes('Cycle 1 · Thought generation 1'));
-    // Legacy consolidation is a retained experiment; the Dream UI now owns constructed learning.
+    // Legacy consolidation is a retained experiment; the Sleep dashboard owns current-profile learning.
     assert.ok(store.list('memory', agent.id).length);
     const firstMemory = store.list('memory', agent.id)[0]!;
     assert.ok(store.versions('memory', firstMemory.id).length);
