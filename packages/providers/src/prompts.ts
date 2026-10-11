@@ -12,7 +12,7 @@ function loadFactoryPrompt(name: string): string {
 }
 export const prompts = {
   executive_skill_consolidation: { version: 'executive-skill-consolidation-v3', text: loadFactoryPrompt('executive_skill_consolidation') },
-  simulation_evaluation: { version: 'simulation-evaluation-v1', text: loadFactoryPrompt('simulation_evaluation') },
+  simulation_evaluation: { version: 'simulation-evaluation-v2', text: loadFactoryPrompt('simulation_evaluation') },
   hypothesis_outcome: { version: 'hypothesis-outcome-v1', text: loadFactoryPrompt('hypothesis_outcome') },
   hypothesis_reflection: { version: 'hypothesis-reflection-v1', text: loadFactoryPrompt('hypothesis_reflection') },
   cognition_coverage: { version: 'cognition-coverage-adjustable-states-v2', text: loadFactoryPrompt('cognition_coverage') },

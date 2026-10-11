@@ -33,7 +33,12 @@ test('run analytics preserves rounds and version changes, isolates recorded evid
       assert.equal(cell.rounds.length, run.stages[cell.stageIndex]!.activations.filter(item => item.dispositionId === row.dispositionId).length);
     }
     assert.ok(report.stages.some(stage => stage.trace.some(event => event.lane === 'Self')));
-    assert.ok(report.stages.every(stage => stage.trace.every(event => event.cycleId === stage.cycleId && event.runId === run.id && event.parentEventId === null)));
+    const recorded = store.events(run.agentId);
+    assert.ok(report.stages.every(stage => stage.trace.every(event => event.runId === run.id && (event.cycleId === stage.cycleId || event.cycleId === null))));
+    for (const event of report.stages.flatMap(stage => stage.trace)) if (event.parentEventId) {
+      const parent = recorded.find(item => item.id === event.parentEventId); assert.ok(parent);
+      if (event.type !== 'runtime.validation') { assert.equal(parent.type, 'simulation.stage_started'); if (parent.type === 'simulation.stage_started') assert.equal(parent.payload.stageIndex, event.stageIndex); }
+    }
     assert.ok(!JSON.stringify(report).includes('Private source conversation'));
     assert.deepEqual(await api(app, 'GET', `/api/simulation-tests/${run.id}/analysis`), report);
     await assert.rejects(() => api(app, 'GET', '/api/simulation-tests/missing/analysis'));
@@ -56,7 +61,7 @@ test('run analytics preserves rounds and version changes, isolates recorded evid
     historical.stages[0]!.activations.push({ ...activation, score: 0, active: false });
     const repeated = analyzeSimulation(store, historical).activation.find(row => row.dispositionId === activation.dispositionId)!.cells[0]!;
     assert.equal(repeated.rounds.length, 2); assert.equal(repeated.rounds[0]!.score, activation.score); assert.equal(repeated.rounds[1]!.score, 0);
-    historical.stages[0]!.cycleId = 'unavailable-historical-cycle';
+    historical.stages[0]!.cycleId = 'unavailable-historical-cycle'; delete historical.stages[0]!.id;
     assert.equal(analyzeSimulation(store, historical).stages[0]!.traceAvailable, false);
     assert.ok(analyzeSimulation(store, historical).gaps.some(gap => gap.includes('no recorded')));
     await app.close(); store.close(); store = new SqliteStore(path);

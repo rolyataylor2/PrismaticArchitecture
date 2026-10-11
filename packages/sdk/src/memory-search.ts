@@ -1,3 +1,4 @@
+import { suppressProviderObservation } from './provider-observation.js';
 import { z } from 'zod';
 import { cosine } from '../../core/src/activation.js';
 import { freeze, id, now, WorldStateSchema, ActivationScoreSchema, ordinaryMemory, type Memory, type Part } from '../../core/src/domain.js';
@@ -10,7 +11,10 @@ export type MemorySearchResult = { memory: Memory; timestamp: string | null; act
   ownerName: string; mode: 'vector' | 'jev' };
 
 /** Privileged researcher search only. Never commits a WorldState, runs cognition, or shares memory with a Part. */
-export async function searchMemories(app: Application, agentId: string, raw: unknown): Promise<MemorySearchResult[]> {
+export function searchMemories(app: Application, agentId: string, raw: unknown): Promise<MemorySearchResult[]> {
+  return suppressProviderObservation.run(true, () => searchMemoriesUnobserved(app, agentId, raw));
+}
+async function searchMemoriesUnobserved(app: Application, agentId: string, raw: unknown): Promise<MemorySearchResult[]> {
   const input = MemorySearchSchema.parse(raw);
   app.store.get('agent', agentId);
   let parts: Part[] = app.store.list('part', agentId);

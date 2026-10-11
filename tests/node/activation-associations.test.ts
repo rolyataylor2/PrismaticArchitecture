@@ -80,6 +80,15 @@ test('two-pass plumbing freezes direct signals, admits soft contribution, inhibi
     assert.deepEqual(generations.map(input => input.dispositions?.[0]?.id), ['boosted']);
     assert.equal(dispositionStatistics(store, 'inhibited').activatedCycles, 0, 'Baseline activity must not count as final use');
     assert.equal(dispositionStatistics(store, 'boosted').activatedCycles, 1);
+    const eligibility = store.eventsByType(agent.id, ['construction.eligibility'], [result.cycle.id])[0]!;
+    assert.ok(eligibility.type === 'construction.eligibility');
+    assert.deepEqual(eligibility.payload.scopes.find(scope => scope.dispositionId === 'inactive')!.reasons, ['inactive scope']);
+    assert.equal(eligibility.payload.scopes.find(scope => scope.dispositionId === 'inactive')!.eligible, false);
+    const admission = store.eventsByType(agent.id, ['construction.admission'], [result.cycle.id])[0]!;
+    assert.ok(admission.type === 'construction.admission');
+    assert.equal(admission.payload.scopes.find(scope => scope.dispositionId === 'inhibited')!.status, 'below_threshold');
+    assert.equal(admission.payload.scopes.find(scope => scope.dispositionId === 'boosted')!.status, 'admitted');
+    assert.equal(admission.payload.scopes.find(scope => scope.dispositionId === 'inhibited')!.score, 0);
     assert.equal(result.cycle.status, 'completed');
   } finally { store.close(); }
 });

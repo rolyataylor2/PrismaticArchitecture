@@ -66,10 +66,20 @@ export type EventPayloads = {
   'execution.procedure_review': { contractId: string; skillId: string; sourceVersion: number; resultVersion: number; decision: 'approval' | 'rejection'; reason: string; packageDigest: string }; 
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
   'provider.operation': import('./provider-operation.js').ProviderOperation;
-  'provider.usage': { operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'provider.usage': { researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'simulation.stage_started': { runId: string; stageId: string; stageIndex: number; name: string; phase: 'control' | 'training' | 'probe' };
+  'simulation.stage_completed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
+  'simulation.stage_failed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
   'construction.inference_started': import('./constructed-domain.js').ConstructedInput;
+  'construction.eligibility': { worldId: string; threadId: string | null; inquiry: string | null; scopes: {
+    dispositionId: string; name: string; version: number; temporary: boolean; threshold: number; eligible: boolean; reasons: string[] }[] };
+  'construction.admission': { worldId: string; inquiry: string | null; scopes: { dispositionId: string; score: number | null;
+    threshold: number; status: 'admitted' | 'below_threshold' | 'budget_deferred' | 'already_participating' }[] };
   'construction.temporary_scope_budget': { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] };
   'construction.generated': { partId: string; result: z.infer<typeof import('./constructed-domain.js').PartGenerationSchema> };
+  'construction.judgment_started': import('./constructed-domain.js').JudgmentInput;
+  'runtime.validation': { inputEventId: string; task: string; contract: string; status: 'accepted' | 'rejected';
+    issues: { path: string; code: string }[]; result: unknown };
   'construction.judgment': { input: import('./constructed-domain.js').JudgmentInput; scores: ActivationScore[] };
   'execution.attention': import('./executive-attention.js').ExecutiveAttentionRecord;
   'execution.remainder_handoff_failed': { contractId: string; stage: 'consume' | 'cancel' | 'wait' | 'ready'; consumed: boolean; reason: string };
@@ -150,7 +160,7 @@ export type EventPayloads = {
   'researcher.recovery': { targetId: string; targetKind: 'cycle' | 'consolidation'; reason: string; origin: 'researcher_edit' };
 };
 export type CognitiveEvent = { [K in keyof EventPayloads]: {
-  id: string; sequence: number; agentId: string; cycleId: string | null; at: string;
+  id: string; sequence: number; agentId: string; cycleId: string | null; at: string; researchScope?: import('./provider-operation.js').ResearchStageReference;
   type: K; payload: EventPayloads[K];
 } }[keyof EventPayloads];
 export interface Store {
@@ -170,7 +180,7 @@ export interface Store {
   saveCycle(cycle: Cycle): void;
   cycles(agentId: string): Cycle[];
   cycle(id: string): Cycle;
-  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K]): CognitiveEvent;
+  appendEvent<K extends keyof EventPayloads>(agentId: string, cycleId: string | null, type: K, payload: EventPayloads[K], researchScope?: import('./provider-operation.js').ResearchStageReference): CognitiveEvent;
   events(agentId: string, after?: number): CognitiveEvent[];
   eventsByType(agentId: string, types: (keyof EventPayloads)[], cycleIds?: string[]): CognitiveEvent[];
   saveEmbedding(partId: string, key: string, vector: number[]): void;

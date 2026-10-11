@@ -1,13 +1,14 @@
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
-import { researchRun, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
+import { simulationReport } from './simulation-report.js';
+import { researchRun, simulationCitation, simulationResearch, simulationCandidates, saveSimulationReview, saveSimulationMetricReview, saveSimulationFinding, saveSimulationCandidates } from './simulation-research.js';
 import { compareSimulations, compareSimulationStages, aggregateSimulations } from './simulation-comparison.js';
 import { registerAgentMcp } from './mcp-registration.js';
 import { previewMcpRepository, searchMcpRegistry } from './mcp-repository.js';
 import { copySkillPackage } from './skill-package-copy.js';
 import { copyExecutiveProfile } from './executive-profile-copy.js';
 import { parseAgentSkillPackage } from '../../core/src/agent-skill-format.js';
-import { semanticSimulationCriteria, startSimulationAssessment } from './simulation-evaluator.js';
+import { simulationAssessmentAvailable, startSimulationAssessment } from './simulation-evaluator.js';
 import { simulationRubric } from './simulation-rubrics.js';
 import { dispositionStatistics } from './disposition-statistics.js';
 import { createComponent, draftComponent } from './component-authoring.js';
@@ -59,18 +60,22 @@ export async function api(app: Application, method: string, path: string, body: 
   if (resource === 'simulation-tests') {
     if (method === 'POST' && entityId === 'compare-stages' && !action) {
       const input = z.strictObject({ leftRunId: Text, rightRunId: Text, leftIndex: z.number().int().min(0), rightIndex: z.number().int().min(0) }).parse(body);
-      return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex);
+      return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex, app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
     }
     if (method === 'POST' && entityId === 'compare' && !action) {
       const input = z.strictObject({ leftRunId: Text, rightRunId: Text }).parse(body);
-      return compareSimulations(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId));
+      return compareSimulations(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
     }
     if (method === 'POST' && entityId === 'aggregate' && !action) {
       const input = z.strictObject({ runIds: z.array(Text).max(200) }).parse(body);
-      return aggregateSimulations([...new Set(input.runIds)].map(runId => researchRun(app.store, runId)));
+      const selected = [...new Set(input.runIds)].map(runId => researchRun(app.store, runId));
+      return aggregateSimulations(selected,
+        app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[],
+        selected.filter(run => run.status !== 'running').map(run => ({ runId: run.id, candidates: simulationCandidates(app.store, run) })));
     }
     if (entityId && action === 'research') {
       if (method === 'GET') return { ...simulationResearch(app.store, entityId), candidates: simulationCandidates(app.store, researchRun(app.store, entityId)) };
+      if (method === 'POST' && subresource === 'metric-reviews') return saveSimulationMetricReview(app.store, entityId, body);
       if (method === 'POST' && subresource === 'reviews') return saveSimulationReview(app.store, entityId, body);
       if (method === 'POST' && subresource === 'findings') return saveSimulationFinding(app.store, entityId, body);
       if (method === 'POST' && subresource === 'candidates') return saveSimulationCandidates(app.store, entityId);
@@ -84,12 +89,16 @@ export async function api(app: Application, method: string, path: string, body: 
       if (action === 'fork' && !Object.keys(input.activationChanges ?? {}).length) throw new Error('A fork requires an explicit configuration change');
       return replaySimulation(app, entityId, input.reason, input.activationChanges as Parameters<typeof replaySimulation>[3]);
     }
+    if (method === 'GET' && entityId && action === 'report') {
+      const run = researchRun(app.store, entityId);
+      return simulationReport(run, analyzeSimulation(app.store, run), simulationResearch(app.store, entityId), simulationCandidates(app.store, run), reference => simulationCitation(app.store, run, reference));
+    }
     if (method === 'GET' && entityId && action === 'analysis') {
       const run = listSimulationRuns(app).find(item => item.id === entityId);
       if (!run) throw new Error('Unknown simulation run');
       return analyzeSimulation(app.store, run);
     }
-    if (method === 'GET' && !entityId) return { tests: simulationTests.map(test => ({ ...test, rubric: simulationRubric(test) })), runs: listSimulationRuns(app).map(run => ({ ...run, assessmentAvailable: semanticSimulationCriteria(run).length > 0 })) };
+    if (method === 'GET' && !entityId) return { tests: simulationTests.map(test => ({ ...test, rubric: simulationRubric(test) })), runs: listSimulationRuns(app).map(run => ({ ...run, assessmentAvailable: simulationAssessmentAvailable(run) })) };
     if (method === 'POST' && entityId && action === 'assess') {
       const input = z.strictObject({ model: z.enum(['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3']).optional(), evaluatorAgentId: Text.optional() }).parse(body ?? {});
       return startSimulationAssessment(app, entityId, { ...(input.model ? { model: input.model } : {}), ...(input.evaluatorAgentId ? { evaluatorAgentId: input.evaluatorAgentId } : {}) });

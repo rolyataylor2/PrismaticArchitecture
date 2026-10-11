@@ -89,7 +89,9 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
     const coveragePreview = previewPrompt(store, agent.id, 'cognition_coverage', prompts.cognition_coverage.text);
     assert.match(coveragePreview.text, /Consequential cognition coverage/);
     calls.length = 0;
-    await app.message(agent.id, 'An unrelated signal elsewhere.', 'observer', 'elsewhere');
+    const otherThread = await app.message(agent.id, 'An unrelated signal elsewhere.', 'observer', 'elsewhere');
+    const exclusions = store.eventsByType(agent.id, ['construction.eligibility'], [otherThread.cycle.id]).flatMap(event => event.type === 'construction.eligibility' ? event.payload.scopes : []);
+    assert.ok(exclusions.find(scope => scope.dispositionId === scaffold.id)!.reasons.includes('different thread'));
     assert.ok(!calls.some(input => input.dispositions?.some(disposition => disposition.id === scaffold.id)), 'Original-thread scaffolds stay isolated');
     calls.length = 0;
     await app.message(agent.id, 'The source has not been identified yet.', 'observer', 'signals');
@@ -292,6 +294,10 @@ test('temporary investigation budget limits Part admission without normalizing i
         retrievalIntent: 'Recall discriminating source experience', relevantMemoryIds: [], supportEvidence: ['Continuous identifying evidence'],
         contradictEvidence: ['Different identifying evidence'], trackedDistinction: name, futureValue: 'Distinguish recurring sources' })) },
       { threadId: 'signals', gap: 'Source unknown', consequentialValue: 'Discriminate recurring causes', futureInference: { prediction: 'Distinguish', retrieval: 'Recall', causal: 'Attribute', action: 'Investigate', compression: 'Connect' }, existingStructureInsufficient: 'Explicit budget fixture' });
+    await app.runtime.constructed.assess(world, 'signals');
+    const sameCycleEligibility = store.eventsByType(agent.id, ['construction.eligibility'], [initial.cycle.id]).at(-1)!;
+    assert.ok(sameCycleEligibility.type === 'construction.eligibility');
+    assert.equal(sameCycleEligibility.payload.scopes.filter(scope => scope.reasons.includes('created in this cycle; later-cycle eligibility required')).length, 3);
     const later = await app.message(agent.id, 'The signal continues.', 'observer', 'signals');
     const budget = store.eventsByType(agent.id, ['construction.temporary_scope_budget'], [later.cycle.id])[0]!;
     assert.equal(budget.type, 'construction.temporary_scope_budget');
@@ -299,6 +305,11 @@ test('temporary investigation budget limits Part admission without normalizing i
     assert.equal(budget.payload.activeScopeIds.length, 3);
     assert.equal(budget.payload.admittedScopeIds.length, 1);
     assert.equal(budget.payload.deferredScopeIds.length, 2);
+    const admission = store.eventsByType(agent.id, ['construction.admission'], [later.cycle.id])[0]!;
+    assert.ok(admission.type === 'construction.admission');
+    assert.equal(admission.payload.scopes.filter(scope => scope.status === 'admitted').length, 1);
+    assert.equal(admission.payload.scopes.filter(scope => scope.status === 'budget_deferred').length, 2);
+    assert.ok(admission.payload.scopes.every(scope => scope.score === 4), 'Budget deferral is not independent nonactivation');
     const judgments = store.eventsByType(agent.id, ['construction.judgment'], [later.cycle.id]);
     const scores = judgments.flatMap(event => event.type === 'construction.judgment' && event.payload.input.task === 'disposition_activation' ? event.payload.scores : []);
     assert.deepEqual(scores.map(score => score.score), [4, 4, 4], 'Admission must preserve every independent activation judgment');
