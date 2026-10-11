@@ -113,3 +113,6 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
 OpenAI/xAI errors now retain structured safe HTTP status, retryability and violated contract locations. Raw vendor bodies and headers remain excluded. Cache usage distinguishes an absent vendor cache report from a reported zero. SDK observation correlates reported usage through async operation context and does not inject audit data into provider inference.
+
+ADR 0160 adds the separate editable `memory_synthesis` sleep task, routed through constructed inference. It receives one disposition, selected subjective memories and linked predictions only. Factory/schema/preview support abstention and scoped citations; mock inference abstains. It neither verifies external causes nor creates dispositions.
+The synthesis factory v2 uses an explicit recorded detail policy and optional guidance; each cited source receives a scoped retention/omission judgment. These choices never supply evidence or force belief rejection. Identical lineage under a different policy may produce a separately inspectable synthesis.

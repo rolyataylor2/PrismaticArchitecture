@@ -365,3 +365,5 @@ Researcher disposition deletion appends a tombstone version and removes the disp
 ## Concern inheritance (ADR 0154)
 
 Prediction correctness never manufactures motivation. Only offline institutionalization may establish a newly inherited concern from cited originating and subsequent expressed cognition. Temporary scaffolds remain relevance-only; audit citations do not grant online memory access, activation or authority.
+
+[ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds optional disposition-scoped sleep synthesis. New subjective memories preserve source-version lineage; separately enabled retrieval replacement affects only that disposition, preserving original records and other scopes. Inputs are captured before sleep writes; activation selects review, not a required conclusion.

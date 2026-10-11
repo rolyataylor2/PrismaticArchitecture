@@ -85,7 +85,7 @@ export function previewPrompt(store: Store, agentId: string, task: PromptTask, t
   let context: object;
   let owner: string | null = null;
   let note = 'Saved WorldState with current Part state and owner-scoped memories. This is a sample, not an exact historical request.';
-  if (['part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'effortful_recall'].includes(task)) {
+  if (['part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall'].includes(task)) {
     const requests = store.eventsByType(agentId, ['construction.inference_started']).flatMap(event => event.type === 'construction.inference_started' && event.payload.task === task ? [event.payload] : []);
     context = sample(requests, 'No recorded request for this task yet. Run constructed cognition, consolidation or deliberate recall first.');
     note = 'Recorded permitted constructed-task input; no inference call. Offline learning and effortful recall do not receive WorldState.';

@@ -189,7 +189,7 @@ export class SqliteStore implements Store {
       }
       if (kind === 'memory' || kind === 'prediction') {
         const owned = parsed as EntityMap['memory'] | EntityMap['prediction'];
-        if (owned.partId === null) {
+        if (owned.partId === null && !(kind === 'memory' && (owned as EntityMap['memory']).synthesis)) {
           if (this.get('agent', parsed.agentId).architecture !== 'constructed') throw new Error('Gap ownership requires constructed cognition');
           const prediction = kind === 'prediction' ? owned as EntityMap['prediction']
             : (owned as EntityMap['memory']).predictionId ? this.get('prediction', (owned as EntityMap['memory']).predictionId!) : null;
@@ -218,6 +218,27 @@ export class SqliteStore implements Store {
       }
       if (kind === 'memory') {
         const memory = parsed as EntityMap['memory'];
+        if (expectedVersion > 0 && JSON.stringify(memory.synthesis) !== JSON.stringify(this.get('memory', memory.id).synthesis))
+          throw new Error('Memory synthesis attribution and source versions are immutable');
+        if (memory.synthesis) {
+          const lineage = memory.synthesis;
+          const disposition = this.versions('disposition', lineage.dispositionId).find(record => record.state.version === lineage.dispositionVersion)?.state;
+          const run = this.consolidations(memory.agentId).find(run => run.id === lineage.runId);
+          if (memory.partId !== null || memory.predictionId !== null || this.get('agent', memory.agentId).architecture !== 'constructed'
+            || !disposition || disposition.agentId !== memory.agentId || !run?.options?.synthesizeMemories
+            || this.cycle(memory.createdCycle).agentId !== memory.agentId
+            || new Set(lineage.sources.map(source => source.memoryId)).size !== lineage.sources.length
+            || (lineage.detailDecisions && (lineage.detailDecisions.length !== lineage.sources.length
+              || new Set(lineage.detailDecisions.map(decision => decision.memoryId)).size !== lineage.sources.length
+              || lineage.detailDecisions.some(decision => !lineage.sources.some(source => source.memoryId === decision.memoryId)))))
+            throw new Error('Synthesis requires explicit same-Agent disposition, sleep and distinct source attribution');
+          for (const reference of lineage.sources) {
+            const source = this.versions('memory', reference.memoryId).find(record => record.state.version === reference.version)?.state;
+            if (reference.memoryId === memory.id || !source || source.agentId !== memory.agentId
+              || source.ancestorIds.some(ancestor => !memory.ancestorIds.includes(ancestor)))
+              throw new Error('Synthesis requires preserved same-Agent source versions and ancestry');
+          }
+        }
         for (const partId of memoryPartIds(memory)) {
           if (this.get('part', partId).agentId !== memory.agentId) throw new Error('Memory reference Agent mismatch');
         }
@@ -241,6 +262,7 @@ export class SqliteStore implements Store {
           const preserved = expectedVersion > 0 && this.get('disposition', state.id).activationAssociations?.some(previous => previous.kind === 'disposition' && previous.dispositionId === target.id);
           if (target.id === state.id || target.agentId !== state.agentId || (target.deleted && !preserved)) throw new Error('Invalid disposition activation association');
         }
+        for (const memoryId of state.suppressedMemoryIds ?? []) if (this.get('memory', memoryId).agentId !== state.agentId) throw new Error('Disposition retrieval exclusion ownership mismatch');
         for (const memoryId of state.memoryIds) if (this.get('memory', memoryId).agentId !== state.agentId) throw new Error('Disposition memory ownership mismatch');
         if (state.sourcePredictionId && this.get('prediction', state.sourcePredictionId).agentId !== state.agentId) throw new Error('Disposition prediction ownership mismatch');
         if (state.scaffold) {

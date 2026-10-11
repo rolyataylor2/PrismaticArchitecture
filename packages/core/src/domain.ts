@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+import { SynthesisPolicySchema } from './sleep-policy.js';
 import { OperationSchema } from './operation.js';
 import { SelectedActivitySchema } from './execution-review.js';
 import { ExternalCapabilitiesSchema } from './mcp-configuration.js';
@@ -16,7 +17,7 @@ export const Origin = z.enum(['seed', 'organic_cognition', 'prediction_evaluatio
 export type Origin = z.infer<typeof Origin>;
 export const AgentActivationSettingsSchema = z.strictObject({ vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false) });
 export type AgentActivationSettings = z.infer<typeof AgentActivationSettingsSchema>;
-export const PromptTaskSchema = z.enum(['executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'effortful_recall']);
+export const PromptTaskSchema = z.enum(['executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
 export type PromptTask = z.infer<typeof PromptTaskSchema>;
 export const PromptOverrideSchema = z.strictObject({
   scope: z.enum(['global', 'agent']), agentId: z.string().nullable(), task: PromptTaskSchema, text: z.string().min(1).max(32768).refine(value => Boolean(value.trim()), 'Prompt cannot be empty'),
@@ -89,6 +90,9 @@ export const PartPatchSchema = PartDraftSchema.omit({ provenance: true, lineage:
 export type PartPatch = z.infer<typeof PartPatchSchema>;
 export const MemorySchema = z.strictObject({
   ...Version, partId: Id.nullable(), content: Text, gist: Text, context: z.array(Text), deleted: z.boolean().optional(),
+  synthesis: z.strictObject({ dispositionId: Id, dispositionVersion: z.number().int().positive(), runId: Id, policy: SynthesisPolicySchema.optional(),
+    detailDecisions: z.array(z.strictObject({ memoryId: Id, retainedMeaning: Text, omittedDetails: z.array(Text).max(30), reason: Text })).optional(),
+    sources: z.array(z.strictObject({ memoryId: Id, version: z.number().int().positive() })).min(2), reason: Text }).optional(),
   ancestorIds: z.array(Id), predictionId: Id.nullable(), createdCycle: Id,
   selfAffectAtFormation: z.array(z.strictObject({ partId: Id, affect: z.string().max(4000) })).optional(),
   encoding: z.strictObject({ interpretation: Text, affect: z.string().max(4000),
@@ -98,7 +102,7 @@ export const MemorySchema = z.strictObject({
 export type Memory = z.infer<typeof MemorySchema>;
 /** Reserved formation metadata is not an inference input. */
 export function memoryWithoutFormationAffect(memory: Memory): Memory {
-  const { selfAffectAtFormation: _storedSelfAffect, ...ordinary } = memory;
+  const { selfAffectAtFormation: _storedSelfAffect, synthesis: _synthesisLineage, ...ordinary } = memory;
   return ordinary;
 }
 /** Ordinary recall preserves subjective content; detailed traces require deliberate recollection. */
@@ -344,7 +348,7 @@ export const DispositionDevelopmentSchema = z.strictObject({
   createdAt: z.iso.datetime(),
 });
 // Optional metadata preserves legacy records without fabricating developmental evidence.
-export const DispositionSchema = DispositionDraftSchema.extend({ ...Version, active: z.boolean(), deleted: z.boolean().optional(),
+export const DispositionSchema = DispositionDraftSchema.extend({ ...Version, suppressedMemoryIds: z.array(Id).optional(), active: z.boolean(), deleted: z.boolean().optional(),
   scaffold: z.strictObject({ createdCycle: Id, threadId: Id.nullable(),
     hypothesisVersion: z.number().int().positive(), relevance: RelevanceScaffoldDraftSchema,
     endedCycle: Id.nullable(), endReason: Text.nullable() }).optional(),
@@ -367,7 +371,8 @@ export function freeze<T>(value: T): T {
 
 /** Learned psychology is ordinary context; its audit citations are not. */
 export function ordinaryDisposition(disposition: Disposition): Disposition {
-  if (!disposition.development?.concernInheritance) return disposition;
+  const { suppressedMemoryIds: _retrievalExclusions, ...ordinary } = disposition;
+  if (!disposition.development?.concernInheritance) return ordinary;
   const { concernInheritance: _audit, ...development } = disposition.development;
-  return { ...disposition, development };
+  return { ...ordinary, development };
 }

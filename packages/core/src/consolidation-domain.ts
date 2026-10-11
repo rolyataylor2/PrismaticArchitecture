@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SynthesisPolicySchema } from './sleep-policy.js';
 import { Id, MemorySchema, PartDraftSchema, PartPatchSchema, Text, type Activation, type Memory, type Part, type Prediction } from './domain.js';
 
 export const DevelopmentProposalSchema = z.discriminatedUnion('kind', [
@@ -19,11 +20,19 @@ export type ConsolidationContext = {
   population: { id: string; name: string; mode: Part['mode']; triggers: string[] }[];
 };
 export const ReplayResultSchema = z.strictObject({ reason: Text, revision: MemorySchema.pick({ content: true, gist: true }).nullable() });
+export const SleepOptionsSchema = z.strictObject({ ...SynthesisPolicySchema.shape, synthesizeMemories: z.boolean().default(false),
+  replaceSourceMemories: z.boolean().default(false) }).refine(options => !options.replaceSourceMemories || options.synthesizeMemories,
+  'Source replacement requires memory synthesis');
+export type SleepOptions = z.infer<typeof SleepOptionsSchema>;
+export type SleepSynthesisReview = { dispositionId: string; dispositionName: string; dispositionVersion: number;
+  sourceMemoryIds: string[]; predictionIds: string[]; cycleIds: string[];
+  status: 'pending' | 'created' | 'no_change' | 'duplicate' | 'failed'; memoryId: string | null; replacedMemoryIds: string[]; reason: string };
 export type ConsolidationRun = {
   id: string; agentId: string; startedAt: string; status: 'running' | 'completed' | 'failed';
   fromCycle: number; toCycle: number; provider: string;
   selections: { partId: string; memoryIds: string[]; predictionIds: string[]; thoughtCycles: string[]; repeatedReferents: { name: string; count: number }[]; coactivated: { partId: string; count: number }[] }[];
   changes: { partId: string; proposal: DevelopmentProposal; accepted: boolean; explanation: string; beforeVersion: number; afterVersion: number; createdPartId: string | null }[];
   constructedLearning?: { dispositionIds: string[]; revisedMemoryIds: string[]; reason: string };
+  options?: SleepOptions; synthesisReviews?: SleepSynthesisReview[];
   error: string | null;
 };

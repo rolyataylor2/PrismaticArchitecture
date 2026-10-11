@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SynthesisPolicySchema } from './sleep-policy.js';
 import { predictionTrajectories, PredictionTrajectorySchema } from './prediction-lineage.js';
 import { CoverageProductSchema } from './cognition-coverage.js';
 import { commitReconciliation } from './reconciliation-commit.js';
@@ -46,6 +47,9 @@ export class ConstructedCognition {
     if (input.learningTraces && task !== 'disposition_learning') throw new InfrastructureError(task, 'Learning traces are offline-only evidence');
     if (task === 'experiential_formation' && (input.workingParts || input.identity || input.dispositionBindings || input.memory || input.question))
       throw new InfrastructureError(task, 'Experiential formation receives committed subjective memories and relevance structures only');
+    if (input.synthesisPolicy && task !== 'memory_synthesis') throw new InfrastructureError(task, 'Synthesis detail policy is reserved for offline memory synthesis');
+    if (task === 'memory_synthesis' && (input.workingParts || input.identity || input.dispositionBindings || input.memory || input.question || input.dispositions?.length !== 1))
+      throw new InfrastructureError(task, 'Memory synthesis receives one disposition and selected subjective evidence only');
     if (task === 'memory_reinterpretation' && (input.workingParts || input.identity || input.dispositions || input.dispositionBindings || input.memory || input.question))
       throw new InfrastructureError(task, 'Memory reinterpretation receives selected subjective evidence only');
     if ((input.memories ?? []).some(memory => memory.agentId !== input.agentId) || (input.memory && input.memory.agentId !== input.agentId)) throw new InfrastructureError(task, 'Inference memory ownership mismatch');
@@ -65,6 +69,7 @@ export class ConstructedCognition {
       ...(input.outcome ? { outcome: input.outcome } : {}),
       ...(input.hypothesisLimit !== undefined ? { hypothesisLimit: z.number().int().min(0).max(3).parse(input.hypothesisLimit) } : {}),
       ...(input.coverageProducts ? { coverageProducts: CoverageProductSchema.array().parse(input.coverageProducts) } : {}),
+      ...(task === 'memory_synthesis' ? { synthesisPolicy: SynthesisPolicySchema.parse(input.synthesisPolicy ?? {}) } : {}),
       ...(input.predictions ? { predictions: input.predictions } : {}),
       ...(input.hypothesisHistory ? { hypothesisHistory: input.hypothesisHistory } : {}),
       ...(input.dispositionHistory ? { dispositionHistory: input.dispositionHistory } : {}),
@@ -237,7 +242,7 @@ export class ConstructedCognition {
     // Both recall batches and Part generations are independent and concurrent. No writes occur until all complete.
     const products = await Promise.all(assemblies.map(async assembly => {
       const recallScores = await this.judge({ task: 'memory_accessibility', agentId, world,
-        candidates: autobiography.map(memory => ({ id: memory.id,
+        candidates: autobiography.filter(memory => !assembly.disposition?.suppressedMemoryIds?.includes(memory.id)).map(memory => ({ id: memory.id,
           question: 'Could this lived episode materially inform this disposition perspective, including contrary evidence? Score independently 0–4.',
           context: { memory, disposition: assembly.disposition, scope: assembly.entityId,
             ...(recruitment ? { inquiry: recruitment.question } : {}),

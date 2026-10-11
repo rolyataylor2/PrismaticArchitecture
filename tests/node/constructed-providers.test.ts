@@ -150,8 +150,10 @@ test('assembled live-provider schemas couple subjective reflection with its gist
 test('OpenAI and Ollama dispatch every constructed generation task with strict products and editable catalog contracts', async () => {
   const fixture = new MockReasoning();
   for (const task of constructedTasks) {
-    const input: ConstructedInput = { task, agentId: 'agent', ...(['experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'effortful_recall'].includes(task) ? {} : { world }), ...(task === 'part_cognition' ? { workingParts: [] } : {}),
+    const input: ConstructedInput = { task, agentId: 'agent', ...(['experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall'].includes(task) ? {} : { world }), ...(task === 'part_cognition' ? { workingParts: [] } : {}),
       memories: [], predictions: [], dispositions: [],
+      ...(task === 'memory_synthesis' ? { synthesisPolicy: { detailPolicy: 'preserve_details' as const, synthesisInstructions: '' },
+        dispositions: [{ id: 'cold', agentId: 'agent', version: 1, schemaVersion: 1, name: 'Cold Weather Travel', concern: 'Notice cold travel', cues: ['cold car'], scope: 'cold travel', prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }] } : {}),
       ...(task === 'disposition_learning' ? { dispositionHistory: [], observations: { episodes: [], coactivations: [] }, learningTraces: [{ cycleId: 'selected-learning-cycle', sequence: 1, threadId: 'selected-thread',
         activations: [{ dispositionId: 'painting', scope: 'paint + surface + intention', score: 3, active: true }], thoughts: [] }] } : {}) };
     const output = await fixture.constructed(input);
@@ -185,6 +187,10 @@ test('OpenAI and Ollama dispatch every constructed generation task with strict p
     assert.equal(requests.length, 2, 'Each provider makes exactly one transport request');
     assert.ok(requests.every(prompt => prompt.includes(`Task: ${task}`)));
     if (task === 'part_cognition') assert.ok(requests.every(prompt => prompt.includes('formation, memoryReflection, memoryGist, cognition')));
+    if (task === 'memory_synthesis') {
+      assert.ok(requests.every(prompt => prompt.includes('preserve_details')));
+      assert.ok(promptInspection[task]!.variables.some(variable => variable.name === 'synthesisPolicy'));
+    }
     if (task === 'disposition_learning') {
       assert.ok(requests.every(prompt => prompt.includes('selected-learning-cycle') && prompt.includes('selected-thread')));
       assert.ok(promptInspection[task]!.variables.some(variable => variable.name === 'learningTraces'));

@@ -18,6 +18,13 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     return z.union([sufficient, schema.options[1].extend({ adjustments, hypotheses: schema.options[1].shape.hypotheses.max(input.hypothesisLimit) })]);
   }
   if (input.task === 'hypothesis_reflection' && input.world) return constructedOutputs.hypothesis_reflection.extend({ evaluation: constructedOutputs.hypothesis_reflection.shape.evaluation.extend({ evidenceWorldId: z.literal(input.world.id) }) });
+  if (input.task === 'memory_synthesis') {
+    const ids = [...new Set((input.memories ?? []).map(memory => memory.id))];
+    const schema = constructedOutputs.memory_synthesis;
+    if (ids.length < 2) return schema.extend({ synthesis: z.null() });
+    const references = z.array(z.enum(ids as [string, ...string[]])).max(100);
+    return schema.extend({ synthesis: schema.shape.synthesis.unwrap().extend({ sourceMemoryIds: references.min(2), replaceSourceMemoryIds: references, detailDecisions: schema.shape.synthesis.unwrap().shape.detailDecisions.element.extend({ memoryId: z.enum(ids as [string, ...string[]]) }).array().min(2).max(100) }).nullable() });
+  }
   if (input.task !== 'part_cognition') return constructedOutputs[input.task];
   const ids = [...new Set((input.memories ?? []).map(memory => memory.id))];
   const references = ids.length ? z.array(z.enum(ids as [string, ...string[]])).max(100) : z.array(Id).max(0);

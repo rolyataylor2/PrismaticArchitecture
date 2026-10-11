@@ -1,3 +1,4 @@
+import { SynthesisPolicySchema } from '../../core/src/sleep-policy.js';
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
 import { simulationReport } from './simulation-report.js';
@@ -352,8 +353,9 @@ export async function api(app: Application, method: string, path: string, body: 
       return app.message(entityId, input.text, input.source, input.threadId, input.skillDocumentIds);
     }
     if (method === 'POST' && action === 'consolidate') {
-      const input = z.strictObject({ fromCycle: z.number().int().positive().optional(), toCycle: z.number().int().positive().optional() }).parse(body);
-      return app.consolidation.run(entityId, input.fromCycle, input.toCycle);
+      const input = z.strictObject({ fromCycle: z.number().int().positive().optional(), toCycle: z.number().int().positive().optional(),
+        synthesizeMemories: z.boolean().optional(), replaceSourceMemories: z.boolean().optional(), ...SynthesisPolicySchema.partial().shape }).parse(body);
+      return app.consolidate(entityId, input.fromCycle, input.toCycle, { synthesizeMemories: input.synthesizeMemories ?? false, replaceSourceMemories: input.replaceSourceMemories ?? false, detailPolicy: input.detailPolicy ?? 'preserve_details', synthesisInstructions: input.synthesisInstructions ?? '' });
     }
     if (method === 'POST' && action === 'parts') return app.runtime.mutations.create(entityId, PartDraftSchema.parse(body),
       { origin: 'researcher_edit', reason: 'Researcher created a Part', sourceIds: [] });

@@ -34,3 +34,7 @@ Ordinary consolidation replay reconsiders these psychological traces. Exceptiona
 Consolidation is conservative semantic restructuring, not a Part-count optimizer. It separates relational specificity from transferable lessons, preserves provenance and ancestry, and uses normal validated mutations. Repeated co-activation can suggest formation but does not compel it; a repeated noun alone is insufficient. When uncertain, preserve existing distinctions.
 
 Online cognition continues at its immediate timescale; offline consolidation does not replace or globally plan the waking loop. It may strengthen, weaken, create, specialize, preserve, or differentiate patterns. It may surface repeated Identity incongruity for later mediated reflection, but cannot directly rewrite core Identity. Subjective memories may be incrementally reconsolidated in new versions; objective history remains secondary evidence and does not overwrite Part meaning.
+
+## Optional disposition memory synthesis
+
+[ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds default-off many-to-one subjective memory synthesis for each independently activated disposition in a selected sleep period. A separate default-off replacement option excludes cited sources only from that disposition's ordinary recall; all original records, versions and other scopes' access survive. Scope inputs are captured before sleep writes. New memories preserve exact source-version lineage and uncertainty; synthesis neither declares objective truth nor automatically creates a disposition.

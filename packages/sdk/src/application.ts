@@ -291,6 +291,9 @@ export class Application {
   async waitForInference(agentId: string): Promise<void> {
     while (this.#inference.has(agentId)) await this.#inference.get(agentId);
   }
+  async consolidate(agentId: string, fromCycle?: number, toCycle?: number, options: Partial<import('../../core/src/consolidation-domain.js').SleepOptions> = {}) {
+    return this.#coordinate(agentId, () => this.consolidation.run(agentId, fromCycle, toCycle, options));
+  }
   async consolidateProcedures(agentId: string) {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }

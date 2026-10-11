@@ -1371,6 +1371,9 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .rd-dialog label { display:flex; flex-direction:column; gap:8px; margin:14px 0; }
 .rd-dialog form { display:grid; gap:10px; }
 .rd-dialog input[type=checkbox] { width:auto; }
+.rd-dialog label.sleep-option { flex-direction:row; align-items:flex-start; gap:10px; margin:4px 0; }
+.rd-dialog .sleep-option input { flex:0 0 auto; margin:3px 0 0; }
+.rd-dialog .sleep-option span { min-width:0; }
 .rd-dialog pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#f2f5f6; padding:18px; font-size:11px; line-height:1.6; max-height:50vh; overflow:auto; }
 .rd-match { background:#f3d797; }
 .rd-dialog .rd-section button { margin:4px; }

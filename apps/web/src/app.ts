@@ -2332,7 +2332,7 @@ function memoriesPage(): void {
     { key: 'gist', label: 'Gist', value: item => item.gist },
     { key: 'date', label: 'Created', value: item => recordDate(item.createdCycle) ?? '' },
     { key: 'version', label: 'Version', value: item => item.version },
-    { key: 'owner', label: 'Origin', value: item => item.partId ?? 'gap', options: [['gap', 'Coverage hypothesis'], ...state!.parts.map(item => [item.id, item.name] as [string, string])] },
+    { key: 'owner', label: 'Origin', value: item => item.synthesis ? 'synthesis' : item.partId ?? 'gap', options: [['synthesis', 'Disposition synthesis'], ['gap', 'Coverage hypothesis'], ...state!.parts.map(item => [item.id, item.name] as [string, string])] },
     { key: 'prediction', label: 'Prediction link', value: item => item.predictionId ? 'linked' : 'unlinked', options: [['linked', 'Linked to prediction'], ['unlinked', 'No prediction link']] },
   ], paint);
   form.append(vector, jev, query, ...browse.controls); componentSearchControls(form); content.append(status, defaults, resultList); paint();
@@ -2362,8 +2362,14 @@ function memoryInfoSections(memory: Memory): HTMLElement[] {
   return [
     inspectorSection('Gist', [memory.gist]), inspectorSection('My memory', [memory.content]),
     inspectorSection('Context', memory.context),
+    ...(memory.synthesis ? [inspectorSection('Consolidated source lineage', [memory.synthesis.reason,
+      `Disposition version: ${memory.synthesis.dispositionVersion}`, `Sleep run: ${memory.synthesis.runId}`,
+      ...memory.synthesis.sources.map(source => {
+        const current = state?.memories.find(memory => memory.id === source.memoryId);
+        return `${current?.version === source.version ? current.gist : source.memoryId} · source version ${source.version} · ${source.memoryId}`;
+      })])] : []),
     ...(memory.encoding ? [inspectorSection('Perspective when encoded', [memory.encoding.interpretation, memory.encoding.affect || 'No affect recorded']), inspectorSection('Fallible perceived details · effortful recall', memory.encoding.perceivedDetails)] : []),
-    inspectorSection('Record details', [`Created: ${readableDate(recordDate(memory.createdCycle))}`, `Version: ${memory.version}`, `Memory: ${memory.id}`, `Agent: ${memory.agentId}`, `Formation origin: ${memory.partId ? `${partName(memory.partId)} (${memory.partId})` : `Coverage hypothesis ${memory.predictionId ?? 'unavailable'}`}`, `Schema version: ${memory.schemaVersion}`, `Deleted: ${memory.deleted ? 'Yes' : 'No'}`, `Created cycle: ${memory.createdCycle}`, ...(memory.predictionId ? [`Prediction: ${memory.predictionId}`] : [])]),
+    inspectorSection('Record details', [`Created: ${readableDate(memory.synthesis ? state?.consolidations.find(run => run.id === memory.synthesis!.runId)?.startedAt : recordDate(memory.createdCycle))}`, `Version: ${memory.version}`, `Memory: ${memory.id}`, `Agent: ${memory.agentId}`, `Formation origin: ${memory.synthesis ? `Disposition synthesis: ${state?.dispositions.find(disposition => disposition.id === memory.synthesis!.dispositionId)?.name ?? memory.synthesis.dispositionId}` : memory.partId ? `${partName(memory.partId)} (${memory.partId})` : `Coverage hypothesis ${memory.predictionId ?? 'unavailable'}`}`, `Schema version: ${memory.schemaVersion}`, `Deleted: ${memory.deleted ? 'Yes' : 'No'}`, `Created cycle: ${memory.createdCycle}`, ...(memory.predictionId ? [`Prediction: ${memory.predictionId}`] : [])]),
   ];
 }
 async function openMemoryInfo(memory: Memory): Promise<void> {

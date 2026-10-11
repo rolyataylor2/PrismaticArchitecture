@@ -218,3 +218,5 @@ ADR 0152 permits opt-in external candidate inference after independently verifie
 ## Offline concern inheritance (ADR 0154)
 
 Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+
+[ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds optional disposition-scoped sleep synthesis. New subjective memories preserve source-version lineage; separately enabled retrieval replacement affects only that disposition, preserving original records and other scopes. Inputs are captured before sleep writes; activation selects review, not a required conclusion.

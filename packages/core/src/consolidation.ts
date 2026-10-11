@@ -1,3 +1,5 @@
+import { captureSynthesisScopes, synthesizeScope } from './sleep-synthesis.js';
+import { SleepOptionsSchema, type SleepOptions } from './consolidation-domain.js';
 import { ConstructedCognition } from './constructed.js';
 import { freeze, id, now, type Memory } from './domain.js';
 import { DevelopmentResultSchema, ReplayResultSchema, type ConsolidationContext, type ConsolidationRun, type DevelopmentProposal } from './consolidation-domain.js';
@@ -8,15 +10,18 @@ import type { PartMutations } from './mutations.js';
 export class Consolidation {
   constructor(private readonly store: Store, private readonly reasoning: ReasoningProvider,
     private readonly mutations: PartMutations, private readonly inspection: Inspection, private readonly constructed?: ConstructedCognition) {}
-  async run(agentId: string, fromCycle = 1, toCycle = Number.MAX_SAFE_INTEGER): Promise<ConsolidationRun> {
+  async run(agentId: string, fromCycle = 1, toCycle = Number.MAX_SAFE_INTEGER, options: Partial<SleepOptions> = {}): Promise<ConsolidationRun> {
     if (!Number.isInteger(fromCycle) || fromCycle < 1 || !Number.isInteger(toCycle) || toCycle < fromCycle) throw new Error('Invalid consolidation cycle range');
+    const settings = SleepOptionsSchema.parse(options);
+    if (settings.synthesizeMemories && this.store.get('agent', agentId).architecture === 'persistent') throw new Error('Memory synthesis requires the current consolidation profile');
+    if (this.store.cycles(agentId).some(cycle => cycle.status === 'running') || this.store.consolidations(agentId).some(run => run.status === 'running')) throw new Error('Wait for current cognition or consolidation to finish');
     const cycles = this.store.cycles(agentId).filter(c => c.status === 'completed' && c.sequence >= fromCycle && c.sequence <= toCycle);
     const selectedIds = new Set(cycles.map(c => c.id));
     const selectedWorldIds = new Set(cycles.map(c => c.worldId));
     let run: ConsolidationRun = { id: id('sleep'), agentId, startedAt: now(), status: 'running', fromCycle,
       toCycle: cycles.at(-1)?.sequence ?? fromCycle,
       provider: (this.reasoning as ReasoningProvider & { labelForAgent?: (id: string) => string }).labelForAgent?.(agentId) ?? this.reasoning.label,
-      selections: [], changes: [], error: null };
+      selections: [], changes: [], options: settings, synthesisReviews: [], error: null };
     this.store.saveConsolidation(run);
     this.inspection.emit(agentId, null, 'consolidation.started', run);
     try {
@@ -30,6 +35,20 @@ export class Consolidation {
           predictionIds: predictions.filter(prediction => prediction.partId === partId).map(prediction => prediction.id),
           thoughtCycles: [], repeatedReferents: [], coactivated: [] }));
         for (const selection of run.selections) this.inspection.emit(agentId, null, 'consolidation.replay_selected', selection);
+        const scopes = settings.synthesizeMemories ? captureSynthesisScopes(this.store, agentId, cycles.map(cycle => cycle.id)) : [];
+        run.synthesisReviews = scopes.map(scope => ({ dispositionId: scope.disposition.id, dispositionName: scope.disposition.name,
+          dispositionVersion: scope.disposition.version, sourceMemoryIds: scope.memories.map(memory => memory.id), predictionIds: scope.predictions.map(prediction => prediction.id),
+          cycleIds: scope.cycleIds, status: 'pending', memoryId: null, replacedMemoryIds: [], reason: 'Awaiting review' }));
+        this.store.saveConsolidation(run);
+        for (const [index, scope] of scopes.entries()) {
+          try {
+            run.synthesisReviews[index] = await synthesizeScope(this.store, this.inspection, this.constructed, agentId, run.id, scope, settings.replaceSourceMemories, { detailPolicy: settings.detailPolicy, synthesisInstructions: settings.synthesisInstructions });
+          } catch (error) {
+            run.synthesisReviews[index] = { ...run.synthesisReviews[index]!, status: 'failed', reason: error instanceof Error ? error.message : String(error) };
+            throw error;
+          }
+          this.store.saveConsolidation(run);
+        }
         const before = new Set(this.store.list('disposition', agentId).map(disposition => disposition.id));
         const result = await this.constructed.learn(agentId, memories, predictions, cycles.map(cycle => cycle.id));
         run = { ...run, status: 'completed', constructedLearning: {

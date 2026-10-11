@@ -191,6 +191,7 @@ export class MockReasoning implements ReasoningProvider {
       evidenceWorldId: input.world!.id }, memory: null, reason: 'Deterministic outcome plumbing only' };
     if (input.task === 'cognition_coverage') return { operation: 'SUFFICIENT', reason: 'Deterministic fixture abstains from hypothesis discovery; no model observation.' };
     if (input.task === 'experiential_formation') return { operation: 'NO_CHANGE', reason: 'Deterministic fixture abstains from experiential learning.' };
+    if (input.task === 'memory_synthesis') return { synthesis: null, reason: 'Deterministic fixture abstains from memory synthesis; no model learning evidence.' };
     if (input.task === 'memory_reinterpretation') return { revisions: [], reason: 'Fixture preserves prior subjective interpretations.' };
     if (input.task === 'disposition_learning') {
       return { operations: [{ operation: 'INSUFFICIENT_EVIDENCE', reason: 'Deterministic fixture abstains from structural inference.' }], reason: 'Mock structural reconciliation abstains.' };

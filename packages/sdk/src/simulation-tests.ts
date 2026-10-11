@@ -16,7 +16,7 @@ import { id, now, type ActivationAssociation, type Disposition, type Memory, typ
 
 const source = 'https://chatgpt.com/share/6ac31e3b-ef5c-83e8-bef9-935849391ba9';
 type Seed = { name: string; concern: string; cues: string[]; scope: string | null; prerequisites?: string[]; activationAssociations?: ActivationAssociation[] };
-type Step = { name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
+type Step = { name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; sleepOptions?: Partial<import('../../core/src/consolidation-domain.js').SleepOptions>; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
 export type SimulationTestDefinition = { id: string; title: string; hypothesis: string; source: string;
   seeds: Seed[]; steps: Step[]; criteria: string[]; limitations: string; executiveSandbox?: { review: boolean; awaitCheckpointReview?: boolean }; procedureLearning?: boolean;
   skillReviewPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['skillReviewPolicy'];
@@ -24,6 +24,30 @@ export type SimulationTestDefinition = { id: string; title: string; hypothesis: 
 const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepare and arrange painting a surface', cues: ['paint + surface + intention; attend to preparation, progress and remaining work'], scope: 'painting activity' };
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
+  ...(['control', 'synthesis', 'replacement', 'belief-changes', 'compact'] as const).map(mode => ({
+    id: `sleep-car-${mode}`, title: `Cold-car memory consolidation · ${mode}`,
+    source: 'Researcher sleep synthesis discussion, 2026-10-11; ADR 0160',
+    hypothesis: 'Optional disposition-specific synthesis may retain verified findings, rejected explanations and uncertainty while reducing routine source recall without erasing evidence.',
+    seeds: [{ name: 'Cold Weather Travel', concern: 'Notice what helps us travel reliably in cold weather', cues: ['cold weather car travel and starting difficulties'], scope: 'cold weather travel' },
+      { name: 'Trust In Advice', concern: 'Notice whether advice is useful and how much confidence it warrants', cues: ['advice, claims, tests and source reliability'], scope: 'advice evaluation' }],
+    steps: [
+      { name: 'Unrelated comparison', phase: 'control' as const, text: 'A library changed its opening hours. Someone asks what you would check before visiting.' },
+      { name: 'Starting difficulty', phase: 'training' as const, text: 'You remember having difficulty starting a car in cold weather. The particular cause has not been diagnosed.' },
+      { name: 'Door advice', phase: 'training' as const, text: 'Someone suggests opening the car doors may help it start. This is a claim, not an established result.' },
+      { name: 'Recorded door test', phase: 'training' as const, text: 'A reported test opened the doors and attempted to start the car. It still did not start; the report does not establish the underlying cause.' },
+      { name: 'Bill’s alternative', phase: 'training' as const, text: 'Bill says a cold battery may contribute to starting difficulty and that some cars use battery heaters. No heater test on this car has occurred.' },
+      { name: 'Reported research finding', phase: 'training' as const, text: 'A supplied research report confirms battery heaters exist. It does not diagnose this car or demonstrate that heating its battery fixes it.' },
+      { name: 'Offline consolidation', phase: 'training' as const, sleep: true,
+        sleepOptions: { synthesizeMemories: mode !== 'control', replaceSourceMemories: mode === 'replacement',
+          detailPolicy: mode === 'belief-changes' ? 'trace_belief_changes' as const : mode === 'compact' ? 'compact_current_view' as const : 'preserve_details' as const } },
+      { name: 'Familiar probe', phase: 'probe' as const, text: 'What seems relevant before trying to start this car in cold weather, and what remains uncertain about the advice?' },
+      { name: 'Analogous probe', phase: 'probe' as const, text: 'Another car will not start on a cold morning. Does what you learned identify its cause? What would you check?' },
+    ],
+    criteria: ['Inspect actual activation, memories, predictions and outcomes; missing prerequisites leave synthesis inconclusive.',
+      'Compare consolidated content, omission rationales, belief-change language and later recall across detail policies and controls, preserving meaningful uncertainty and the limits of heater evidence and Bill’s expertise.',
+      'Inspect exact source-version lineage and disposition-specific replacement; preservation and count reduction alone do not demonstrate learning benefit.'],
+    limitations: 'The starting dispositions and external reports are researcher-authored. Research is supplied as an experience; this experiment does not execute a real automotive investigation. No provider fixture forces activation, prediction or synthesis. Mock/mixed runs establish plumbing only; configured-model observations may remain inconclusive. Differences in later outputs do not establish causality, durable transfer or human psychology.',
+  })),
   { id: 'dream-context-continuity', title: 'Remembered context across dream experiences',
     source: 'Researcher Dreams request, 2026-10-11; ADR 0159',
     hypothesis: 'A developed Agent may interpret analogous dream experiences through its existing subjective memories, with later expressions reflecting ordinary experience and offline consolidation.',
@@ -832,7 +856,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
           const procedureConsolidation = step.consolidateProcedures ? await app.consolidateProcedures(run.agentId)
             : definition.consolidationPolicy ? app.procedureConsolidation.records(run.agentId).at(-1) : undefined;
           if (procedureConsolidation?.status === 'failed') throw new Error(`Procedural inference failed: ${procedureConsolidation.error}`);
-          if (step.sleep) await app.consolidation.run(run.agentId);
+          if (step.sleep) await app.consolidate(run.agentId, undefined, undefined, step.sleepOptions);
           const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
           run.stages.push({ id: stageId, name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
             ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {

@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import type { SynthesisPolicy } from './sleep-policy.js';
 import type { PredictionTrajectory } from './prediction-lineage.js';
 import { CognitionCoverageSchema, type CoverageProductSchema } from './cognition-coverage.js';
 import { DispositionReconciliationSchema, type ReconciliationObservations } from './disposition-reconciliation.js';
 import { ExperienceAttachmentSchema } from './experiential-formation.js';
 import { Text, Id, CognitionSchema, EvaluationSchema, type WorldState, type Memory, type Part, type Disposition, type Prediction, Fact } from './domain.js';
 
-export const constructedTasks = ['part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'effortful_recall'] as const;
+export const constructedTasks = ['part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall'] as const;
 export type ConstructedTask = typeof constructedTasks[number];
 export type JudgmentTask = 'memory_accessibility' | 'disposition_activation';
 export const PartFormationSchema = z.strictObject({ name: Text.regex(/^\S+(?:\s+\S+){0,4}$/), interpretation: Text,
@@ -28,6 +29,11 @@ export const PartGenerationSchema = z.strictObject({
 });
 export const LearningSchema = DispositionReconciliationSchema;
 export const MemoryReinterpretationSchema = z.strictObject({ revisions: z.array(z.strictObject({ memoryId: Id, supportingMemoryIds: z.array(Id).min(1).max(100), content: Text, gist: Text, continuity: Text, reason: Text })).max(30), reason: Text });
+export const MemorySynthesisSchema = z.strictObject({ reason: Text, synthesis: z.strictObject({
+  sourceMemoryIds: z.array(Id).min(2).max(100), content: Text, gist: Text, context: z.array(Text).max(30),
+  replaceSourceMemoryIds: z.array(Id).max(100),
+  detailDecisions: z.array(z.strictObject({ memoryId: Id, retainedMeaning: Text, omittedDetails: z.array(Text).max(30), reason: Text })).min(2).max(100),
+}).nullable() });
 export const EffortfulRecallSchema = z.strictObject({ recollection: Text, uncertainty: Text });
 /** Selected psychological products only; deliberately excludes worlds and private Part snapshots. */
 export const DispositionLearningTraceSchema = z.strictObject({ cycleId: Id, sequence: z.number().int().positive(),
@@ -39,7 +45,7 @@ export const DispositionLearningTraceSchema = z.strictObject({ cycleId: Id, sequ
 });
 export type DispositionLearningTrace = z.infer<typeof DispositionLearningTraceSchema>;
 export const constructedOutputs = { cognition_coverage: CognitionCoverageSchema, hypothesis_reflection: z.strictObject({ operation: z.literal('resolve'), evaluation: EvaluationSchema, memory: z.strictObject({ content: Text, gist: Text, context: z.array(Text) }).nullable(), reason: Text }), part_cognition: PartGenerationSchema, experiential_formation: ExperienceAttachmentSchema, disposition_learning: LearningSchema,
-  memory_reinterpretation: MemoryReinterpretationSchema, effortful_recall: EffortfulRecallSchema };
+  memory_synthesis: MemorySynthesisSchema, memory_reinterpretation: MemoryReinterpretationSchema, effortful_recall: EffortfulRecallSchema };
 /** Explicit permitted contexts; Self never receives this structure. */
 export type ConstructedInput = { task: ConstructedTask; agentId: string; world?: WorldState;
   dispositions?: Disposition[]; dispositionBindings?: { entityId: string; dispositionId: string }[];
@@ -53,6 +59,7 @@ export type ConstructedInput = { task: ConstructedTask; agentId: string; world?:
   dispositionHistory?: Disposition[];
   hypothesisHistory?: Prediction[];
   observations?: ReconciliationObservations;
+  synthesisPolicy?: SynthesisPolicy;
   memory?: Memory; question?: string };
 export type JudgmentInput = { task: JudgmentTask; agentId: string; world: WorldState;
   candidates: { id: string; question: string; context: object }[] };

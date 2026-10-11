@@ -16,6 +16,7 @@ export const prompts = {
   hypothesis_outcome: { version: 'hypothesis-outcome-v1', text: loadFactoryPrompt('hypothesis_outcome') },
   hypothesis_reflection: { version: 'hypothesis-reflection-v1', text: loadFactoryPrompt('hypothesis_reflection') },
   cognition_coverage: { version: 'cognition-coverage-adjustable-states-v2', text: loadFactoryPrompt('cognition_coverage') },
+  memory_synthesis: { version: 'memory-synthesis-v2', text: loadFactoryPrompt('memory_synthesis') },
   memory_reinterpretation: { version: 'memory-reinterpretation-v1', text: loadFactoryPrompt('memory_reinterpretation') },
   experiential_formation: { version: 'experience-evidence-attachment-v2', text: loadFactoryPrompt('experiential_formation') },
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
@@ -47,7 +48,7 @@ export const prompts = {
   replay: { version: 'rare-ancestor-replay-twig-v3', text: loadFactoryPrompt('replay') },
 } as const;
 
-export const constructedPromptTasks = ["cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "effortful_recall"] as const;
+export const constructedPromptTasks = ["cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "memory_synthesis", "effortful_recall"] as const;
 
 export type PromptResolver = (agentId: string, task: PromptTask) => string | undefined;
 export const promptCatalog: { task: PromptTask; title: string; category: string; version: string; original: string }[] = [
@@ -60,6 +61,7 @@ export const promptCatalog: { task: PromptTask; title: string; category: string;
   { task: 'part_cognition', title: 'Cog · Part formation → reflection → cognition', category: 'Cog', version: prompts.part_cognition.version, original: prompts.part_cognition.text },
   { task: 'experiential_formation', title: 'Mem · Experience evidence attachment', category: 'Mem', version: prompts.experiential_formation.version, original: prompts.experiential_formation.text },
   { task: 'disposition_learning', title: 'Slp · Disposition learning', category: 'Slp', version: prompts.disposition_learning.version, original: prompts.disposition_learning.text },
+  { task: 'memory_synthesis', title: 'Slp · Disposition memory synthesis', category: 'Slp', version: prompts.memory_synthesis.version, original: prompts.memory_synthesis.text },
   { task: 'memory_reinterpretation', title: 'Slp · Subjective memory reinterpretation', category: 'Slp', version: prompts.memory_reinterpretation.version, original: prompts.memory_reinterpretation.text },
   { task: 'effortful_recall', title: 'Mem · Effortful recall', category: 'Mem', version: prompts.effortful_recall.version, original: prompts.effortful_recall.text },
   { task: 'identity_clarification', title: 'Identity · Clarify person or character', category: 'Identity', version: prompts.identity_clarification.version, original: prompts.identity_clarification.text },

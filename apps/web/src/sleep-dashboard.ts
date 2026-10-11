@@ -1,6 +1,11 @@
 import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { ConsolidationRun } from '../../../packages/core/src/consolidation-domain.js';
 
+const detailPolicies = {
+  preserve_details: 'Keep meaningful details and belief history',
+  trace_belief_changes: 'Emphasize how beliefs changed',
+  compact_current_view: 'Summarize the current perspective',
+} as const;
 type Options = {
   snapshot: AgentSnapshot;
   api: <T>(path: string, method?: string, body?: unknown) => Promise<T>;
@@ -42,6 +47,27 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     const completed = snapshot.cycles.filter(cycle => cycle.status === 'completed');
     const from = input('From cognitive cycle', completed[0]?.sequence ?? 1);
     const through = input('Through cognitive cycle', completed.at(-1)?.sequence ?? 1);
+    const checkbox = (text: string): HTMLInputElement => {
+      const label = document.createElement('label'); label.className = 'sleep-option';
+      const field = document.createElement('input'); field.type = 'checkbox';
+      label.append(field, el('span', text)); form.append(label); return field;
+    };
+    const synthesize = checkbox('Create consolidated memories per disposition');
+    const replace = checkbox("Replace source memories in this disposition’s routine recall"); replace.disabled = true;
+    const policyLabel = document.createElement('label'); policyLabel.textContent = 'Memory detail policy';
+    const policy = document.createElement('select'); policy.disabled = true;
+    for (const [value, label] of Object.entries(detailPolicies)) policy.append(new Option(label, value));
+    policyLabel.append(policy); form.append(policyLabel);
+    form.append(el('p', 'Keep details preserves meaningful evidence and belief history. Belief changes emphasizes “I used to believe…” and what changed. Current perspective may omit conclusively unneeded past explanations; unresolved uncertainty still stays.', 'rd-caption'));
+    const instructionLabel = document.createElement('label'); instructionLabel.textContent = 'Additional synthesis guidance (optional)';
+    const instructions = document.createElement('textarea'); instructions.rows = 3; instructions.maxLength = 4000; instructions.disabled = true;
+    instructions.placeholder = 'For example: keep who gave useful advice, but omit unrelated details about that person.';
+    instructionLabel.append(instructions); form.append(instructionLabel);
+    synthesize.onchange = () => {
+      replace.disabled = policy.disabled = instructions.disabled = !synthesize.checked;
+      if (!synthesize.checked) replace.checked = false;
+    };
+    form.append(el('p', 'Review each activated disposition independently. Replacement preserves original records and other dispositions’ access. Both options are off by default.', 'rd-caption'));
     const status = el('p'); status.setAttribute('role', 'status'); form.append(status);
     const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = 'Induce sleep'; form.append(submit);
     form.onsubmit = event => {
@@ -52,14 +78,14 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
         status.textContent = 'Choose an ordered range containing a completed cognitive cycle.'; return;
       }
       busy = true; submit.disabled = true; render(); status.textContent = 'Sleep cycle in progress…';
-      void options.api<ConsolidationRun>(`agents/${agentId}/consolidate`, 'POST', { fromCycle: start, toCycle: end })
+      void options.api<ConsolidationRun>(`agents/${agentId}/consolidate`, 'POST', { fromCycle: start, toCycle: end, synthesizeMemories: synthesize.checked, replaceSourceMemories: replace.checked, detailPolicy: policy.value, synthesisInstructions: instructions.value })
         .then(async cycle => { selectedId = cycle.id; if (host.isConnected) await refresh(); dialog.close(); })
         .catch(async error => {
           status.textContent = error instanceof Error ? error.message : String(error);
           options.fail(error); if (host.isConnected) await refresh().catch(options.fail);
         }).finally(() => { busy = false; submit.disabled = false; if (host.isConnected) render(); });
     };
-    action(dialog, 'Close', () => dialog.close()); dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    action(dialog, 'Cancel', () => dialog.close()); dialog.addEventListener('close', () => dialog.remove(), { once: true });
     document.body.append(dialog); dialog.showModal();
   };
   function render(): void {
@@ -69,7 +95,7 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     title.append(el('p', 'AGENT OPERATIONS', 'rd-eyebrow'), el('h2', 'Sleep')); top.append(title);
     const actions = el('div', '', 'rd-actions');
     const start = action(actions, 'Induce sleep cycle', induce, 'rd-primary');
-    start.disabled = busy || cycles.some(cycle => cycle.status === 'running') || !snapshot.cycles.some(cycle => cycle.status === 'completed') || snapshot.agent.architecture === 'persistent';
+    start.disabled = busy || snapshot.cycles.some(cycle => cycle.status === 'running') || cycles.some(cycle => cycle.status === 'running') || !snapshot.cycles.some(cycle => cycle.status === 'completed') || snapshot.agent.architecture === 'persistent';
     action(actions, 'Refresh', () => { void refresh().catch(options.fail); }); top.append(actions); host.append(top);
     const main = el('div', '', 'rd-main'); host.append(main);
     main.append(el('p', 'Sleep is offline memory and disposition consolidation, separate from the cognitive loop. Counts describe recorded processing, not psychological improvement.', 'rd-caption'));
@@ -100,6 +126,33 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     detail.append(el('h3', 'Sleep cycle evidence'), el('p', `${new Date(selected.startedAt).toLocaleString()} · ${selected.status} · cognitive cycles ${selected.fromCycle}–${selected.toCycle}`), el('p', `Provider: ${selected.provider}`, 'rd-caption'));
     if (selected.error) detail.append(el('p', selected.error, 'rd-caution'));
     if (selected.status === 'running') detail.append(el('p', 'The saved record is in progress. Refresh to inspect later evidence. This status alone does not establish that a worker is still running.', 'rd-caution'));
+    if (selected.options?.synthesizeMemories) {
+      detail.append(el('h4', 'Disposition memory synthesis'), el('p', selected.options.replaceSourceMemories
+        ? 'Synthesis enabled with disposition-specific source replacement.' : 'Synthesis enabled; source recall retained.', 'rd-caption'));
+      detail.append(el('p', `Detail policy: ${detailPolicies[selected.options.detailPolicy] ?? detailPolicies.preserve_details}`, 'rd-caption'));
+      if (selected.options.synthesisInstructions) detail.append(el('p', `Additional guidance: ${selected.options.synthesisInstructions}`, 'rd-caption'));
+      const reviews = selected.synthesisReviews ?? [];
+      detail.append(el('p', `${reviews.filter(review => review.status === 'created').length} new consolidated memories · ${reviews.length} dispositions selected for review`, 'rd-caption'));
+      if (!reviews.length) detail.append(el('p', 'No activated dispositions were available for synthesis in this period.', 'rd-empty'));
+      for (const review of reviews) {
+        const row = el('blockquote'); row.append(el('strong', `${review.dispositionName} · ${review.status.replace('_', ' ')}`),
+          el('p', review.reason), el('p', `${review.sourceMemoryIds.length} source memories · ${review.replacedMemoryIds.length} sources replaced in this disposition’s recall`, 'rd-caption'));
+        const memory = snapshot.memories.find(memory => memory.id === review.memoryId);
+        if (memory) row.append(el('p', memory.content));
+        if (memory?.synthesis?.detailDecisions?.length) {
+          const decisions = document.createElement('details'); decisions.append(el('summary', 'What was retained or left out'));
+          for (const decision of memory.synthesis.detailDecisions) {
+            const source = snapshot.memories.find(source => source.id === decision.memoryId);
+            const version = memory.synthesis.sources.find(source => source.memoryId === decision.memoryId)?.version;
+            decisions.append(el('strong', `${source && source.version === version ? source.gist : decision.memoryId} · source version ${version ?? 'unavailable'}`),
+              el('p', `Retained: ${decision.retainedMeaning}`),
+              el('p', decision.omittedDetails.length ? `Left out for this perspective: ${decision.omittedDetails.join('; ')}` : 'No meaningful details explicitly omitted.'), el('p', decision.reason));
+          }
+          row.append(decisions);
+        }
+        action(row, 'Inspect synthesis lineage', () => raw('Synthesis lineage', { review, memory })); detail.append(row);
+      }
+    }
     const learning = selected.constructedLearning;
     if (learning) {
       detail.append(el('h4', 'Recorded consolidation'), el('p', learning.reason));
