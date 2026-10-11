@@ -65,7 +65,8 @@ export type EventPayloads = {
   'executive.profile_copied': { sourceAgentId: string; sourceRevision: number; targetRevision: number; reason: string };
   'execution.procedure_review': { contractId: string; skillId: string; sourceVersion: number; resultVersion: number; decision: 'approval' | 'rejection'; reason: string; packageDigest: string }; 
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
-  'provider.usage': { provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'provider.operation': import('./provider-operation.js').ProviderOperation;
+  'provider.usage': { operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
   'construction.inference_started': import('./constructed-domain.js').ConstructedInput;
   'construction.temporary_scope_budget': { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] };
   'construction.generated': { partId: string; result: z.infer<typeof import('./constructed-domain.js').PartGenerationSchema> };
@@ -208,7 +209,10 @@ export interface Store {
   close(): void;
 }
 export class InfrastructureError extends Error {
-  constructor(readonly stage: string, message: string, options?: ErrorOptions) { super(message, options); this.name = 'InfrastructureError'; }
+  readonly diagnostics: { httpStatus?: number; retryable?: boolean; issues?: { path: string; code: string }[] } | undefined;
+  constructor(readonly stage: string, message: string, options?: ErrorOptions & { diagnostics?: InfrastructureError['diagnostics'] }) {
+    super(message, options); this.name = 'InfrastructureError'; this.diagnostics = options?.diagnostics;
+  }
 }
 export class ContextLimitError extends InfrastructureError {
   constructor(provider: string) { super('provider', `${provider} context limit exceeded`); this.name = 'ContextLimitError'; }

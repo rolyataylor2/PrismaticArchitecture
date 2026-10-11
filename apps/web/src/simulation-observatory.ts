@@ -248,6 +248,22 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
   async function refresh() { const next = await api<Research>(`simulation-tests/${run.id}/research`); if (!host.isConnected) return; research = next; render(); }
   function render() {
     host.replaceChildren();
+  const operations = card(host, 'Provider operation diagnostics', `${analysis.providerOperations.length} recorded operations · ${analysis.providerOperations.filter(item => item.phase === 'failed').length} failures`);
+  operations.append(node('p', 'Adapter returns, runtime validation and admission are distinct. Unreported usage, cache, cost and causal parents stay unavailable. Calls without explicit cycle attribution remain unassigned.'));
+  table(operations, ['Component / task', 'Provider', 'Status', 'Elapsed', 'Cycle', 'Diagnostics'], analysis.providerOperations.map(item => {
+    const evidence = disclosure(document.createElement('div'), 'Exact operation input/output and prompts', item);
+    const wrapper = document.createElement('div'); wrapper.append(evidence);
+    if (item.cycleId) button(wrapper, 'Inspect operation source cycle', () => cycle(item.cycleId!, run.agentId), fail);
+    return [`${item.component} · ${readable(item.task)}`, item.provider, item.phase,
+      item.elapsedMs === null ? 'Unavailable' : `${item.elapsedMs.toFixed(1)} ms`, item.cycleId ? 'Recorded source cycle' : 'Unassigned', wrapper];
+  }), 'Provider operations');
+  if (!analysis.providerOperations.length) operations.append(node('p', 'This historical run has no operation instrumentation; missing records cannot be reconstructed.'));
+  for (const item of analysis.providerOperations.filter(item => item.error)) {
+    const error = item.error!; operations.append(node('p', `${item.provider} · ${readable(item.task)}: ${error.message} · HTTP ${error.httpStatus ?? 'unreported'} · retryability ${error.retryable === null ? 'unreported' : error.retryable ? 'reported retryable' : 'reported not retryable'}`));
+    if (error.issues.length) disclosure(operations, 'Violated output contract locations', error.issues);
+  }
+  disclosure(operations, 'Recorded token/cache usage (exact operation attribution where recorded)', analysis.providerUsage);
+
     const reviews = card(host, 'Researcher criterion reviews', 'Human judgments append versions and frozen citations; original observer measures and model assessments remain unchanged. Fixture/mixed evidence remains explicit.');
     const form = node('form', '', 'observatory-review-form'); reviews.append(form);
     const criterion = select(form, 'Review criterion', run.specification.criteria.map((text, index) => [`criterion-${index + 1}`, text]));

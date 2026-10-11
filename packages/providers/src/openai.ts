@@ -103,7 +103,7 @@ export class OpenAIProvider implements ReasoningProvider {
             schema: strictOutputSchema(z.toJSONSchema(z.strictObject({ result: schema }))) } },
         }),
       });
-      if (!response.ok) throw new InfrastructureError('provider', `${this.vendor} HTTP ${response.status}`);
+      if (!response.ok) throw new InfrastructureError('provider', `${this.vendor} HTTP ${response.status}`, { diagnostics: { httpStatus: response.status, retryable: response.status === 429 || response.status >= 500 } });
       const body = z.object({ usage: z.unknown().optional(), status: z.string(), incomplete_details: z.object({ reason: z.enum(['max_output_tokens', 'content_filter']) }).nullable().optional(),
         output: z.array(z.object({ type: z.string(), content: z.array(z.object({ type: z.string(), text: z.string().optional() })).optional() })) }).parse(await response.json());
       if (context && this.usageObserver) {
@@ -111,7 +111,7 @@ export class OpenAIProvider implements ReasoningProvider {
           input_tokens_details: z.object({ cached_tokens: z.number().int().nonnegative() }).optional() }).safeParse(body.usage);
         if (usage.success) this.usageObserver({ agentId: context.agentId, cycleId: context.cycleId,
           usage: { provider: this.label, task: context.task, inputTokens: usage.data.input_tokens,
-            cachedInputTokens: usage.data.input_tokens_details?.cached_tokens ?? 0, outputTokens: usage.data.output_tokens, cacheKey } });
+            cachedInputTokens: usage.data.input_tokens_details?.cached_tokens ?? 0, cacheReported: usage.data.input_tokens_details !== undefined, outputTokens: usage.data.output_tokens, cacheKey } });
       }
       if (body.status !== 'completed') throw new InfrastructureError('provider', `${this.vendor} response ${body.status}${body.incomplete_details?.reason ? ` (${body.incomplete_details.reason})` : ''}`);
       const content = body.output.flatMap(item => item.type === 'message' ? item.content ?? [] : []);
@@ -124,7 +124,7 @@ export class OpenAIProvider implements ReasoningProvider {
       // Do not retain raw vendor bodies or request headers in audit-visible errors.
       if (error instanceof z.ZodError) {
         const issues = error.issues.slice(0, 8).map(issue => `${issue.path.join('.')}: ${issue.code}`).join('; ');
-        throw new InfrastructureError('provider', `${this.vendor} returned invalid structured output (${issues})`);
+        throw new InfrastructureError('provider', `${this.vendor} returned invalid structured output (${issues})`, { diagnostics: { issues: error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })) } });
       }
       throw new InfrastructureError('provider', `${this.vendor} request failed or returned invalid structured output`);
     }

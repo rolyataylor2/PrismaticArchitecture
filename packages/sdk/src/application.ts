@@ -1,3 +1,4 @@
+import { observeProvider, providerOperationContext } from './provider-observation.js';
 import { projectEnvironmentValue } from '../../providers/src/environment.js';
 import { SelectedSkillReview } from './selected-skill-review.js';
 import { ProcedureConsolidator } from './procedure-consolidation.js';
@@ -87,14 +88,14 @@ export class Application {
     this.agentSkillPackages = new AgentSkillPackages(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
     this.agentSkillImports = new AgentSkillImports(store, projectEnvironmentValue('SKILLS_ROOT') ?? resolve('workspace/skills'));
     this.executiveSkills = new ExecutiveSkills(store, skill => this.agentSkillPackages.schedule(skill));
-    const observeUsage: UsageObserver = record => { store.appendEvent(record.agentId, record.cycleId, 'provider.usage', record.usage); };
-    this.providers = { ...providers, reasoning: new AgentReasoningProvider(providers.reasoning, agentId => {
+    const observeUsage: UsageObserver = record => { store.appendEvent(record.agentId, record.cycleId, 'provider.usage', { ...record.usage, ...(providerOperationContext.getStore() ? { operationId: providerOperationContext.getStore()! } : {}) }); };
+    this.providers = { ...providers, decisions: observeProvider(store, providers.decisions, 'decisions'), reasoning: observeProvider(store, new AgentReasoningProvider(providers.reasoning, agentId => {
       const settings = store.agentProviderSettings(agentId);
       if (!settings) return providers.reasoning;
       const apiKey = settings.encryptedApiKey ? vault.decrypt(settings.encryptedApiKey) : (settings.model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
       if (!apiKey) throw new Error(`Set an API key in this Agent's Settings to use ${settings.model}`);
       return settings.model === 'grok-4.3' ? new XaiProvider(apiKey, settings.model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, settings.model, fetch, promptResolver(store), 'openai', observeUsage);
-    }) };
+    }), 'reasoning') };
     this.procedureConsolidation = new ProcedureConsolidator(store, this.providers.reasoning, this.executiveSkills);
     this.inspection = new Inspection(store);
     this.executiveTeaching = new ExecutiveTeaching(store, this.executiveSkills, this.inspection);
@@ -144,7 +145,7 @@ export class Application {
     });
     this.remainderHandoff = new SelectedRemainderHandoff(store, this.inspection, this.executiveWorkers);
     this.executiveControl = new SelectedExecutionControl(store, this.inspection, this.executiveWorkers);
-    this.runtime = new CognitiveRuntime(store, providers.decisions, this.providers.reasoning, providers.embeddings,
+    this.runtime = new CognitiveRuntime(store, this.providers.decisions, this.providers.reasoning, providers.embeddings,
       new TeachingExecutiveExecutor(executor ?? this.executiveWorkers, execution => { if (store.executiveProfile(execution.agentId).enabled) this.executiveTeaching.record(execution); this.#scheduleProcedures(execution); }), this.inspection, options,
       async (agentId, skillId, version) => {
         await this.agentSkillPackages.flush(agentId);

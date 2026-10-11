@@ -68,6 +68,11 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     await panel.getByRole('tab', { name: 'Diagnostics & Evidence', exact: true }).click();
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Researcher criterion reviews', exact: true }).waitFor();
+    await panel.getByRole('heading', { name: 'Provider operation diagnostics', exact: true }).waitFor();
+    assert.ok(await panel.getByRole('table', { name: 'Provider operations', exact: true }).locator('tbody tr').count() > 0);
+    const operationEvidence = panel.getByText('Exact operation input/output and prompts', { exact: true }).first();
+    await operationEvidence.click();
+    await operationEvidence.locator('..').getByText(/provider_input_/).waitFor();
     await panel.getByLabel('Reviewer', { exact: true }).fill('Browser researcher');
     await panel.getByLabel('Review rationale', { exact: true }).fill('The preserved thought exists; mock behavior establishes harness inspection only.');
     await panel.getByLabel('Evidence references (one per line)', { exact: true }).fill('/stages/0/thoughts');

@@ -120,3 +120,5 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
 Prompt overrides preserve exact text bytes, including intentional boundary whitespace, while rejecting blank templates. Frozen simulation reruns must not alter prompt fingerprints through storage normalization. Cognitive task responsibilities and access remain unchanged.
+
+`ProviderOperation` is a researcher audit record, separate from cognitive inputs/memory. Input/output IDs and hashes, provider diagnostics and explicitly correlated usage describe factual adapter operations; a returned adapter product is not a claim of runtime schema validity or psychological success. Infrastructure errors can retain safe optional HTTP/retryability/contract-location diagnostics.
