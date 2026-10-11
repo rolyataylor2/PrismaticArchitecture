@@ -47,10 +47,11 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
   host.replaceChildren();
   const overview = card(host, 'Run overview', `${analysis.summary.completedStages}/${analysis.summary.totalStages} stages · ${analysis.summary.controls} controls · ${analysis.summary.changedObjects} object additions/revisions`);
   overview.append(node('p', analysis.summary.hypothesis), node('p', `${readable(run.evidenceBasis)} · ${run.providers.reasoning} · ${run.providers.decisions}`, 'muted'));
+  overview.append(node('p', run.engine ? `Engine ${run.engine.distribution} · artifact ${run.engine.artifactHash ?? 'unavailable'} · checkout ${run.engine.sourceRevision ?? 'unavailable'} · modified ${run.engine.sourceModified === null ? 'unknown' : String(run.engine.sourceModified)}` : 'Historical engine provenance unavailable.', 'muted'));
   if (run.lineage) overview.append(node('p', `${readable(run.lineage.kind)} of ${run.lineage.parentRunId}: ${run.lineage.reason}`));
   const replay = disclosure(overview, 'Repeat or fork saved starting conditions');
   disclosure(replay, 'Frozen scenario, configuration and prompts', { specification: run.specification, configuration: run.startingConfiguration,
-    providers: run.providers, routing: run.providerRouting, prompts: run.prompts, lineage: run.lineage });
+    engine: run.engine ?? null, providers: run.providers, routing: run.providerRouting, prompts: run.prompts, lineage: run.lineage });
   replay.append(node('p', 'Launches a fresh isolated Agent. Developed psychology is not copied. Models and external tools can vary; automatic assessment is disabled.'));
   const reason = field(replay, 'Launch reason'); reason.setAttribute('aria-label', 'Launch reason');
   const status = node('p'); status.setAttribute('role', 'status'); replay.append(status);

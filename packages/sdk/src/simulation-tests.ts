@@ -1,3 +1,4 @@
+import { engineProvenance, type EngineProvenance } from './engine-provenance.js';
 import { researchStageContext } from './provider-observation.js';
 import { affectSimulations } from './affect-simulations.js';
 import { observatorySimulations } from './observatory-simulations.js';
@@ -448,7 +449,7 @@ export type SimulationStage = { id?: string; affectInputs?: EventPayloads['self.
   executions?: import('../../core/src/domain.js').Execution[];
   parts: Part[]; predictions: Prediction[]; memories: Memory[]; dispositions: Disposition[] };
 export type SimulationMeasure = { criterion: string; outcome: 'observed' | 'not_observed' | 'inconclusive'; evidence: string; assessmentKind?: 'operational' | 'prerequisite' | 'semantic' };
-export type SimulationRun = { id: string; kind: 'simulation_test'; testId: string; title: string; source: string; agentId: string;
+export type SimulationRun = { engine?: EngineProvenance; id: string; kind: 'simulation_test'; testId: string; title: string; source: string; agentId: string;
   startingConfiguration?: { identity: import('../../core/src/domain.js').Identity; activationSettings: ReturnType<Application['agentActivationSettings']>;
     runtime: import('../../core/src/runtime.js').RuntimeOptions; executiveProfile: import('../../core/src/executive-profile.js').ExecutiveProfile };
   specification: SimulationTestDefinition;
@@ -713,7 +714,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   catch (error) { setupError = error instanceof Error ? error.message : String(error); }
   const decisions = runner.providers.decisions.label;
   const mockReasoning = /mock|deterministic/i.test(reasoning); const mockDecisions = /mock|deterministic/i.test(decisions);
-  const run: SimulationRun = { id: id('simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
+  const run: SimulationRun = { engine: engineProvenance(), id: id('simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',
     ...(replay ? { lineage: { parentRunId: replay.parent.id, kind: Object.keys(replay.activationChanges).length ? 'fork' as const : 'rerun' as const,
       reason: replay.reason, activationChanges: structuredClone(replay.activationChanges) } } : {}),

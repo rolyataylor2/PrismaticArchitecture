@@ -39,6 +39,7 @@ test('Chrome Observatory coordinates six views, scenario filters, immutable revi
     const run = listSimulationRuns(app).find(run => run.testId === 'conversation-starters')!;
     await panel.getByLabel('Observatory run').selectOption(run.id);
     await panel.getByRole('heading', { name: 'Activation heatmap', exact: true }).waitFor();
+    assert.ok((await panel.innerText()).includes(`artifact ${run.engine!.artifactHash}`));
     const contextual = panel.getByRole('heading', { name: 'Evidence-linked run report', exact: true }).locator('..');
     for (const title of ['What worked?', 'What was surprising?', 'What remains unknown?', 'What changed?', 'What should I inspect next?'])
       assert.equal(await contextual.locator('summary').filter({ hasText: title }).count(), 1);

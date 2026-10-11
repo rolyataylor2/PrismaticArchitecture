@@ -61,7 +61,7 @@ export function simulationCitation(store: Store, run: SimulationRun, reference: 
         && event.at >= run.createdAt && !!run.finishedAt && event.at <= run.finishedAt));
     attribution = root && simulationEventScope(root as import('../../core/src/contracts.js').CognitiveEvent) ? 'recorded_stage' : (root as { cycleId?: string | null } | undefined)?.cycleId ? 'recorded_cycle' : 'run_window_unassigned';
     keys = keys.slice(2);
-  } else if (!['stages', 'measures', 'specification', 'assessments', 'executiveEvidence', 'startingConfiguration', 'error', 'status'].includes(keys[0] ?? '')) throw new Error('Reference is outside the preserved research evidence');
+  } else if (!['stages', 'measures', 'specification', 'assessments', 'executiveEvidence', 'startingConfiguration', 'error', 'status', 'engine'].includes(keys[0] ?? '')) throw new Error('Reference is outside the preserved research evidence');
   let value = root;
   for (const key of keys) {
     if (!value || typeof value !== 'object' || !Object.hasOwn(value, key)) throw new Error('Evidence reference does not exist in this run');

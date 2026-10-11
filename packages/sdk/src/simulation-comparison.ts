@@ -13,7 +13,7 @@ export function simulationConfiguration(run: SimulationRun) {
   const start = run.startingConfiguration;
   return { scenarioHash: hash(run.specification), startingConditionsHash: hash(run.specification.seeds),
     promptHash: hash(run.prompts.slice().sort((a, b) => a.task.localeCompare(b.task))), providers: run.providers,
-    mode: run.mode, evidenceBasis: run.evidenceBasis, providerRouting: run.providerRouting ?? null,
+    engine: run.engine ?? null, mode: run.mode, evidenceBasis: run.evidenceBasis, providerRouting: run.providerRouting ?? null,
     activationSettingsHash: start ? hash(start.activationSettings) : null, runtimeHash: start ? hash(start.runtime) : null,
     identityHash: start ? hash({ traits: start.identity.traits.map(({ question, answer, keywords, role }) => ({ question, answer, keywords, role })), mask: start.identity.mask }) : null,
     executiveProfileHash: start ? hash({ ...start.executiveProfile, revision: undefined }) : null,
@@ -86,6 +86,7 @@ export function compareSimulations(left: SimulationRun, right: SimulationRun, re
       'Stage names, phases and occurrence align exactly; missing or renamed stages remain unmatched.',
       'Scope roles match exact concern/scope/cues, with ambiguous duplicates left unmatched; generated IDs never establish equivalence.',
       ...(configurationDifferences.length ? ['Configuration differences are confounds; inspect them before interpreting behavior differences.'] : []),
+      ...(!left.engine?.artifactHash || !right.engine?.artifactHash ? ['Engine provenance is missing; matching historical settings cannot establish the same architecture revision.'] : []),
       ...(!left.startingConfiguration || !right.startingConfiguration ? ['Historical starting configuration is missing; matches cannot establish controlled conditions and these runs are not grouped into repeated configurations.'] : []),
       ...(left.evidenceBasis !== 'configured_models' || right.evidenceBasis !== 'configured_models' ? ['Fixture/mixed-provider comparisons establish workflow behavior only.'] : [])] };
 }
@@ -103,7 +104,7 @@ export type SimulationComparison = ReturnType<typeof compareSimulations>;
 
 export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationMetricReview[] = [], candidateSets: { runId: string; candidates: SimulationCandidate[] }[] = []) {
   const groups = new Map<string, SimulationRun[]>();
-  for (const run of runs) { const key = hash({ configuration: simulationConfiguration(run), missingHistoricalConfiguration: run.startingConfiguration ? null : run.id }); groups.set(key, [...(groups.get(key) ?? []), run]); }
+  for (const run of runs) { const key = hash({ configuration: simulationConfiguration(run), missingHistoricalConfiguration: run.startingConfiguration && run.engine?.artifactHash ? null : run.id }); groups.set(key, [...(groups.get(key) ?? []), run]); }
   return [...groups.entries()].map(([configurationId, trials]) => {
     const completed = trials.filter(run => run.status === 'completed');
     const values = completed.map(run => run.stages.reduce((count, stage) => count + stageMeasures(stage).activeScopes, 0));
@@ -124,7 +125,7 @@ export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationM
                 runIds: affected.map(run => run.id), candidates: affected.flatMap(run => observed.get(run.id)!.filter(candidate => candidate.pattern === pattern).map(candidate => ({ runId: run.id, ...candidate }))) };
             };
             return { pattern, completed: cohort('completed'), failed: cohort('failed') };
-          }), limitation: 'Runs with recorded candidate analysis, not independent findings or confirmed regressions. Failed cohorts, missing analysis and live runs stay separate. Configuration/scenario differences are confounds; engine source revision is not recorded in historical configurations. Review exact evidence and matched repeated controls.' };
+          }), limitation: 'Runs with recorded candidate analysis, not independent findings or confirmed regressions. Failed cohorts, missing analysis and live runs stay separate. Configuration/scenario differences are confounds; Missing historical engine provenance cannot establish matched architecture; artifact and checkout metadata do not prove identical loaded code or dependencies. Review exact evidence and matched repeated controls.' };
       })(), activeScopeEvaluations: { n: values.length, mean,
         min: values.length ? Math.min(...values) : null, max: values.length ? Math.max(...values) : null,
         sampleStandardDeviation: values.length > 1 && mean !== null ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1)) : null },
