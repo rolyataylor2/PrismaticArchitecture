@@ -1,0 +1,74 @@
+# Dashboard Design Standards
+
+## Mission
+Transform raw telemetry and JSON into a research-grade analytical workspace.
+
+Prioritize comprehension, comparison, investigation, and trustworthy conclusions over the number of metrics displayed.
+
+## 1. Discover the data before designing
+Inspect real schemas and representative records.
+
+Identify entities, relationships, timestamps, events, units, and missing data.
+
+Define meaningful metrics and document any derived calculations.
+
+Never invent measurements.
+
+## 2. Design four information levels
+- Overview: key results and significant changes.
+- Analysis: trends, distributions, comparisons.
+- Investigation: relevant events and supporting evidence.
+- Raw data: searchable records and original JSON.
+
+## 3. Select charts by purpose
+- Trends → line charts.
+- Comparisons → sorted bar charts.
+- Distributions → histograms or box plots.
+- Relationships → scatter plots.
+- Event sequences → timelines.
+- Dense relationships → heatmaps.
+- Exact values → sortable tables.
+
+Never create charts simply because data is available.
+
+## 4. Establish a visual design system
+Use consistent spacing, typography, colors, and components.
+
+Favor a restrained, research-oriented aesthetic with strong visual hierarchy.
+
+Avoid excessive cards, nested containers, decorative gradients, unnecessary shadows, and visual clutter.
+
+Prioritize desktop analytical workflows while supporting smaller screens.
+
+## 5. Design for investigation
+Support linked filters, drill-downs, run comparisons, informative tooltips, and searchable records wherever useful.
+
+Allow users to move from a summary to its original evidence.
+
+Preserve selected filters and navigation context.
+
+## 6. Protect analytical integrity
+Display units, denominators, sample sizes, and baselines.
+
+Distinguish observations from hypotheses.
+
+Never imply causality without appropriate evidence.
+
+Represent missing information accurately.
+
+## 7. Separate data from presentation
+Create a reusable semantic data layer between raw JSON and visualization components.
+
+Keep metric definitions and calculations testable and independent of UI rendering.
+
+Respect the existing framework and components.
+
+## 8. Verify the rendered product
+Launch the application and inspect screenshots.
+
+Test desktop and mobile views, interactions, real records, loading states, and empty states.
+
+Iterate until visual hierarchy and functionality meet the design goals.
+
+## Definition of done
+A researcher can understand current performance, identify meaningful changes, compare simulations, investigate anomalies, and verify conclusions without needing to read raw JSON.

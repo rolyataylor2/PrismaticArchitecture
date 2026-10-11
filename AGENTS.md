@@ -1,5 +1,9 @@
 # Instructions for Coding Agents
 
+## Analytics interface design
+
+Whenever working on the analytics interface, read and follow [DASHBOARD_DESIGN.md](DASHBOARD_DESIGN.md), including dashboards, simulation analytics, comparisons, and evidence inspection views. Consult these standards before designing or implementing changes and use their definition of done when verifying the rendered interface.
+
 ## Automatic commits and pushes
 
 After completing requested repository changes and passing the relevant checks, automatically commit the task's changes with a descriptive message and push the current branch to its configured remote. Do not ask for separate confirmation unless the user explicitly requests otherwise. Include only changes belonging to the task; keep secrets and ignored generated state excluded. Preserve existing history and never force-push. If committing or pushing fails, report the failure and the remaining local state.
