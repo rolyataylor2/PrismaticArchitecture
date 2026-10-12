@@ -1261,7 +1261,7 @@ function render(): void {
     Predictions: predictionsPage,
     Memories: memoriesPage,
     Network: network,
-    Sleep: () => sleepDashboard(content, { snapshot: state!, api, fail: showError }),
+    Sleep: () => sleepDashboard(content, { snapshot: state!, api, fail: showError, createDialog: () => node('dialog') }),
     History: history,
     Identity: identity,
     Settings: settings,

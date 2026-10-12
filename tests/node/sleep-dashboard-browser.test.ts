@@ -45,6 +45,13 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await dialog.getByRole('button', { name: 'Cancel', exact: true }).click(); await dialog.waitFor({ state: 'detached' });
     assert.equal(store.consolidations(agent.id).length, 0, 'Canceling confirmation leaves no sleep run');
     await panel.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
+    assert.equal(await dialog.evaluate(element => element.classList.contains('app-dialog')), true);
+    await dialog.getByRole('button', { name: 'Close dialog', exact: true }).waitFor();
+    await dialog.getByLabel('From cognitive cycle').click();
+    assert.equal(await dialog.isVisible(), true, 'Clicking inside preserves the popup');
+    await page.mouse.click(5, 5); await dialog.waitFor({ state: 'detached' });
+    assert.equal(store.consolidations(agent.id).length, 0, 'Backdrop dismissal leaves no sleep run');
+    await panel.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
     const synthesis = dialog.getByLabel('Create consolidated memories per disposition');
     const detailPolicy = dialog.getByLabel('Memory detail policy');
     const guidance = dialog.getByLabel('Additional synthesis guidance (optional)');

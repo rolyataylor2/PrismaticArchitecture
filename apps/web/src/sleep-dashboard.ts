@@ -10,6 +10,7 @@ type Options = {
   snapshot: AgentSnapshot;
   api: <T>(path: string, method?: string, body?: unknown) => Promise<T>;
   fail: (error: unknown) => void;
+  createDialog: () => HTMLDialogElement;
 };
 const el = (tag: string, text = '', className = ''): HTMLElement => {
   const element = document.createElement(tag); element.textContent = text; element.className = className; return element;
@@ -25,7 +26,7 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     button.onclick = work; parent.append(button); return button;
   };
   const raw = (title: string, value: unknown): void => {
-    const dialog = document.createElement('dialog'); dialog.className = 'rd-dialog'; dialog.setAttribute('aria-label', title);
+    const dialog = options.createDialog(); dialog.className = 'rd-dialog'; dialog.setAttribute('aria-label', title);
     dialog.append(el('h2', title), el('pre', JSON.stringify(value, null, 2)));
     action(dialog, 'Close', () => dialog.close()); dialog.addEventListener('close', () => dialog.remove(), { once: true });
     document.body.append(dialog); dialog.showModal();
@@ -36,7 +37,7 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     snapshot = next; render();
   };
   const induce = (): void => {
-    const dialog = document.createElement('dialog'); dialog.className = 'rd-dialog'; dialog.setAttribute('aria-label', 'Induce sleep cycle');
+    const dialog = options.createDialog(); dialog.className = 'rd-dialog'; dialog.setAttribute('aria-label', 'Induce sleep cycle');
     dialog.append(el('h2', 'Induce sleep cycle'), el('p', 'Consolidate selected completed cognitive cycles. The Agent interprets the evidence; earlier memory versions and source lineage remain preserved.'));
     const form = document.createElement('form'); dialog.append(form);
     const input = (name: string, value: number): HTMLInputElement => {
