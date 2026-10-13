@@ -69,30 +69,38 @@ For a quick software walkthrough, `npm run demo` creates **Development demo**, d
 
 The [illustration guide](docs/ILLUSTRATIONS.md) describes all seven supplied images and their suggested explanatory uses.
 
-**Parts interpret and propose; Self enters at the end to choose.** Persistent dispositions determine which perspectives become relevant, and remembered experience informs how those perspectives interpret the situation.
+**Context recruits perspectives; their expressed thoughts and bids reach Self only after cognition.** Dispositions select relevant memories and recruit temporary Parts to interpret the situation.
 
 ```mermaid
 flowchart TD
-    W[Current experience: one shared WorldState] --> D[Activate relevant dispositions]
-    D --> M[Recall memories for each active scope]
-    M --> P[Temporary Parts interpret independently]
-    P --> B[Parts express thoughts, predictions and behavioral bids]
-    B --> S[Self selects among expressed bids using Identity]
-    S --> E[External Executive enacts the selected action]
+    C[Context / WorldState] --> D[Disposition selection and coactivation]
+    D --> M[Dispositions pull relevant memories]
+    M --> P[Temporary Parts form thoughts, bids and predictions]
+    P --> T[Expressed thoughts and bids]
+    T --> A[Affect Chooser]
+    A --> S[Self Bid Selector]
+    S --> E[Executive or external execution]
 ```
 
-Self enters after Parts have produced their contributions. It receives their expressed products and Identity, never the raw WorldState or recalled memories. Its bounded inquiry can ask Parts to clarify or revise before final selection; it does not supply their initial interpretation.
+Affect Chooser and Self Bid Selector are successive modes of the same world-blind Self. They receive mediated Part products and Identity, not raw context or recalled memories. Selected affect can guide a bounded revision of Parts' bids before final bid selection. Self does not produce the Parts' initial interpretation.
 
-**Experience changes what future Parts can draw on.** Learning is a separate feedback path, not another decision-maker inside the selection sequence:
+**Predictions and experience feed memory; sleep develops what future cognition draws on.**
 
 ```mermaid
-flowchart LR
-    E[Later experience] --> R[Subjective memory and prediction reflection]
-    R --> C[Offline consolidation]
-    C --> D[Dispositions and memories for future cycles]
+flowchart TD
+    P[Predictions from Part cognition] --> V[Check against later experience]
+    V --> M[Subjective memory creation and re-evaluation]
+    M --> DB[(Database: versioned memories and dispositions)]
+    DB --> R[Relevant memories for future disposition cognition]
+    DB --> S[Sleep: consolidate and re-evaluate disposition memories]
+    S --> DB
 ```
 
-Online cognition can record subjective memories and propose temporary relevance for later investigation. Durable disposition development waits for conservative offline review of recorded usefulness; prediction correctness alone is insufficient. These diagrams explain responsibilities, not every runtime branch. All active Parts receive the same immutable snapshot. Primitives do not participate in current online cognition. When no disposition activates, a fallback Part named `self` forms around Identity; it remains distinct from the selecting **Self**.
+Memory can also form from ordinary experience without a prediction. Prediction checks supply evidence for subjective reflection; they do not turn a prediction or its explanation into objective truth. New memories and revisions return to durable storage with source lineage and earlier versions preserved.
+
+Sleep reviews disposition-relevant memories and recorded prediction outcomes, and can consolidate or re-evaluate their meaning. Practice through [dream experiences](docs/architecture/decisions/0159-agent-based-dream-experiences.md) runs the ordinary context → disposition → Part pipeline and may include sleep; it does not force a learned conclusion. Optional [sleep memory synthesis](docs/architecture/decisions/0160-disposition-memory-synthesis.md) creates source-linked subjective memories. Durable disposition development requires conservative review of recorded usefulness, not prediction correctness alone.
+
+These diagrams show the main cognitive path and memory feedback, rather than every runtime branch. All active Parts receive the same immutable snapshot. Primitives do not participate in current online cognition. When no disposition activates, a fallback Part named `self` forms around Identity; it remains distinct from the selecting **Self**.
 
 Self selects; the Executive enacts. The Executive is **disabled by default**: ordinary cognition can record choices without external execution. Enable it explicitly in **Executive → Runtime** when the experiment requires enactment. Simulation owns external truth and supplies experiences; Agent cognition supplies psychological meaning.
 
