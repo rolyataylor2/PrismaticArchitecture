@@ -1,6 +1,8 @@
 # Executive
 
-Self chooses. Identity guides the choice. The Executive enacts it.
+Self chooses. Identity guides the choice. The Executive Layer assembles the selected actions for external enactment.
+
+The Executive Layer is an adapter to a task-focused external tool-use agent, not a feature-complete tool-use agent execution layer. It packages selected intent, ordered actions, constraints, success criteria and lineage for handoff. Operational planning, tool orchestration and recovery belong to the external agent within framework-enforced permissions and budgets. The existing native executor provides bounded integration and research support; a complete execution agent is outside this subsystem’s intended scope. See [ADR 0162](../../../../docs/architecture/decisions/0162-executive-action-handoff-adapter.md).
 
 The Executive is enactment machinery, not a second decision-maker. It hands Self's selected action to the appropriate external interface or capability, which may execute synchronously or asynchronously. External work may continue in parallel with later cognition where the host permits. The external system may report factual status (started, running, completed, failed, interrupted, or changed progress) through a later WorldState. The Executive may perform mechanical validation required by an external interface and handle handoff results; it must not evaluate Identity to arbitrate actions, compare bids, psychologically inspect WorldState, independently predict better outcomes, or substitute another action for Self's selection. At later decision points, Self selects again.
 

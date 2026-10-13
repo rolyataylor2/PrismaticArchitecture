@@ -2,6 +2,10 @@
 
 Affect and bid selection are two modes of the same Self. The affect mode receives explicit proposals and mediated period feedback, never current affect levels, activation scores, raw WorldState, memories or private Part state. Voluntary focus does not overwrite experienced affect or establish facts. Outcome counts do not establish learning progress, disposition maturity or causal usefulness. See [ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md); runtime and researcher inspection are integrated, with sourced experiments and measurement limitations recorded in the implementation audit.
 
+## Executive adapter boundary (ADR 0162)
+
+The Executive Layer is an adapter that assembles Self-selected actions into immutable contracts for a task-focused external tool-use agent. It is not intended to be a feature-complete tool-use agent execution layer. Operational planning, tool orchestration and recovery belong to the external agent within the selected contract; the framework retains permission and budget enforcement, handoff lineage and factual feedback. Existing native execution support is a bounded integration and research path, not a commitment to build a complete execution agent. See [ADR 0162](decisions/0162-executive-action-handoff-adapter.md).
+
 ## Executive connection (ADR 0155)
 
 The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](decisions/0155-executive-disconnected-by-default.md).

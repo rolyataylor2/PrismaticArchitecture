@@ -2,6 +2,10 @@
 
 This is a current-state index, not a completion claim. The original source remains https://chatgpt.com/share/6ac7d5eb-8150-83e8-b6cc-d4727cea3e96. The researcher's later priority is MCP, tool calls, cognition consultation and inspectors, with a potentially redesigned loop and no requirement for a fully working handoff. No replacement control-flow decision is recorded yet.
 
+## Intended scope
+
+The Executive Layer assembles selected actions for a task-focused external tool-use agent; it is an adapter, not a feature-complete execution agent. [ADR 0162](../architecture/decisions/0162-executive-action-handoff-adapter.md) clarifies that general operational planning, tool orchestration and recovery belong to the external agent. The wider original scope below records historical targets and implementation gaps; it is not a requirement to build those capabilities into the adapter. Existing native execution remains bounded integration and research support.
+
 ## Prioritized integration
 
 | Capability | Current implementation | Evidence and limitation |

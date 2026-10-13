@@ -99,3 +99,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0160 — Optional disposition memory synthesis during sleep](0160-disposition-memory-synthesis.md)
 
 - [0161 — Temporary Prediction-Bound Dispositions](0161-temporary-prediction-bound-dispositions.md)
+
+- [0162 — Executive action handoff adapter](0162-executive-action-handoff-adapter.md)
