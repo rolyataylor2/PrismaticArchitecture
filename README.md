@@ -69,32 +69,30 @@ For a quick software walkthrough, `npm run demo` creates **Development demo**, d
 
 The [illustration guide](docs/ILLUSTRATIONS.md) describes all seven supplied images and their suggested explanatory uses.
 
+**Parts interpret and propose; Self enters at the end to choose.** Persistent dispositions determine which perspectives become relevant, and remembered experience informs how those perspectives interpret the situation.
+
 ```mermaid
 flowchart TD
-    W[Immutable experienced WorldState] --> A[Independent disposition activation and soft associations]
-    D[(Persistent dispositions)] --> A
-    A --> R[Scope-specific memory recall and budget admission]
-    M[(Versioned subjective memories)] --> R
-    R --> P[Parallel transient Part formation and cognition]
-    W --> P
-    P --> B[Expressed thoughts, affect proposals, predictions and bids]
-    B --> S[World-blind Self: affect focus, inquiry and bid selection]
-    I[Identity] --> S
-    S --> E[External Executive: enact selected contracts when enabled]
-    E --> O[Later factual outcomes]
-    O --> W
-    O --> V[Separate checks of older predictions and outcome reflection]
-    B --> C[Bounded coverage: gap hypotheses and temporary relevance]
-    V --> M
-    C --> T[Later-cycle temporary scopes]
-    T --> A
-    V --> L[Offline consolidation of selected evidence and recorded usefulness]
-    M --> L
-    L --> D
-    L --> M
+    W[Current experience: one shared WorldState] --> D[Activate relevant dispositions]
+    D --> M[Recall memories for each active scope]
+    M --> P[Temporary Parts interpret independently]
+    P --> B[Parts express thoughts, predictions and behavioral bids]
+    B --> S[Self selects among expressed bids using Identity]
+    S --> E[External Executive enacts the selected action]
 ```
 
-This is a mechanism overview, not a strict scheduling diagram. All active Parts receive the exact same frozen WorldState. Primitive signals are retained as configuration but **do not participate in current online cognition**. A fallback Part named `self` forms around Identity when no disposition activates; it is distinct from world-blind **Self**.
+Self enters after Parts have produced their contributions. It receives their expressed products and Identity, never the raw WorldState or recalled memories. Its bounded inquiry can ask Parts to clarify or revise before final selection; it does not supply their initial interpretation.
+
+**Experience changes what future Parts can draw on.** Learning is a separate feedback path, not another decision-maker inside the selection sequence:
+
+```mermaid
+flowchart LR
+    E[Later experience] --> R[Subjective memory and prediction reflection]
+    R --> C[Offline consolidation]
+    C --> D[Dispositions and memories for future cycles]
+```
+
+Online cognition can record subjective memories and propose temporary relevance for later investigation. Durable disposition development waits for conservative offline review of recorded usefulness; prediction correctness alone is insufficient. These diagrams explain responsibilities, not every runtime branch. All active Parts receive the same immutable snapshot. Primitives do not participate in current online cognition. When no disposition activates, a fallback Part named `self` forms around Identity; it remains distinct from the selecting **Self**.
 
 Self selects; the Executive enacts. The Executive is **disabled by default**: ordinary cognition can record choices without external execution. Enable it explicitly in **Executive → Runtime** when the experiment requires enactment. Simulation owns external truth and supplies experiences; Agent cognition supplies psychological meaning.
 
