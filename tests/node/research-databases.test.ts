@@ -35,11 +35,18 @@ test('research catalog and prefixed operations preserve original database owners
     assert.equal(f.mainStore.get('agent', f.mainAgent.id).name, 'Main bot');
     assert.equal(f.mainStore.cycles(f.mainAgent.id).length, 0);
     assert.equal((await fetch(`${f.base}/api/research/unknown/agents`)).status, 404);
-    const stream = await fetch(`${prefix}/agents/${f.bot.id}/stream`);
+    const stream = await fetch(`${prefix}/agents/${f.bot.id}/stream`, { signal: AbortSignal.timeout(5000) });
     const reader = stream.body!.getReader();
-    const first = new TextDecoder().decode((await reader.read()).value);
-    assert.ok(first.includes('cycle.completed'));
-    await reader.cancel();
+    const decoder = new TextDecoder();
+    let received = '';
+    try {
+      while (!received.includes('cycle.completed')) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        received += decoder.decode(value, { stream: true });
+      }
+      assert.ok(received.includes('cycle.completed'));
+    } finally { await reader.cancel(); }
   } finally { await f.close(); }
 });
 
