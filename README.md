@@ -20,9 +20,13 @@ Disposition prerequisites no longer gate activation. Every live eligible scope r
 
 Author: Taylor Burke
 
-License: Apache License 2.0
+Copyright 2026 Taylor Burke
+
+License: [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution notices. Third-party materials retain their respective licenses and notices.
 
 This project is an independently developed experimental cognitive architecture. If you use this work in academic research, publications, or derivative projects, please acknowledge the original author and cite the repository.
+
+Academic acknowledgment and citation are requests, not additional license conditions. The Apache License 2.0 governs legal notice obligations. Citation metadata is available in [CITATION.cff](CITATION.cff).
 
 The updated Executive learning target is [ADR 0144](docs/architecture/decisions/0144-correction-led-executive-learning-and-attention.md): continuous authorized activity, independent cognitive attention and operational competence, Self-selected corrections, conditional skills and late-bound preferences. Skill inspection follows actual bid/thought/validation/version lineage; checkpoint cognition/selected pause and offline conditional candidates are implemented, with source-member inspection. Maturity, automatic policy, full adaptation and transfer remain requirements tracked in the thread audit.
 

@@ -3,6 +3,7 @@ message: >-
   This project is an independently developed experimental cognitive architecture.
   If you use this work in academic research, publications, or derivative projects,
   please acknowledge the original author and cite the repository.
+  Academic acknowledgment and citation are requests, not additional license conditions.
 type: software
 title: "The Prism Agent Architecture"
 authors:
