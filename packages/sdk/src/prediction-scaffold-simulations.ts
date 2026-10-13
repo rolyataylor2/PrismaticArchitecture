@@ -2,7 +2,7 @@ import type { SimulationTestDefinition } from './simulation-tests.js';
 
 const source = 'https://chatgpt.com/share/6ac6ac9c-bdbc-83e8-8fd8-1ff9c94f9fb1';
 const criteria = ['Consequential gaps produce attributed hypotheses without fabricated owning Parts.',
-  'Temporary relevance participates only in later ordinary cognition.',
+  'Temporary prediction-bound dispositions participate only in later ordinary cognition.',
   'Closed hypotheses retain evidence and stop temporary attention.',
   'Review whether learned distinctions and resolver methods improve future cognition across the comparison and control experiences.'];
 const limitations = 'All Agents start fresh and experiences are researcher-authored external records, not forced psychological conclusions. No activation, prediction, outcome classification or learning is prescribed by the provider. Missing hypotheses make dependent lifecycle criteria inconclusive. Fixture runs verify harness behavior only; configured runs require semantic review of coverage, recall, evidence and lineage. No single run proves human psychology. Ordinary memory, thoughts and experiences carry over within each run.';

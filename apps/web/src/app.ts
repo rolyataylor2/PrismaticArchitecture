@@ -2586,7 +2586,7 @@ async function openDispositionInfo(disposition: AgentSnapshot['dispositions'][nu
       inspectorSection('Activation associations', dispositionAssociations(item).map(associationLabel)),
       inspectorSection('Memory evidence', item.memoryIds.map(id => state!.memories.find(memory => memory.id === id)?.gist ?? id)),
       node('p', `Activation threshold: ${item.threshold} · ${item.active ? 'Active' : 'Inactive'} · ${item.temporary ? 'Temporary' : 'Durable'}`), details('Disposition record', version));
-    if (item.scaffold) entry.append(inspectorSection('Temporary hypothesis relevance', [
+    if (item.scaffold) entry.append(inspectorSection('Temporary Prediction-Bound Disposition', [
       `Hypothesis: ${item.sourcePredictionId} · version ${item.scaffold.hypothesisVersion}`,
       `Origin: ${item.scaffold.createdCycle} · thread ${item.scaffold.threadId ?? 'unthreaded'}`,
       `Tracked distinction: ${item.scaffold.relevance.trackedDistinction}`,
@@ -2639,7 +2639,7 @@ function dispositionsPage(): void {
     const temporary = visible.filter(item => item.temporary);
     const durable = visible.filter(item => !item.temporary);
     for (const [title, description, dispositions] of [
-      ['Temporary dispositions', 'Prediction-derived relevance scaffolds that help investigate unresolved hypotheses in later cycles.', temporary],
+      ['Temporary Prediction-Bound Dispositions', 'Prediction-bound dispositions that help investigate unresolved hypotheses in later cycles.', temporary],
       ['Persistent dispositions', 'Durable learned scopes that guide attention and the formation of Parts.', durable],
     ] as const) {
       const section = node('section', '', 'disposition-group');
@@ -3339,8 +3339,8 @@ const promptPurposes: Record<string, string> = {
   part_cognition: 'Code assembles each scope and chooses continuity. Parallel LLM calls return formation, subjective reflection, gist and cognition in order. Each perspective reasons at its scope’s level about unresolved conditions and changing relevance. Only fallback self receives Identity; Self chooses and external systems execute.',
   hypothesis_outcome: 'Bounded gap hypothesis classification from its capsule and later factual evidence. No owning Part, imagination or durable promotion.',
   hypothesis_reflection: 'Subjective gap outcome interpretation and optional attributed memory. No fabricated owning Part, private state or structural edits.',
-  cognition_coverage: 'Assess consequential gaps from immutable experience and expressed cognition; propose bounded testable hypotheses and temporary relevance. No Identity, private Part state, selection or durable formation authority.',
-  experiential_formation: 'After committed subjective experience, attach evidence to existing relevance structure. New hypotheses and temporary relevance come from predictions; durable institutionalization remains offline. No raw WorldState access.',
+  cognition_coverage: 'Assess consequential gaps from immutable experience and expressed cognition; propose bounded testable hypotheses and temporary prediction-bound dispositions. No Identity, private Part state, selection or durable formation authority.',
+  experiential_formation: 'After committed subjective experience, attach evidence to existing relevance structure. New hypotheses and temporary prediction-bound dispositions come from predictions; durable institutionalization remains offline. No raw WorldState access.',
   memory_reinterpretation: 'Conservatively reinterpret selected subjective episodes while preserving prior versions and continuity. No disposition edits or objective audit replay.',
   disposition_learning: 'Reconcile contextual memory relevance through explicit specialization, generalization, split, merge, dependency or archive proposals. Distinguish retrieval usefulness from prediction correctness; preserve memory content, prior versions and lineage. Abstain when evidence is insufficient.',
   effortful_recall: 'Deliberately recollect stored fallible perceived details. No objective ancestry or audit history is available to this task.',

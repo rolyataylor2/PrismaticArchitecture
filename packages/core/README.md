@@ -24,11 +24,11 @@ Ordinary operational proposals may explicitly include `teachProcedure` or a curr
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](../../docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
 
-# Prediction-led relevance (ADR 0138)
+# Prediction-bound dispositions (ADR 0138)
 
-Bounded cognition coverage examines the immutable experienced snapshot, active relevance definitions and expressed products after ordinary cognition. It may abstain or create testable gap hypotheses without an owning Part. Coverage has no Identity, private memory, bids or execution authority. Hypotheses propose versioned temporary relevance scaffolds for ordinary later-cycle activation, recall and Part generation. Gap outcome checks use factual-only later evidence; separate subjective reflection can retain a hypothesis-attributed episode without inventing a Part.
+Bounded cognition coverage examines the immutable experienced snapshot, active relevance definitions and expressed products after ordinary cognition. It may abstain or create testable gap hypotheses without an owning Part. Coverage has no Identity, private memory, bids or execution authority. Hypotheses propose versioned temporary prediction-bound dispositions for ordinary later-cycle activation, recall and Part generation. Gap outcome checks use factual-only later evidence; separate subjective reflection can retain a hypothesis-attributed episode without inventing a Part.
 
-Online experience attaches evidence only. Offline INSTITUTIONALIZE requires repeated recorded appropriate ordinary use and creates a durable descendant with preserved scaffold lineage. Correctness alone cannot promote relevance. Ended temporary scopes remain inactive; their histories and memories survive. Implementation verification and outstanding requirements are tracked in `docs/development/PREDICTION_SCAFFOLD_THREAD_AUDIT.md`.
+Online experience attaches evidence only. Offline INSTITUTIONALIZE requires repeated recorded appropriate ordinary use and creates a durable descendant with preserved prediction-bound disposition lineage. Correctness alone cannot promote relevance. Ended temporary scopes remain inactive; their histories and memories survive. Implementation verification and outstanding requirements are tracked in `docs/development/PREDICTION_SCAFFOLD_THREAD_AUDIT.md`.
 
 # Experienced WorldState
 
@@ -117,7 +117,7 @@ Researcher-only approval remains the default. The opt-in `self_selected` profile
 
 ## Offline concern inheritance (ADR 0154)
 
-Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary prediction-bound dispositions remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
 
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
@@ -135,3 +135,5 @@ Inspection may persist explicit invoking research-stage metadata separately from
 
 ADR 0160 adds optional per-disposition sleep synthesis. `sleep-synthesis.ts` captures independently activated scope evidence before sleep writes, validates source versions and records new subjective memories. Separate disposition-specific exclusions affect ordinary recall only; sources and other perspectives remain available.
 `sleep-policy.ts` defines conservative detail preservation, belief-change emphasis and current-perspective summaries plus optional researcher guidance. Synthesis records source-specific omission rationales, and repeat detection includes policy/guidance. Recall exclusions never prevent offline review of preserved sources.
+
+Terminology: [ADR 0161](../../docs/architecture/decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.

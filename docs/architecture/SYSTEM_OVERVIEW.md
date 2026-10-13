@@ -16,7 +16,7 @@ Disposition prerequisites no longer gate activation. Every live eligible scope r
 
 ## Prediction-led development (ADR 0138)
 
-[ADR 0138](decisions/0138-prediction-led-relevance-scaffolds.md) replaces direct online durable formation with bounded cognition coverage, gap-origin hypotheses and versioned temporary relevance scaffolds. Ordinary Parts investigate through later-cycle activation/recall; factual outcome reflection and recorded usefulness feed conservative offline institutionalization. Self remains world-blind, snapshots immutable and execution external. The ADR defines the implementation target; see the prediction-scaffold audit for current completion evidence.
+[ADR 0138](decisions/0138-prediction-led-relevance-scaffolds.md) replaces direct online durable formation with bounded cognition coverage, gap-origin hypotheses and versioned temporary prediction-bound dispositions. Ordinary Parts investigate through later-cycle activation/recall; factual outcome reflection and recorded usefulness feed conservative offline institutionalization. Self remains world-blind, snapshots immutable and execution external. The ADR defines the implementation target; see the prediction-scaffold audit for current completion evidence.
 
 <!-- Current online flow: ADR 0133 -->
 
@@ -217,6 +217,8 @@ ADR 0152 permits opt-in external candidate inference after independently verifie
 
 ## Offline concern inheritance (ADR 0154)
 
-Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary prediction-bound dispositions remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
 
 [ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds optional disposition-scoped sleep synthesis. New subjective memories preserve source-version lineage; separately enabled retrieval replacement affects only that disposition, preserving original records and other scopes. Inputs are captured before sleep writes; activation selects review, not a required conclusion.
+
+Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.

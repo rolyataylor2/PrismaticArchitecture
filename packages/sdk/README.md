@@ -56,9 +56,9 @@ Ordinary later Part inputs may receive bounded public `externalSkills` manifests
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](../../docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
 
-# Prediction scaffold research integration
+# Prediction-bound disposition research integration
 
-ADR 0138 task previews use recorded permitted coverage/reflection inputs and factual original-thread hypothesis-check samples. Five new sourced Simulation Tests cover blank cognition, conflicting coverage, failed expectation, recurring interlocutors and nonperson source continuity. Runs use ordinary isolated Agent cognition and preserve coverage outcomes, hypotheses, scaffolds, recalls, factual records, prediction checks and expressed products. Fixture abstention is not model validation; usefulness and learned resolver quality require semantic review. Source Agents remain preserved.
+ADR 0138 task previews use recorded permitted coverage/reflection inputs and factual original-thread hypothesis-check samples. Five new sourced Simulation Tests cover blank cognition, conflicting coverage, failed expectation, recurring interlocutors and nonperson source continuity. Runs use ordinary isolated Agent cognition and preserve coverage outcomes, hypotheses, prediction-bound dispositions, recalls, factual records, prediction checks and expressed products. Fixture abstention is not model validation; usefulness and learned resolver quality require semantic review. Source Agents remain preserved.
 
 <!-- Current online flow: ADR 0133 -->
 
@@ -271,7 +271,7 @@ Cross-Agent standard package copying is available through POST `agents/:target/e
 
 ## Offline concern inheritance (ADR 0154)
 
-Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary prediction-bound dispositions remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
 
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 

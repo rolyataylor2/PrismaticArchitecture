@@ -1,5 +1,7 @@
 # ADR 0138: Prediction-led relevance scaffolds
 
+Terminology update: [ADR 0161](0161-temporary-prediction-bound-dispositions.md) names these structures **Temporary Prediction-Bound Dispositions**. The original terminology below is preserved as decision history.
+
 Status: Accepted, 2026-10-07. Researcher request: implement the [prediction/disposition discussion](https://chatgpt.com/share/6ac6ac9c-bdbc-83e8-8fd8-1ff9c94f9fb1). Decoded source is preserved under `docs/development/PREDICTION_SCAFFOLD_THREAD_SOURCE.md`.
 
 Extends ADRs 0133/0136 and supersedes ADR 0137's direct online creation of persistent provisional dispositions. ADR 0137 evidence preservation, conservative structural reconciliation and separate subjective-memory reinterpretation remain. Historical decisions are preserved.

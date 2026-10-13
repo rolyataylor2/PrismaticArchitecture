@@ -20,7 +20,7 @@ Disposition prerequisites no longer gate activation. Every live eligible scope r
 
 ## Prediction-led development (ADR 0138)
 
-[ADR 0138](decisions/0138-prediction-led-relevance-scaffolds.md) replaces direct online durable formation with bounded cognition coverage, gap-origin hypotheses and versioned temporary relevance scaffolds. Ordinary Parts investigate through later-cycle activation/recall; factual outcome reflection and recorded usefulness feed conservative offline institutionalization. Self remains world-blind, snapshots immutable and execution external. The ADR defines the implementation target; see the prediction-scaffold audit for current completion evidence.
+[ADR 0138](decisions/0138-prediction-led-relevance-scaffolds.md) replaces direct online durable formation with bounded cognition coverage, gap-origin hypotheses and versioned temporary prediction-bound dispositions. Ordinary Parts investigate through later-cycle activation/recall; factual outcome reflection and recorded usefulness feed conservative offline institutionalization. Self remains world-blind, snapshots immutable and execution external. The ADR defines the implementation target; see the prediction-scaffold audit for current completion evidence.
 
 # Canonical Agent Flow
 
@@ -57,3 +57,5 @@ Primitives remain in the researcher menu but do not score, think, predict or bid
 Offline consolidation remains a distinct developmental timescale; ADR 0137 separates explicit disposition reconciliation from subjective memory reinterpretation; retained historical Part-development facilities remain separate. Simulations create experiences through narrow interfaces and never directly mutate psychology or Identity.
 
 Explicit message `skillDocumentIds` can request up to ten distinct same-Agent currently reviewed import proposals. The host verifies packages before cognition and places only main instruction text/name/description plus immutable digest/review revision in `WorldState.externalSkillDocuments`. All Parts share that snapshot; supporting resources/audit and foreign approval remain excluded. Factual evidence contexts used to evaluate predictions omit this metadata, and Self receives ordinary expressed products rather than raw documents. Documents do not automatically recur in later snapshots. This is explicit intake, not automatic discovery, progressive provider retrieval, selected executable adoption or evidence of learned application. Factory Part/answer prompts and the task description reflect these boundaries.
+
+Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.

@@ -97,3 +97,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0159 — Agent-based dream experiences](0159-agent-based-dream-experiences.md)
 
 - [0160 — Optional disposition memory synthesis during sleep](0160-disposition-memory-synthesis.md)
+
+- [0161 — Temporary Prediction-Bound Dispositions](0161-temporary-prediction-bound-dispositions.md)

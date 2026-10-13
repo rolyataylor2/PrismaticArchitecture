@@ -104,7 +104,7 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     await dispositionInspector.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Uncertain recurring source', exact: true }).click();
     const scaffoldInspector = page.getByRole('region', { name: 'Disposition inspector' });
-    await scaffoldInspector.getByRole('heading', { name: 'Temporary hypothesis relevance', exact: true }).waitFor();
+    await scaffoldInspector.getByRole('heading', { name: 'Temporary Prediction-Bound Disposition', exact: true }).waitFor();
     assert.ok((await scaffoldInspector.innerText()).includes('Continuing versus different source'));
     assert.ok((await scaffoldInspector.innerText()).includes('Matching source identifier'));
     await scaffoldInspector.getByRole('button', { name: '← Back to dispositions', exact: true }).click();

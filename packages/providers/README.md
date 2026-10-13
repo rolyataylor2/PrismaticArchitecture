@@ -28,9 +28,9 @@ Part-cognition and deliberation-answer factories describe explicit selected `tea
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](../../docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
 
-# Prediction scaffold contracts
+# Prediction-bound disposition contracts
 
-ADR 0138 adds separate editable cognition_coverage, hypothesis_outcome and hypothesis_reflection tasks. Coverage has expressed cognition and the shared immutable experience, without Identity or private Part/memory records. It proposes bounded unresolved-state hypotheses and temporary relevance, not durable structure or actions. Outcome checking remains bounded Jev Choice; reflection uses factual-only later records and an attributed capsule, with evidenceWorldId constrained to the supplied snapshot. Part cognition may propose temporary scaffolds from its own recalled evidence. Online experiential_formation now attaches evidence only; offline disposition_learning includes explicit evidence-gated INSTITUTIONALIZE. Mock coverage abstains and never claims discovered psychology.
+ADR 0138 adds separate editable cognition_coverage, hypothesis_outcome and hypothesis_reflection tasks. Coverage has expressed cognition and the shared immutable experience, without Identity or private Part/memory records. It proposes bounded unresolved-state hypotheses and temporary prediction-bound dispositions, not durable structure or actions. Outcome checking remains bounded Jev Choice; reflection uses factual-only later records and an attributed capsule, with evidenceWorldId constrained to the supplied snapshot. Part cognition may propose temporary prediction-bound dispositions from its own recalled evidence. Online experiential_formation now attaches evidence only; offline disposition_learning includes explicit evidence-gated INSTITUTIONALIZE. Mock coverage abstains and never claims discovered psychology.
 
 # Experienced WorldState
 
@@ -108,7 +108,7 @@ Part cognition v22 and deliberation-answer v24 describe selected remainder corre
 
 ## Offline concern inheritance (ADR 0154)
 
-Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary prediction-bound dispositions remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
 
 ADR 0155 disconnects Executive integration by default. Per-Agent `enabled` is explicit; missing legacy values read false. Disabled cognition preserves selection without enactment or operational context/feedback.
 
@@ -116,3 +116,5 @@ OpenAI/xAI errors now retain structured safe HTTP status, retryability and viola
 
 ADR 0160 adds the separate editable `memory_synthesis` sleep task, routed through constructed inference. It receives one disposition, selected subjective memories and linked predictions only. Factory/schema/preview support abstention and scoped citations; mock inference abstains. It neither verifies external causes nor creates dispositions.
 The synthesis factory v2 uses an explicit recorded detail policy and optional guidance; each cited source receives a scoped retention/omission judgment. These choices never supply evidence or force belief rejection. Identical lineage under a different policy may produce a separately inspectable synthesis.
+
+Terminology: [ADR 0161](../../docs/architecture/decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
