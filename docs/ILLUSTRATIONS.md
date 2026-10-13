@@ -8,7 +8,7 @@ colors, and facial expressions do not define a fixed set of emotions or Parts.
 Dispositions represent contextual relevance, associations, concerns, expectations,
 and sensitivities. They recruit temporary Parts that may express affect and propose
 behavior. Self receives mediated products rather than the raw world; the artwork
-does not encode that access boundary. Use the README's technical diagram and
+does not encode that access boundary. Use the README's architecture explanation and
 canonical architecture documentation when explaining runtime responsibilities.
 
 | Filename | Suggested explanatory use | Original supplied filename |
