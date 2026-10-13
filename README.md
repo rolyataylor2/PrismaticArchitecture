@@ -1,3 +1,11 @@
+# Prismatic Architecture
+
+## A Cognitive Architecture for Continual Learning and Adaptive Intelligence
+
+An open-source research project exploring how autonomous intelligence can emerge from interacting cognitive parts, experience-driven dispositions, memory, and prediction-based learning.
+
+Developed by Taylor Burke | Apache License 2.0
+
 Dreams uses a chosen developed Agent as its base, preserves changes on an isolated continuation by default, and optionally retains ordinary experience on the base when explicitly selected. The dashboard freezes before/after evidence; see [ADR 0159](docs/architecture/decisions/0159-agent-based-dream-experiences.md).
 
 ## Simulation Cognitive Observatory (ADR 0158)
@@ -16,9 +24,7 @@ The Executive is disabled by default, including existing profiles without an exp
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
 
-# The Prism Agent Architecture
-
-Author: Taylor Burke
+## Authorship, License, and Citation
 
 Copyright 2026 Taylor Burke
 
