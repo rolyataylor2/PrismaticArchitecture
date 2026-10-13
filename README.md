@@ -18,6 +18,12 @@ Disposition prerequisites no longer gate activation. Every live eligible scope r
 
 # The Prism Agent Architecture
 
+Author: Taylor Burke
+
+License: Apache License 2.0
+
+This project is an independently developed experimental cognitive architecture. If you use this work in academic research, publications, or derivative projects, please acknowledge the original author and cite the repository.
+
 The updated Executive learning target is [ADR 0144](docs/architecture/decisions/0144-correction-led-executive-learning-and-attention.md): continuous authorized activity, independent cognitive attention and operational competence, Self-selected corrections, conditional skills and late-bound preferences. Skill inspection follows actual bid/thought/validation/version lineage; checkpoint cognition/selected pause and offline conditional candidates are implemented, with source-member inspection. Maturity, automatic policy, full adaptation and transfer remain requirements tracked in the thread audit.
 
 The bounded Executive implementation is tracked in [ADR 0140](docs/architecture/decisions/0140-bounded-teachable-executive.md) and the [thread audit](docs/development/EXECUTIVE_THREAD_AUDIT.md). Chat and explicit operational strategies compile immutable selected-bid contracts. The native executor enacts exact selected tool calls, checks a selected verification criterion and returns compact later-thread feedback, while raw traces stay in audit. The shared MCP manager supports stdio/Streamable HTTP, schema validation and scoped permissions, with durable configuration APIs. Per-Agent profiles, native background work/cancellation and evidence-checked exact-procedure versions are administered through six Executive tabs. [ADR 0142](docs/architecture/decisions/0142-selected-guidance-continuations.md) connects no-submission guidance pauses to fresh Self-selected supplemental contracts, preserving original history and cumulative request limits. [ADR 0143](docs/architecture/decisions/0143-selected-procedure-teaching-and-use.md) adds explicit Self-selected procedure teaching and exact active-method reuse with recorded evidence and mode gates. Broader planning/recovery, cognitive approval, generalized/shared methods, portable adapters and remaining configuration are unfinished.
