@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: >-
+  This project is an independently developed experimental cognitive architecture.
+  If you use this work in academic research, publications, or derivative projects,
+  please acknowledge the original author and cite the repository.
+type: software
+title: "The Prism Agent Architecture"
+authors:
+  - given-names: Taylor
+    family-names: Burke
+repository-code: "https://github.com/rolyataylor2/PrismAgenticArchitecture"
+url: "https://github.com/rolyataylor2/PrismAgenticArchitecture"
+license: Apache-2.0
