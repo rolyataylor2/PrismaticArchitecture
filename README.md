@@ -1,3 +1,5 @@
+![Status](https://img.shields.io/badge/Status-Experimental_Research_Preview-purple)
+
 <p align="center">
   <img src="docs/prismatic-architecture-logo.png" width="180" alt="Prismatic Architecture: multiple colored perspectives surrounding a shared integrative center">
 </p>
