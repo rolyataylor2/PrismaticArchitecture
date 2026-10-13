@@ -1,73 +1,127 @@
+<p align="center">
+  <img src="docs/prismatic-architecture-logo.png" width="180" alt="Prismatic Architecture: multiple colored perspectives surrounding a shared integrative center">
+</p>
+
 # Prismatic Architecture
 
-## A Cognitive Architecture for Continual Learning and Adaptive Intelligence
+### A Cognitive Architecture for Continual Learning and Adaptive Intelligence
 
-An open-source research project exploring how autonomous intelligence can emerge from interacting cognitive parts, experience-driven dispositions, memory, and prediction-based learning.
+**Developed by Taylor Burke | Apache License 2.0**
 
-Developed by Taylor Burke | Apache License 2.0
+An open-source research project exploring how autonomous intelligence can emerge from interacting cognitive parts, experience-driven dispositions, memory, and prediction-based learning. Persistent dispositions recruit temporary perspectives that interpret the same situation, recall subjective memories, make predictions, and propose behavior. A world-blind Self selects among their expressed proposals using Identity; experience and offline consolidation can change what the Agent attends to and remembers without retraining the underlying language model.
 
-Dreams uses a chosen developed Agent as its base, preserves changes on an isolated continuation by default, and optionally retains ordinary experience on the base when explicitly selected. The dashboard freezes before/after evidence; see [ADR 0159](docs/architecture/decisions/0159-agent-based-dream-experiences.md).
+**Try a concrete example:** run `npm run demo` after installation, or compare the supplier-learning experiment with its matched control: claims → contrary inspections → consolidation → familiar and unfamiliar source retests. Inspect predictions, recalled memories, disposition versions, and selected behavior—not dialogue alone.
 
-## Simulation Cognitive Observatory (ADR 0158)
+[Architecture](#architecture-overview) · [Experiments and evidence](#experiments-benchmarks-and-results) · [Quick start](#installation-and-quick-start) · [Collaborate](#contributing-authorship-citation-and-licensing)
 
-Simulation Tests now contains six Cognitive Observatory views: Overview, Experiments, Run Explorer, Comparisons, Development, and Diagnostics & Evidence. Coordinated stage/Part filters connect activation, interpretation, prediction and memory history. Recorded bid-to-Self-to-contract/tool trails expose explicit provenance; runtime schema checks remain separate from provider return. Human reviews and saved candidate findings preserve cited evidence and versions; run/configuration/before-after comparisons expose confounds and trial variation. Four sourced normal-pipeline experiments provide matched carryover and learning controls. Saved starting configurations can be rerun or forked onto fresh Agents with explicit provenance. Richer operational instrumentation and remaining development measures stay tracked in the [thread audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md).
+## Introduction and research objective
 
-## Self affect extension (ADR 0157)
+**Can an AI agent develop adaptable behavior through persistent dispositions, transient cognitive parts, memory, and experience-based learning without retraining its underlying language model?**
 
-[ADR 0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md) defines separate world-blind affect and bid selection passes, focused bid revision and attributed affect periods. Part cognition records explicit affect proposals separately from experienced affect. Selection/lifecycle/feedback contracts, provider affect scoring/inquiry/focused-revision adapters and editable prompt/previews are implemented. Ordinary runtime now sequences baseline scoring, bounded affect inquiry, focused bid revision and behavioral selection. Completed same-thread cycles persist focus periods across restart; the Affect Analysis panel now provides lifetime/timeframe history, period statistics and source inspection. Eight sourced Simulation Tests preserve ordinary-pipeline evidence and explicit inconclusive/failure distinctions. The implementation audit records verification and measurement limitations. See the [implementation audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md).
+A prompt-and-tool loop can produce capable behavior, but raises a further research question: how should experience change the organization of future attention, interpretation, and choice? Prismatic Architecture makes those relationships explicit and inspectable. Its experimental contribution is the connection between learned relevance, reconstructed perspectives, competing proposals, later prediction evidence, and conservative structural learning.
 
-## Executive connection (ADR 0155)
+> Adaptive intelligence can be supported by a persistent, evolving organization of dispositions and memories, which recruits temporary cognitive processes to interpret situations, generate competing behavioral proposals, and learn from predictions.
 
-The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](docs/architecture/decisions/0155-executive-disconnected-by-default.md).
+This is the central hypothesis, not an established result. The project is an independently developed experimental cognitive architecture, implemented in TypeScript with durable Agent state and a browser research inspector. It does not establish a model of human psychology or a performance advantage over conventional agents.
 
-## Soft activation associations (ADR 0139)
+## Key features and research hypotheses
 
-Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](docs/architecture/decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
+| Status | Capability | What researchers can examine |
+| --- | --- | --- |
+| Implemented | Contextual disposition activation and soft associations | Independent relevance scores; several conflicting scopes can activate together. Activation is separate from compute-budget admission and action authority. |
+| Implemented | Memory-driven transient Parts | Chronological subjective recall and independent perspective construction against one immutable snapshot. Memories may disagree. |
+| Implemented | Competing bids and world-blind Self | Identity-guided selection and bounded inquiry over expressed proposals, without direct world access. |
+| Implemented | Prediction verification and temporary relevance | Later factual checks, attributed outcome reflection, gap-origin hypotheses, and versioned scaffolds investigated through ordinary later cognition. |
+| Implemented | Online experience and offline consolidation | Versioned subjective episodes, evidence attachment, and conservative disposition development with source lineage. No model-weight updates. |
+| Implemented, experimental | Affect focus, dream experiences, and selected tool execution | Separate Self affect/bid passes, isolated developed-Agent continuations, and opt-in external execution with validated contracts. |
+| Research hypothesis | Durable adaptation and bounded transfer | Whether these mechanisms improve later discrimination, forecasting, and behavior rather than merely accumulating records. |
+| Planned evaluation | Broad comparative benchmarks and mechanism ablations | Adaptation speed, prediction calibration, long-term retention, cross-environment transfer, and benefit per unit of computation. |
 
-## Authorship, License, and Citation
+“Implemented” describes software availability. It does not mean the corresponding cognitive benefit has been demonstrated. [Implementation audits](docs/development/) document verification and outstanding empirical questions.
 
-Copyright 2026 Taylor Burke
+## Live demonstration and examples
 
-License: [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution notices. Third-party materials retain their respective licenses and notices.
+### A source says one thing; experience supplies another
 
-This project is an independently developed experimental cognitive architecture. If you use this work in academic research, publications, or derivative projects, please acknowledge the original author and cite the repository.
+The registered **Recorded learning, consolidation and transfer** experiment supplies ordinary experiences to a fresh Agent:
 
-Academic acknowledgment and citation are requests, not additional license conditions. The Apache License 2.0 governs legal notice obligations. Citation metadata is available in [CITATION.cff](CITATION.cff).
+| Stage | External experience | Evidence to inspect |
+| --- | --- | --- |
+| Baseline | Rowan says an unopened crate contains a red token. | Any expressed prediction, proposed check, and selected behavior. |
+| Experience | Two separate inspections find blue tokens, contrary to Rowan’s claims. | Later prediction checks and newly formed subjective memories. |
+| Consolidation | Ordinary offline sleep processes the recorded experience. | Disposition and memory versions, decisions, and preserved source lineage. |
+| Familiar retest | Rowan makes another unverified crate claim. | What is recalled, expected, and proposed compared with baseline. |
+| Transfer and controls | Morgan is unfamiliar; Quinn has accurate observed testimony; an unrelated scene has no claims. | Bounded generalization versus unsupported global distrust. |
 
-The updated Executive learning target is [ADR 0144](docs/architecture/decisions/0144-correction-led-executive-learning-and-attention.md): continuous authorized activity, independent cognitive attention and operational competence, Self-selected corrections, conditional skills and late-bound preferences. Skill inspection follows actual bid/thought/validation/version lineage; checkpoint cognition/selected pause and offline conditional candidates are implemented, with source-member inspection. Maturity, automatic policy, full adaptation and transfer remain requirements tracked in the thread audit.
+Run its paired **Learning comparison without contrary training** condition with the same settings. The control has matching stage counts and sleep but receives unrelated observations instead of contradictory crate evidence. A changed dialogue alone cannot establish learned disposition usefulness; unchanged behavior or absent predictions can leave the hypothesis unobserved or inconclusive.
 
-The bounded Executive implementation is tracked in [ADR 0140](docs/architecture/decisions/0140-bounded-teachable-executive.md) and the [thread audit](docs/development/EXECUTIVE_THREAD_AUDIT.md). Chat and explicit operational strategies compile immutable selected-bid contracts. The native executor enacts exact selected tool calls, checks a selected verification criterion and returns compact later-thread feedback, while raw traces stay in audit. The shared MCP manager supports stdio/Streamable HTTP, schema validation and scoped permissions, with durable configuration APIs. Per-Agent profiles, native background work/cancellation and evidence-checked exact-procedure versions are administered through six Executive tabs. [ADR 0142](docs/architecture/decisions/0142-selected-guidance-continuations.md) connects no-submission guidance pauses to fresh Self-selected supplemental contracts, preserving original history and cumulative request limits. [ADR 0143](docs/architecture/decisions/0143-selected-procedure-teaching-and-use.md) adds explicit Self-selected procedure teaching and exact active-method reuse with recorded evidence and mode gates. Broader planning/recovery, cognitive approval, generalized/shared methods, portable adapters and remaining configuration are unfinished.
+The [runnable definitions](packages/sdk/src/observatory-simulations.ts) preserve authored starting attention, experiences, criteria, controls, and limitations. Open **Agent Operations → Dreams** for the research interface and frozen before/after evidence. The underlying experiment registry retains the name **Simulation Tests**.
 
-The Prism Agent Architecture is an experimental cognitive architecture with a TypeScript runtime, durable Prismatic Agent state, and a browser research inspector.
+For a quick software walkthrough, `npm run demo` creates **Development demo**, delivers two encounters with Bill, consolidates, and probes a related encounter with Alex. It uses deterministic mock providers and explicitly enables execution for this demo. Its traces demonstrate the pipeline, not emergent learning or therapeutic efficacy. [Demo source](packages/sdk/src/demo.ts).
 
-Agents built with this architecture are called **Prismatic Agents**. `Agent` remains the concise domain type for a complete Prismatic Agent; Parts, Identity and Self keep their distinct meanings. See [project naming and compatibility](docs/architecture/PROJECT_NAMING.md).
+## Architecture overview
 
-## Current cognition
+<p align="center">
+  <img src="docs/prismatic-cognitive-cycle-banner.png" width="700" alt="Prism artwork showing one experience interpreted through multiple colored perspectives and brought together">
+</p>
 
-```text
-immutable experienced WorldState + attributed thoughts, imagined futures and selected posture
-→ code: eligible disposition scopes
-→ JEV: independent disposition activation
-→ parallel JEV: memory relevance per active scope
-→ code: chronological memories and scope continuity
-→ parallel LLM: formation → memory reflection → gist → cognition
-→ world-blind Self + Identity: bid selection or deliberation
-→ external execution
-→ bounded coverage: hypotheses and temporary relevance for later cycles
-→ evidence attachment; offline institutionalization from recorded usefulness
+*The artwork is a metaphor for plurality and integration. Colored figures represent possible cognitive perspectives, not six fixed emotional modules. Dispositions encode learned relevance, associations, concerns, expectations, and contextual sensitivities; recruited Parts may express affect and behavioral preferences.*
+
+The [illustration guide](docs/ILLUSTRATIONS.md) describes all seven supplied images and their suggested explanatory uses.
+
+```mermaid
+flowchart TD
+    W[Immutable experienced WorldState] --> A[Independent disposition activation and soft associations]
+    D[(Persistent dispositions)] --> A
+    A --> R[Scope-specific memory recall and budget admission]
+    M[(Versioned subjective memories)] --> R
+    R --> P[Parallel transient Part formation and cognition]
+    W --> P
+    P --> B[Expressed thoughts, affect proposals, predictions and bids]
+    B --> S[World-blind Self: affect focus, inquiry and bid selection]
+    I[Identity] --> S
+    S --> E[External Executive: enact selected contracts when enabled]
+    E --> O[Later factual outcomes]
+    O --> W
+    O --> V[Separate checks of older predictions and outcome reflection]
+    B --> C[Bounded coverage: gap hypotheses and temporary relevance]
+    V --> M
+    C --> T[Later-cycle temporary scopes]
+    T --> A
+    V --> L[Offline consolidation of selected evidence and recorded usefulness]
+    M --> L
+    L --> D
+    L --> M
 ```
 
-Each active disposition scope has its own temporary Part and version history. Code chooses continuity; models never choose reuse, IDs or scope. Each independent Part call forms its perspective, optionally reflects the current experience into a rich biased memory and gist, then produces appraisal, beliefs, affect, thought, optional prediction, local goal and bid. All calls share the exact frozen WorldState. Memories can inform multiple scopes and preserve incompatible interpretations.
+This is a mechanism overview, not a strict scheduling diagram. All active Parts receive the exact same frozen WorldState. Primitive signals are retained as configuration but **do not participate in current online cognition**. A fallback Part named `self` forms around Identity when no disposition activates; it is distinct from world-blind **Self**.
 
-When no disposition activates, one Part named `self` forms around Identity self-definition. Its purpose remains unspecified. It is a world-aware Part with ordinary bid authority; **Self** is the distinct world-blind selector. Ordinary disposition Parts receive no Identity. Self receives mediated contributions, Identity and deliberation, never raw WorldState, memories or private Part state.
+Self selects; the Executive enacts. The Executive is **disabled by default**: ordinary cognition can record choices without external execution. Enable it explicitly in **Executive → Runtime** when the experiment requires enactment. Simulation owns external truth and supplies experiences; Agent cognition supplies psychological meaning.
 
-Primitives remain configurable in Agent Components → Primitives, but do not participate in online cognition. Steering is removed; attributed thought carryover and decay remain. Disposition associations softly influence activation through frozen direct scores without recursive same-cycle propagation. Instances retire when their scope leaves the active set; retirement preserves inspection history and outstanding predictions. Retired instances cannot reactivate.
+Read the [canonical flow](docs/architecture/CANONICAL_AGENT_FLOW.md), [system overview](docs/architecture/SYSTEM_OVERVIEW.md), and [access invariants](docs/architecture/INVARIANTS.md). Architecture documents retain historical stages; current online responsibilities are established by [ADR 0133](docs/architecture/decisions/0133-parallel-assembled-part-cognition.md), [0136](docs/architecture/decisions/0136-experienced-and-prospective-worldstate.md), [0138](docs/architecture/decisions/0138-prediction-led-relevance-scaffolds.md), [0139](docs/architecture/decisions/0139-soft-disposition-activation-associations.md), and [0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md).
 
-JEV checks older open predictions against later same-thread evidence, separately from Part cognition. Correct/incorrect results trigger the existing generative outcome reflection; incomplete stays open and irrelevant is invalidated. Prediction attention takes effect on later cycles. Bounded cognition coverage can generate gap hypotheses without an owning Part; both those and Part predictions may propose temporary relevance scaffolds for later ordinary cognition. Online experience only attaches evidence. Offline consolidation conservatively institutionalizes repeatedly useful relevance with preserved lineage under ADR 0138. See [ADR 0133](docs/architecture/decisions/0133-parallel-assembled-part-cognition.md) and the [canonical flow](docs/architecture/CANONICAL_AGENT_FLOW.md).
+## Core cognitive mechanisms
 
-## Run locally
+| Mechanism | Inputs, outputs, and responsibility |
+| --- | --- |
+| Dispositions | Persistent contextual relevance definitions guide which experiences and subjective memories matter; they are broader than emotion labels or personas. |
+| Activation and coactivation | The shared snapshot produces independent graded scores. Soft contributing/inhibiting associations inform a bounded second judgment using frozen direct scores. No winner-take-all activation or recursive same-cycle propagation. |
+| Memory retrieval | Each active scope selects relevant subjective episodes; code orders them chronologically. Recall preserves interpretation and provenance rather than declaring an objective autobiography. |
+| Transient Parts | Scope continuity and recalled memories support formation → reflection → gist → cognition in one independent generation per Part. Retired instances and versions remain inspectable. |
+| Cognitive bids | Parts express interpretations and candidate behavior, possibly with local strategies. Proposals do not authorize execution. |
+| Predictions | A Part can have at most one unresolved prediction; separate bounded coverage can propose gap-origin hypotheses. Later factual evidence checks the preserved capsule, with revisions and outcome history retained. |
+| Temporary relevance | Predictions may propose zero or more versioned scaffolds. They become eligible in later cycles and undergo ordinary activation, recall, and Part construction. |
+| Consolidation | Selected episodes and investigation/usefulness traces support conservative offline refinement and institutionalization. Ended investigations and repeated recorded usefulness matter; a correct guess alone does not justify durable structure. |
+| Self and Identity | Self receives Identity, expressed Part products, forecasts, bids, and mediated inquiry/stance history. Identity is persistent self-definition; Self holds selection authority. |
+| Executive | Immutable selected contracts pass to external execution under current permissions and budgets. Compact factual feedback returns through later WorldState; operational code does not rewrite psychology. |
 
-Requires Node 24 or later and npm.
+**Why world-blind Self?** The separation makes choice depend on what the active perspectives actually express. Self can ask Parts for more information, but cannot bypass them by reading raw WorldState, memories, private Part state, or researcher audit history. This makes mediated interpretation and internal disagreement observable experimental variables. Whether that boundary improves behavior is an empirical question, and incomplete or misleading contributions remain a limitation.
+
+See [theory](docs/theory/README.md), [prediction development](docs/development/PREDICTION_SCAFFOLD_THREAD_AUDIT.md), and [Executive status](docs/development/EXECUTIVE_CURRENT_STATUS.md) for details.
+
+## Installation and quick start
+
+Requires **Node.js 24 or later** and npm. From a checkout of this repository:
 
 ```sh
 npm install
@@ -75,32 +129,51 @@ npm run demo
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000**. Default mock inference requires no paid credentials. `PRISM_DB` selects the SQLite file; the default is `workspace/agents/local.sqlite`. `PORT` changes the HTTP port. CLI and server use the same database by default. The privileged researcher interface binds to loopback.
+The single example command is **`npm run demo`**. It requires no API keys or paid calls and persists its generated Agent. Open **http://127.0.0.1:3000**, select **Development demo**, and inspect its cycles, Parts, predictions, memories, and sleep history. CLI and server use the same default SQLite database, `workspace/agents/local.sqlite`. `PRISM_DB` selects another file; `PORT` changes the server port. The researcher interface binds to loopback.
 
-The Agent selector includes saved experimental bots as well as ordinary Agents. Experimental databases named `research.sqlite` inside immediate subdirectories of `workspace/gauntlet` are discovered when the server starts; `PRISM_RESEARCH_ROOT` changes that directory. Each bot opens through the normal chat and inspection pages using its original database, with an experiment label in the selector.
+### Model configuration
 
-For live inference, copy `.env.example` to `.env`, supply provider credentials through environment variables, and select the provider/model there or in Agent Settings. Credentials remain server-side; Agent-specific keys are encrypted with a machine-local key under ignored `workspace/credentials/`. Back up that key with the database. `.env` is ignored by Git. Jev stays behind its replaceable adapter. Missing credentials and provider errors fail explicitly; there is no silent mock fallback.
+[`.env.example`](.env.example) is the sample configuration. Default `PRISM_PROVIDER=mock` and `PRISM_DECISIONS=mock` support fixture exploration. The demo always uses mocks, even when live providers are configured.
 
 ```sh
-npm run cli -- --help
+cp .env.example .env
+```
+
+For configured-model research, supply credentials in `.env` or environment variables and select the providers/models in the file or **Agent Settings**. For example, `PRISM_PROVIDER=openai` with `PRISM_DECISIONS=jev` requires `OPENAI_API_KEY` and `JEV_API_KEY`. Local Ollama configuration is also described in the sample. Credentials stay server-side; `.env` is ignored. Missing credentials and provider failures are explicit, with no silent mock fallback. Configured runs and optional model assessments may incur costs.
+
+Useful commands:
+
+```sh
 npm run cli -- agent list
 npm run cli -- chat AGENT_ID "I feel uncertain."
 npm run cli -- sleep run AGENT_ID
 ```
 
-## Research interface
+Replace `AGENT_ID` with a saved ID. Ordinary new Agents retain the default disconnected Executive. Inspect [CLI responsibilities](apps/cli/README.md) and [provider configuration](packages/providers/README.md) for further setup.
 
-Interaction and Brain Monitor expose immutable snapshots, scope activation, ordered Part products, thoughts, bids, Self inputs and execution. Agent Components includes Parts, Memories, Predictions, Dispositions, Primitives and Identity. Every current or retired Part retains versions and originating thread/cycle. Memories retain rich subjective contents, gists, formation context and opaque ancestry. Audit ancestry is available only to researcher inspection, not Self.
+## Experiments, benchmarks, and results
 
-Settings → Prompts exposes current tasks with editable Markdown/Twig templates and their exact permitted inputs and output schemas. Agent overrides take precedence over global defaults and bundled factory templates. Removed perception, separate evidence, working-state and experience-encoding tasks are absent. Earlier online prediction-formation and Part-activation prompts are absent from the application catalog.
+The shared [Simulation Tests registry](packages/sdk/src/simulation-tests.ts) supplies sourced hypotheses, explicit initial conditions, ordinary experiences, controls, observable criteria, and limitations. Experiments exercise the normal Agent pipeline. Fixtures must not force a learned conclusion and present it as discovery.
 
-Dispositions can attend to situations, methods, strategies and combinations of conditions as well as entities. Procedural memories can inform analogous activities involving different objects. Offline learning uses selected chronological activation and expressed thought/proposal traces alongside subjective episodes and resolved predictions to conservatively create or refine useful attention structures. These traces preserve thread attribution and exclude raw WorldState and private Part snapshots. See [ADR 0134](docs/architecture/decisions/0134-general-disposition-attention-and-development.md).
+| Runnable experiment | Hypothesis and comparison | Observable evidence | Current evidence status |
+| --- | --- | --- | --- |
+| [Recorded learning and transfer](packages/sdk/src/observatory-simulations.ts) | Contrary source evidence versus matched no-training control, with sleep and novel-source probes. | Baseline/retest forecasts, recall, subjective versions, selected behavior, and bounded generalization. | Harness and inspection verified; adaptation/transfer require repeated configured-model observations. |
+| [Context carryover](packages/sdk/src/observatory-simulations.ts) | Prior live conversation versus fresh-scene control at an archived greeting and later live question. | Independent scope scores, concern continuity, prediction alignment, and actual emitted behavior. | Runnable matched controls; distinguish useful unresolved concern from inappropriate carryover. |
+| [Prediction-led scaffolds](packages/sdk/src/prediction-scaffold-simulations.ts) | Blank bootstrap, competing explanations, failed expectations, recurring people, and device continuity with controls. | Hypothesis origin, later-cycle participation, closure, preserved memories, and institutionalization lineage. | Deterministic lifecycle/access checks passed; configured discovery remains an empirical question. |
+| [Affect exploration](packages/sdk/src/affect-simulations.ts) | Competing lenses, disconfirmation, focus lifetime, generalization, and resolution controls. | Explicit proposals, selected focus, bid revision, period history, and contrary evidence. | Integrated runtime and sourced tests; semantic benefit and calibration remain unestablished. |
 
-Agent Operations → Sleep induces offline memory/disposition consolidation and displays preserved sleep-cycle history. Historical Part-development consolidation remains inspectable through retained records and backend compatibility. This never changes online chat cognition. Consolidation does not revive retired instances. Historical regression fixtures live under `tests/node/historical/`; production cannot import them. Architecture decisions remain under `docs/architecture/decisions/` as immutable decision history.
+### Reproduce and compare
 
-## Validation
+1. Start the server and open **Agent Operations → Dreams → New dream**. Set **Experience mode** to **Research test · fresh starting conditions**, choose the registered hypothesis, and inspect its protocol. This differs from **Dream · developed Agent base**, which preserves an isolated continuation by default.
+2. Use **fixture** mode first to verify the workflow. Use **configured** mode with the selected Agent's model/prompt settings for cognitive observations. Record Executive enablement and grants where required; developed-Agent dreams require it disconnected.
+3. Run both members of a matched comparison with identical model, prompt, and runtime settings. Repeat independent trials; record completed, failed, and inconclusive counts separately. There is no scientifically established trial count or pooled success rate claimed here.
+4. Inspect frozen stage evidence and before/after state in the research views. Preserve run/configuration provenance, criteria, exact citations, settings, and model-assessment versions. Use Comparisons to assess differences and alternatives.
 
-Use **Agent Operations → Dreams** in the sidebar to run sourced research hypotheses through ordinary cognition on fresh test Agents. The initial catalog covers the disposition discussion, including contradiction, learning/generalization and negative controls. Reports preserve stage progress, provider provenance, observations and inconclusive/failed states. Fixture mode checks the workflow with bundled mocks; configured mode uses the selected Agent's model/prompt settings and may incur provider costs. Neither a single observation nor a completed run proves a psychological theory. Future testable developer-thread hypotheses belong in this registry, as required by AGENTS.md. See [ADR 0135](docs/architecture/decisions/0135-simulation-hypothesis-tests.md).
+**What the evidence supports today:** deterministic tests establish workflow, validation, persistence, and access boundaries. They do not establish adaptation speed, prediction accuracy, durable memory benefit, transfer, or superiority over another architecture. The [scaffold audit](docs/development/PREDICTION_SCAFFOLD_THREAD_AUDIT.md), [affect audit](docs/development/SELF_AFFECT_THREAD_AUDIT.md), and [Observatory audit](docs/development/SIMULATION_ANALYTICS_THREAD_AUDIT.md) record verification and limits. A model-based assessment is a researcher judgment with cited evidence, not ground truth or Agent cognition. Missing predictions or prerequisites remain inconclusive; infrastructure failure is recorded separately.
+
+Broad baselines, coactivation/recall/consolidation ablations, retention horizons, and cost-normalized benchmarks remain evaluation work. Existing tests are not a published benchmark-results dataset. Historical experiment outlines under [experiments](experiments/README.md) should be read alongside current ADRs.
+
+Software checks, using mocks or transport stubs without paid requests:
 
 ```sh
 npm test
@@ -109,29 +182,39 @@ npm run lint
 npm run build
 ```
 
-Tests use mocks or transport stubs and do not make paid requests. Browser tests run when local Chrome is available; `CHROME_BIN` selects another executable. `npm run smoke:live` explicitly runs paid validation in a temporary database. Mock semantics are deterministic fixtures, not evidence of psychological validity.
+Browser checks use local Chrome when available; `CHROME_BIN` selects another executable. `npm run smoke:live` explicitly performs paid validation in a temporary database.
 
-## Repository layout
+## Related research and design rationale
 
-- `packages/`: domain/runtime, storage, providers, shared application services and simulation interfaces.
-- `apps/`: CLI, HTTP and browser interfaces.
-- `docs/`: architecture, theoretical meaning and development status.
-- `presets/`: starting configurations, distinct from living state.
-- `workspace/`: generated local development state; storage may live elsewhere.
-- `tests/` and `experiments/`: validation and reproducible experiments.
-- `src/prism/`: earlier Python subsystem scaffolding and boundary documentation.
-- `third_party/`: read-only external runtime infrastructure and research references.
+Prismatic Architecture studies a particular composition of mechanisms, rather than claiming to invent memory retrieval, multiple perspectives, or learning from feedback.
 
-A Part is not an LLM call, provider, autonomous Agent or executor. Simulation owns external truth; Agents own subjective psychological meaning. Models propose cognitive products; deterministic runtime validates and sequences them. Identity guides, Self chooses and external systems execute.
+- [Minsky's Society of Mind](https://www.media.mit.edu/groups/society-of-mind/archived-projects/) provides a conceptual comparison for intelligence arising from interacting processes. Here, Parts are bounded perspectives within one Agent, with one mediated locus of selection authority.
+- [Generative Agents](https://arxiv.org/abs/2304.03442) combines stored experience, retrieval, and reflection. Prismatic makes disposition-scoped subjective interpretation and world-blind selection explicit.
+- [Reflexion](https://arxiv.org/abs/2303.11366) studies language-based feedback without model-weight updates. Prismatic connects later prediction evidence to temporary relevance and conservative offline organization.
 
-Experienced WorldState (ADR 0136) preserves attributed imagined alternatives and natural-language posture. Cognitive-step inspection separates trajectory/action-conditioned/unclassified futures and shows pre-choice, chosen and resulting posture. Simulation Tests includes prospective anticipation, lived calibration, affective interpretation and return-to-stance scenarios with explicit controls, model provenance and preserved observations. Self sees only active Parts’ expressed predictions, never the raw future synthesis.
+Parts-based cognition, schema-like contextual sensitivity, and predictive accounts are useful conceptual comparisons, not established equivalences to psychological theories. The project's [theory documents](docs/theory/README.md) and [decision records](docs/architecture/decisions/) explain its own meanings and tradeoffs. Comparative evaluations are needed before claiming novelty in effect or performance.
 
-## Automated simulation assessment (ADR 0141)
+## Roadmap and known limitations
 
-Simulation Tests preserves operational measures and adds separate versioned model assessments of semantic criteria. Configured runs with real reasoning providers assess automatically unless disabled; fixture execution makes no evaluator requests. Select an evaluator model independently, or use the source Agent model. Assess saved run also supports completed historical reports. Evaluators use the appropriate existing Agent/server key and never reuse credentials across vendors.
+- **Empirical coverage:** repeated configured-model trials, meaningful ablations, external baselines, cross-thread durability, and compute/cost measurements remain priorities. Same-thread history and pretrained knowledge can confound apparent learning.
+- **Activation:** soft associations are implemented; automatic associative learning and candidate-composition robustness are not established by that implementation.
+- **Memory and consolidation:** versioning and conservative development exist; long-term retention, compression quality, and usefulness calibration need evaluation. Optional [disposition-scoped synthesis](docs/architecture/decisions/0160-disposition-memory-synthesis.md) preserves source lineage and separately gates retrieval replacement.
+- **Affect:** the two-pass Self workflow is implemented; meaningful focus, calibration, and durable behavioral benefit remain research questions.
+- **Executive and procedural learning:** MCP integration, selected tool contracts, guidance/checkpoint review, and versioned exact/conditional procedures exist. General planning/recovery, broader runtime portability, and semantic skill transfer remain incomplete. See [current status](docs/development/EXECUTIVE_CURRENT_STATUS.md).
+- **Interpretation:** Parts can be biased or mistaken, and Self only sees mediated products. Simulation results do not validate human psychology. [Open questions](docs/architecture/OPEN_QUESTIONS.md) preserve unsettled mechanisms.
 
-Each assessment preserves its rubric, prompt, model, exact frozen input and hash, cited verdicts, alternatives, limitations and errors. Runtime rejects missing/duplicate criteria, invalid evidence pointers and decisive verdicts without citations. Evaluator failure does not fail a completed scenario or overwrite its measures. Fixture/mixed provenance remains explicit; model judgments are researcher assessments, never Agent cognition or proof of psychology. The `simulation_evaluation` task is editable and previewable under Settings → Prompts. See [ADR 0141](docs/architecture/decisions/0141-simulation-model-assessment.md).
+## Contributing, authorship, citation, and licensing
 
-## Offline concern inheritance (ADR 0154)
+Contributions are welcome through [issues](https://github.com/rolyataylor2/PrismAgenticArchitecture/issues) and pull requests: reproducible failures, experiment designs, negative results, ablations, model/provider comparisons, documentation, and focused code changes. Include starting conditions, source revision, model/prompt/settings, procedure, control, trial counts, evidence, and limitations when reporting experiments. Keep credentials and generated private state out of contributions.
 
-Offline institutionalization may inherit an expressed concern and its meaning from attributed prediction-origin and investigation thoughts, with validated citations and repeated recorded usefulness. Temporary scaffolds remain relevance-only. Learned concern/meaning inform ordinary Part formation; audit trajectories remain outside online cognition and Self. Inspection preserves the inheritance rationale and source references.
+Read [AGENTS.md](AGENTS.md) and the relevant subsystem documentation before implementation. Preserve the separation between simulation, cognition, selection, execution, and researcher inspection. New cognitive hypotheses belong in the shared runnable experiment registry.
+
+**Author: Taylor Burke**
+
+**Copyright 2026 Taylor Burke**
+
+**License: [Apache License 2.0](LICENSE)**
+
+This project is an independently developed experimental cognitive architecture. If you use this work in academic research, publications, or derivative projects, please acknowledge the original author and cite the repository. Use [CITATION.cff](CITATION.cff) for machine-readable citation metadata; include the commit or release used for reproducibility.
+
+Academic acknowledgment and citation are requests, not additional license conditions. The Apache License 2.0 governs applicable legal notice obligations; see [NOTICE](NOTICE). Third-party materials retain their respective licenses and notices.

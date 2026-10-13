@@ -5,7 +5,7 @@ message: >-
   please acknowledge the original author and cite the repository.
   Academic acknowledgment and citation are requests, not additional license conditions.
 type: software
-title: "The Prism Agent Architecture"
+title: "Prismatic Architecture"
 authors:
   - given-names: Taylor
     family-names: Burke
