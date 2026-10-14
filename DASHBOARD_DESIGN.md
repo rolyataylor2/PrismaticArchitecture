@@ -76,3 +76,5 @@ A researcher can understand current performance, identify meaningful changes, co
 ## Dream run controls
 
 Use the research-direction sidebar as the sole experiment selector. On experiment changes align its highlighted row with the top of that sidebar; preserve scrolling during ordinary refresh. Run set, run and evidence provenance filters live in one accessible popup opened by a filter icon beside the experiment title. Show one non-link Experiment overview label, without a duplicate breadcrumb link. Active dreams show completed-stage progress, the actual current model task, cooperative pause/resume and a Console button. The searchable console popup preserves chronological historical events and polls for live updates, with explicit rejected-learning and error messages. Progress is completed stages / protocol stages, never guessed model-call completion.
+
+Dream run progress and controls appear at the top of Overview only. Criterion recurrence (What recurs, what wavers?) belongs to Conclusions, using the shared recurrence projection. Cognition across experience appears first in Execution with the same selected-run cohort, metrics and stage drill-downs.

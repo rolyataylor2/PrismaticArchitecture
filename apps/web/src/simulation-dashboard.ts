@@ -104,8 +104,6 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     generation++; if (definitions.length) sessionStorage.setItem(storageKey, JSON.stringify({ testId, groupId, runId, view, basis })); host.replaceChildren(); const allExperiment = runs.filter(r => r.testId === testId); const selected = scope(); const definition = definitions.find(d => d.id === testId);
     const top = el('header', '', 'rd-top'); const title = el('div'); title.append(el('p', 'RESEARCH WORKSPACE', 'rd-eyebrow'), el('h2', 'Dreams')); top.append(title);
     const actions = el('div', '', 'rd-actions'); action(actions, 'New dream', () => options.launch(testId), fail, 'rd-primary'); action(actions, 'Refresh', options.refresh, fail); top.append(actions); host.append(top);
-    const activeRuns = runs.filter(run => run.dream && ['running', 'paused'].includes(run.status));
-    for (const activeRun of activeRuns) runControls(host, activeRun);
     const layout = el('div', '', 'rd-layout'); const nav = el('nav', '', 'rd-directory'); nav.setAttribute('aria-label', 'Research directions'); layout.append(nav); const main = el('main', '', 'rd-main'); layout.append(main); host.append(layout);
     const query = el('input'); query.type = 'search'; query.value = search; query.placeholder = 'Find an experiment'; query.setAttribute('aria-label', 'Find an experiment'); nav.append(query);
     const links = el('div'); nav.append(links);
@@ -162,14 +160,14 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     if (!definition) { empty(panel, 'Loading experiments', 'The registry and saved runs are being retrieved.'); return; }
     if (!selected.length) { empty(panel, allExperiment.length ? 'No runs match this selection' : 'No observations yet', allExperiment.length ? 'Change the provenance filter or run selection to inspect available evidence.' : 'Launch a fixture to inspect the pipeline, or a configured run for model observations. No measurements have been invented.'); const protocol = section(panel, 'Research protocol', definition.limitations); protocol.append(el('p', definition.criteria.join(' · '))); return; }
     const run = selected.find(r => r.id === runId) ?? selected.at(-1)!;
-    if (!activeRuns.some(active => active.id === run.id)) runControls(main, run);
     if (stageIndex !== null) { stagePage(panel, run, stageIndex); return; }
+    if (view === 'Execution') cognitionAcrossExperience(panel, selected);
     if (view === 'Overview') overview(panel, selected, definition);
     else if (view === 'Compare') compare(panel, eligible);
     else if (view === 'Conclusions') conclusions(panel, selected);
     else if (view === 'Records') records(panel, run);
     else if (!runId) { const picker = section(panel, `${view} · choose a recorded run`, 'Detailed objects retain run-local identities. Select a trial to investigate; cross-run trajectories below align exact stage names and phases.');
-      runButtons(picker, selected); lineChart(panel, selected.filter(r => r.status === 'completed'), view === 'Learning' ? ['memories', 'recalls', 'predictions'] : ['active', 'contributors', 'proposals'], stageDetail);
+      runButtons(picker, selected); if (view !== 'Execution') lineChart(panel, selected.filter(r => r.status === 'completed'), view === 'Learning' ? ['memories', 'recalls', 'predictions'] : ['active', 'contributors', 'proposals'], stageDetail);
     } else if (view === 'Activation') activation(panel, run);
     else if (view === 'Predictions') predictions(panel, run);
     else if (view === 'Learning') learning(panel, run);
@@ -304,6 +302,8 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     void draw().catch(fail);
   }
   function overview(parent: HTMLElement, selected: SimulationRun[], definition: SimulationTestDefinition) {
+    const activeRuns = selected.filter(run => ['running', 'paused'].includes(run.status));
+    for (const run of activeRuns.length ? activeRuns : [selected.at(-1)!]) runControls(parent, run);
     const stats = el('div', '', 'rd-stats'); parent.append(stats);
     const completed = selected.filter(r => r.status === 'completed');
     for (const [value, label, note] of [[String(selected.length), 'Recorded trials', `${selected.filter(r => r.status === 'failed').length} failed · ${selected.filter(r => r.status === 'running').length} running · ${selected.filter(r => r.status === 'paused').length} paused`], [`${completed.length}/${selected.length}`, 'Execution completed', 'Completion is not theory support'], [String(completed.reduce((s, r) => s+r.stages.filter(x => x.phase === 'control').length, 0)), 'Control stages', 'Recorded stages across completed trials'], [String(criterionRecurrence(selected).filter(r => r.pattern === 'Varies across trials').length), 'Varying criteria', 'Original operational observations']]) {
@@ -327,8 +327,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     }
 
     if (selected.some(r => r.error)) { const errors = section(parent, 'Infrastructure failures', 'Excluded from completed-trial recurrence; not a failed cognitive hypothesis.'); selected.filter(r => r.error).forEach(r => errors.append(el('p', r.error!))); }
-    recurrence(parent, selected);
-    const chart = section(parent, 'Cognition across experience', `${groupId ? 'Matched configuration' : 'All selected configurations; differences can confound comparisons'} · means and observed ranges by stage`); lineChart(chart, completed.length ? completed : selected, ['active', 'contributors', 'recalls'], stageDetail);
+
     const row = el('div', '', 'rd-two'); parent.append(row); const flow = section(row, 'From relevance to behavior', 'Recorded totals over completed stages · these are distinct processes, not a conversion funnel.');
     const totals = completed.flatMap(r => r.stages).map(stageMetrics); const nodes: [string, number | null][] = [['Active scopes', totals.reduce((s, m) => s+m.active, 0)], ['Proposals', totals.reduce((s, m) => s+m.proposals, 0)], ['Self choices', totals.some(m => m.choices === null) ? null : totals.reduce((s, m) => s+m.choices!, 0)], ['Executions', totals.some(m => m.executions === null) ? null : totals.reduce((s, m) => s+m.executions!, 0)]];
     flowDiagram(flow, nodes); const protocol = section(row, 'Protocol & controls', `${definition.steps.filter(s => s.phase === 'control').length} authored control stages · ${definition.steps.length} planned stages`);
@@ -408,6 +407,10 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
       for (const decision of stage.affectDecisions ?? []) { const column = el('div'); column.append(el('small', `Focus · ${decision.boundary}`), el('p', decision.resultingFocus?.proposals.map(p=>p.orientation).join(' + ') ?? 'No voluntary focus')); column.title = decision.selection.reason; language.append(column); }
       item.append(language); action(item,'Inspect affect evidence',()=>dialog('Affect stage evidence',body=>{body.append(el('p', 'These are attributed language products. No valence or intensity has been inferred.'));action(body,'Selection and revision records',()=>raw('Affect selection evidence',{proposals:stage.affectProposals,inputs:stage.affectInputs,choices:stage.affectChoices,decisions:stage.affectDecisions,revisions:stage.focusedRevisions,transitions:stage.transitions}),fail);action(body,'Inspect source stage',()=>{body.closest('dialog')?.close();stageDetail(run,i);},fail);}),fail);s.append(item);}
     if(!any)empty(s,'No affect instrumentation in this run','Select an affect experiment or inspect stage contributions. Absence of instrumentation is not neutral affect.');
+  }
+  function cognitionAcrossExperience(parent: HTMLElement, selected: SimulationRun[]) {
+    const completed = selected.filter(run => run.status === 'completed');
+    const chart = section(parent, 'Cognition across experience', `${groupId ? 'Matched configuration' : 'All selected configurations; differences can confound comparisons'} · means and observed ranges by stage`); lineChart(chart, completed.length ? completed : selected, ['active', 'contributors', 'recalls'], stageDetail);
   }
   function execution(parent: HTMLElement, run: SimulationRun) {
     const s=section(parent,'Selection, enactment & verification','Selected behavior does not imply successful execution. Unreported operations remain missing.');lineChart(s,[run],['choices','executions','verified'],stageDetail);

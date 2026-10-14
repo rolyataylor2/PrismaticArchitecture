@@ -311,3 +311,5 @@ Detail retention is adjustable before induction: preserve meaningful details/his
 ## Dream progress and continuation
 
 Dreams expose stage progress, current model tasks, cooperative pause and explicit resume of paused/failed runs. Pause finishes the current stage; resume preserves the same dream Agent/thread and skips completed stages. Console opens a searchable live/historical projection of attributed persisted events, including rejected learning and errors. It does not expose provider input bodies or feed audit state into cognition. See ADR 0163.
+
+Dream run progress and controls appear at the top of Overview only. Criterion recurrence (What recurs, what wavers?) belongs to Conclusions, using the shared recurrence projection. Cognition across experience appears first in Execution with the same selected-run cohort, metrics and stage drill-downs.
