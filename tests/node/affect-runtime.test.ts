@@ -216,7 +216,7 @@ test('navigation ends voluntary focus and preserves source period and current-wo
     assert.ok(record.navigationStateId); assert.equal(record.focusAfter, null);
     assert.equal(record.usedFocus!.periodId, first.focusAfter!.periodId);
     assert.equal(store.executions(agent.id).length, 0);
-    assert.ok(store.worlds(agent.id).at(-1)!.facts.some(fact => fact.text === 'Present experience remains relevant.'));
+    assert.ok(store.worlds(agent.id).at(-1)!.facts.some(fact => fact.text === 'host says: Present experience remains relevant.'));
     reasoning.navigate = false;
     await app.message(agent.id, 'A fresh encounter after navigation.', 'host', 'navigation');
     assert.equal(reasoning.snapshots.at(-1)!.world!.experienced!.selectedFocus, undefined);

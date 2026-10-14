@@ -122,7 +122,7 @@ function syncSessionsWithEvents(agentId: string): void {
     let session = sessions.find(item => item.id === cycle.threadId);
     if (!session) {
       const world = events.find(event => event.cycleId === cycle.id && event.type === 'worldstate.frozen');
-      const text = world?.type === 'worldstate.frozen' ? world.payload.facts.find(fact => (fact.kind === 'says' && fact.originCycleId === world.cycleId) || String(fact.kind) === 'utterance')?.text : undefined;
+      const text = world?.type === 'worldstate.frozen' ? world.payload.facts.find(fact => ((fact.kind === 'says' || fact.source.startsWith('Sensor ')) && fact.originCycleId === world.cycleId) || String(fact.kind) === 'utterance')?.text : undefined;
       session = { id: cycle.threadId, agentId, title: text?.slice(0, 28) ?? `Thread · Cycle ${cycle.sequence}`, createdAt: cycle.startedAt, cycleIds: [] };
       sessions.unshift(session);
     }
@@ -132,7 +132,7 @@ function syncSessionsWithEvents(agentId: string): void {
   const utteranceCycleMap = new Map<string, { cycleId: string; at: string; utterance: string; sequence: number }>();
   for (const event of events) {
     if (event.cycleId && event.type === 'worldstate.frozen') {
-      const fact = event.payload.facts.find(f => (f.kind === 'says' && f.originCycleId === event.cycleId) || String(f.kind) === 'utterance');
+      const fact = event.payload.facts.find(f => ((f.kind === 'says' || f.source.startsWith('Sensor ')) && f.originCycleId === event.cycleId) || String(f.kind) === 'utterance');
       if (fact && !utteranceCycleMap.has(event.cycleId)) {
         const cycle = state?.cycles.find(item => item.id === event.cycleId);
         // Failed/unfinished turns stay available to the send handler for
@@ -1669,7 +1669,7 @@ function chatSessions(): void {
   } else {
     for (const event of visibleEvents) {
       if (event.type === 'worldstate.frozen') {
-        for (const fact of event.payload.facts.filter(f => (f.kind === 'says' && f.originCycleId === event.cycleId) || String(f.kind) === 'utterance')) {
+        for (const fact of event.payload.facts.filter(f => ((f.kind === 'says' || f.source.startsWith('Sensor ')) && f.originCycleId === event.cycleId) || String(f.kind) === 'utterance')) {
           const row = node('div', '', 'chat-message-row user');
           const bubble = node('div', `${fact.source}: ${fact.text}`, 'chat-bubble user chat-message');
           row.append(bubble);
@@ -1725,7 +1725,7 @@ function chatSessions(): void {
 
   const dock = node('div', '', 'chat-input-dock');
   const input = node('textarea');
-  input.placeholder = 'Type a message… Optional: --name "Rowan Smith" Hello (Enter to send, Shift+Enter for new line)';
+  input.placeholder = 'Message or /sensor audio "Bird chirps" /sensor visual "A desk" · Optional: --name "Rowan Smith" Hello';
   input.setAttribute('aria-label', 'Message');
   input.value = messageDraft;
   input.oninput = () => { messageDraft = input.value; };

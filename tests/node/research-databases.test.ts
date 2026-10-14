@@ -62,7 +62,7 @@ test('normal Agent selector opens experimental chat, Brain and components and re
     await page.getByRole('option', { name: /Experimental bot/ }).click();
     await page.getByRole('heading', { name: 'Experimental bot', exact: true }).waitFor();
     assert.equal(await page.evaluate(() => localStorage.getItem('ontoagentic-database')), null);
-    await page.getByText('Scenario observer: A saved experimental conversation.', { exact: true }).waitFor();
+    await page.getByText('Sensor audio: Scenario observer says: A saved experimental conversation.', { exact: true }).waitFor();
     assert.equal(await page.evaluate(() => localStorage.getItem('prism-database')), 'saved-experiment');
     await page.getByRole('button', { name: 'View this thread’s Brain timeline', exact: true }).click();
     await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
@@ -77,7 +77,7 @@ test('normal Agent selector opens experimental chat, Brain and components and re
     await page.reload();
     await page.getByRole('heading', { name: 'Experimental bot', exact: true }).waitFor();
     assert.equal(await page.evaluate(() => localStorage.getItem('ontoagentic-database')), null);
-    await page.getByText('Scenario observer: A saved experimental conversation.', { exact: true }).waitFor();
+    await page.getByText('Sensor audio: Scenario observer says: A saved experimental conversation.', { exact: true }).waitFor();
     await page.getByRole('button', { name: /Select Agent/ }).click();
     await page.getByRole('option', { name: /Main bot/ }).click();
     await page.getByRole('heading', { name: 'Main bot', exact: true }).waitFor();

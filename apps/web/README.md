@@ -313,3 +313,7 @@ Detail retention is adjustable before induction: preserve meaningful details/his
 Dreams expose stage progress, current model tasks, cooperative pause and explicit resume of paused/failed runs. Pause finishes the current stage; resume preserves the same dream Agent/thread and skips completed stages. Console opens a searchable live/historical projection of attributed persisted events, including rejected learning and errors. It does not expose provider input bodies or feed audit state into cognition. See ADR 0163.
 
 Dream run progress and controls appear at the top of Overview only. Criterion recurrence (What recurs, what wavers?) belongs to Conclusions, using the shared recurrence projection. Cognition across experience appears first in Execution with the same selected-run cohort, metrics and stage drill-downs.
+
+## Sensor messages
+
+The chat composer accepts multiple `/sensor <type>` blocks, each containing quoted items or one unquoted description. Example: `/sensor audio "James says: Hello" "Bird chirps" /sensor visual "A desk with papers"`. Items appear separately with their sensor labels and enter the same cognition cycle without relevance filtering. Plain chat arrives as audio, `Someone says: <text>`; `--name "James Smith" Hello` supplies an explicit speaker. Saved sensor items remain visible when reopening a thread.

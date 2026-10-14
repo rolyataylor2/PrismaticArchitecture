@@ -82,7 +82,7 @@ test('paired checkpoint apparatus records real operations and review provenance 
       if (input.world!.selectedActivity) parsed.cognition.proposal = null;
       else {
         const tool = input.world!.externalCapabilities?.tools.find(tool => tool.toolName === 'read_tick');
-        const request = input.world!.facts.some(fact => fact.text.startsWith('Please perform a read-only apparatus sequence'));
+        const request = input.world!.facts.some(fact => fact.text.includes('Please perform a read-only apparatus sequence'));
         if (tool && request) {
           const read = { serverId: tool.serverId, toolName: 'read_tick', argumentsJson: '{}' };
           parsed.cognition.proposal = { action: { kind: 'operate', text: 'Prescribed read-only fixture', operation: {

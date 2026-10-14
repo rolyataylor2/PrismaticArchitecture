@@ -32,7 +32,7 @@ test('default dream branches actual developed psychology and history, leaves the
     const terminal = await ended(app, run.id); assert.equal(terminal.status, 'completed', terminal.error ?? ''); assert.ok(terminal.dream!.after);
     assert.deepEqual(dreamState(store, source.id), before); assert.deepEqual(store.events(source.id), sourceEvents);
     const facts = terminal.stages.flatMap(stage => stage.observations ?? []);
-    assert.ok(facts.some(fact => fact.source === 'Experience')); assert.ok(!facts.some(fact => fact.source === 'Scenario observer'));
+    assert.ok(facts.some(fact => fact.source === 'Sensor audio' && fact.text.startsWith('Experience says: '))); assert.ok(!facts.some(fact => fact.source === 'Scenario observer'));
     assert.throws(() => replaySimulation(app, run.id, 'Fresh-test replay cannot recover a developed dream'), /developed Agent state/);
     const frozen = JSON.stringify(terminal); await app.close(); store.close(); store = new SqliteStore(file);
     assert.equal(JSON.stringify(listSimulationRuns(new Application(store)).find(item => item.id === run.id)), frozen);

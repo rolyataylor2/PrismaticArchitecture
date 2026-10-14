@@ -1,3 +1,4 @@
+import { now, type Fact } from '../../packages/core/src/domain.js';
 import { CognitiveRuntime } from './historical/runtime.js';
 import { defaultRuntimeOptions } from '../../packages/core/src/runtime.js';
 import { ChatExecutor } from '../../packages/sdk/src/chat-executor.js';
@@ -7,6 +8,10 @@ import { Application as ResearchApplication } from '../../packages/sdk/src/appli
 /** Historical regression fixtures explicitly retain the persistent-Part experiment.
  * New constructed-cognition tests import the real Application and test its default. */
 export class Application extends ResearchApplication {
+  // Preserve the historical experiment's speech framing alongside its old runtime.
+  protected override messageFacts(text: string, source: string): Fact[] {
+    return [{ source, kind: 'says', text, referenceId: null, timestamp: now() }];
+  }
   constructor(...args: ConstructorParameters<typeof ResearchApplication>) {
     super(...args);
     const runtime = new CognitiveRuntime(this.store, this.providers.decisions, this.providers.reasoning, this.providers.embeddings,

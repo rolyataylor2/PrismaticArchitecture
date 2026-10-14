@@ -1,3 +1,4 @@
+import { sensorFacts } from './sensor-input.js';
 import { recoverInterruptedDreams } from './dream-state.js';
 import { observeProvider, providerOperationContext, researchStageContext, suppressProviderObservation } from './provider-observation.js';
 import { projectEnvironmentValue } from '../../providers/src/environment.js';
@@ -297,10 +298,11 @@ export class Application {
   async consolidateProcedures(agentId: string) {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }
+  protected messageFacts(text: string, source: string): Fact[] { return sensorFacts(text, source); }
   async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = []) {
     const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && (run.status === 'running' || run.status === 'paused') && run.agentId === agentId && run.dream);
     if (activeDream && (threadId !== activeDream.id || researchStageContext.getStore()?.runId !== activeDream.id)) throw new ConflictError('Agent is experiencing a dream; wait for it to finish');
-    const fact: Fact = { source, kind: 'says', text, referenceId: null, timestamp: now() };
+    const facts = this.messageFacts(text, source);
     return this.#coordinate(agentId, async () => {
       if (skillDocumentIds.length > 10 || new Set(skillDocumentIds).size !== skillDocumentIds.length) throw new Error('Request at most ten distinct skill documents');
       if (skillDocumentIds.length && !this.store.executiveProfile(agentId).enabled) throw new Error('Executive is disabled');
@@ -310,7 +312,7 @@ export class Application {
         return { id: proposal.id, digest: proposal.digest, name: proposal.name, description: proposal.package.frontmatter.description,
           reviewRevision: review.revision, instructions: proposal.package.instructions };
       }));
-      return this.runtime.run(agentId, [fact], threadId, await this.#capabilities(agentId), documents);
+      return this.runtime.run(agentId, facts, threadId, await this.#capabilities(agentId), documents);
     });
   }
   async observeExecution(agentId: string, executionId: string, facts: Fact[], checkpoint: 'tool_result' | 'environment' = 'environment',
