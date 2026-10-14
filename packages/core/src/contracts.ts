@@ -67,6 +67,7 @@ export type EventPayloads = {
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
   'provider.operation': import('./provider-operation.js').ProviderOperation;
   'provider.usage': { researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'simulation.control': { runId: string; action: 'pause_requested' | 'paused' | 'resumed'; completedStages: number; reason: string };
   'simulation.stage_started': { runId: string; stageId: string; stageIndex: number; name: string; phase: 'control' | 'training' | 'probe' };
   'simulation.stage_completed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
   'simulation.stage_failed': { runId: string; stageId: string; stageIndex: number; startEventId: string };

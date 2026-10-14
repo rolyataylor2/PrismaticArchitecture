@@ -307,3 +307,7 @@ Diagnostics & Evidence includes Provider operation diagnostics: component/task/p
 
 Sleep induction offers default-off disposition memory synthesis and a dependent default-off source recall replacement checkbox. Saved scope results show reasons, consolidated content, source counts and inspectable lineage. Original memories remain preserved and accessible to other dispositions.
 Detail retention is adjustable before induction: preserve meaningful details/history, emphasize belief changes, or summarize the current perspective. Optional guidance and per-source retained/omitted detail judgments remain inspectable alongside the recorded policy.
+
+## Dream progress and continuation
+
+Dreams expose stage progress, current model tasks, cooperative pause and explicit resume of paused/failed runs. Pause finishes the current stage; resume preserves the same dream Agent/thread and skips completed stages. Console opens a searchable live/historical projection of attributed persisted events, including rejected learning and errors. It does not expose provider input bodies or feed audit state into cognition. See ADR 0163.

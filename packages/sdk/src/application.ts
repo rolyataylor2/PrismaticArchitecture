@@ -298,7 +298,7 @@ export class Application {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }
   async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = []) {
-    const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && run.status === 'running' && run.agentId === agentId && run.dream);
+    const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && (run.status === 'running' || run.status === 'paused') && run.agentId === agentId && run.dream);
     if (activeDream && (threadId !== activeDream.id || researchStageContext.getStore()?.runId !== activeDream.id)) throw new ConflictError('Agent is experiencing a dream; wait for it to finish');
     const fact: Fact = { source, kind: 'says', text, referenceId: null, timestamp: now() };
     return this.#coordinate(agentId, async () => {

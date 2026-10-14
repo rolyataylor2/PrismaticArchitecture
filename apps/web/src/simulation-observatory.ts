@@ -72,8 +72,8 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     ['primitivesFirst', 'Primitive consideration'], ['reevaluateAfterDeliberation', 'Reevaluate after deliberation']]);
   const value = select(replay, 'Fork setting value', [['true', 'Enabled'], ['false', 'Disabled']]);
   const fork = button(replay, 'Launch configuration fork', () => launch(true, { [setting.value]: value.value === 'true' }), fail);
-  rerun.disabled = fork.disabled = run.status === 'running' || !run.startingConfiguration || !run.providerRouting;
-  if (rerun.disabled) replay.append(node('p', run.status === 'running' ? 'Wait for this run to end.' : 'Historical starting configuration or provider routing is missing.'));
+  rerun.disabled = fork.disabled = ['running', 'paused'].includes(run.status) || !run.startingConfiguration || !run.providerRouting;
+  if (rerun.disabled) replay.append(node('p', ['running', 'paused'].includes(run.status) ? 'Wait for this run to end.' : 'Historical starting configuration or provider routing is missing.'));
   if (run.error) overview.append(node('p', `Infrastructure failure: ${run.error}`));
   const worked = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'observed');
   const surprising = run.measures.filter(item => item.assessmentKind !== 'semantic' && item.outcome === 'not_observed');
@@ -286,7 +286,7 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     const update = () => { const prior = latest(research.reviews.filter(item => item.criterionId === criterion.value));
       verdict.value = prior?.outcome ?? 'inconclusive'; rationale.value = prior?.rationale ?? ''; refs.value = prior?.citations.map(item => item.reference).join('\n') ?? ''; reviewer.value = prior?.reviewer ?? ''; };
     criterion.onchange = update; update();
-    const submit = node('button', 'Save criterion review'); submit.type = 'submit'; submit.disabled = run.status === 'running'; form.append(submit);
+    const submit = node('button', 'Save criterion review'); submit.type = 'submit'; submit.disabled = ['running', 'paused'].includes(run.status); form.append(submit);
     form.onsubmit = event => { event.preventDefault(); const prior = latest(research.reviews.filter(item => item.criterionId === criterion.value));
       submit.disabled = true; void api(`simulation-tests/${run.id}/research/reviews`, 'POST', { criterionId: criterion.value, outcome: verdict.value,
         reviewer: reviewer.value, rationale: rationale.value, evidenceReferences: refs.value.split('\n').map(item => item.trim()).filter(Boolean), expectedVersion: prior?.version ?? 0 })
@@ -299,7 +299,7 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
       reviews.append(node('p', `${run.specification.criteria[Number(criterionId.slice(10)) - 1]}: ${readable(last.outcome)} · ${last.reviewer} · v${last.version}`), node('p', last.rationale));
     }
     const insights = card(host, 'Candidate findings and saved history', 'Mechanical observations and researcher interpretations remain reviewable hypotheses, outside Agent memory and WorldState.');
-    button(insights, 'Analyze completed evidence for candidates', async () => { await api(`simulation-tests/${run.id}/research/candidates`, 'POST', {}); await refresh(); }, fail).disabled = run.status === 'running';
+    button(insights, 'Analyze completed evidence for candidates', async () => { await api(`simulation-tests/${run.id}/research/candidates`, 'POST', {}); await refresh(); }, fail).disabled = ['running', 'paused'].includes(run.status);
     if (!research.candidates.length) insights.append(node('p', 'No mechanical candidate detected. This is not proof that cognition is correct.'));
     for (const candidate of research.candidates) {
       const d = disclosure(insights, `Candidate · ${candidate.title}`);
@@ -315,7 +315,7 @@ export async function renderResearch(root: HTMLElement, run: SimulationRun, api:
     const author = field(findingForm, 'Finding reviewer'); author.required = true;
     const status = select(findingForm, 'Finding review status', [['unreviewed', 'Unreviewed inference'], ['supported', 'Supported by cited run evidence'], ['disputed', 'Disputed'], ['insufficient_evidence', 'Insufficient evidence']]);
     const references = field(findingForm, 'Finding evidence references', true);
-    const save = node('button', 'Save finding version'); save.type = 'submit'; save.disabled = run.status === 'running'; findingForm.append(save);
+    const save = node('button', 'Save finding version'); save.type = 'submit'; save.disabled = ['running', 'paused'].includes(run.status); findingForm.append(save);
     const populate = (finding: SimulationFinding) => { key.value = finding.key; title.value = finding.title; claim.value = finding.claim; alternatives.value = finding.alternatives;
       followUp.value = finding.followUp; author.value = finding.reviewer; status.value = finding.status; references.value = finding.citations.map(item => item.reference).join('\n'); };
     findingForm.onsubmit = event => { event.preventDefault(); const prior = latest(research.findings.filter(item => item.key === key.value)); save.disabled = true;
@@ -419,14 +419,14 @@ export function observatoryShell(root: HTMLElement, experiments: HTMLElement, ge
     if (active === 'Experiments') { panel.append(experiments); return; }
     const runs = getRuns();
     if (active === 'Overview') {
-      const summary = card(panel, 'Research overview', `${runs.length} runs · ${runs.filter(run => run.status === 'completed').length} completed · ${runs.filter(run => run.status === 'failed').length} failed · ${runs.filter(run => run.status === 'running').length} running`);
+      const summary = card(panel, 'Research overview', `${runs.length} runs · ${runs.filter(run => run.status === 'completed').length} completed · ${runs.filter(run => run.status === 'failed').length} failed · ${runs.filter(run => ['running', 'paused'].includes(run.status)).length} running`);
       summary.append(node('p', 'Operational completion, observer measurements, human reviews and machine assessments are separate.'));
       for (const run of runs.slice().reverse().slice(0, 8)) {
         const report = card(panel, run.title, `${run.status} · ${run.evidenceBasis} · ${run.stages.length}/${run.totalSteps} stages`);
         report.append(node('p', run.specification.hypothesis));
         button(report, 'Open this run', () => { active = 'Run Explorer'; render(); const selector = panel.querySelector<HTMLSelectElement>('[aria-label="Observatory run"]'); if (selector) { selector.value = run.id; selector.dispatchEvent(new Event('change')); } }, fail);
       }
-      void Promise.all(runs.filter(run => run.status !== 'running').map(run => api<Research>(`simulation-tests/${run.id}/research`))).then(records => {
+      void Promise.all(runs.filter(run => !['running', 'paused'].includes(run.status)).map(run => api<Research>(`simulation-tests/${run.id}/research`))).then(records => {
         if (!shell.isConnected || generation !== current) return;
         const patterns = new Map<string, Set<string>>();
         records.forEach((record, index) => record.candidates.forEach(candidate => { const ids = patterns.get(candidate.pattern) ?? new Set<string>(); ids.add(String(index)); patterns.set(candidate.pattern, ids); }));

@@ -3546,7 +3546,7 @@ function simulationTestPage(): void {
     definitions = result.tests;
     const runs = result.runs.filter(run => run.sourceAgentId === sourceAgentId || run.agentId === sourceAgentId);
     await dashboard.update(definitions, runs);
-    if (runs.some(run => run.status === 'running' || run.assessments?.some(assessment => assessment.status === 'running')))
+    if (runs.some(run => run.status === 'running' || run.status === 'paused' || run.assessments?.some(assessment => assessment.status === 'running')))
       setTimeout(() => { if (dashboard.element.isConnected) void load().catch(showError); }, 1500);
   };
   const launch = (testId: string) => {

@@ -1,3 +1,4 @@
+import { dreamConsole } from './dream-console.js';
 import { SynthesisPolicySchema } from '../../core/src/sleep-policy.js';
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
@@ -24,7 +25,7 @@ import { DispositionSchema, AgentActivationSettingsSchema, IdentitySchema, Ident
 import type { Application } from './application.js';
 import { experimentNames, runExperiment } from './experiments.js';
 import { identityAnswerGuidance, identityQuestionLibrary } from './identity-questions.js';
-import { simulationTests, listSimulationRuns, startSimulationTest, startDream, replaySimulation } from './simulation-tests.js';
+import { simulationTests, listSimulationRuns, startSimulationTest, startDream, replaySimulation, pauseDream, resumeDream } from './simulation-tests.js';
 import { McpRegistrySchema, McpPermissionsSchema } from '../../core/src/mcp-configuration.js';
 import { ExecutiveProfileSchema } from '../../core/src/executive-profile.js';
 import { SkillProposalSchema, SkillMaturityAssessmentSchema } from '../../core/src/executive-skill.js';
@@ -49,7 +50,7 @@ export async function api(app: Application, method: string, path: string, body: 
   if (method !== 'GET' && entityId && ['parts', 'memories', 'predictions', 'dispositions'].includes(resource ?? '')) {
     const kind = ({ parts: 'part', memories: 'memory', predictions: 'prediction', dispositions: 'disposition' } as const)[resource as 'parts' | 'memories' | 'predictions' | 'dispositions'];
     const owner = app.store.get(kind, entityId).agentId;
-    if (listSimulationRuns(app).some(run => run.status === 'running' && run.dream && run.agentId === owner)) throw new ConflictError('Wait for the Agent dream to finish before editing its psychology');
+    if (listSimulationRuns(app).some(run => (run.status === 'running' || run.status === 'paused') && run.dream && run.agentId === owner)) throw new ConflictError('Wait for the Agent dream to finish before editing its psychology');
   }
   if (resource === 'identity-questions' && method === 'GET' && !entityId) return identityQuestionLibrary;
   if (resource === 'identity-guidance' && method === 'GET' && !entityId) return { guidance: identityAnswerGuidance };
@@ -64,6 +65,11 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'POST') return runExperiment(app, z.strictObject({ name: z.enum(experimentNames) }).parse(body).name);
   }
   if (resource === 'simulation-tests') {
+    if (method === 'GET' && entityId && action === 'console') return dreamConsole(app, entityId, Number(subresource ?? 0));
+    if (method === 'POST' && entityId && (action === 'pause' || action === 'resume')) {
+      z.strictObject({}).parse(body ?? {});
+      return action === 'pause' ? pauseDream(app, entityId) : resumeDream(app, entityId);
+    }
     if (method === 'POST' && entityId === 'compare-stages' && !action) {
       const input = z.strictObject({ leftRunId: Text, rightRunId: Text, leftIndex: z.number().int().min(0), rightIndex: z.number().int().min(0) }).parse(body);
       return compareSimulationStages(researchRun(app.store, input.leftRunId), researchRun(app.store, input.rightRunId), input.leftIndex, input.rightIndex, app.store.experiments().filter(item => item.kind === 'simulation_metric_review') as import('./simulation-research.js').SimulationMetricReview[]);
@@ -140,7 +146,7 @@ export async function api(app: Application, method: string, path: string, body: 
   }
   if (!entityId) throw new Error('Missing resource ID');
   if (resource === 'agents') {
-    if (method !== 'GET' && listSimulationRuns(app).some(run => run.status === 'running' && run.dream && run.agentId === entityId)) throw new ConflictError('Wait for the Agent dream to finish before editing or starting other work');
+    if (method !== 'GET' && listSimulationRuns(app).some(run => (run.status === 'running' || run.status === 'paused') && run.dream && run.agentId === entityId)) throw new ConflictError('Wait for the Agent dream to finish before editing or starting other work');
     if (action === 'affect-analysis' && method === 'GET') return analyzeAffect(app.store, entityId);
     if (action === 'affect-analysis' && method === 'POST') return analyzeAffect(app.store, entityId, AffectAnalysisFilterSchema.parse(body ?? {}));
     if (method === 'DELETE' && !action) {

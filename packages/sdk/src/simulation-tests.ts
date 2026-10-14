@@ -11,6 +11,7 @@ import { predictionScaffoldSimulations } from './prediction-scaffold-simulations
 import { Application } from './application.js';
 import { conversationStarters } from './conversation-starters.js';
 import { fileURLToPath } from 'node:url';
+import { ConflictError, type Store } from '../../core/src/contracts.js';
 import type { EventPayloads } from '../../core/src/contracts.js';
 import { id, now, type ActivationAssociation, type Disposition, type Memory, type Prediction, type Part, type Proposal } from '../../core/src/domain.js';
 
@@ -497,7 +498,10 @@ export type SimulationRun = { dream?: { hostPid: number; keepChanges: boolean; s
   providers: { reasoning: string; decisions: string; embeddings?: string }; prompts: { task: string; version: string; text: string }[];
   evaluator?: { enabled: boolean; model?: string }; assessments?: SimulationAssessment[]; assessmentSetupError?: string; assessmentAvailable?: boolean;
   researchAnalysisError?: string;
-  createdAt: string; finishedAt: string | null; status: 'running' | 'completed' | 'failed';
+  createdAt: string; finishedAt: string | null; status: 'running' | 'paused' | 'completed' | 'failed';
+  pauseRequested?: boolean;
+  checkpoint?: { stageIndex: number; cycleId: string | null; sleepCompleted: boolean };
+  resumptions?: { at: string; previousStatus: string; error: string | null; completedStages: number; before: DreamState; runtime: Application['runtimeConfiguration']; activationSettings: ReturnType<Application['agentActivationSettings']>; model: string | null; engine: EngineProvenance; providers: SimulationRun['providers']; prompts: SimulationRun['prompts'] }[];
   executiveEvidence?: { cleanup: string; executions: import('../../core/src/domain.js').Execution[] };
   totalSteps: number; currentStep: string; stages: SimulationStage[]; measures: SimulationMeasure[]; error: string | null };
 
@@ -691,6 +695,56 @@ export function listSimulationRuns(app: Application): SimulationRun[] {
   return app.store.experiments().filter(run => run.kind === 'simulation_test') as SimulationRun[];
 }
 
+const dreamWorkers = new WeakMap<Store, Map<string, SimulationRun>>();
+function workers(store: Store) {
+  let active = dreamWorkers.get(store);
+  if (!active) { active = new Map(); dreamWorkers.set(store, active); }
+  return active;
+}
+
+export function pauseDream(app: Application, runId: string): SimulationRun {
+  const run = workers(app.store).get(runId);
+  if (!run?.dream || run.status !== 'running') throw new ConflictError('This dream has no active local worker to pause');
+  if (!run.pauseRequested) {
+    run.pauseRequested = true;
+    app.store.appendEvent(run.agentId, null, 'simulation.control', { runId, action: 'pause_requested', completedStages: run.stages.length, reason: 'Pause after the current stage finishes' });
+    app.store.saveExperiment(run);
+  }
+  return structuredClone(run);
+}
+
+export function resumeDream(app: Application, runId: string): SimulationRun {
+  const saved = listSimulationRuns(app).find(record => record.id === runId);
+  const run = saved ? structuredClone(saved) : undefined;
+  if (!run?.dream || !['paused', 'failed'].includes(run.status)) throw new ConflictError('Only paused or failed dreams can resume');
+  if (workers(app.store).has(runId)) throw new ConflictError('This dream already has an active worker');
+  if (app.store.executiveProfile(run.agentId).enabled) throw new ConflictError('Disconnect the dream Agent Executive before resuming');
+  if (app.store.cycles(run.agentId).some(cycle => cycle.status === 'running')
+    || app.store.consolidations(run.agentId).some(sleep => sleep.status === 'running')
+    || app.store.executions(run.agentId).some(execution => ['running', 'pending'].includes(execution.status))
+    || listSimulationRuns(app).some(other => other.id !== runId && other.dream && ['running', 'paused'].includes(other.status)
+      && (other.agentId === run.agentId || other.sourceAgentId === run.agentId)))
+    throw new ConflictError('Wait for other Agent work to finish before resuming');
+  if (!run.dream.after || JSON.stringify(dreamState(app.store, run.agentId)) !== JSON.stringify(run.dream.after))
+    throw new ConflictError('Dream Agent state changed after this run stopped; resume cannot silently replace that history');
+  const runner = run.mode === 'fixture' ? new Application(app.store, undefined, undefined, run.startingConfiguration?.runtime) : app;
+  const reasoning = runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string };
+  const providers = { reasoning: reasoning.labelForAgent?.(run.agentId) ?? reasoning.label, decisions: runner.providers.decisions.label, embeddings: runner.providers.embeddings.label };
+  run.resumptions = [...(run.resumptions ?? []), { at: now(), previousStatus: run.status, error: run.error, completedStages: run.stages.length, before: structuredClone(run.dream.after),
+    runtime: structuredClone(runner.runtimeConfiguration), activationSettings: structuredClone(runner.agentActivationSettings(run.agentId)), model: runner.store.agentProviderSettings(run.agentId)?.model ?? null,
+    engine: engineProvenance(), providers, prompts: runner.promptSettings(run.agentId).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })) }];
+  const allProviders = [run.providers, ...run.resumptions.map(attempt => attempt.providers)];
+  const mockRoles = allProviders.flatMap(provider => [provider.reasoning, provider.decisions].map(label => /mock|deterministic/i.test(label)));
+  run.evidenceBasis = mockRoles.every(Boolean) ? 'fixture' : mockRoles.some(Boolean) ? 'mixed' : 'configured_models';
+  run.status = 'running'; run.pauseRequested = false; run.error = null; run.finishedAt = null;
+  run.dream.hostPid = process.pid; run.currentStep = run.specification.steps[run.stages.length]?.name ?? 'Finishing';
+  app.store.appendEvent(run.agentId, null, 'simulation.control', { runId, action: 'resumed', completedStages: run.stages.length,
+    reason: 'Explicit continuation from the first incomplete stage; prior experience and attempt evidence preserved' });
+  app.store.saveExperiment(run);
+  void executeSimulation(runner, run.specification, run, true);
+  return structuredClone(run);
+}
+
 /** Starts an isolated, persisted run and returns immediately; failures remain inspectable. */
 export function startSimulationTest(app: Application, testId: string, mode: SimulationRun['mode'], sourceAgentId: string, evaluator: { enabled?: boolean | undefined; model?: string | undefined } = {}): SimulationRun {
   const definition = simulationTests.find(test => test.id === testId);
@@ -709,7 +763,7 @@ export function startDream(app: Application, testId: string, mode: SimulationRun
   if (mode === 'fixture' && app.store.agentProviderSettings(sourceAgentId)) throw new Error('Use configured mode for a base Agent with saved model routing');
   if (app.store.cycles(sourceAgentId).some(cycle => cycle.status === 'running') || app.store.consolidations(sourceAgentId).some(run => run.status === 'running')
     || app.store.executions(sourceAgentId).some(execution => execution.status === 'running' || execution.status === 'pending')
-    || listSimulationRuns(app).some(run => run.status === 'running' && run.dream && (run.agentId === sourceAgentId || run.sourceAgentId === sourceAgentId)))
+    || listSimulationRuns(app).some(run => (run.status === 'running' || run.status === 'paused') && run.dream && (run.agentId === sourceAgentId || run.sourceAgentId === sourceAgentId)))
     throw new Error('Wait for active base Agent work or dreams to finish');
   const definition = structuredClone(original); definition.seeds = [];
   return launchSimulation(app, definition, mode, sourceAgentId, evaluator, undefined, { keepChanges });
@@ -720,7 +774,7 @@ type Replay = { parent: SimulationRun; reason: string; activationChanges: Partia
 export function replaySimulation(app: Application, runId: string, reason: string, activationChanges: Replay['activationChanges'] = {}): SimulationRun {
   const parent = listSimulationRuns(app).find(run => run.id === runId);
   if (!parent) throw new Error('Unknown simulation run');
-  if (parent.status === 'running') throw new Error('Wait for the source run to end');
+  if (parent.status === 'running' || parent.status === 'paused') throw new Error('Wait for the source run to end');
   if (parent.dream) throw new Error('Dreams use developed Agent state; launch a new dream from the chosen base instead of a fresh-test rerun');
   if (!parent.startingConfiguration || !parent.providerRouting) throw new Error('Frozen starting configuration/provider routing is missing; exact rerun is unavailable');
   if (!reason.trim()) throw new Error('Record a researcher reason');
@@ -791,7 +845,8 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   return structuredClone(run);
 }
 
-async function executeSimulation(app: Application, definition: SimulationTestDefinition, run: SimulationRun): Promise<void> {
+async function executeSimulation(app: Application, definition: SimulationTestDefinition, run: SimulationRun, resumed = false): Promise<void> {
+  if (run.dream) workers(app.store).set(run.id, run);
   const sandboxId = definition.executiveSandbox ? `sim_${run.id}` : null;
   try {
     if (sandboxId) {
@@ -807,18 +862,27 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
         attention: { ...profile.attention, enabled: true, reviewInterested: definition.executiveSandbox!.review,
           awaitCheckpointReview: definition.executiveSandbox!.awaitCheckpointReview ?? false } }, profile.revision);
     }
-    const seedIds = new Map(definition.seeds.map(seed => [seed.name, id('disposition')]));
-    for (const seed of definition.seeds) app.store.save('disposition', { id: seedIds.get(seed.name)!, agentId: run.agentId, version: 1, schemaVersion: 1,
-      name: seed.name, concern: seed.concern, cues: seed.cues, scope: seed.scope, prerequisites: (seed.prerequisites ?? []).map(name => seedIds.get(name)!),
-      threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0,
-    { origin: 'researcher_edit', reason: 'Explicit simulation starting condition', sourceIds: [run.id, definition.source] });
-    for (const seed of definition.seeds.filter(seed => seed.activationAssociations !== undefined)) {
-      const current = app.store.get('disposition', seedIds.get(seed.name)!);
-      app.store.save('disposition', { ...current, version: current.version + 1, activationAssociations: seed.activationAssociations!.map(association =>
-        association.kind === 'disposition' ? { ...association, dispositionId: seedIds.get(association.dispositionId)! } : association) }, current.version,
-        { origin: 'researcher_edit', reason: 'Explicit simulation association starting conditions', sourceIds: [run.id, definition.source] });
+    if (!resumed) {
+      const seedIds = new Map(definition.seeds.map(seed => [seed.name, id('disposition')]));
+      for (const seed of definition.seeds) app.store.save('disposition', { id: seedIds.get(seed.name)!, agentId: run.agentId, version: 1, schemaVersion: 1,
+        name: seed.name, concern: seed.concern, cues: seed.cues, scope: seed.scope, prerequisites: (seed.prerequisites ?? []).map(name => seedIds.get(name)!),
+        threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0,
+      { origin: 'researcher_edit', reason: 'Explicit simulation starting condition', sourceIds: [run.id, definition.source] });
+      for (const seed of definition.seeds.filter(seed => seed.activationAssociations !== undefined)) {
+        const current = app.store.get('disposition', seedIds.get(seed.name)!);
+        app.store.save('disposition', { ...current, version: current.version + 1, activationAssociations: seed.activationAssociations!.map(association =>
+          association.kind === 'disposition' ? { ...association, dispositionId: seedIds.get(association.dispositionId)! } : association) }, current.version,
+          { origin: 'researcher_edit', reason: 'Explicit simulation association starting conditions', sourceIds: [run.id, definition.source] });
+      }
     }
     for (const [stageIndex, step] of definition.steps.entries()) {
+      if (stageIndex < run.stages.length) continue;
+      if (run.dream && run.pauseRequested) {
+        run.status = 'paused'; run.pauseRequested = false; run.currentStep = `Paused before ${step.name}`;
+        run.dream.after = structuredClone(dreamState(app.store, run.agentId));
+        app.store.appendEvent(run.agentId, null, 'simulation.control', { runId: run.id, action: 'paused', completedStages: run.stages.length, reason: 'Current stage finished; no new experience delivered' });
+        app.store.saveExperiment(run); workers(app.store).delete(run.id); return;
+      }
       const stageId = id('simulation_stage');
       const started = app.store.appendEvent(run.agentId, null, 'simulation.stage_started', { runId: run.id, stageId, stageIndex, name: step.name, phase: step.phase });
       try {
@@ -841,8 +905,17 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             }
           }
           if (step.executiveCheckpoint && !target && !checkpointNote) checkpointNote = 'No live Self-selected activity; this checkpoint was not delivered.';
-          const result = step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
+          const checkpoint = run.checkpoint?.stageIndex === stageIndex ? run.checkpoint : undefined;
+          const priorStageCycleIds = new Set(run.dream && resumed ? app.store.events(run.agentId).filter(event => event.researchScope?.runId === run.id
+            && event.researchScope.stageIndex === stageIndex).map(event => event.cycleId) : []);
+          const priorCycle = run.dream && resumed ? app.store.cycles(run.agentId).findLast(cycle => cycle.status === 'completed' && cycle.threadId === run.id
+            && (cycle.id === checkpoint?.cycleId || priorStageCycleIds.has(cycle.id))) : undefined;
+          const result = priorCycle ? { cycle: priorCycle } : step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
             : text ? await app.message(run.agentId, text, run.dream ? 'Experience' : 'Scenario observer', run.id) : null;
+          if (run.dream) {
+            run.checkpoint = { stageIndex, cycleId: result?.cycle.id ?? null, sleepCompleted: checkpoint?.sleepCompleted ?? false };
+            app.store.saveExperiment(run);
+          }
           if (step.settleExecutive) {
             // Corrections can schedule a successor while the original worker settles.
             for (let pass = 0; pass < 8; pass++) {
@@ -856,7 +929,12 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
           const procedureConsolidation = step.consolidateProcedures ? await app.consolidateProcedures(run.agentId)
             : definition.consolidationPolicy ? app.procedureConsolidation.records(run.agentId).at(-1) : undefined;
           if (procedureConsolidation?.status === 'failed') throw new Error(`Procedural inference failed: ${procedureConsolidation.error}`);
-          if (step.sleep) await app.consolidate(run.agentId, undefined, undefined, step.sleepOptions);
+          const sleepAlreadyCompleted = run.dream && (run.checkpoint?.sleepCompleted || (resumed && app.store.events(run.agentId).some(event =>
+            event.type === 'consolidation.completed' && event.researchScope?.runId === run.id && event.researchScope.stageIndex === stageIndex)));
+          if (step.sleep && !sleepAlreadyCompleted) {
+            await app.consolidate(run.agentId, undefined, undefined, step.sleepOptions);
+            if (run.checkpoint) { run.checkpoint.sleepCompleted = true; app.store.saveExperiment(run); }
+          }
           const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
           run.stages.push({ id: stageId, name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
             ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {
@@ -905,6 +983,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             executions: result ? app.store.executions(run.agentId).filter(execution => execution.cycleId === result.cycle.id) : [],
             parts: app.store.list('part', run.agentId), predictions: app.store.list('prediction', run.agentId),
             memories: app.store.list('memory', run.agentId), dispositions: app.store.list('disposition', run.agentId) });
+          delete run.checkpoint;
           app.store.saveExperiment(run);
         });
         app.store.appendEvent(run.agentId, null, 'simulation.stage_completed', { runId: run.id, stageId, stageIndex, startEventId: started.id });
@@ -940,6 +1019,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
     } catch (error) { run.status = 'failed'; run.error = `${run.error ? run.error + '; ' : ''}Apparatus cleanup failed: ${error instanceof Error ? error.message : String(error)}`; }
   }
   if (run.dream) run.dream.after = structuredClone(dreamState(app.store, run.agentId));
+  if (run.dream) workers(app.store).delete(run.id);
   run.finishedAt = now(); app.store.saveExperiment(run);
   try { saveSimulationCandidates(app.store, run.id); }
   catch (error) { run.researchAnalysisError = error instanceof Error ? error.message : String(error); app.store.saveExperiment(run); }

@@ -1417,3 +1417,29 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .sleep-timeline .sleep-cycle[aria-pressed=true] { background:#e0ecec; outline:1px solid #257b78; }
 
 .sleep-dashboard .rd-section button:not(.sleep-cycle) { margin:4px 6px 4px 0; }
+
+/* Dream execution controls and persisted event console. */
+.rd-run-controls { margin: 12px 0 20px; padding: 16px; border: 1px solid var(--border, #dce1e2); border-radius: 8px; min-width: 0; }
+.rd-run-control-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rd-run-state { font-size: 12px; text-transform: uppercase; color: #52666c; }
+.rd-run-controls progress { display: block; width: 100%; height: 12px; margin: 14px 0 10px; accent-color: #257b78; }
+.rd-run-task { overflow-wrap: anywhere; }
+.rd-console-dialog { width: min(960px, calc(100vw - 32px)); max-width: calc(100vw - 32px); }
+.rd-console-dialog input { width: 100%; box-sizing: border-box; margin-bottom: 12px; }
+.rd-console-log { max-height: 55vh; overflow: auto; background: #17252b; color: #e6edef; padding: 12px; border-radius: 6px; font: 12px/1.6 ui-monospace, monospace; }
+.rd-console-line { display: grid; grid-template-columns: 90px 160px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid #30434b; overflow-wrap: anywhere; }
+.rd-console-line time, .rd-console-stage { color: #a5bdc4; }
+.rd-console-line.warning { color: #f2cd82; }
+.rd-console-line.error { color: #ffaaa2; }
+@media (max-width: 600px) { .rd-console-line { grid-template-columns: 80px minmax(0, 1fr); } .rd-console-line > span:last-child { grid-column: 1 / -1; } }
+
+.rd-heading { position: relative; max-width: none; padding-right: 54px; }
+.rd-filter-button { position: absolute; right: 0; top: 34px; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 8px; }
+.rd-filter-button[data-active="true"] { color: #17625f; background: #e0ecec; border-color: #257b78; }
+.rd-filter-dialog { width: min(440px, calc(100vw - 32px)); }
+.rd-filter-fields { display: grid; gap: 16px; margin-bottom: 20px; }
+.rd-filter-fields label { display: grid; gap: 6px; min-width: 0; }
+.rd-filter-fields select { width: 100%; min-width: 0; }
+/* Allow the final selected experiment to reach the top of its scroll area. */
+.rd-directory > div { padding-bottom: 800px; }
+@media(max-width:700px) { .rd-directory > div { padding-bottom: 185px; } }

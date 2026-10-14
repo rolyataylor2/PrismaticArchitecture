@@ -306,3 +306,7 @@ New simulations freeze engine provenance from the SDK initialization snapshot: s
 Inspection may persist explicit invoking research-stage metadata separately from event payloads. The SDK supplies the async resolver, filtered by Agent identity; core has no research-context dependency. Null-cycle offline events retain stage scope without invented cycles, and failed scope resolution leaves an ordinary unscoped event. Schema 25 adds nullable immutable event metadata; historical bytes remain unchanged and both event query paths preserve scope across restart. Provider arguments and cognitive state receive no metadata.
 
 The consolidation API accepts optional `synthesizeMemories` and `replaceSourceMemories` booleans, both false by default. Replacement requires synthesis and applies to disposition-specific ordinary recall only. ADR 0160 defines source preservation and per-scope run evidence. Simulation Tests include paired cold-car synthesis comparisons.
+
+## Dream progress and continuation
+
+Dreams expose stage progress, current model tasks, cooperative pause and explicit resume of paused/failed runs. Pause finishes the current stage; resume preserves the same dream Agent/thread and skips completed stages. Console opens a searchable live/historical projection of attributed persisted events, including rejected learning and errors. It does not expose provider input bodies or feed audit state into cognition. See ADR 0163.

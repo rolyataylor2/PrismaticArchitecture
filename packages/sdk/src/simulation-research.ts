@@ -71,7 +71,7 @@ export function simulationCitation(store: Store, run: SimulationRun, reference: 
   return { attribution, reference, runId: run.id, evidenceBasis: run.evidenceBasis, runStatus: run.status,
     value: structuredClone(value), hash: createHash('sha256').update(JSON.stringify(value)).digest('hex') };
 }
-function terminal(run: SimulationRun) { if (run.status === 'running') throw new Error('Finish the run before saving researcher judgments'); }
+function terminal(run: SimulationRun) { if (run.status === 'running' || run.status === 'paused') throw new Error('Finish the run before saving researcher judgments'); }
 export function saveSimulationReview(store: Store, runId: string, body: unknown): SimulationReview {
   const input = SimulationReviewInput.parse(body);
   return store.transaction(() => {
@@ -154,13 +154,13 @@ export function simulationCandidates(store: Store, run: SimulationRun): Simulati
   if (run.error) candidates.push({ key: 'run-failure', pattern: 'infrastructure-failure', title: 'Run stopped before completing the scenario',
     claim: run.error, alternatives: 'This is an operational failure; the psychological hypothesis remains unevaluated for missing stages.',
     followUp: 'Inspect the failing operation and provider diagnostics; rerun only after checking the underlying failure.', evidenceReferences: ['/error'] });
-  for (const operation of analysis.providerOperations) if (operation.phase === 'failed' || (operation.phase === 'started' && run.status !== 'running')) candidates.push({
+  for (const operation of analysis.providerOperations) if (operation.phase === 'failed' || (operation.phase === 'started' && !['running', 'paused'].includes(run.status))) candidates.push({
     key: `operation-diagnostic:${operation.operationId}`, pattern: operation.phase === 'failed' ? 'provider-operation-failure' : 'unsettled-operation',
     title: operation.phase === 'failed' ? 'Recorded provider operation failure' : 'Ended run retains an unsettled operation record',
     claim: `${operation.provider} / ${operation.task}: ${operation.error?.message ?? 'No terminal operation record was captured.'}`,
     alternatives: 'Provider or recording infrastructure may have failed. Missing terminal capture is not proof of a stalled thought or a psychological failure.',
     followUp: 'Inspect exact operation diagnostics, safe contract locations and source input; distinguish an adapter problem from runtime rejection.', evidenceReferences: [`/events/${operation.eventId}`] });
-  if (run.status !== 'running') {
+  if (!['running', 'paused'].includes(run.status)) {
     for (const attempt of analysis.cycleAttempts.filter(item => !item.end)) candidates.push({
       key: `unfinished-cycle:${attempt.cycle.id}`, pattern: 'unfinished-cycle-capture', title: 'Ended run has a cycle start without terminal capture',
       claim: `Cycle ${attempt.cycle.sequence} has an explicit start but no matching completion or infrastructure-error event in the recorded audit.`,

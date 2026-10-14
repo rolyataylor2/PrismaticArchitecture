@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 import { SqliteStore } from '../../packages/storage/src/sqlite.js';
 import { Application } from '../../packages/sdk/src/application.js';
 import { createResearchServer } from '../../apps/server/src/server.js';
-import { listSimulationRuns, startSimulationTest } from '../../packages/sdk/src/simulation-tests.js';
+import { simulationTests, listSimulationRuns, startSimulationTest } from '../../packages/sdk/src/simulation-tests.js';
 import { simulationResearch } from '../../packages/sdk/src/simulation-research.js';
 
 const executable = process.env.CHROME_BIN ?? '/usr/bin/chromium';
@@ -27,14 +27,14 @@ test('research dashboard navigates real trials, plots, evidence, reviews, compar
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button',{name:'Dreams',exact:true}).click();
     const panel=page.locator('.research-dashboard');await panel.getByRole('heading',{name:'Dreams',exact:true}).waitFor();
-    await panel.getByLabel('Experiment',{exact:true}).selectOption('conversation-starters');
+    await panel.getByLabel('Find an experiment').fill(simulationTests.find(test => test.id === 'conversation-starters')!.title); await panel.locator('[data-experiment-id="conversation-starters"]').click();
     await panel.getByRole('heading',{name:'What recurs, what wavers?',exact:true}).waitFor();
     assert.ok(await panel.locator('.rd-stacked').count()>0);assert.ok(await panel.locator('.rd-plot svg').count()>0);
     const run=listSimulationRuns(app).find(r=>r.testId==='conversation-starters')!;
     if(screenshots)await page.screenshot({path:`${screenshots}/experiment-desktop.png`,fullPage:true});
     await panel.locator('.rd-stacked').first().click();await page.getByRole('dialog').waitFor();assert.ok((await page.getByRole('dialog').innerText()).includes('fixture'));await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
-    const sets=await panel.getByLabel('Run set',{exact:true}).locator('option').count();assert.equal(sets,2,'identical repetitions share one configuration set');
-    await panel.getByLabel('Run set',{exact:true}).selectOption({index:1});await panel.getByLabel('Run',{exact:true}).selectOption(run.id);
+    await panel.getByRole('button',{name:'Filter runs',exact:true}).click(); const sets=await page.getByRole('dialog',{name:'Run filters',exact:true}).getByLabel('Run set',{exact:true}).locator('option').count();assert.equal(sets,2,'identical repetitions share one configuration set');
+    await page.getByRole('dialog',{name:'Run filters',exact:true}).getByLabel('Run set',{exact:true}).selectOption({index:1}); await page.getByRole('dialog',{name:'Run filters',exact:true}).getByLabel('Run',{exact:true}).selectOption(run.id); await page.getByRole('dialog',{name:'Run filters',exact:true}).getByRole('button',{name:'Apply filters',exact:true}).click();
     await panel.getByRole('navigation',{name:'Analytics views'}).getByRole('button',{name:'Activation',exact:true}).click();
     await panel.getByRole('heading',{name:'Activation heatmap',exact:true}).waitFor();
     if(screenshots)await page.screenshot({path:`${screenshots}/activation-desktop.png`,fullPage:true});
@@ -61,7 +61,7 @@ test('research dashboard navigates real trials, plots, evidence, reviews, compar
     await page.getByRole('dialog').getByLabel('Launch reason',{exact:true}).fill('Dashboard explicit fork');await page.getByRole('dialog').getByLabel('Fork activation setting').selectOption('memorySearchEnabled');await page.getByRole('dialog').getByLabel('Fork setting value').selectOption('false');await page.getByRole('dialog').getByRole('button',{name:'Launch configuration fork',exact:true}).click();
     for(let i=0;i<1000&&!listSimulationRuns(app).some(r=>r.lineage?.reason==='Dashboard explicit fork');i++)await new Promise(r=>setTimeout(r,10));const fork=listSimulationRuns(app).find(r=>r.lineage?.reason==='Dashboard explicit fork')!;assert.equal(fork.startingConfiguration!.activationSettings.memorySearchEnabled,false);await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
     assert.ok(listSimulationRuns(app).some(r=>r.lineage?.reason==='Dashboard replay verification'));
-    await panel.getByRole('button',{name:'Experiment overview',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.waitForTimeout(200); assert.equal(await panel.evaluate(e=>e.scrollWidth<=e.clientWidth+1),true); assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'whole page fits mobile viewport');
+    await panel.locator('[data-experiment-id="conversation-starters"]').click();await page.setViewportSize({width:390,height:844});await page.waitForTimeout(200); assert.equal(await panel.evaluate(e=>e.scrollWidth<=e.clientWidth+1),true); assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'whole page fits mobile viewport');
     if(screenshots)await page.screenshot({path:`${screenshots}/experiment-mobile.png`,fullPage:true});
     assert.equal(await panel.locator('.rd-panel details').count(),0,'no record trees in analytical views');assert.equal(await panel.locator('.rd-panel pre:visible').count(),0);
     assert.equal(store.events(source.id).length,sourceEvents);assert.deepEqual(errors,[]);

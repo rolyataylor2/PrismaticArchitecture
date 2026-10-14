@@ -72,3 +72,7 @@ Iterate until visual hierarchy and functionality meet the design goals.
 
 ## Definition of done
 A researcher can understand current performance, identify meaningful changes, compare simulations, investigate anomalies, and verify conclusions without needing to read raw JSON.
+
+## Dream run controls
+
+Use the research-direction sidebar as the sole experiment selector. On experiment changes align its highlighted row with the top of that sidebar; preserve scrolling during ordinary refresh. Run set, run and evidence provenance filters live in one accessible popup opened by a filter icon beside the experiment title. Show one non-link Experiment overview label, without a duplicate breadcrumb link. Active dreams show completed-stage progress, the actual current model task, cooperative pause/resume and a Console button. The searchable console popup preserves chronological historical events and polls for live updates, with explicit rejected-learning and error messages. Progress is completed stages / protocol stages, never guessed model-call completion.

@@ -1,3 +1,4 @@
+import type { DreamConsole, DreamConsoleLine } from '../../../packages/sdk/src/dream-console.js';
 import type { SimulationRun, SimulationTestDefinition } from '../../../packages/sdk/src/simulation-tests.js';
 import type { SimulationReview } from '../../../packages/sdk/src/simulation-research.js';
 import type { SimulationAnalysis } from '../../../packages/sdk/src/simulation-analysis.js';
@@ -88,6 +89,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
   try { const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? 'null') as { testId?: string; groupId?: string; runId?: string; view?: View; basis?: string } | null; if (saved) { testId = saved.testId ?? ''; groupId = saved.groupId ?? ''; runId = saved.runId ?? ''; view = views.includes(saved.view!) ? saved.view! : 'Overview'; basis = saved.basis ?? ''; } } catch { /* Ignore invalid local navigation state. */ }
   let updateEpoch = 0;
   let judgmentChannel = 'observer';
+  let scrolledExperiment = ''; let directoryScroll = 0;
   const scope = () => runs.filter(r => r.testId === testId && (!groupId || groups.find(g => g.configurationId === groupId)?.runIds.includes(r.id)) && (!runId || r.id === runId) && (!basis || r.evidenceBasis === basis));
   const goto = (next: View, selectedRun?: string, stage?: number) => { view = next; if (selectedRun) runId = selectedRun; stageIndex = stage ?? null; render(); };
   const fail = (e: unknown) => { options.fail(e); };
@@ -98,31 +100,61 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     catch (error) { if (current === generation && parent.isConnected) { loading.textContent = 'Analysis unavailable. Refresh to retry; saved snapshots remain in Records.'; fail(error); } }
   }
   function render() {
+    directoryScroll = host.querySelector('.rd-directory')?.scrollTop ?? directoryScroll;
     generation++; if (definitions.length) sessionStorage.setItem(storageKey, JSON.stringify({ testId, groupId, runId, view, basis })); host.replaceChildren(); const allExperiment = runs.filter(r => r.testId === testId); const selected = scope(); const definition = definitions.find(d => d.id === testId);
     const top = el('header', '', 'rd-top'); const title = el('div'); title.append(el('p', 'RESEARCH WORKSPACE', 'rd-eyebrow'), el('h2', 'Dreams')); top.append(title);
     const actions = el('div', '', 'rd-actions'); action(actions, 'New dream', () => options.launch(testId), fail, 'rd-primary'); action(actions, 'Refresh', options.refresh, fail); top.append(actions); host.append(top);
+    const activeRuns = runs.filter(run => run.dream && ['running', 'paused'].includes(run.status));
+    for (const activeRun of activeRuns) runControls(host, activeRun);
     const layout = el('div', '', 'rd-layout'); const nav = el('nav', '', 'rd-directory'); nav.setAttribute('aria-label', 'Research directions'); layout.append(nav); const main = el('main', '', 'rd-main'); layout.append(main); host.append(layout);
     const query = el('input'); query.type = 'search'; query.value = search; query.placeholder = 'Find an experiment'; query.setAttribute('aria-label', 'Find an experiment'); nav.append(query);
     const links = el('div'); nav.append(links);
     function drawLinks() { links.replaceChildren(); const visible = definitions.filter(d => `${d.title} ${d.hypothesis}`.toLowerCase().includes(query.value.toLowerCase()));
       for (const name of [...new Set(definitions.map(d => direction(d.id)))]) { const subset = visible.filter(d => direction(d.id) === name); if (!subset.length) continue;
         const d = el('details', '', 'rd-direction'); d.open = !query.value ? subset.some(s => s.id === testId) : true; d.append(el('summary', name));
-        for (const item of subset) { const b = action(d, item.title, () => { testId = item.id; groupId = ''; runId = ''; stageIndex = null; view = 'Overview'; render(); }, fail, item.id === testId ? 'rd-experiment selected' : 'rd-experiment'); b.setAttribute('aria-current', item.id === testId ? 'page' : 'false'); const count = runs.filter(r => r.testId === item.id).length; b.append(el('small', `${count} runs`)); } links.append(d);
+        for (const item of subset) { const b = action(d, item.title, () => { scrolledExperiment = ''; testId = item.id; groupId = ''; runId = ''; stageIndex = null; view = 'Overview'; render(); }, fail, item.id === testId ? 'rd-experiment selected' : 'rd-experiment'); b.dataset.experimentId = item.id; b.setAttribute('aria-current', item.id === testId ? 'page' : 'false'); const count = runs.filter(r => r.testId === item.id).length; b.append(el('small', `${count} runs`)); } links.append(d);
       }
       if (!visible.length) links.append(el('p', 'No experiments match.', 'rd-caption'));
     } query.oninput = () => { search = query.value; drawLinks(); }; drawLinks();
-    const filters = el('div', '', 'rd-context'); main.append(filters);
-    choose(filters, 'Experiment', definitions.map(d => [d.id, d.title]), testId, value => { testId = value; groupId = ''; runId = ''; stageIndex = null; view = 'Overview'; render(); });
     const sets = groups.filter(g => g.testId === testId);
-    choose(filters, 'Run set', [['', `All configurations · ${allExperiment.length} runs`], ...sets.map((g, i): [string, string] => [g.configurationId, `Set ${i+1} · ${g.trials} trials · ${g.configuration.evidenceBasis}${!g.configuration.startingConfigurationAvailable ? ' · historical' : ''}`])], groupId, value => { groupId = value; runId = ''; stageIndex = null; render(); });
     const eligible = allExperiment.filter(r => !groupId || groups.find(g => g.configurationId === groupId)?.runIds.includes(r.id));
-    choose(filters, 'Run', [['', 'Combined run overview'], ...eligible.slice().reverse().map((r): [string, string] => [r.id, `${time(r.createdAt)} · ${r.status} · ${r.id.slice(-6)}`])], runId, value => { runId = value; stageIndex = null; render(); });
-    choose(filters, 'Evidence basis', [['', 'All provenance'], ['configured_models', 'Configured models'], ['mixed', 'Mixed providers'], ['fixture', 'Fixture only']], basis, value => { basis = value; render(); });
+    nav.scrollTop = directoryScroll;
+    if (scrolledExperiment !== testId) {
+      const selectedExperiment = testId;
+      requestAnimationFrame(() => {
+        if (!nav.isConnected || testId !== selectedExperiment) return;
+        const selectedButton = nav.querySelector<HTMLElement>('.rd-experiment.selected');
+        if (selectedButton) { nav.scrollTop += selectedButton.getBoundingClientRect().top - nav.getBoundingClientRect().top; scrolledExperiment = selectedExperiment; }
+      });
+    }
     const crumbs = el('nav', '', 'rd-breadcrumb'); crumbs.setAttribute('aria-label', 'Analytics breadcrumb');
-    action(crumbs, 'Experiment overview', () => { groupId = ''; runId = ''; stageIndex = null; view = 'Overview'; render(); }, fail);
     if (groupId) { crumbs.append(el('span', '›')); action(crumbs, 'Run set overview', () => { runId = ''; stageIndex = null; view = 'Overview'; render(); }, fail); }
     if (runId) { crumbs.append(el('span', '›')); action(crumbs, 'Run overview', () => { stageIndex = null; view = 'Overview'; render(); }, fail); } if (stageIndex !== null) crumbs.append(el('span', `› Stage ${stageIndex+1}`)); main.append(crumbs);
     const heading = el('div', '', 'rd-heading'); heading.append(el('p', runId ? 'INDIVIDUAL RUN' : groupId ? 'MATCHED CONFIGURATION' : 'EXPERIMENT OVERVIEW', 'rd-eyebrow'), el('h2', definition?.title ?? 'Loading experiments…'), el('p', definition?.hypothesis ?? 'Loading the research registry.'));
+    const filterButton = action(heading, '', () => {
+      const modal = el('dialog', '', 'rd-dialog rd-filter-dialog'); modal.setAttribute('aria-label', 'Run filters'); modal.append(el('h2', 'Run filters'));
+      const fields = el('div', '', 'rd-filter-fields'); modal.append(fields);
+      let nextGroup = groupId; let nextRun = runId; let nextBasis = basis;
+      const runSelect = choose(fields, 'Run', [['', 'Combined run overview']], nextRun, value => { nextRun = value; });
+      const populateRuns = () => {
+        const available = allExperiment.filter(r => !nextGroup || groups.find(g => g.configurationId === nextGroup)?.runIds.includes(r.id));
+        runSelect.replaceChildren(new Option('Combined run overview', ''));
+        for (const r of available.slice().reverse()) runSelect.append(new Option(`${time(r.createdAt)} · ${r.status} · ${r.id.slice(-6)}`, r.id));
+        runSelect.value = nextRun;
+      };
+      const setSelect = choose(fields, 'Run set', [['', `All configurations · ${allExperiment.length} runs`], ...sets.map((g, i): [string, string] => [g.configurationId, `Set ${i+1} · ${g.trials} trials · ${g.configuration.evidenceBasis}`])], nextGroup, value => { nextGroup = value; nextRun = ''; populateRuns(); });
+      fields.prepend(setSelect.parentElement!); populateRuns();
+      choose(fields, 'Evidence basis', [['', 'All provenance'], ['configured_models', 'Configured models'], ['mixed', 'Mixed providers'], ['fixture', 'Fixture only']], nextBasis, value => { nextBasis = value; });
+      const actions = el('div', '', 'rd-actions'); modal.append(actions);
+      action(actions, 'Apply filters', () => { groupId = nextGroup; runId = nextRun; basis = nextBasis; stageIndex = null; modal.close(); render(); }, fail, 'rd-primary');
+      action(actions, 'Reset filters', () => { groupId = ''; runId = ''; basis = ''; stageIndex = null; modal.close(); render(); }, fail);
+      action(actions, 'Close', () => modal.close(), fail);
+      modal.addEventListener('close', () => modal.remove(), { once: true }); document.body.append(modal); modal.showModal();
+    }, fail, 'rd-filter-button');
+    filterButton.setAttribute('aria-label', 'Filter runs'); filterButton.title = 'Filter run set, run and evidence basis';
+    filterButton.append(svg('svg', { viewBox: '0 0 24 24', width: 20, height: 20, 'aria-hidden': 'true' }));
+    filterButton.querySelector('svg')!.append(svg('path', { d: 'M3 4h18l-7 8v7l-4 2v-9z', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+    if (groupId || runId || basis) filterButton.dataset.active = 'true';
     const sourceUrl = definition?.source.match(/https?:\/\/[^\s]+/)?.[0]; if(sourceUrl){const link=el('a','Source discussion','rd-source');link.href=sourceUrl;link.target='_blank';link.rel='noreferrer';heading.append(link);} main.append(heading);
     const meta = el('div', '', 'rd-meta'); meta.append(el('span', `${selected.length} trials in view`), el('span', `${new Set(selected.map(r => r.providers.reasoning)).size} reasoning providers`), el('span', `${selected.filter(r => r.evidenceBasis === 'fixture').length} fixture / ${selected.filter(r => r.evidenceBasis === 'mixed').length} mixed / ${selected.filter(r => r.evidenceBasis === 'configured_models').length} configured`)); main.append(meta);
     const tabs = el('nav', '', 'rd-tabs'); tabs.setAttribute('aria-label', 'Analytics views'); for (const name of views) { const b = action(tabs, name, () => { view = name; stageIndex = null; render(); }, fail); b.setAttribute('aria-current', view === name ? 'page' : 'false'); } main.append(tabs);
@@ -130,6 +162,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     if (!definition) { empty(panel, 'Loading experiments', 'The registry and saved runs are being retrieved.'); return; }
     if (!selected.length) { empty(panel, allExperiment.length ? 'No runs match this selection' : 'No observations yet', allExperiment.length ? 'Change the provenance filter or run selection to inspect available evidence.' : 'Launch a fixture to inspect the pipeline, or a configured run for model observations. No measurements have been invented.'); const protocol = section(panel, 'Research protocol', definition.limitations); protocol.append(el('p', definition.criteria.join(' · '))); return; }
     const run = selected.find(r => r.id === runId) ?? selected.at(-1)!;
+    if (!activeRuns.some(active => active.id === run.id)) runControls(main, run);
     if (stageIndex !== null) { stagePage(panel, run, stageIndex); return; }
     if (view === 'Overview') overview(panel, selected, definition);
     else if (view === 'Compare') compare(panel, eligible);
@@ -145,6 +178,78 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     const note = el('footer', definition.limitations, 'rd-limits'); note.prepend(el('strong', 'Interpretation boundary · ')); panel.append(note);
     if (selected.some(r => r.evidenceBasis !== 'configured_models')) panel.append(el('p', 'Fixture and mixed-provider evidence describe apparatus behavior. They do not independently validate a cognitive theory.', 'rd-caution'));
   }
+  function runControls(parent: HTMLElement, run: SimulationRun) {
+    const panel = el('section', '', 'rd-run-controls'); panel.setAttribute('aria-label', `${run.title} run controls`); parent.insertBefore(panel, parent.querySelector(':scope > .rd-tabs'));
+    const title = el('strong', run.title); const state = el('span', run.status, 'rd-run-state');
+    const heading = el('div', '', 'rd-run-control-heading'); heading.append(title, state); panel.append(heading);
+    const progress = el('progress'); progress.max = run.totalSteps || 1; progress.value = run.stages.length;
+    progress.setAttribute('aria-label', 'Dream stage progress'); progress.setAttribute('aria-valuetext', `${run.stages.length} of ${run.totalSteps} stages completed`); panel.append(progress);
+    const task = el('p', `${run.currentStep} · ${run.stages.length}/${run.totalSteps} stages completed`, 'rd-run-task'); task.setAttribute('role', 'status'); panel.append(task);
+    const controls = el('div', '', 'rd-actions'); panel.append(controls);
+    let busy = false;
+    const toggle = run.dream && run.status !== 'completed' ? action(controls, run.status === 'running' ? 'Ⅱ Pause dream' : '▶ Resume dream', async () => {
+      if (busy) return; busy = true; toggle!.disabled = true;
+      try { await options.api(`simulation-tests/${run.id}/${run.status === 'running' ? 'pause' : 'resume'}`, 'POST', {}); await options.refresh(); }
+      finally { busy = false; if (toggle!.isConnected) toggle!.disabled = false; }
+    }, fail) : null;
+    if (toggle) { toggle.setAttribute('aria-label', run.status === 'running' ? 'Pause dream' : 'Resume dream'); toggle.disabled = !!run.pauseRequested; }
+    action(controls, 'Console', () => openConsole(run), fail);
+    if (run.error) panel.append(el('p', run.error, 'rd-caution'));
+    const note = el('p', run.pauseRequested ? 'Pause requested · finishing the current stage.' : run.status === 'paused' ? 'Paused · resume continues with the next experience.' : run.status === 'failed' && run.dream ? 'Resume retries the interrupted stage using preserved Agent state.' : run.status === 'running' && run.dream ? 'Pause takes effect when the current stage finishes.' : 'Progress counts completed scenario stages.', 'rd-caption'); panel.append(note);
+    async function poll() {
+      try {
+        const snapshot = await options.api<DreamConsole>(`simulation-tests/${run.id}/console`);
+        if (!panel.isConnected) return;
+        state.textContent = snapshot.pauseRequested ? 'Pausing' : snapshot.status;
+        progress.value = snapshot.completedStages;
+        progress.setAttribute('aria-valuetext', `${snapshot.completedStages} of ${snapshot.totalStages} stages completed`);
+        task.textContent = `${snapshot.currentStage} · ${snapshot.currentTask === snapshot.currentStage ? '' : snapshot.currentTask + ' · '}${snapshot.completedStages}/${snapshot.totalStages} stages completed`;
+        if (snapshot.pauseRequested) { note.textContent = 'Pause requested · finishing the current stage.'; if (toggle) toggle.disabled = true; }
+        if (snapshot.status === 'running') setTimeout(() => { if (panel.isConnected) void poll(); }, 1000);
+      } catch (error) { if (panel.isConnected) { task.textContent = 'Run status unavailable. Refresh to retry.'; fail(error); } }
+    }
+    if (run.status === 'running') void poll();
+  }
+
+  function openConsole(run: SimulationRun) {
+    const modal = el('dialog', '', 'rd-dialog rd-console-dialog'); modal.setAttribute('aria-label', 'Dream console');
+    modal.append(el('h2', 'Dream console'), el('p', run.title, 'rd-caption'));
+    const status = el('p', 'Loading saved events…'); status.setAttribute('role', 'status'); modal.append(status);
+    const search = el('input'); search.type = 'search'; search.placeholder = 'Find a task, decision or error'; search.setAttribute('aria-label', 'Search dream console'); modal.append(search);
+    const log = el('div', '', 'rd-console-log'); log.setAttribute('role', 'log'); log.setAttribute('aria-label', 'Dream event history'); log.setAttribute('aria-live', 'polite'); modal.append(log);
+    let cursor = 0; let timer: ReturnType<typeof setTimeout> | undefined; let closed = false;
+    const lines: DreamConsoleLine[] = [];
+    const show = () => {
+      const scrollTop = log.scrollTop;
+      const nearBottom = log.scrollHeight - scrollTop - log.clientHeight < 50;
+      log.replaceChildren();
+      for (const line of lines.filter(line => `${line.stage ?? ''} ${line.task ?? ''} ${line.message}`.toLowerCase().includes(search.value.toLowerCase()))) {
+        const row = el('div', '', `rd-console-line ${line.level}`); row.dataset.sequence = String(line.sequence);
+        row.append(el('time', new Date(line.at).toLocaleTimeString()), el('span', line.stage ?? 'Run', 'rd-console-stage'), el('span', line.message)); log.append(row);
+      }
+      if (!log.childElementCount) log.append(el('p', lines.length ? 'No events match this search.' : 'No recorded events yet.'));
+      log.scrollTop = nearBottom ? log.scrollHeight : scrollTop;
+    };
+    search.oninput = show;
+    async function poll() {
+      if (closed) return;
+      if (!host.isConnected) { modal.close(); return; }
+      try {
+        const snapshot = await options.api<DreamConsole>(`simulation-tests/${run.id}/console/${cursor}`);
+        if (closed) return;
+        if (!host.isConnected) { modal.close(); return; }
+        lines.push(...snapshot.lines); cursor = snapshot.cursor;
+        status.textContent = `${snapshot.status}${snapshot.pauseRequested ? ' · pause requested' : ''} · ${snapshot.completedStages}/${snapshot.totalStages} stages · ${snapshot.currentTask}`;
+        show();
+        if (snapshot.error) status.textContent += ` · ${snapshot.error}`;
+        if (snapshot.hasMore || snapshot.status === 'running' || snapshot.status === 'paused') timer = setTimeout(() => { void poll(); }, snapshot.hasMore ? 0 : 1000);
+      } catch (error) { if (!closed) status.textContent = `Console unavailable: ${error instanceof Error ? error.message : String(error)}`; }
+    }
+    action(modal, 'Close', () => modal.close(), fail);
+    modal.addEventListener('close', () => { closed = true; if (timer) clearTimeout(timer); modal.remove(); }, { once: true });
+    document.body.append(modal); modal.showModal(); void poll();
+  }
+
   function runButtons(parent: HTMLElement, selected: SimulationRun[]) {
     const rows = el('div', '', 'rd-trials'); parent.append(rows); selected.slice().reverse().forEach((run, i) => { const b = action(rows, `Trial ${selected.length-i} · ${time(run.createdAt)}`, () => { runId = run.id; stageIndex = null; render(); }, fail); b.dataset.simulationRun = run.id; b.append(el('span', `${run.status} · ${run.stages.length}/${run.totalSteps} stages · ${pretty(run.evidenceBasis)}`, 'rd-caption')); });
   }
@@ -201,7 +306,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
   function overview(parent: HTMLElement, selected: SimulationRun[], definition: SimulationTestDefinition) {
     const stats = el('div', '', 'rd-stats'); parent.append(stats);
     const completed = selected.filter(r => r.status === 'completed');
-    for (const [value, label, note] of [[String(selected.length), 'Recorded trials', `${selected.filter(r => r.status === 'failed').length} failed · ${selected.filter(r => r.status === 'running').length} running`], [`${completed.length}/${selected.length}`, 'Execution completed', 'Completion is not theory support'], [String(completed.reduce((s, r) => s+r.stages.filter(x => x.phase === 'control').length, 0)), 'Control stages', 'Recorded stages across completed trials'], [String(criterionRecurrence(selected).filter(r => r.pattern === 'Varies across trials').length), 'Varying criteria', 'Original operational observations']]) {
+    for (const [value, label, note] of [[String(selected.length), 'Recorded trials', `${selected.filter(r => r.status === 'failed').length} failed · ${selected.filter(r => r.status === 'running').length} running · ${selected.filter(r => r.status === 'paused').length} paused`], [`${completed.length}/${selected.length}`, 'Execution completed', 'Completion is not theory support'], [String(completed.reduce((s, r) => s+r.stages.filter(x => x.phase === 'control').length, 0)), 'Control stages', 'Recorded stages across completed trials'], [String(criterionRecurrence(selected).filter(r => r.pattern === 'Varies across trials').length), 'Varying criteria', 'Original operational observations']]) {
       const n = el('div'); n.append(el('strong', value), el('span', label), el('small', note)); stats.append(n);
     }
     for (const run of selected.filter(item => item.dream)) {
@@ -220,7 +325,7 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
       if (after) action(panel, 'Inspect Agent after dream', () => raw('Agent after dream', after), fail);
       action(panel, 'Inspect dream lineage', () => raw('Dream lineage', { sourceAgentId: run.sourceAgentId, agentId: run.agentId, identifierMap: dream.identifierMap }), fail);
     }
-    if (selected.some(r => r.status === 'running')) { const live = section(parent, 'Run progress'); for (const r of selected.filter(r => r.status === 'running')) { const p = el('progress'); p.max = r.totalSteps; p.value = r.stages.length; p.setAttribute('aria-label', `${r.title} progress`); live.append(el('p', `${r.currentStep} · ${r.stages.length}/${r.totalSteps} completed stages`), p); } }
+
     if (selected.some(r => r.error)) { const errors = section(parent, 'Infrastructure failures', 'Excluded from completed-trial recurrence; not a failed cognitive hypothesis.'); selected.filter(r => r.error).forEach(r => errors.append(el('p', r.error!))); }
     recurrence(parent, selected);
     const chart = section(parent, 'Cognition across experience', `${groupId ? 'Matched configuration' : 'All selected configurations; differences can confound comparisons'} · means and observed ranges by stage`); lineChart(chart, completed.length ? completed : selected, ['active', 'contributors', 'recalls'], stageDetail);

@@ -18,3 +18,7 @@ The Prism Agent Architecture simulations maintain external worlds in which agent
 ## Rejected consolidation proposals
 
 A structural proposal blocked by citation, evidence or lifecycle policy is recorded as `disposition.reconciliation_rejected`, with the proposal and reason. It does not mutate the rejected structure or fail sleep or the surrounding simulation. Other valid proposals and ordinary memory reinterpretation continue. Provider, malformed-output, storage and stale-version failures remain failures.
+
+## Dream controls and inspection
+
+[ADR 0163](decisions/0163-dream-pause-resume-and-console.md) defines cooperative stage-boundary pause, explicit continuation of paused/failed dreams and persisted execution console evidence. Paused runs retain their Agent state and completed stages; no experiences resume automatically on restart.

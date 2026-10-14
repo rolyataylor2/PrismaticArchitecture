@@ -13,6 +13,7 @@ export function simulationConfiguration(run: SimulationRun) {
   const start = run.startingConfiguration;
   return { scenarioHash: hash(run.specification), startingConditionsHash: hash(run.specification.seeds),
     promptHash: hash(run.prompts.slice().sort((a, b) => a.task.localeCompare(b.task))), providers: run.providers,
+    resumptions: (run.resumptions ?? []).map(attempt => ({ completedStages: attempt.completedStages, engine: attempt.engine, providers: attempt.providers, promptHash: hash(attempt.prompts), runtime: attempt.runtime, activationSettings: attempt.activationSettings, model: attempt.model })),
     engine: run.engine ?? null, mode: run.mode, evidenceBasis: run.evidenceBasis, providerRouting: run.providerRouting ?? null,
     activationSettingsHash: start ? hash(start.activationSettings) : null, runtimeHash: start ? hash(start.runtime) : null,
     identityHash: start ? hash({ traits: start.identity.traits.map(({ question, answer, keywords, role }) => ({ question, answer, keywords, role })), mask: start.identity.mask }) : null,
@@ -114,10 +115,10 @@ export function aggregateSimulations(runs: SimulationRun[], reviews: SimulationM
       trials: trials.length, completed: completed.length, failed: trials.filter(run => run.status === 'failed').length,
       runIds: trials.map(run => run.id), candidatePatterns: (() => {
         const observed = new Map(candidateSets.map(item => [item.runId, item.candidates]));
-        const patterns = [...new Set(candidateSets.filter(item => runs.some(run => run.id === item.runId && run.status !== 'running')).flatMap(item => item.candidates.map(candidate => candidate.pattern)))].sort();
-        const analyzed = trials.filter(run => run.status !== 'running' && observed.has(run.id));
-        return { analyzed: analyzed.length, missingAnalysis: trials.filter(run => run.status !== 'running' && !observed.has(run.id)).length,
-          runningExcluded: trials.filter(run => run.status === 'running').length,
+        const patterns = [...new Set(candidateSets.filter(item => runs.some(run => run.id === item.runId && !['running', 'paused'].includes(run.status))).flatMap(item => item.candidates.map(candidate => candidate.pattern)))].sort();
+        const analyzed = trials.filter(run => !['running', 'paused'].includes(run.status) && observed.has(run.id));
+        return { analyzed: analyzed.length, missingAnalysis: trials.filter(run => !['running', 'paused'].includes(run.status) && !observed.has(run.id)).length,
+          runningExcluded: trials.filter(run => ['running', 'paused'].includes(run.status)).length,
           patterns: patterns.map(pattern => {
             const cohort = (status: 'completed' | 'failed') => {
               const eligible = analyzed.filter(run => run.status === status);

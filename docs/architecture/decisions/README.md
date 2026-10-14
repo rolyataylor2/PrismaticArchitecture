@@ -101,3 +101,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0161 — Temporary Prediction-Bound Dispositions](0161-temporary-prediction-bound-dispositions.md)
 
 - [0162 — Executive action handoff adapter](0162-executive-action-handoff-adapter.md)
+
+[ADR 0163: Dream pause, resume and execution console](0163-dream-pause-resume-and-console.md) defines persisted external run controls and read-only live/historical evidence.
