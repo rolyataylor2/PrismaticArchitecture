@@ -92,6 +92,7 @@ export type EventPayloads = {
   'execution.intervention': { contractId: string; executionId: string; targetExecutionId: string; targetContractId: string;
     state: 'requested' | 'stopped'; parentStatus?: import('./domain.js').Execution['status'] };
   'part.instance_retired': { partId: string; reason: string };
+  'disposition.reconciliation_rejected': { operation: import('./disposition-reconciliation.js').ReconciliationOperation; reason: string };
   'disposition.learned': import('./domain.js').Disposition;
 
   'primitive.thought': { primitive: PrimitiveContext['primitive']; output: Cognition; durationMs: number };

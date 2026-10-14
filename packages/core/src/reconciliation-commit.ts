@@ -3,7 +3,7 @@ import { predictionTrajectories, type PredictionTrajectory } from './prediction-
 import type { Store } from './contracts.js';
 import type { Inspection } from './inspection.js';
 import { cueEvidence } from './experiential-formation.js';
-import { validateReconciliationCitations, validateReconciliationEvidence,
+import { ReconciliationRejectedError, validateReconciliationCitations, validateReconciliationEvidence,
   type ReconciliationObservations, type ReconciliationOperation } from './disposition-reconciliation.js';
 
 /** Commit validated structural proposals without changing subjective memory content. */
@@ -11,10 +11,6 @@ export function commitReconciliation(store: Store, inspection: Inspection, agent
   operations: ReconciliationOperation[], memories: Memory[], observations: ReconciliationObservations,
   expectedDispositionVersions?: Record<string, number>, suppliedTrajectories: PredictionTrajectory[] = []) {
   const definitions = store.list('disposition', agentId);
-  for (const operation of operations) {
-    validateReconciliationCitations(operation, memories.map(memory => memory.id), definitions.map(disposition => disposition.id));
-    validateReconciliationEvidence(operation, observations);
-  }
   if (memories.some(memory => memory.agentId !== agentId)) throw new Error('Reconciliation memory ownership mismatch');
   return inspection.atomic(() => {
     for (const memory of memories) {
@@ -23,61 +19,80 @@ export function commitReconciliation(store: Store, inspection: Inspection, agent
     if (expectedDispositionVersions) {
       for (const operation of operations) {
         if (!('sourceDispositionIds' in operation)) continue;
-        for (const source of operation.sourceDispositionIds)
-          if (store.get('disposition', source).version !== expectedDispositionVersions[source])
+        for (const source of operation.sourceDispositionIds) {
+          // Unknown citations are rejected per proposal below; stale supplied state remains fatal.
+          if (definitions.some(definition => definition.id === source)
+            && store.get('disposition', source).version !== expectedDispositionVersions[source])
             throw new Error('Reconciliation source disposition changed during inference');
+        }
       }
     }
     const committed: Disposition[] = [];
     for (const operation of operations) {
       if (operation.operation === 'NO_CHANGE' || operation.operation === 'INSUFFICIENT_EVIDENCE') continue;
+      let concernInheritance: NonNullable<Disposition['development']>['concernInheritance'];
+      try {
+        validateReconciliationCitations(operation, memories.map(memory => memory.id), definitions.map(disposition => disposition.id));
+        validateReconciliationEvidence(operation, observations);
+        const sources = operation.sourceDispositionIds.map(source => store.get('disposition', source));
+        const source = sources[0]!;
+        if (operation.operation === 'INSTITUTIONALIZE' && sources.some(source => !source.temporary || !source.scaffold
+          || !source.sourcePredictionId || store.get('prediction', source.sourcePredictionId).status === 'open'))
+          throw new ReconciliationRejectedError('Institutionalization requires preserved temporary scaffold sources whose originating hypotheses have ended');
+        if (operation.operation === 'INSTITUTIONALIZE' && operation.inheritedConcern) {
+          const inherited = operation.inheritedConcern;
+          const predictionIds = [...new Set(sources.map(source => source.sourcePredictionId!))];
+          const recorded = predictionTrajectories(store, agentId, predictionIds.map(id => store.get('prediction', id)), definitions);
+          const selectedIds = new Set(inherited.thoughtEventIds);
+          if (selectedIds.size !== inherited.thoughtEventIds.length) throw new ReconciliationRejectedError('Inherited concern requires unique thought citations');
+          const thoughts = recorded.flatMap(trajectory => trajectory.thoughts).filter(thought => selectedIds.has(thought.eventId));
+          const unique = [...new Map(thoughts.map(thought => [thought.eventId, thought])).values()];
+          if (unique.length !== selectedIds.size || unique.some(thought => !suppliedTrajectories.some(trajectory =>
+            predictionIds.includes(trajectory.predictionId) && trajectory.thoughts.some(selected => selected.eventId === thought.eventId
+              && JSON.stringify(selected) === JSON.stringify(thought)))))
+            throw new ReconciliationRejectedError('Inherited concern requires supplied recorded source-investigation thoughts');
+          if (!recorded.some(trajectory => {
+            const origin = trajectory.thoughts.find(thought => thought.association === 'origin' && selectedIds.has(thought.eventId));
+            return origin && trajectory.thoughts.some(thought => selectedIds.has(thought.eventId) && thought.sequence > origin.sequence);
+          }))
+            throw new ReconciliationRejectedError('Inherited concern requires originating and later expressed cognition');
+          concernInheritance = { predictionIds, thoughts: unique.sort((a, b) => a.sequence - b.sequence),
+            continuityReason: inherited.continuityReason, distinctnessReason: inherited.distinctnessReason };
+        }
+        if (operation.operation === 'ASSESS_HYPOTHESIS' && source.temporary)
+          throw new ReconciliationRejectedError('Temporary scaffolds require explicit institutionalization to become durable');
+        if (operation.operation === 'ASSESS_HYPOTHESIS') {
+          if (!source.development) throw new ReconciliationRejectedError('Hypothesis assessment requires recorded developmental provenance');
+          if (operation.memoryIds.some(memoryId => {
+            const memory = memories.find(memory => memory.id === memoryId)!;
+            return store.cycle(memory.createdCycle).startedAt <= source.development!.createdAt;
+          })) throw new ReconciliationRejectedError('Prospective assessment requires experience after hypothesis creation');
+        }
+        const association = 'association' in operation ? operation.association : 'dependencyId' in operation
+          ? { kind: 'disposition' as const, dispositionId: operation.dependencyId, effect: 'contribute' as const } : null;
+        const associations = activationAssociations(source);
+        const matches = (entry: typeof association) => entry?.kind === association?.kind && entry?.effect === association?.effect
+          && (entry?.kind === 'keyword' && association?.kind === 'keyword' ? entry.keyword === association.keyword
+            : entry?.kind === 'disposition' && association?.kind === 'disposition' && entry.dispositionId === association.dispositionId);
+        if (operation.operation === 'REMOVE_ASSOCIATION' && !associations.some(matches)) throw new ReconciliationRejectedError('Cannot remove an absent activation association');
+        if (operation.operation === 'ADD_ASSOCIATION' && associations.some(matches)) throw new ReconciliationRejectedError('Activation association already exists');
+        if (operation.operation === 'REMOVE_DEPENDENCY' && !source.prerequisites.includes(operation.dependencyId))
+          throw new ReconciliationRejectedError('Cannot remove an absent disposition dependency');
+        if (operation.operation === 'ADD_DEPENDENCY' && source.prerequisites.includes(operation.dependencyId))
+          throw new ReconciliationRejectedError('Dependency already exists; preserve the structure without another semantic version');
+      } catch (error) {
+        if (!(error instanceof ReconciliationRejectedError)) throw error;
+        inspection.emit(agentId, null, 'disposition.reconciliation_rejected', { operation, reason: error.message });
+        continue;
+      }
       const sources = operation.sourceDispositionIds.map(source => store.get('disposition', source));
       const source = sources[0]!;
-      if (operation.operation === 'INSTITUTIONALIZE' && sources.some(source => !source.temporary || !source.scaffold
-        || !source.sourcePredictionId || store.get('prediction', source.sourcePredictionId).status === 'open'))
-        throw new Error('Institutionalization requires preserved temporary scaffold sources whose originating hypotheses have ended');
-      let concernInheritance;
-      if (operation.operation === 'INSTITUTIONALIZE' && operation.inheritedConcern) {
-        const inherited = operation.inheritedConcern;
-        const predictionIds = [...new Set(sources.map(source => source.sourcePredictionId!))];
-        const recorded = predictionTrajectories(store, agentId, predictionIds.map(id => store.get('prediction', id)), definitions);
-        const selectedIds = new Set(inherited.thoughtEventIds);
-        if (selectedIds.size !== inherited.thoughtEventIds.length) throw new Error('Inherited concern requires unique thought citations');
-        const thoughts = recorded.flatMap(trajectory => trajectory.thoughts).filter(thought => selectedIds.has(thought.eventId));
-        const unique = [...new Map(thoughts.map(thought => [thought.eventId, thought])).values()];
-        if (unique.length !== selectedIds.size || unique.some(thought => !suppliedTrajectories.some(trajectory =>
-          predictionIds.includes(trajectory.predictionId) && trajectory.thoughts.some(selected => selected.eventId === thought.eventId
-            && JSON.stringify(selected) === JSON.stringify(thought)))))
-          throw new Error('Inherited concern requires supplied recorded source-investigation thoughts');
-        if (!recorded.some(trajectory => {
-          const origin = trajectory.thoughts.find(thought => thought.association === 'origin' && selectedIds.has(thought.eventId));
-          return origin && trajectory.thoughts.some(thought => selectedIds.has(thought.eventId) && thought.sequence > origin.sequence);
-        }))
-          throw new Error('Inherited concern requires originating and later expressed cognition');
-        concernInheritance = { predictionIds, thoughts: unique.sort((a, b) => a.sequence - b.sequence),
-          continuityReason: inherited.continuityReason, distinctnessReason: inherited.distinctnessReason };
-      }
-      if (operation.operation === 'ASSESS_HYPOTHESIS' && source.temporary)
-        throw new Error('Temporary scaffolds require explicit institutionalization to become durable');
-      if (operation.operation === 'ASSESS_HYPOTHESIS') {
-        if (!source.development) throw new Error('Hypothesis assessment requires recorded developmental provenance');
-        if (operation.memoryIds.some(memoryId => {
-          const memory = memories.find(memory => memory.id === memoryId)!;
-          return store.cycle(memory.createdCycle).startedAt <= source.development!.createdAt;
-        })) throw new Error('Prospective assessment requires experience after hypothesis creation');
-      }
       const association = 'association' in operation ? operation.association : 'dependencyId' in operation
         ? { kind: 'disposition' as const, dispositionId: operation.dependencyId, effect: 'contribute' as const } : null;
       const associations = activationAssociations(source);
       const matches = (entry: typeof association) => entry?.kind === association?.kind && entry?.effect === association?.effect
         && (entry?.kind === 'keyword' && association?.kind === 'keyword' ? entry.keyword === association.keyword
           : entry?.kind === 'disposition' && association?.kind === 'disposition' && entry.dispositionId === association.dispositionId);
-      if (operation.operation === 'REMOVE_ASSOCIATION' && !associations.some(matches)) throw new Error('Cannot remove an absent activation association');
-      if (operation.operation === 'ADD_ASSOCIATION' && associations.some(matches)) throw new Error('Activation association already exists');
-      if (operation.operation === 'REMOVE_DEPENDENCY' && !source.prerequisites.includes(operation.dependencyId))
-        throw new Error('Cannot remove an absent disposition dependency');
-      if (operation.operation === 'ADD_DEPENDENCY' && source.prerequisites.includes(operation.dependencyId))
-        throw new Error('Dependency already exists; preserve the structure without another semantic version');
       const base = source.development ?? { retrievalIntent: source.concern, contextCues: [], internalStateCues: [],
         status: 'provisional' as const, confidence: 'Unassessed developmental status', lineage: [], previousVersion: null,
         evidence: [], createdAt: now() };

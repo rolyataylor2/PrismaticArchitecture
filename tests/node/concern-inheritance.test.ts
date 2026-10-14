@@ -110,8 +110,10 @@ test('offline concern inheritance requires recorded origin and later cognition a
     assert.deepEqual(predictionTrajectories(store, agent.id, [store.get('prediction', prediction.id)], store.list('disposition', agent.id))[0], trajectory);
     for (const mode of ['forged', 'duplicate', 'origin_only'] as const) {
       learning = mode;
-      await assert.rejects(app.runtime.constructed.learn(agent.id, store.list('memory', agent.id), store.list('prediction', agent.id)),
-        /recorded source-investigation|unique thought|originating and later/);
+      await app.runtime.constructed.learn(agent.id, store.list('memory', agent.id), store.list('prediction', agent.id));
+      const rejected = store.eventsByType(agent.id, ['disposition.reconciliation_rejected']).at(-1)!;
+      assert.equal(rejected.type, 'disposition.reconciliation_rejected');
+      if (rejected.type === 'disposition.reconciliation_rejected') assert.match(rejected.payload.reason, /recorded source-investigation|unique thought|originating and later/);
       assert.equal(store.list('disposition', agent.id).filter(disposition => !disposition.temporary).length, 1);
     }
     learning = 'valid';

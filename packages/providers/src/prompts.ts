@@ -23,7 +23,7 @@ export const prompts = {
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-checkpoints-v9', text: loadFactoryPrompt('disposition_activation') },
   part_cognition: { version: 'part-cognition-selected-focus-v29', text: loadFactoryPrompt('part_cognition') },
-  disposition_learning: { version: 'disposition-concern-inheritance-v8', text: loadFactoryPrompt('disposition_learning') },
+  disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
   memory_relevance: { version: 'memory-relevance-twig-v2', text: loadFactoryPrompt('memory_relevance') },

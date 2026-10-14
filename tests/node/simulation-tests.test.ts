@@ -160,3 +160,42 @@ test('configured tests copy routing configuration and report live progress and i
     await assert.rejects(api(app, 'POST', '/api/simulation-tests', { testId: 'general-attention', sourceAgentId: source.id, mode: 'force-success' }));
   } finally { release(); store.close(); }
 });
+
+
+test('blocked institutionalization logs evidence and lets sleep and subsequent simulation stages complete', async () => {
+  const store = new SqliteStore(':memory:');
+  let reinterpretations = 0;
+  class Reasoning extends MockReasoning {
+    override async constructed(input: ConstructedInput) {
+      if (input.task === 'memory_reinterpretation') reinterpretations++;
+      if (input.task === 'disposition_learning') {
+        const memory = input.memories![0]!;
+        const source = input.dispositions![0]!;
+        return { operations: [{ operation: 'INSTITUTIONALIZE', sourceDispositionIds: [source.id], memoryIds: [memory.id],
+          judgments: [{ memoryId: memory.id, dispositionId: source.id, usefulness: 'unknown', experiencedContext: 'Scenario experience', reason: 'Fixture attempts unsupported persistence' }],
+          discriminatingFeatures: [], alternativeExplanations: [], evidencePreserved: 'Keep source episodes', continuityReason: 'Keep source scope', reason: 'Plumbing fixture only',
+          draft: { name: 'Unsupported persistence', concern: 'Notice source evidence', scope: 'containers',
+            activationCues: [{ text: 'container', memoryIds: [memory.id] }], contextCues: [], internalStateCues: [], retrievalIntent: 'Recall evidence', prerequisites: [], confidence: 'Tentative' } }], reason: 'Deterministic rejection regression' };
+      }
+      return super.constructed(input);
+    }
+  }
+  try {
+    const app = new Application(store, { reasoning: new Reasoning(), decisions: new MockDecisions(), embeddings: new MockEmbeddings() });
+    const source = app.createAgent();
+    const run = await finished(app, startSimulationTest(app, 'observatory-learning-trained', 'configured', source.id, { enabled: false }).id);
+    assert.equal(run.status, 'completed', run.error ?? '');
+    assert.equal(run.stages.length, 9);
+    assert.equal(run.stages[4]!.name, 'Consolidate ordinary experience');
+    assert.equal(run.stages.at(-1)!.name, 'Unrelated scene control');
+    assert.ok(reinterpretations > 0, 'Memory reinterpretation continues after rejection');
+    const rejections = store.eventsByType(run.agentId, ['disposition.reconciliation_rejected']);
+    assert.equal(rejections.length, 1);
+    if (rejections[0]!.type === 'disposition.reconciliation_rejected') {
+      assert.equal(rejections[0]!.payload.operation.operation, 'INSTITUTIONALIZE');
+      assert.match(rejections[0]!.payload.reason, /repeated recorded ordinary-use/);
+    }
+    assert.equal(store.list('disposition', run.agentId).some(d => d.name === 'Unsupported persistence'), false);
+    assert.equal(store.eventsByType(run.agentId, ['infrastructure.error']).length, 0);
+  } finally { store.close(); }
+});

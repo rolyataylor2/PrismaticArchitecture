@@ -137,3 +137,5 @@ ADR 0160 adds optional per-disposition sleep synthesis. `sleep-synthesis.ts` cap
 `sleep-policy.ts` defines conservative detail preservation, belief-change emphasis and current-perspective summaries plus optional researcher guidance. Synthesis records source-specific omission rationales, and repeat detection includes policy/guidance. Recall exclusions never prevent offline review of preserved sources.
 
 Terminology: [ADR 0161](../../docs/architecture/decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
+
+Structural reconciliation logs individual citation, evidence and lifecycle policy rejections as `disposition.reconciliation_rejected` and skips those proposals. Other proposals and memory reinterpretation continue; malformed inference, stale versions and infrastructure failures remain fatal.

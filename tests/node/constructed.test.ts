@@ -328,7 +328,8 @@ test('consolidation still rejects untested prediction evidence', async () => {
   }
   try {
     const app = new Application(store, providers(new Reasoning())); const agent = app.createAgent();
-    await assert.rejects(app.runtime.constructed.learn(agent.id, [], []), /unique selected memories/);
+    await app.runtime.constructed.learn(agent.id, [], []);
+    assert.equal(store.eventsByType(agent.id, ['disposition.reconciliation_rejected']).length, 1);
     assert.equal(store.list('disposition', agent.id).length, 0);
   } finally { store.close(); }
 });
@@ -496,7 +497,8 @@ test('consolidation versions a durable sensitivity from sufficient nonprediction
       concern: 'Enjoy dogs', cues: ['dog'], scope: 'dog', prerequisites: [], threshold: 2,
       memoryIds: [], sourcePredictionId: null, temporary: false, active: true,
     }, 0, { origin: 'researcher_edit', reason: 'Starting sensitivity', sourceIds: [] });
-    await assert.rejects(app.runtime.constructed.learn(agent.id, [memory], []), /repeated experience/);
+    await app.runtime.constructed.learn(agent.id, [memory], []);
+    assert.equal(store.eventsByType(agent.id, ['disposition.reconciliation_rejected']).length, 1);
     await app.message(agent.id, 'A friendly dog played with me again.', 'observer');
     await app.runtime.constructed.learn(agent.id, store.list('memory', agent.id), []);
     assert.equal(store.get('disposition', 'dog').scope, 'friendly dog play');

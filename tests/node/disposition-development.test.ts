@@ -239,8 +239,13 @@ test('developmental evidence and lineage survive restart without rewriting legac
       discriminatingFeatures: [], alternativeExplanations: [], evidencePreserved: 'Prior water memories remain',
       continuityReason: 'Conditional eligibility without rewriting memories', reason: 'Add experienced dependency' });
     const memory = store.get('memory', 'episode');
-    commitReconciliation(store, new Inspection(store), 'agent', [operation], [memory],
+    const { dependencyId: _dependency, ...blockedEvidence } = operation as Extract<typeof operation, { dependencyId: string }>;
+    const blocked = ReconciliationOperationSchema.parse({ ...blockedEvidence, operation: 'INSTITUTIONALIZE',
+      draft: { name: 'Unsupported persistence', concern: 'Recall terrain', scope: 'terrain', activationCues: [{ text: 'terrain', memoryIds: [memory.id] }], contextCues: [], internalStateCues: [], retrievalIntent: 'Recall terrain', prerequisites: [], confidence: 'Tentative' } });
+    commitReconciliation(store, new Inspection(store), 'agent', [blocked, operation], [memory],
       { episodes: [{ memoryId: memory.id, cycleId: cycle.id, context: memory.context }], coactivations: [] });
+    assert.equal(store.eventsByType('agent', ['disposition.reconciliation_rejected']).length, 1);
+    assert.equal(store.list('disposition', 'agent').length, 2, 'Blocked institutionalization creates no durable descendant');
     assert.deepEqual(store.get('disposition', 'water').prerequisites, ['terrain']);
     assert.deepEqual(store.get('memory', memory.id), memory, 'Structural changes do not reinterpret memories');
     assert.deepEqual(store.versions('disposition', 'water')[1]!.state, refined);

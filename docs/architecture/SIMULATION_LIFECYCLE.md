@@ -14,3 +14,7 @@ The Prism Agent Architecture simulations maintain external worlds in which agent
 10. **Event recording:** What actually occurred becomes part of simulation history.
 11. **Narration:** Authoritative events may be rendered into language or another presentation. Narration is downstream from reality and must not silently create it.
 12. **Continued simulation:** World systems, schedules, storylets, Agents, and time continue interacting. The architecture should support short experiments and extremely long simulated lives.
+
+## Rejected consolidation proposals
+
+A structural proposal blocked by citation, evidence or lifecycle policy is recorded as `disposition.reconciliation_rejected`, with the proposal and reason. It does not mutate the rejected structure or fail sleep or the surrounding simulation. Other valid proposals and ordinary memory reinterpretation continue. Provider, malformed-output, storage and stale-version failures remain failures.

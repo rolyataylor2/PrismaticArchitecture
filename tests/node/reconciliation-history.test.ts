@@ -42,8 +42,9 @@ test('split, merge and archive retain lineage and subjective evidence transactio
       status: 'established', confidence: 'Repeated later appropriate retrieval supports this distinction',
       judgments: memories.map(memory => ({ memoryId: memory.id, dispositionId: children[0]!.id,
         usefulness: 'appropriate', experiencedContext: 'terrain', reason: 'Fixture appropriate retrieval' })) });
-    assert.throws(() => commitReconciliation(store, new Inspection(store), agent.id, [assess], memories, { episodes, coactivations: [] }),
-      /after hypothesis creation/, 'Original formation evidence cannot serve as prospective confirmation');
+    assert.deepEqual(commitReconciliation(store, new Inspection(store), agent.id, [assess], memories, { episodes, coactivations: [] }), []);
+    const rejection = store.eventsByType(agent.id, ['disposition.reconciliation_rejected']).at(-1)!;
+    if (rejection.type === 'disposition.reconciliation_rejected') assert.match(rejection.payload.reason, /after hypothesis creation/);
     const laterMemories = [];
     await new Promise(resolve => setTimeout(resolve, 2));
     for (let index = 0; index < 2; index++) {
