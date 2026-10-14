@@ -1,9 +1,11 @@
+import { evaluationPredictionIds } from './evaluation-packet.js';
 import type { SimulationRun } from './simulation-tests.js';
 import type { SimulationRubric } from './simulation-rubrics.js';
 
 /** External semantic checks; code establishes captured prerequisites, never semantic mismatch. */
 export function predictionAlignmentCriteria(run: SimulationRun): SimulationRubric['criteria'] {
-  const ids = [...new Set(run.stages.flatMap(stage => stage.predictions.filter(item => item.evaluation).map(item => item.id)))];
+  const involved = evaluationPredictionIds(run);
+  const ids = [...new Set(run.stages.flatMap(stage => stage.predictions.filter(item => item.evaluation && involved.has(item.id)).map(item => item.id)))];
   return ids.flatMap((id, index) => {
     const versions = run.stages.flatMap((stage, stageIndex) => stage.predictions.filter(item => item.id === id).map(item => ({ stageIndex, predictionIndex: stage.predictions.indexOf(item), prediction: item })));
     const evaluated = versions.filter(item => item.prediction.evaluation).at(-1)!;

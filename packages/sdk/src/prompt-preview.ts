@@ -48,7 +48,7 @@ export function previewPrompt(store: Store, agentId: string, task: PromptTask, t
   if (task === 'simulation_evaluation') {
     const recorded = store.experiments().filter(run => run.kind === 'simulation_test').flatMap(run => (run as unknown as import('./simulation-tests.js').SimulationRun).assessments ?? [])
       .filter(assessment => assessment.evaluatorAgentId === agentId).at(-1);
-    const context = recorded ? { rubric: recorded.rubric, evidence: recorded.evidence } : { rubric: { version: 'preview', criteria: [] }, evidence: { stages: [] } };
+    const context = recorded ? { rubric: recorded.rubric, evidence: recorded.packet ?? recorded.evidence } : { rubric: { version: 'preview', criteria: [] }, evidence: { stages: [] } };
     return { text: renderTaskPrompt(agentId, task, context, () => text), worldId: null, cycleId: null, capturedAt: recorded?.createdAt ?? null, partName: null,
       note: recorded ? 'Recorded researcher evaluator input; never supplied to Agent cognition.' : 'Empty researcher evaluator example; run or assess a simulation to preview recorded evidence.' };
   }

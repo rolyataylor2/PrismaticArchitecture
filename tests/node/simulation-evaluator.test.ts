@@ -10,6 +10,8 @@ import { simulationRubric } from '../../packages/sdk/src/simulation-rubrics.js';
 import { previewPrompt } from '../../packages/sdk/src/prompt-preview.js';
 import { z } from 'zod';
 import { MockReasoning, MockDecisions, MockEmbeddings } from '../../packages/providers/src/mock.js';
+import { evaluationPacket, packetIncludesReference } from '../../packages/sdk/src/evaluation-packet.js';
+import { dreamState } from '../../packages/sdk/src/dream-state.js';
 
 async function done(app: Application, id: string, assessment = false): Promise<SimulationRun> {
   for (let i = 0; i < 1000; i++) {
@@ -103,6 +105,52 @@ test('legacy reports can be assessed without replacing frozen criteria or prereq
 
 test('evaluator schema is strict and requires alternatives and limitations', () => {
   assert.equal(SimulationEvaluationSchema.safeParse({ measures: [{ ...verdict('criterion-1'), unexpected: true }] }).success, false);
+});
+
+test('compact packets deduplicate exact versions, exclude unused inherited biography and reject unsupplied citations', async () => {
+  const store = new SqliteStore(':memory:');
+  try {
+    const app = new EvaluatorApp(store); const source = app.createAgent();
+    const run = structuredClone(await done(app, startSimulationTest(app, 'conversation-starters', 'fixture', source.id).id));
+    const before = dreamState(store, run.agentId);
+    const unused = { ...run.stages[0]!.memories[0]!, id: 'unused-biography', createdCycle: 'before-dream', content: 'Unused inherited history '.repeat(40000) };
+    before.memories.push(unused);
+    run.dream = { hostPid: process.pid, keepChanges: false, sourceBefore: before, before, after: before, identifierMap: {} };
+    for (const stage of run.stages) stage.memories.push(unused);
+    store.saveExperiment(run);
+    const packet = evaluationPacket(run, { dream: run.dream, testId: run.testId, evidenceBasis: run.evidenceBasis, providers: run.providers, stages: run.stages, supplementalEvidence: [] });
+    assert.ok(JSON.stringify(packet).length < 750000);
+    assert.ok(!JSON.stringify(packet).includes('Unused inherited history'));
+    assert.ok(packet.objects.some(object => object.sourceReferences.length > 1), 'Repeated identical versions are retained once with every source path');
+    assert.equal(new Set(packet.objects.map(object => `${object.kind}:${object.hash}`)).size, packet.objects.length);
+    const omittedReference = `/stages/0/memories/${run.stages[0]!.memories.length - 1}`;
+    assert.equal(packetIncludesReference(packet, omittedReference), false);
+    app.output = { measures: [verdict('criterion-1', 'observed', [omittedReference]), verdict('criterion-2'), verdict('criterion-3')] };
+    startSimulationAssessment(app, run.id); const rejected = await done(app, run.id, true);
+    assert.match(rejected.assessments!.at(-1)!.error!, /invalid evidence reference/);
+    app.output = { measures: [1, 2, 3].map(index => verdict(`criterion-${index}`)) };
+    startSimulationAssessment(app, run.id); const accepted = await done(app, run.id, true);
+    assert.equal(accepted.assessments!.at(-1)!.status, 'completed');
+    assert.ok(accepted.assessments!.at(-1)!.packetHash);
+    assert.deepEqual(accepted.stages, run.stages);
+  } finally { store.close(); }
+});
+
+test('oversized criterion packets remain explicitly inconclusive without sending or truncating them', async () => {
+  const store = new SqliteStore(':memory:');
+  try {
+    const app = new EvaluatorApp(store); const source = app.createAgent();
+    const run = structuredClone(await done(app, startSimulationTest(app, 'conversation-starters', 'fixture', source.id).id));
+    run.stages[0]!.thoughts[0]!.thought = 'Recorded product '.repeat(60000);
+    store.saveExperiment(run); startSimulationAssessment(app, run.id);
+    const assessed = await done(app, run.id, true); const assessment = assessed.assessments!.at(-1)!;
+    assert.equal(assessment.status, 'completed', assessment.error ?? '');
+    assert.equal(app.calls, 0);
+    assert.equal(assessment.batches!.length, 3);
+    assert.ok(assessment.batches!.every(batch => batch.status === 'blocked'));
+    assert.ok(assessment.measures.every(measure => measure.outcome === 'inconclusive' && /request bound/.test(measure.explanation)));
+    assert.equal(assessment.evidence.stages[0]!.thoughts[0]!.thought, run.stages[0]!.thoughts[0]!.thought);
+  } finally { store.close(); }
 });
 
 test('assessment reserves one running version and rejects concurrent reevaluation', async () => {

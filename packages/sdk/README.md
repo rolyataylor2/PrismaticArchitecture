@@ -310,3 +310,5 @@ The consolidation API accepts optional `synthesizeMemories` and `replaceSourceMe
 ## Dream progress and continuation
 
 Dreams expose stage progress, current model tasks, cooperative pause and explicit resume of paused/failed runs. Pause finishes the current stage; resume preserves the same dream Agent/thread and skips completed stages. Console opens a searchable live/historical projection of attributed persisted events, including rejected learning and errors. It does not expose provider input bodies or feed audit state into cognition. See ADR 0163.
+
+Simulation assessment v4 sends exact compact evaluation packets: deduplicated relevant versions, original source citation paths and explicit unused inherited-state exclusions. Full source evidence and earlier assessments remain immutable. Oversized requests fall back to per-criterion packets; unserviceable criteria remain explicitly inconclusive without truncation. Agent cognitive access is unchanged.

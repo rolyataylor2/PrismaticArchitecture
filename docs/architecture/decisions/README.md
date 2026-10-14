@@ -103,3 +103,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0162 — Executive action handoff adapter](0162-executive-action-handoff-adapter.md)
 
 [ADR 0163: Dream pause, resume and execution console](0163-dream-pause-resume-and-console.md) defines persisted external run controls and read-only live/historical evidence.
+
+[ADR 0164: Compact simulation evaluation evidence](0164-compact-simulation-evaluation-evidence.md) defines evaluator packet selection, deduplication and bounded criterion requests.

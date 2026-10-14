@@ -15,3 +15,5 @@ Dream evidence, when present, contains inherited starting psychology and frozen 
 
 ## Frozen evidence
 {{ evidence|json_encode }}
+
+Compact evidence packets intern exact object versions in objects. Follow their sourceReferences to original frozen stage/snapshot citation paths; do not cite /objects indexes. Stages use object references rather than duplicate accumulated state. Excluded unused inherited objects are not evidence of forgetting or absent cognition. Interpret only supplied products and retain counterevidence, missing prerequisites and limitations.
