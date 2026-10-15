@@ -191,6 +191,14 @@ test('Part inspector selects history and opens styled and raw information', { sk
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#content pre').count(), 0);
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect Being Heard', exact: true }).click();
+    await dispositionPanel.getByRole('heading', { name: 'Being Heard', exact: true, level: 2 }).waitFor();
+    assert.equal(await disposition.getAttribute('aria-pressed'), 'true');
+    assert.match(await dispositionPanel.innerText(), /Disposition v2 · Current/);
+    await page.getByRole('button', { name: 'Current version 2', exact: true }).click();
+    assert.match(await page.locator('.part-description').innerText(), /My newer mission/);
+    await page.screenshot({ path: '/tmp/prism-disposition-linked-part-mobile.png', fullPage: true });
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

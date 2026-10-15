@@ -44,9 +44,16 @@ test('activation history renders exact source judgments, filters threads and ope
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: '/tmp/prism-activation-history-mobile.png', fullPage: true });
     assert.equal(await chart.locator('svg').isVisible(), true);
-    await page.getByRole('button', { name: 'Back to dispositions', exact: false }).click();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Quiet Curiosity', exact: true }).click();
     await page.getByText('No recorded activation assessments for this disposition.', { exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Perspective History', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Inspect disposition: Quiet Curiosity', exact: true }).getAttribute('aria-pressed'), 'true');
+    await page.getByText('No Part has formed yet.', { exact: true }).waitFor();
+    assert.equal(await page.locator('.part-version-star[data-version]').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Previous disposition version', exact: true }).isDisabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Next disposition version', exact: true }).isDisabled(), true);
+    await page.screenshot({ path: '/tmp/prism-disposition-without-part-mobile.png', fullPage: true });
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await new Promise<void>(resolve => server.close(() => resolve())); await app.close(); store.close(); }
 });

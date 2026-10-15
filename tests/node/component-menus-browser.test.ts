@@ -90,7 +90,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     assert.equal(await page.locator('.disposition-icon svg').count(), 1);
     await page.getByRole('button', { name: 'Inspect Welcomed curiosity', exact: true }).click();
     await page.getByRole('region', { name: 'Disposition inspector' }).waitFor();
-    await page.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     // Long disposition text must shrink inside the panel at desktop and narrow widths.
     await page.locator('.disposition-name').evaluate(element => { element.textContent = 'Long disposition name '.repeat(40); });
     await page.locator('.disposition-concern').evaluate(element => { element.textContent = 'Long attention cue '.repeat(100); });

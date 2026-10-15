@@ -51,7 +51,6 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     const original = store.get('part', active.id);
     await page.reload();
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Part History', exact: true }).click();
     assert.equal(await page.locator('.part-list-item').count(), 1);
     assert.ok((await page.locator('.part-list-item').innerText()).includes('Retired'));
@@ -72,14 +71,14 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
         lineage: [], previousVersion: null, evidence: [], createdAt: new Date().toISOString() } }, 0,
     { origin: 'seed', reason: 'Explicit inspector fixture', sourceIds: [] });
     await page.reload();
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Contextual curiosity', exact: true }).click();
     const dispositionInspector = page.getByRole('region', { name: 'Disposition inspector' });
     await dispositionInspector.getByText('Recall lived uncertainty before interpreting an invitation', { exact: true }).waitFor();
     await dispositionInspector.getByText('provisional · Tentative contextual hypothesis', { exact: true }).waitFor();
     await dispositionInspector.getByRole('heading', { name: 'Reconciliation evidence', exact: true }).waitFor();
-    await dispositionInspector.getByRole('button', { name: 'Edit disposition', exact: true }).click();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit Contextual curiosity', exact: true }).click();
     const editor = page.getByRole('dialog').last();
     assert.equal(await editor.getByLabel('Prerequisites', { exact: true }).count(), 0);
     await editor.getByLabel('Contributing keywords or phrases (one per line)', { exact: true }).fill('welcome\ninvitation');
@@ -99,15 +98,15 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     ]);
     assert.deepEqual(store.get('disposition', 'development-inspection').prerequisites, []);
     await page.getByRole('button', { name: 'Inspect Contextual curiosity', exact: true }).click();
-    await dispositionInspector.getByRole('heading', { name: 'Activation associations', exact: true }).last().waitFor();
-    await dispositionInspector.getByText('Inhibits: leave me alone', { exact: true }).last().waitFor();
-    await dispositionInspector.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
+    await dispositionInspector.getByRole('heading', { name: 'Activation associations', exact: true }).first().waitFor();
+    await dispositionInspector.getByText('Inhibits: leave me alone', { exact: true }).first().waitFor();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Uncertain recurring source', exact: true }).click();
     const scaffoldInspector = page.getByRole('region', { name: 'Disposition inspector' });
     await scaffoldInspector.getByRole('heading', { name: 'Temporary Prediction-Bound Disposition', exact: true }).waitFor();
     assert.ok((await scaffoldInspector.innerText()).includes('Continuing versus different source'));
     assert.ok((await scaffoldInspector.innerText()).includes('Matching source identifier'));
-    await scaffoldInspector.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Sleep', exact: true }).click();
     await page.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
     await page.getByRole('dialog', { name: 'Induce sleep cycle' }).getByRole('button', { name: 'Induce sleep', exact: true }).click();

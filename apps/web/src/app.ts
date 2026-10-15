@@ -2305,8 +2305,40 @@ function partThoughtRow(thought: PartThoughtEvent): HTMLElement {
   more.className = 'part-record-info'; more.setAttribute('aria-label', `Thought information: ${thought.payload.output.thought}`);
   row.append(text, more); return row;
 }
-async function showPart(partId: string): Promise<void> {
+function dispositionTimelineButton(dispositionId: string, action: () => unknown): HTMLButtonElement {
+  const label = state!.dispositions.find(item => item.id === dispositionId)?.name ?? dispositionId;
+  const control = button('', action, true);
+  control.className = 'part-version-star part-disposition-button';
+  control.title = `Inspect disposition: ${label}`;
+  control.setAttribute('aria-label', `Inspect disposition: ${label}`);
+  control.setAttribute('aria-pressed', 'false');
+  const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
+  control.append(icon, node('span', 'Disposition'), node('small', label));
+  return control;
+}
+async function showDisposition(dispositionId: string): Promise<void> {
+  const associated = state!.parts.filter(part => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === dispositionId))
+    .sort((a, b) => Number(Boolean(a.instance?.retirement)) - Number(Boolean(b.instance?.retirement)) ||
+      (recordDate(b.instance!.createdCycle) ?? '').localeCompare(recordDate(a.instance!.createdCycle) ?? ''));
+  activeTab = 'Parts'; render();
+  if (associated[0]) { await showPart(associated[0].id, dispositionId); return; }
+  const layout = node('div', '', 'part-inspector');
+  const timeline = node('nav', '', 'part-version-timeline'); timeline.setAttribute('aria-label', 'Part version timeline');
+  const right = node('div', '', 'part-inspector-main');
+  const inspect = async (): Promise<void> => {
+    const target = node('div'); target.append(node('p', 'Loading disposition…', 'muted')); right.replaceChildren(target);
+    try { await renderDispositionInfo(dispositionId, target); }
+    catch (cause) { if (target.isConnected) { target.replaceChildren(node('p', 'Unable to load the recorded disposition.', 'muted')); showError(cause); } }
+  };
+  const control = dispositionTimelineButton(dispositionId, inspect); control.setAttribute('aria-pressed', 'true');
+  timeline.append(control, node('h3', 'Perspective History'), node('p', 'No Part has formed yet.', 'muted part-disposition-empty'));
+  layout.append(timeline, right); content.replaceChildren(layout); await inspect();
+}
+async function showPart(partId: string, initialDispositionId?: string): Promise<void> {
+  const pending = node('p', 'Loading perspective…', 'muted'); content.replaceChildren(pending);
   const info = await api<{ part: Part; versions: VersionRecord<Part>[]; memories: Memory[]; predictions: Prediction[] }>(activeSessionId ? `parts/${partId}/threads/${activeSessionId}` : `parts/${partId}`);
+  if (!pending.isConnected) return;
   const { part } = info;
   const layout = node('div', '', 'part-inspector');
   const timeline = node('nav', '', 'part-version-timeline'); timeline.setAttribute('aria-label', 'Part version timeline');
@@ -2385,23 +2417,14 @@ async function showPart(partId: string): Promise<void> {
   const dispositionIds = [...new Set(entries.flatMap(({ perspective }) =>
     perspective.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? []))];
   for (const dispositionId of dispositionIds) {
-    const disposition = state!.dispositions.find(item => item.id === dispositionId);
-    const label = disposition?.name ?? dispositionId;
-    const control = button('', async () => {
+    const control = dispositionTimelineButton(dispositionId, async () => {
       stars.forEach(star => star.setAttribute('aria-pressed', 'false'));
       dispositionButtons.forEach(item => item.setAttribute('aria-pressed', String(item === control)));
       const target = node('div');
       target.append(node('p', 'Loading disposition…', 'muted')); right.replaceChildren(target);
-      try { await openDispositionInfo({ id: dispositionId }, target); }
+      try { await renderDispositionInfo(dispositionId, target); }
       catch (cause) { if (target.isConnected) { target.replaceChildren(node('p', 'Unable to load the recorded disposition.', 'muted')); showError(cause); } }
-    }, true);
-    control.className = 'part-version-star part-disposition-button';
-    control.title = `Inspect disposition: ${label}`;
-    control.setAttribute('aria-label', `Inspect disposition: ${label}`);
-    control.setAttribute('aria-pressed', 'false');
-    const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
-    icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
-    control.append(icon, node('span', 'Disposition'), node('small', label));
+    });
     dispositionButtons.push(control); timeline.append(control);
   }
   if (!dispositionIds.length) timeline.append(node('p', part.name === 'self' ? 'Identity fallback · no disposition' : 'No recorded disposition', 'muted part-disposition-empty'));
@@ -2432,6 +2455,7 @@ async function showPart(partId: string): Promise<void> {
   }
   memories.append(bubbles); if (!info.memories.length) memories.append(node('p', 'No memories recorded yet.', 'muted'));
   right.append(description, predictions, thoughts, memories); layout.append(timeline, right); content.replaceChildren(layout); select(part, currentRecord);
+  if (initialDispositionId) dispositionButtons[dispositionIds.indexOf(initialDispositionId)]?.click();
 }
 
 function network(): void {
@@ -2454,34 +2478,23 @@ function network(): void {
     const text = document.createElementNS(ns, 'text'); text.setAttribute('x', String(p.x)); text.setAttribute('y', String(p.y + 40)); text.setAttribute('text-anchor', 'middle'); text.textContent = part.name; svg.append(circle, text); }
   content.append(svg, table(['Part', 'Relationship type', 'Target', 'Meaning'], edges));
 }
-async function openDispositionInfo(disposition: Pick<AgentSnapshot['dispositions'][number], 'id'>, target?: HTMLElement): Promise<void> {
+async function renderDispositionInfo(dispositionId: string, target: HTMLElement): Promise<void> {
   type Disposition = AgentSnapshot['dispositions'][number];
   const agentId = selectedAgent;
   const databaseId = selectedDatabase;
-  const record = await api<{ disposition: Disposition; versions: VersionRecord<Disposition>[]; activationHistory: DispositionActivationSample[]; statistics: { activatedCycles: number; associatedPredictions: number; correct: number; incorrect: number; incomplete: number; irrelevant: number } }>(`dispositions/${disposition.id}`);
-  if (selectedAgent !== agentId || selectedDatabase !== databaseId || (target ? !target.isConnected : activeTab !== 'Dispositions')) return;
+  const record = await api<{ disposition: Disposition; versions: VersionRecord<Disposition>[]; activationHistory: DispositionActivationSample[]; statistics: { activatedCycles: number; associatedPredictions: number; correct: number; incorrect: number; incomplete: number; irrelevant: number } }>(`dispositions/${dispositionId}`);
+  if (selectedAgent !== agentId || selectedDatabase !== databaseId || !target.isConnected) return;
   const panel = node('section', '', 'disposition-inspector part-description'); panel.setAttribute('aria-label', 'Disposition inspector');
   const header = node('div', '', 'disposition-inspector-header');
-  if (!target) header.append(button('← Back to dispositions', () => render(), true));
   const title = node('h2', record.disposition.name); header.append(title);
-  const edit = memoryActionIcon('Edit disposition', 'pencil', async () => { componentAuthoring('disposition', false, record.disposition); });
-  const remove = memoryActionIcon('Delete disposition', 'trash', async () => {
-    await api(`dispositions/${disposition.id}`, 'DELETE', { expectedVersion: record.disposition.version });
-    if (selectedAgent === agentId && selectedDatabase === databaseId) { await refresh(); render(); }
-  });
-  if (!target) header.append(edit, remove);
-  const body = node('div', '', 'disposition-inspector-body'); body.append(node('p', `Recorded activation cycles: ${record.statistics.activatedCycles} · Associated predictions: ${record.statistics.associatedPredictions} · Correct: ${record.statistics.correct} · Incorrect: ${record.statistics.incorrect} · Incomplete: ${record.statistics.incomplete} · Irrelevant: ${record.statistics.irrelevant}`), node('h3', 'Version timeline'));
-  body.insertBefore(dispositionActivationChart(record.activationHistory, cycleId => showCycleInspector(cycleId, agentId)), body.lastChild);
+  const body = node('div', '', 'disposition-inspector-body'); body.append(node('p', `Recorded activation cycles: ${record.statistics.activatedCycles} · Associated predictions: ${record.statistics.associatedPredictions} · Correct: ${record.statistics.correct} · Incorrect: ${record.statistics.incorrect} · Incomplete: ${record.statistics.incomplete} · Irrelevant: ${record.statistics.irrelevant}`));
+  body.append(dispositionActivationChart(record.activationHistory, cycleId => showCycleInspector(cycleId, agentId)));
   const versions = record.versions.slice().sort((a, b) => b.state.version - a.state.version);
   const versionEntries: HTMLElement[] = [];
   for (const version of versions) {
     const item = version.state;
-    const entry = target ? node('section') : node('details');
-    if (entry instanceof HTMLDetailsElement) {
-      entry.setAttribute('name', `disposition-${item.id}`);
-      entry.open = item.version === record.disposition.version;
-    }
-    entry.append(node(target ? 'p' : 'summary', `Version ${item.version} · ${readableDate(version.at)}${item.version === record.disposition.version ? ' · Current' : ' · Historical'}`),
+    const entry = node('section');
+    entry.append(node('p', `Version ${item.version} · ${readableDate(version.at)}${item.version === record.disposition.version ? ' · Current' : ' · Historical'}`),
       node('p', `${version.change.origin.replaceAll('_', ' ')} · ${version.change.reason}`, 'muted'),
       node('h3', item.name), node('p', item.concern), inspectorSection('Cues', item.cues),
       inspectorSection('Scope', [item.scope ?? 'Broad direct cue']),
@@ -2521,35 +2534,28 @@ async function openDispositionInfo(disposition: Pick<AgentSnapshot['dispositions
           return `${memory?.gist ?? evidence.memoryId} · ${evidence.reconciliation} · retrieval ${evidence.retrievalUsefulness} · ${evidence.relationship}. ${evidence.reason}`;
         })), details('Attributed evidence references', development.evidence));
     } else entry.append(node('p', 'Developmental evidence was not recorded for this version.', 'muted'));
-    if (!target && item.version !== record.disposition.version) entry.append(button('Restore this version', async () => {
-      await api(`dispositions/${disposition.id}/restore`, 'POST', { expectedVersion: record.disposition.version, version: item.version });
-      if (selectedAgent === agentId && selectedDatabase === databaseId) { await refresh(); render(); const current = state!.dispositions.find(value => value.id === disposition.id); if (current) await openDispositionInfo(current); }
-    }));
     versionEntries.push(entry); body.append(entry);
   }
-  if (target) {
-    body.querySelector(':scope > h3')?.remove();
-    const navigation = node('nav', '', 'disposition-version-navigation');
-    navigation.setAttribute('aria-label', 'Disposition versions');
-    const status = node('span', '', 'disposition-version-status'); status.setAttribute('aria-live', 'polite');
-    let selected = Math.max(0, versions.findIndex(version => version.state.version === record.disposition.version));
-    const showVersion = (): void => {
-      versionEntries.forEach((entry, index) => { entry.hidden = index !== selected; });
-      const version = versions[selected]?.state;
-      title.textContent = version?.name ?? record.disposition.name;
-      status.textContent = version ? `Disposition v${version.version} · ${version.version === record.disposition.version ? 'Current' : 'Historical'}` : 'No recorded versions';
-      previous.disabled = selected >= versions.length - 1;
-      next.disabled = selected === 0;
-    };
-    const previous = node('button', '←', 'secondary'); previous.type = 'button';
-    previous.onclick = () => { if (selected < versions.length - 1) { selected++; showVersion(); } };
-    previous.setAttribute('aria-label', 'Previous disposition version'); previous.title = 'Previous disposition version';
-    const next = node('button', '→', 'secondary'); next.type = 'button';
-    next.onclick = () => { if (selected > 0) { selected--; showVersion(); } };
-    next.setAttribute('aria-label', 'Next disposition version'); next.title = 'Next disposition version';
-    navigation.append(previous, status, next); header.append(navigation); showVersion();
-  }
-  panel.append(header, body); (target ?? content).replaceChildren(panel);
+  const navigation = node('nav', '', 'disposition-version-navigation');
+  navigation.setAttribute('aria-label', 'Disposition versions');
+  const status = node('span', '', 'disposition-version-status'); status.setAttribute('aria-live', 'polite');
+  let selected = Math.max(0, versions.findIndex(version => version.state.version === record.disposition.version));
+  const showVersion = (): void => {
+    versionEntries.forEach((entry, index) => { entry.hidden = index !== selected; });
+    const version = versions[selected]?.state;
+    title.textContent = version?.name ?? record.disposition.name;
+    status.textContent = version ? `Disposition v${version.version} · ${version.version === record.disposition.version ? 'Current' : 'Historical'}` : 'No recorded versions';
+    previous.disabled = selected >= versions.length - 1;
+    next.disabled = selected === 0;
+  };
+  const previous = node('button', '←', 'secondary'); previous.type = 'button';
+  previous.onclick = () => { if (selected < versions.length - 1) { selected++; showVersion(); } };
+  previous.setAttribute('aria-label', 'Previous disposition version'); previous.title = 'Previous disposition version';
+  const next = node('button', '→', 'secondary'); next.type = 'button';
+  next.onclick = () => { if (selected > 0) { selected--; showVersion(); } };
+  next.setAttribute('aria-label', 'Next disposition version'); next.title = 'Next disposition version';
+  navigation.append(previous, status, next); header.append(navigation); showVersion();
+  panel.append(header, body); target.replaceChildren(panel);
 }
 
 function dispositionsPage(): void {
@@ -2575,7 +2581,7 @@ function dispositionsPage(): void {
       for (const disposition of dispositions) {
         const row = node('div', '', 'disposition-row');
         row.classList.toggle('temporary', disposition.temporary);
-        const inspect = button('', () => { void openDispositionInfo(disposition).catch(showError); }, true);
+        const inspect = button('', () => { void showDisposition(disposition.id).catch(showError); }, true);
         inspect.classList.add('disposition-summary'); inspect.setAttribute('aria-label', `Inspect ${disposition.name}`);
         const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
         icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
