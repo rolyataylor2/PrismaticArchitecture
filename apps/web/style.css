@@ -1453,3 +1453,10 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 /* Allow the final selected experiment to reach the top of its scroll area. */
 .rd-directory > div { padding-bottom: 800px; }
 @media(max-width:700px) { .rd-directory > div { padding-bottom: 185px; } }
+
+/* Current immutable perception snapshot. */
+.perception-page { max-width: 1000px; margin: 0 auto; width: 100%; min-width: 0; }
+.perception-page > section { margin-top: 2rem; }
+.perception-fact { padding: 0.8rem 0; border-bottom: 1px solid var(--border, #ddd); overflow-wrap: anywhere; }
+.perception-fact p { white-space: pre-wrap; margin: 0.35rem 0; }
+.perception-page .row { flex-wrap: wrap; }

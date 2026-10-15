@@ -317,3 +317,7 @@ Dream run progress and controls appear at the top of Overview only. Criterion re
 ## Sensor messages
 
 The chat composer accepts multiple `/sensor <type>` blocks, each containing quoted items or one unquoted description. Example: `/sensor audio "James says: Hello" "Bird chirps" /sensor visual "A desk with papers"`. Items appear separately with their sensor labels and enter the same cognition cycle without relevance filtering. Plain chat arrives as audio, `Someone says: <text>`; `--name "James Smith" Hello` supplies an explicit speaker. Saved sensor items remain visible when reopening a thread.
+
+## Perception
+
+Perception replaces the chat thread interface with the selected Agent’s latest recorded immutable WorldState across threads. External observations show source, kind and timestamp; carried thoughts and experienced prospective alternatives, remembered interpretations and posture remain explicitly subjective. Full snapshot and source-cycle inspection preserve evidence access. New frozen snapshots update the page through the existing event stream. No snapshot means an explicit empty state; viewing the page does not create cognition or grant Self access to WorldState. Historical threads remain stored.

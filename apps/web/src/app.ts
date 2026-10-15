@@ -26,7 +26,7 @@ type ChatSession = {
   deleted?: boolean;
 };
 
-let activeTab = 'Chat Sessions';
+let activeTab = 'Perception';
 let selectedPromptTask = 'activation';
 let settingsSection: 'Model & key' | 'Prompts' | 'Activation' | 'Delete Agent' = 'Model & key';
 // Preserve existing researcher selections and sessions after the namespace change.
@@ -45,39 +45,8 @@ let frozenCycle = '';
 let brainSeekSequence: number | null = null;
 let pendingMessage = false;
 let submittedChat: { agentId: string; databaseId: string; threadId: string; text: string; source: string; cycleId?: string; error?: string } | null = null;
-const expandedThoughts = new Set<string>();
-const liveThoughts = new Map<string, { element: HTMLElement; sequence: string; animation?: Animation }>();
-
-function latestThought(cycleId: string, next: HTMLElement): HTMLElement {
-  const sequence = next.dataset.sequence ?? '';
-  const saved = liveThoughts.get(cycleId);
-  if (!saved) {
-    liveThoughts.set(cycleId, { element: next, sequence });
-    return next;
-  }
-  if (saved.sequence === sequence) return saved.element;
-  saved.sequence = sequence;
-  saved.animation?.cancel();
-  const replace = () => {
-    saved.element.textContent = next.textContent;
-    saved.element.dataset.sequence = sequence;
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) replace();
-  else {
-    const fadeOut = saved.element.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
-    saved.animation = fadeOut;
-    void fadeOut.finished.then(() => {
-      if (saved.sequence !== sequence) return;
-      replace();
-      fadeOut.cancel();
-      saved.animation = saved.element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
-    }).catch(() => { /* A newer update replaces the pending transition. */ });
-  }
-  return saved.element;
-}
 let threadLoading = false;
 let threadSelectionRevision = 0;
-let messageDraft = '';
 
 const expandedSections = {
   chat: true,
@@ -85,7 +54,6 @@ const expandedSections = {
   settings: false,
   operations: true,
 };
-let showAllSessions = false;
 let sessions: ChatSession[] = [];
 let activeSessionId: string | null = null;
 
@@ -190,18 +158,6 @@ function syncSessionsWithEvents(agentId: string): void {
   if (!activeSessionId || !sessions.some(s => s.id === activeSessionId && !s.deleted)) {
     activeSessionId = sessions.find(s => !s.deleted)?.id ?? null;
   }
-}
-
-function createNewSession(): void {
-  activeTab = 'Chat Sessions';
-  void changeThread(null).catch(showError);
-}
-
-async function changeThread(threadId: string | null): Promise<void> {
-  const revision = ++threadSelectionRevision;
-  activeSessionId = threadId; brainSeekSequence = null; threadLoading = true; render();
-  try { await refresh(); }
-  finally { if (revision === threadSelectionRevision) { threadLoading = false; render(); } }
 }
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', className = ''): HTMLElementTagNameMap[K] {
@@ -504,7 +460,6 @@ async function refresh(): Promise<void> {
   }
 }
 async function selectAgent(agentId: string, databaseId = selectedDatabase): Promise<void> {
-  if (state?.agent.id !== agentId || selectedDatabase !== databaseId) messageDraft = '';
   selectedDatabase = databaseId; localStorage.setItem('prism-database', databaseId);
   selectedAgent = agentId; activeSessionId = null; brainSeekSequence = null; localStorage.setItem('prism-agent', agentId); frozenCycle = ''; events = [];
   threadSelectionRevision++; threadLoading = false;
@@ -539,12 +494,12 @@ async function selectAgent(agentId: string, databaseId = selectedDatabase): Prom
       if (session && !session.cycleIds.includes(item.payload.id)) { session.cycleIds.push(item.payload.id); saveSessions(); }
       if (item.payload.kind !== 'attention_monitor' && submittedChat?.agentId === item.agentId && submittedChat.databaseId === databaseId && submittedChat.threadId === item.payload.threadId && !submittedChat.cycleId) submittedChat.cycleId = item.payload.id;
     }
-    if (activeTab === 'Chat Sessions' || activeTab === 'Interaction') render();
+    if (activeTab === 'Perception' || activeTab === 'Interaction') render();
     if ((activeTab === 'Brain' || activeTab === 'Brain Monitor') && !frozenCycle) render();
     if (['cycle.completed', 'consolidation.completed', 'infrastructure.error'].includes(item.type)) {
       void refresh().then(() => {
         syncSessionsWithEvents(selectedAgent);
-        if (activeTab === 'Chat Sessions' || activeTab === 'Interaction' || activeTab === 'Brain' || activeTab === 'Brain Monitor') render();
+        if (activeTab === 'Perception' || activeTab === 'Interaction' || activeTab === 'Brain' || activeTab === 'Brain Monitor') render();
       }).catch(showError);
     }
   };
@@ -822,89 +777,10 @@ function renderNavigation(): void {
   const nav = document.querySelector('#navigation')!;
   nav.replaceChildren();
 
-  // 1. Chat Sessions Section (collapsible)
-  const chatSection = node('div', '', 'nav-section');
-  const chatHeader = node('div', '', 'nav-header');
-  const chatToggle = node('button', expandedSections.chat ? '▾' : '▸', 'nav-toggle');
-  chatToggle.setAttribute('aria-label', 'Toggle Chat Sessions');
-  chatToggle.setAttribute('aria-expanded', String(expandedSections.chat));
-  chatToggle.onclick = (e) => { e.stopPropagation(); expandedSections.chat = !expandedSections.chat; render(); };
-  const isChatSelected = activeTab === 'Chat Sessions' || activeTab === 'Interaction';
-  const isThreadView = isChatSelected || activeTab === 'Brain' || activeTab === 'Brain Monitor';
-  const chatTitle = button('Chat Sessions', () => {
-    expandedSections.chat = !expandedSections.chat;
-    render();
-  });
-  chatTitle.className = 'nav-title';
-  chatTitle.setAttribute('aria-expanded', String(expandedSections.chat));
-  const newThreadButton = button('+', () => {
-    expandedSections.chat = true;
-    createNewSession();
-  });
-  newThreadButton.className = 'new-thread-button';
-  newThreadButton.setAttribute('aria-label', 'Create new chat thread');
-  newThreadButton.title = 'Create new chat thread';
-  chatHeader.append(chatToggle, chatTitle, newThreadButton);
-  chatSection.append(chatHeader);
-
-  if (expandedSections.chat) {
-    const chatChildren = node('div', '', 'nav-children');
-    const visibleSessions = sessions.filter(session => !session.deleted).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
-    const displayedSessions = showAllSessions ? visibleSessions : visibleSessions.slice(0, 5);
-    const selectedSession = isThreadView ? sessions.find(session => session.id === activeSessionId) : undefined;
-    if (selectedSession && !displayedSessions.includes(selectedSession)) displayedSessions.push(selectedSession);
-    for (const s of displayedSessions) {
-      const isSessSelected = isThreadView && activeSessionId === s.id;
-      const sessionRow = node('div', '', 'session-row');
-      const sessBtn = button(`${s.pinned ? '📌 ' : ''}${s.title}`, async () => {
-        activeTab = 'Chat Sessions';
-        await changeThread(s.id);
-      });
-      sessBtn.className = 'nav-item session-item' + (isSessSelected ? ' selected' : '');
-      if (isSessSelected) sessBtn.setAttribute('aria-current', 'true');
-      sessBtn.title = `${s.title} (${new Date(s.createdAt).toLocaleDateString()})`;
-      const menu = node('details', '', 'session-menu');
-      const pencil = node('summary', '✎', 'session-pencil');
-      pencil.setAttribute('aria-label', `Edit thread ${s.title}`);
-      pencil.title = 'Thread options';
-      pencil.onclick = () => {
-        for (const other of nav.querySelectorAll<HTMLDetailsElement>('.session-menu')) if (other !== menu) other.open = false;
-      };
-      const dropdown = node('div', '', 'session-dropdown');
-      const pin = button(s.pinned ? 'Unpin thread' : 'Pin thread', () => {
-        s.pinned = !s.pinned; saveSessions(); render();
-      });
-      const rename = button('Edit name', () => {
-        const name = window.prompt('Thread name', s.title)?.trim();
-        if (name) { s.title = name; saveSessions(); }
-        render();
-      });
-      const remove = button('Delete thread', async () => {
-        s.deleted = true; saveSessions();
-        if (activeSessionId === s.id) {
-          activeTab = 'Chat Sessions';
-          await changeThread(null);
-        } else render();
-      });
-      remove.disabled = pendingMessage;
-      remove.className = 'delete-thread-option';
-      dropdown.append(pin, rename, remove);
-      menu.append(pencil, dropdown);
-      sessionRow.append(sessBtn, menu);
-      chatChildren.append(sessionRow);
-    }
-
-    if (visibleSessions.length > 5) {
-      const toggleMoreBtn = button(showAllSessions ? 'Show less' : `Show more (${visibleSessions.length - displayedSessions.length})`, () => {
-        showAllSessions = !showAllSessions;
-        render();
-      }, true);
-      toggleMoreBtn.className = 'show-more-btn';
-      chatChildren.append(toggleMoreBtn);
-    }
-    chatSection.append(chatChildren);
-  }
-  nav.append(chatSection);
+  const perception = button('Perception', () => { activeTab = 'Perception'; render(); });
+  perception.className = 'nav-item' + (activeTab === 'Perception' ? ' selected' : '');
+  if (activeTab === 'Perception') perception.setAttribute('aria-current', 'page');
+  nav.append(perception);
 
   // 2. Agent Components (collapsible menu only)
   const brainSection = node('div', '', 'nav-section');
@@ -992,9 +868,9 @@ function renderNavigation(): void {
   nav.append(section);
 }
 
-function threadViewButton(view: 'Brain' | 'Chat Sessions'): HTMLButtonElement {
-  const label = view === 'Brain' ? 'View this thread’s Brain timeline' : 'Return to this chat thread';
-  const toggle = button(view === 'Brain' ? '🧠' : '💬', () => {
+function threadViewButton(view: 'Brain' | 'Perception'): HTMLButtonElement {
+  const label = view === 'Brain' ? 'View Brain timeline' : 'Return to Perception';
+  const toggle = button(view === 'Brain' ? '🧠' : '◉', () => {
     activeTab = view;
     expandedSections.chat = true;
     render();
@@ -1017,7 +893,7 @@ function sizeComponentHeaders(): void {
   if (!current || !document.body.classList.contains('component-view') || document.body.classList.contains('simulation-dashboard-view')) return;
   let largest = 0;
   for (const [title, description] of Object.entries(componentHeaderDescriptions)) {
-    const probe = componentHeader(({ Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
+    const probe = componentHeader(({ Perception: 'Perception', Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
     Object.assign(probe.style, { position: 'fixed', visibility: 'hidden', pointerEvents: 'none', width: `${current.getBoundingClientRect().width}px`, height: 'auto', minHeight: '0', margin: '0', top: '0', left: '0', gridTemplateRows: 'auto auto' });
     const actions = probe.querySelector('.component-header-actions')!;
     actions.append(node('button', '+', 'secondary'), node('button', '🧠', 'secondary'), node('button', '↺', 'secondary'));
@@ -1203,14 +1079,14 @@ function componentAuthoring(kind: 'disposition' | 'memory' | 'prediction', smart
 }
 function render(): void {
   renderNavigation();
-  const isChat = activeTab === 'Chat Sessions' || activeTab === 'Interaction';
+  const isChat = false;
   const isBrain = activeTab === 'Brain' || activeTab === 'Brain Monitor';
   document.body.classList.toggle('chat-view', isChat || isBrain);
   document.body.classList.toggle('brain-view', isBrain);
   const isPrompts = activeTab === 'Prompts' || (activeTab === 'Settings' && settingsSection === 'Prompts');
   document.body.classList.toggle('prompts-view', isPrompts);
   const pageKey = activeTab === 'Settings' ? settingsSection : activeTab;
-  const displayTitle = ({ Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
+  const displayTitle = ({ Perception: 'Perception', Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
   const descriptions: Record<string, string> = {
     Primitives: 'Primitives are basic appraisals and action tendencies representing the Agent’s immediate reactions, such as curiosity, pleasure or aversion. Their trigger instructions describe when they would respond, but the current online architecture does not activate them; they remain available for researcher configuration.',
     Identity: 'Identity is the Agent’s persistent self-definition: its sense of who it is and how it wants to relate to the world. Self consults its self-definition traits when choosing among Part proposals; autobiographical traits preserve background without directly guiding that choice.',
@@ -1235,7 +1111,7 @@ function render(): void {
   content.replaceChildren(...(isChat || isBrain || pageKey === 'Dreams' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
-    chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Chat Sessions' : 'Brain'));
+    chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Perception' : 'Brain'));
     content.append(chatHeader);
   }
   if (!state) { content.append(card('Start with an Agent', 'Create an Agent to begin its subjective autobiography and inspect the perspectives that form during conversation.')); return; }
@@ -1247,12 +1123,12 @@ function render(): void {
       void executivePage(content, agentId, api, showError, { dialog: () => node('dialog'), cycle: showCycleInspector,
         considerSkill: async (proposalId, message) => {
           if (agentId !== selectedAgent || databaseId !== selectedDatabase) throw new Error('Agent selection changed; reopen the skill proposal');
-          activeTab = 'Chat Sessions'; expandedSections.chat = true;
+          activeTab = 'Perception'; expandedSections.chat = true;
           await sendMessage(message, [proposalId]);
         } }).catch(showError);
     },
-    'Chat Sessions': chatSessions,
-    Interaction: chatSessions,
+    'Perception': perceptionPage,
+    Interaction: perceptionPage,
     Brain: brain,
     'Brain Monitor': brain,
     Parts: parts,
@@ -1521,7 +1397,6 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
   let sendError: unknown;
   pendingMessage = true;
   submittedChat = { agentId, databaseId, threadId: requestedSessionId, text: trimmed, source };
-  messageDraft = '';
   render();
   try { await api(`agents/${agentId}/message`, 'POST', { text: trimmed, source, threadId: requestedSessionId,
     ...(skillDocumentIds.length ? { skillDocumentIds } : {}) }); }
@@ -1563,192 +1438,51 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
   if (sendError) showError(sendError);
 }
 
-function thoughtBubble(cycleId: string): HTMLElement {
-  const steps = events.filter(event => event.cycleId === cycleId).sort((a, b) => a.sequence - b.sequence);
-  const finished = steps.some(event => event.type === 'execution.status' || event.type === 'cycle.completed');
-  const failed = steps.some(event => event.type === 'infrastructure.error' && event.payload.stage !== 'prediction_evaluation');
-  const expanded = !finished || expandedThoughts.has(cycleId);
-  const row = node('div', '', 'chat-message-row agent');
-  const bubble = node('div', '', `chat-thought-bubble${!finished && !failed ? ' thinking' : ''}`);
-  const toggle = button(finished ? '💭' : failed ? '💭 Processing stopped' : '💭 Thinking…', () => {
-    if (expandedThoughts.has(cycleId)) expandedThoughts.delete(cycleId); else expandedThoughts.add(cycleId);
-    render();
-  }, true);
-  toggle.setAttribute('aria-label', expanded ? 'Collapse thought bubble' : 'Expand thought bubble');
-  toggle.setAttribute('aria-expanded', String(expanded));
-  bubble.append(toggle);
-  if (expanded) {
-    const list = node('div', '', 'chat-thought-steps');
-    const partName = (partId: string | null) => steps.flatMap(event => event.type === 'primitive.thought' && event.payload.primitive.id === partId ? [`${event.payload.primitive.name} (primitive)`] : [])[0] ?? steps.flatMap(event => event.type === 'part.thought' && event.payload.partId === partId ? [event.payload.partSnapshot.name] : [])[0]
-      ?? state?.parts.find(part => part.id === partId)?.name ?? partId ?? 'Coverage hypothesis';
-    const predictionText = (predictionId: string) => events.flatMap(event =>
-      (event.type === 'part.prediction_created' || event.type === 'part.prediction_revised') && event.payload.id === predictionId ? [event.payload.expectation] : []).at(-1)
-      ?? state?.predictions.find(prediction => prediction.id === predictionId)?.expectation ?? 'what might happen';
-    for (const event of steps) {
-      let text: string;
-      switch (event.type) {
-        case 'primitive.thought': text = `${event.payload.primitive.name} (primitive): “${event.payload.output.thought}”`; break;
-        case 'primitive.bid_created': text = `A primitive proposes: “${event.payload.type === 'navigate' ? event.payload.argument : event.payload.type === 'deliberate' ? event.payload.question : event.payload.action.text}”`; break;
-        case 'primitive.deliberation_response': text = `A primitive responds: “${event.payload.response}”`; break;
-        case 'cycle.started': text = event.payload.kind === 'attention_monitor' ? 'I am attending to ongoing activity…' : 'I received your message…'; break;
-        case 'worldstate.frozen': text = 'I saw the message and context…'; break;
-        case 'activation.scored': {
-          const count = event.payload.results.filter(result => result.active).length;
-          const primitiveCount = event.payload.primitives?.filter(result => result.active).length ?? 0;
-          if (primitiveCount) { text = `${count ? `${count} learned ${count === 1 ? 'Part' : 'Parts'} and ` : ''}${primitiveCount} basic ${primitiveCount === 1 ? 'reaction wants' : 'reactions want'} to speak…`; break; }
-          text = count > 1 ? 'Several Parts of me want to speak…' : count === 1 ? 'A Part of me wants to speak…' : 'My Parts are quiet for now…';
-          break;
-        }
-        case 'part.thought': text = `My ${event.payload.partSnapshot.name} part says, “${event.payload.output.thought}”`; break;
-        case 'part.bid_created': text = `My ${partName(event.payload.partId)} part suggests: ${event.payload.type === 'navigate' ? `Revisit ${event.payload.stateId}: ${event.payload.argument}` : event.payload.type === 'deliberate' ? event.payload.question : event.payload.action.text}`; break;
-        case 'part.prediction_created': text = event.payload.gapOrigin ? `I have an unresolved hypothesis: ${event.payload.expectation}` : `My ${partName(event.payload.partId)} part predicts that ${event.payload.expectation}`; break;
-        case 'part.prediction_revised': text = event.payload.gapOrigin ? `I am reconsidering the hypothesis: ${event.payload.expectation}` : `My ${partName(event.payload.partId)} part is reconsidering its prediction to: ${event.payload.expectation}`; break;
-        case 'prediction.outcome_checked': {
-          const expectation = predictionText(event.payload.predictionId);
-          const owner = event.payload.partId === null ? `The earlier coverage hypothesis “${expectation}”` : `My ${partName(event.payload.partId)} part’s earlier prediction that “${expectation}”`;
-          text = event.payload.outcome === 'incorrect' ? `${owner} didn’t come true.`
-            : event.payload.outcome === 'correct' ? `${owner} came true.`
-            : event.payload.outcome === 'incomplete' ? `${owner} is still unresolved.` : `${owner} no longer fits the context.`;
-          break;
-        }
-        case 'part.mutation_applied': text = `My ${event.payload.part.name} part has updated its perspective: ${event.payload.change.reason}`; break;
-        case 'memory.episodic_created': text = event.payload.partId === null ? `I retained a subjective hypothesis outcome memory: ${event.payload.gist}` : `My ${partName(event.payload.partId)} part has created a memory for itself: ${event.payload.gist}`; break;
-        case 'self.arbitration_started': text = 'I’m listening to what my Parts have to say…'; break;
-        case 'self.deliberation_planned': text = `I’m approaching this with ${event.payload.primary_c}${event.payload.secondary_c ? ' and ' + event.payload.secondary_c : ''}: ${event.payload.question}`; break;
-        case 'part.bid_withdrawn': text = `My ${partName(event.payload.partId)} part withdraws its proposal.`; break;
-        case 'primitive.bid_withdrawn': text = 'A primitive withdraws its proposal.'; break;
-        case 'self.debate_started':
-        case 'self.deliberation_started': text = steps.some(step => step.type === 'primitive.thought') ? 'I want to consider these basic interpretations a little more…' : 'I want to hear a little more from my Parts…'; break;
-        case 'self.question': text = `I ask: ${event.payload.question}`; break;
-        case 'part.debate_response': text = `My ${partName(event.payload.partId)} part replies, “${event.payload.answer}”`; break;
-        case 'primitive.debate_response': text = `A primitive responds: “${event.payload.answer}”`; break;
-        case 'part.deliberation_response': text = `My ${partName(event.payload.partId)} part replies, “${event.payload.response}”`; break;
-        case 'self.choice': {
-          if (event.payload.choice === 'DELIBERATE') continue;
-          if ((event.payload.selectedBidIds?.length ?? 0) > 1) { text = `I choose ${event.payload.selectedBidIds!.length} compatible proposals.`; break; }
-          const primitiveBid = steps.find(step => step.type === 'primitive.bid_created' && step.payload.id === event.payload.choice);
-          if (primitiveBid?.type === 'primitive.bid_created') { text = `I choose the ${partName(primitiveBid.payload.partId)} proposal.`; break; }
-          const bid = steps.find(step => step.type === 'part.bid_created' && step.payload.id === event.payload.choice);
-          text = bid?.type === 'part.bid_created' ? `I think I’m going to listen to my ${partName(bid.payload.partId)} part.` : 'I’ve considered what my Parts had to say.';
-          break;
-        }
-        case 'infrastructure.error': text = `I ran into a problem: ${event.payload.message}`; break;
-        default: continue;
-      }
-      const step = node('p', text, 'chat-inner-voice');
-      step.dataset.sequence = String(event.sequence);
-      list.append(step);
-    }
-    if (!finished && !failed && list.lastElementChild) {
-      const latest = latestThought(cycleId, list.lastElementChild as HTMLElement);
-      list.replaceChildren(latest);
-      list.setAttribute('role', 'status');
-      list.setAttribute('aria-live', 'polite');
-    } else {
-      liveThoughts.get(cycleId)?.animation?.cancel();
-      liveThoughts.delete(cycleId);
-    }
-    bubble.append(list);
+function perceptionPage(): void {
+  const snapshot = events.findLast((event): event is Extract<CognitiveEvent, { type: 'worldstate.frozen' }> => event.type === 'worldstate.frozen');
+  const page = node('section', '', 'perception-page');
+  page.append(node('h2', 'Current WorldState'), node('p', 'The latest immutable snapshot available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
+  if (!snapshot) {
+    page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted'));
+    content.append(page);
+    return;
   }
-  row.append(bubble);
-  return row;
-}
-
-function chatSessions(): void {
-  const currentSession = activeSessionId ? sessions.find(s => s.id === activeSessionId) : null;
-
-  const container = node('div', '', 'chat-container');
-  const transcript = node('div', '', 'chat-transcript');
-  const allowedCycleIds = currentSession ? new Set(currentSession.cycleIds) : new Set<string>();
-
-  const visibleEvents = events.filter(e => e.cycleId && allowedCycleIds.has(e.cycleId));
-
-  const optimistic = submittedChat?.agentId === selectedAgent && submittedChat.databaseId === selectedDatabase && submittedChat.threadId === activeSessionId && !visibleEvents.some(event => event.type === 'worldstate.frozen' && event.cycleId === submittedChat?.cycleId) ? submittedChat : null;
-  if (visibleEvents.length === 0 && !optimistic) {
-    transcript.append(node('div', currentSession ? 'No messages in this chat session yet.' : 'New chat session. Type a message below to start chatting.', 'chat-empty'));
-  } else {
-    for (const event of visibleEvents) {
-      if (event.type === 'worldstate.frozen') {
-        for (const fact of event.payload.facts.filter(f => ((f.kind === 'says' || f.source.startsWith('Sensor ')) && f.originCycleId === event.cycleId) || String(f.kind) === 'utterance')) {
-          const row = node('div', '', 'chat-message-row user');
-          const bubble = node('div', `${fact.source}: ${fact.text}`, 'chat-bubble user chat-message');
-          row.append(bubble);
-          transcript.append(row);
-        }
-      }
-      if (event.type === 'worldstate.frozen' && event.cycleId && !events.some(item => item.cycleId === event.cycleId
-        && item.type === 'cycle.started' && item.payload.kind === 'attention_monitor'
-        && !events.some(review => review.cycleId === event.cycleId && review.type === 'execution.review_started'))) transcript.append(thoughtBubble(event.cycleId));
-      if (event.type === 'infrastructure.error' && event.payload.stage === 'prediction_evaluation') {
-        const row = node('div', '', 'chat-message-row agent');
-        row.append(node('div', event.payload.message, 'chat-bubble chat-bubble-warning'));
-        transcript.append(row);
-      }
-      if (event.type === 'execution.status') {
-        const row = node('div', '', 'chat-message-row agent');
-        const bubble = node('div', '', 'chat-bubble agent chat-message agent');
-        bubble.append(node('div', (event.payload.speech?.text ?? event.payload.action.text)));
-        const footer = node('div', '', 'chat-bubble-footer');
-        footer.append(node('span', `Agent · ${event.payload.status}`, 'muted'));
-        if (event.cycleId) {
-          const cycleId = event.cycleId;
-          const infoBtn = button('ℹ Steps', () => showCycleInspector(cycleId), true);
-          infoBtn.className = 'chat-info-btn';
-          infoBtn.setAttribute('title', 'Inspect cognitive steps');
-          infoBtn.setAttribute('aria-label', 'Inspect cognitive steps');
-          footer.append(infoBtn);
-        }
-        bubble.append(footer);
-        row.append(bubble);
-        transcript.append(row);
-      }
-      if (event.type === 'cycle.completed') {
-        const hiddenStatus = node('span', `Cycle ${event.payload.sequence} complete`, 'cycle-status');
-        hiddenStatus.style.display = 'none';
-        transcript.append(hiddenStatus);
-      }
-    }
+  const world = snapshot.payload;
+  page.append(node('p', `Snapshot ${world.sequence} · ${world.capturedAt}`, 'muted'));
+  const actions = node('div', '', 'row');
+  actions.append(button('Inspect full WorldState', () => openWorldStateInfo(world), true), button('View Brain timeline', () => {
+    activeSessionId = state?.cycles.find(cycle => cycle.id === world.cycleId)?.threadId ?? null;
+    brainSeekSequence = null; activeTab = 'Brain'; render();
+  }, true));
+  if (snapshot.cycleId) {
+    const cycleId = snapshot.cycleId;
+    actions.append(button('Inspect source cycle', () => showCycleInspector(cycleId), true));
   }
-
-  if (optimistic) {
-    const row = node('div', '', 'chat-message-row user');
-    row.append(node('div', `${optimistic.source}: ${optimistic.text}`, 'chat-bubble user chat-message'));
-    transcript.append(row);
-    if (optimistic.cycleId) transcript.append(thoughtBubble(optimistic.cycleId));
-    else {
-      const status = node('div', optimistic.error ?? '💭 Sending… Waiting for server confirmation.', `chat-thought-bubble${optimistic.error ? '' : ' thinking'}`);
-      status.setAttribute('role', 'status');
-      transcript.append(status);
-    }
+  page.append(actions);
+  const observations = node('section', '', 'perception-observations');
+  observations.append(node('h3', 'External observations'));
+  for (const fact of world.facts) {
+    const entry = node('article', '', 'perception-fact');
+    entry.append(node('p', fact.text), node('p', `${fact.source} · ${fact.kind} · ${fact.timestamp ?? 'Time unknown'}`, 'muted'));
+    observations.append(entry);
   }
-  container.append(transcript);
-
-  const dock = node('div', '', 'chat-input-dock');
-  const input = node('textarea');
-  input.placeholder = 'Message or /sensor audio "Bird chirps" /sensor visual "A desk" · Optional: --name "Rowan Smith" Hello';
-  input.setAttribute('aria-label', 'Message');
-  input.value = messageDraft;
-  input.oninput = () => { messageDraft = input.value; };
-  input.onkeydown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      void sendMessage(input.value);
-    }
-  };
-
-  const sendBtn = button('Send', async () => {
-    await sendMessage(input.value);
-  });
-  sendBtn.className = 'send-btn';
-  sendBtn.disabled = pendingMessage;
-
-  dock.append(input, sendBtn);
-  container.append(dock);
-  content.append(container);
-
-  requestAnimationFrame(() => {
-    transcript.scrollTop = transcript.scrollHeight;
-  });
+  if (!world.facts.length) observations.append(node('p', 'This snapshot contains no external observations.', 'muted'));
+  page.append(observations);
+  const context = node('section');
+  context.append(node('h3', 'Subjective context'));
+  for (const thought of world.thoughtHistory ?? []) {
+    const entry = node('article', '', 'perception-fact');
+    entry.append(node('h4', thought.partName), node('p', thought.thought), node('p', `Age: ${thought.age} · ${thought.selectedBySelf ? 'Selected by Self' : 'Not selected by Self'}`, 'muted'));
+    context.append(entry);
+  }
+  if (!world.thoughtHistory?.length) context.append(node('p', 'No carried thoughts recorded.', 'muted'));
+  if (world.experienced) {
+    for (const prediction of world.experienced.prospective) context.append(card('Prospective alternative', prediction.expectation));
+    for (const memory of world.experienced.rememberedInterpretations) context.append(card('Remembered interpretation', memory.interpretation));
+    for (const stance of world.experienced.posture) context.append(card(stance.name, stance.interpretation + (stance.affect ? ` · ${stance.affect}` : '')));
+  }
+  page.append(context);
+  content.append(page);
 }
 function brain(): void {
   const threadCycleIds = new Set(state!.cycles.filter(cycle => activeSessionId && cycle.threadId === activeSessionId).map(cycle => cycle.id));
@@ -3269,9 +3003,9 @@ function deleteAgentSettings(): void {
       if (selectedAgent === agent.id) {
         stream?.close(); stream = null;
         selectedAgent = ''; state = null; events = []; sessions = []; activeSessionId = null;
-        submittedChat = null; messageDraft = ''; frozenCycle = ''; brainSeekSequence = null;
+        submittedChat = null; frozenCycle = ''; brainSeekSequence = null;
         localStorage.removeItem('prism-agent');
-        settingsSection = 'Model & key'; activeTab = 'Chat Sessions';
+        settingsSection = 'Model & key'; activeTab = 'Perception';
       }
       await agents();
     } catch (error) { remove.disabled = false; showError(error); }
