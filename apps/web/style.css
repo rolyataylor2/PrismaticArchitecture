@@ -1469,6 +1469,9 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .perception-page > section { margin-top: 2rem; }
 .perception-fact { padding: 0.8rem 0; border-bottom: 1px solid var(--border, #ddd); overflow-wrap: anywhere; }
 .perception-fact p { white-space: pre-wrap; margin: 0.35rem 0; }
+.perception-fact-editable { display: flex; align-items: flex-start; gap: 12px; }
+.perception-fact-content { flex: 1; min-width: 0; }
+.perception-fact-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
 .perception-page .row { flex-wrap: wrap; }
 
 .sensor-channel { border-bottom: 1px solid var(--border, #ddd); padding: 0.8rem 0; }

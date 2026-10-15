@@ -53,6 +53,7 @@ type PerceptionFact = import('../../../packages/core/src/domain.js').Fact;
 let perceptionChannel = 'audio';
 type SensorDraft = { baseId?: string | null | undefined; dirty?: boolean; items: { channel: string; text: string; fact?: PerceptionFact; spokenAfterSnapshot?: boolean }[]; speaker: string; speech: string; raw: Record<string, string>; requestId: string };
 const sensorDrafts = new Map<string, SensorDraft>();
+const editingSensorItems = new WeakSet<object>();
 function sensorDraft(): SensorDraft {
   const key = `${selectedDatabase}:${selectedAgent}`;
   let draft = sensorDrafts.get(key);
@@ -1541,13 +1542,28 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
   if (!entries.length) panel.append(node('p', 'No entries in this channel.', 'muted'));
   for (const item of entries) {
     const entry = node('article', '', 'perception-fact');
+    const content = node('div', '', 'perception-fact-content');
     if (current) {
-      const input = node('textarea'); input.value = item.text; input.setAttribute('aria-label', `Edit ${perceptionChannel} observation`); input.disabled = perceptionControlPending;
-      input.oninput = () => { item.text = input.value; changed(); };
-      const remove = button('Delete entry', () => { draft.items.splice(draft.items.indexOf(item), 1); changed(); render(); }, true); remove.disabled = perceptionControlPending;
-      entry.append(input, remove);
-    } else entry.append(node('p', item.text));
-    if (item.fact) entry.append(node('p', `${'spokenAfterSnapshot' in item && item.spokenAfterSnapshot ? 'Spoken after this snapshot · ' : ''}${item.fact.source} · ${item.fact.kind} · ${item.fact.timestamp ?? 'Time unknown'}`, 'muted'));
+      entry.classList.add('perception-fact-editable');
+      const actions = node('div', '', 'perception-fact-actions');
+      if (editingSensorItems.has(item)) {
+        const input = node('textarea'); input.value = item.text; input.setAttribute('aria-label', `Edit ${perceptionChannel} observation`); input.disabled = perceptionControlPending;
+        input.oninput = () => { item.text = input.value; changed(); };
+        const done = button('Done', () => { editingSensorItems.delete(item); render(); }, true); done.disabled = perceptionControlPending;
+        content.append(input); actions.append(done);
+      } else {
+        content.append(node('p', item.text));
+        const edit = memoryActionIcon('Edit entry', 'pencil', async () => {
+          for (const other of draft.items) editingSensorItems.delete(other);
+          editingSensorItems.add(item); render();
+          document.querySelector<HTMLTextAreaElement>('.sensor-channel .perception-fact textarea')?.focus();
+        });
+        edit.disabled = perceptionControlPending; actions.append(edit);
+      }
+      const remove = memoryActionIcon('Delete entry', 'trash', async () => { draft.items.splice(draft.items.indexOf(item), 1); changed(); render(); }); remove.disabled = perceptionControlPending;
+      actions.append(remove); entry.append(content, actions);
+    } else { content.append(node('p', item.text)); entry.append(content); }
+    if (item.fact) content.append(node('p', `${'spokenAfterSnapshot' in item && item.spokenAfterSnapshot ? 'Spoken after this snapshot · ' : ''}${item.fact.source} · ${item.fact.kind} · ${item.fact.timestamp ?? 'Time unknown'}`, 'muted'));
     panel.append(entry);
   }
   if (current) {
