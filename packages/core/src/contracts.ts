@@ -22,6 +22,7 @@ export type ActivationInput = { world: WorldState; candidates: Omit<Part, 'retri
   partActivationContext?: { partId: string; previous: number; memories: { timestamp: string | null; gist: string }[]; prediction: Prediction | null }[] };
 export type MemoryRelevanceInput = { world: WorldState; purpose: 'recall' | 'candidates' | 'search'; entries: { part: Part; memory: Memory; timestamp: string | null }[] };
 export interface DecisionProvider {
+  labelForAgent?(agentId: string): string;
   chooseAffect?(context: import('./affect-domain.js').AffectSelectionContext): Promise<import('./affect-domain.js').AffectChoice>;
   judge?(input: import('./constructed-domain.js').JudgmentInput): Promise<ActivationScore[]>;
   recall?(input: MemoryRelevanceInput): Promise<ActivationScore[]>;
@@ -234,6 +235,12 @@ export interface Store {
   savePrimitiveSettings(agentId: string, settings: PrimitiveSettings, expectedRevision: number): void;
   agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
   saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
+  agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string }[];
+  saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string): void;
+  deleteAgentProviderConnection(agentId: string, provider: string): void;
+  agentClassifierSettings(agentId: string): { model: string; encryptedApiKey: string | null } | undefined;
+  saveAgentClassifierSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null }): void;
+  clearAgentClassifierSettings(agentId: string): void;
   agentImageSettings(agentId: string): { accountId: string; encryptedApiKey: string | null } | undefined;
   saveAgentImageSettings(agentId: string, accountId: string, encryptedApiKey: string | null): void;
   agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null; thoughtRouting?: import('./thought-resources.js').ThoughtRoutingSettings | null } | null;

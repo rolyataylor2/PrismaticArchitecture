@@ -350,6 +350,25 @@ export async function api(app: Application, method: string, path: string, body: 
       return app.resetPrompt(entityId, PromptTaskSchema.parse(subresource), input.scope);
     }
     if (method === 'POST' && action === 'prompts' && subresource === 'reset-all') return app.resetAllPrompts();
+    if (action === 'providers') {
+      const Provider = z.enum(['openai', 'xai', 'jev', 'cloudflare']);
+      if (method === 'GET' && !subresource) return app.providerConnections(entityId);
+      if (method === 'POST' && !subresource) {
+        const input = z.strictObject({ provider: Provider, apiKey: z.string().trim().min(1).max(512).regex(/^\S+$/),
+          accountId: z.string().trim().regex(/^[a-fA-F0-9]{32}$/).optional(),
+        }).refine(value => value.provider !== 'cloudflare' || Boolean(value.accountId), { message: 'Cloudflare Account ID is required', path: ['accountId'] }).parse(body);
+        return app.addProviderConnection(entityId, input.provider, input.apiKey, input.accountId);
+      }
+      if (method === 'DELETE' && subresource) return app.removeProviderConnection(entityId, Provider.parse(subresource));
+    }
+    if (action === 'classifier-settings') {
+      if (method === 'GET') return app.agentClassifierSettings(entityId);
+      if (method === 'DELETE') { app.store.clearAgentClassifierSettings(entityId); return app.agentClassifierSettings(entityId); }
+      if (method === 'PATCH') return app.updateAgentClassifierSettings(entityId, z.strictObject({
+        model: z.string().trim().min(1).max(100).regex(/^\S+$/),
+        apiKey: z.string().min(1).max(512).regex(/^\S+$/).optional(), clearApiKey: z.boolean().optional(),
+      }).parse(body));
+    }
     if (action === 'image-settings') {
       if (method === 'GET') return app.agentImageSettings(entityId);
       if (method === 'PATCH') return app.updateAgentImageSettings(entityId, z.strictObject({

@@ -423,7 +423,7 @@ export class CognitiveRuntime {
           if (!laterEvidence.length) continue;
           const factual = freeze({ ...factualWorld(world), facts: laterEvidence });
           const outcome = PredictionOutcomeSchema.parse(await this.decisions.checkHypothesis(freeze({ world: factual, prediction, laterEvidence })));
-          this.inspection.emit(agentId, cycle.id, 'prediction.outcome_checked', { partId: null, predictionId: prediction.id, outcome, provider: this.decisions.label });
+          this.inspection.emit(agentId, cycle.id, 'prediction.outcome_checked', { partId: null, predictionId: prediction.id, outcome, provider: this.decisions.labelForAgent?.(agentId) ?? this.decisions.label });
           if (outcome === 'incomplete') continue;
           const update = outcome === 'irrelevant' ? { operation: 'invalidate' as const, revision: null, evaluation: null,
             memory: null, mutation: null, reason: 'Gap hypothesis no longer relevant to its original context' }
@@ -449,7 +449,7 @@ export class CognitiveRuntime {
         let resolvedOutcome: 'correct' | 'incorrect' | undefined;
         try {
           const outcome = PredictionOutcomeSchema.parse(await this.decisions.checkPrediction(context));
-          this.inspection.emit(agentId, cycle.id, 'prediction.outcome_checked', { partId: part.id, predictionId: prediction.id, outcome, provider: this.decisions.label });
+          this.inspection.emit(agentId, cycle.id, 'prediction.outcome_checked', { partId: part.id, predictionId: prediction.id, outcome, provider: this.decisions.labelForAgent?.(agentId) ?? this.decisions.label });
           if (outcome === 'incomplete') continue;
           if (outcome === 'irrelevant') {
             update = { operation: 'invalidate' as const, revision: null, evaluation: null, memory: null, mutation: null,
@@ -662,7 +662,7 @@ export class CognitiveRuntime {
             if (!check.conditions.length) continue;
             const admitted = check.conditions.every(condition => condition.score !== null && condition.score > 2);
             this.inspection.emit(agentId, cycle.id, 'execution.applicability_checked', { ...check, worldId: decisionWorld.id,
-              provider: this.decisions.label, admitted });
+              provider: this.decisions.labelForAgent?.(agentId) ?? this.decisions.label, admitted });
             if (!admitted) supported = false;
           }
           if (!supported) {

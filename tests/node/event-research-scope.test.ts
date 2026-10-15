@@ -29,6 +29,6 @@ test('nullable event-scope migration preserves historical bytes and scoped atomi
     assert.equal(brokenObserver.emit(other.id, null, 'infrastructure.error', { stage: 'authored', message: 'Still recorded' }).researchScope, undefined);
     await app.close(); store.close(); store = new SqliteStore(path); app = new Application(store); assert.deepEqual(store.events(agent.id), before);
     const check = new DatabaseSync(path);
-    try { assert.equal((check.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 28); assert.throws(() => check.prepare('UPDATE events SET research_scope = NULL WHERE id = ?').run(event.id), /immutable/i); } finally { check.close(); }
+    try { assert.equal((check.prepare('PRAGMA user_version').get() as { user_version: number }).user_version, 30); assert.throws(() => check.prepare('UPDATE events SET research_scope = NULL WHERE id = ?').run(event.id), /immutable/i); } finally { check.close(); }
   } finally { await app.close(); store.close(); rmSync(root, { recursive: true, force: true }); }
 });

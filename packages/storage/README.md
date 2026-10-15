@@ -136,3 +136,7 @@ Completed speech execution feedback projects into Sensor audio with `You said: [
 ADR 0168 removes legacy prediction attention from current domain schemas and activation. Preserved prediction versions project current schema fields on read without rewriting raw version bytes. Explicit researcher cleanup appends current versions; no automatic live-state migration or legacy activation path is provided.
 
 Schema 28 adds per-Agent Cloudflare image settings with encrypted credentials, separate from versioned Agent profile data. Agent deletion removes these settings. Saved raster avatars remain versioned profile fields.
+
+ADR 0170 adds independent per-Agent JEV Classifier settings (model ID and encrypted API key) under model settings. Unsaved/reset settings use the server decision provider; an explicit JEV model uses its saved key or the server JEV/TYPESAFE key. API responses expose only credential presence. Generative credentials remain separate. Classifier calls retain their original bounded task inputs and actual-provider provenance. Schema 29 stores these settings outside cognitive state.
+
+ADR 0171 adds a per-Agent Model providers list above model settings, with provider dropdown, password input and Add/update action. OpenAI, xAI, JEV and Cloudflare keys are stored independently and encrypted (schema 30). Existing key controls remain compatible. Connections take precedence over legacy keys and fall back to the same provider’s server key. Removal clears the Agent’s credential for that provider without changing model choices or server keys.

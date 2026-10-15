@@ -257,7 +257,8 @@ test('Jev rejects missing, out of bounds, and unavailable judgments without mock
   const invalid = new JevHttpTransport('test-only', undefined, async () => Response.json({ answers: { selection: { type: 'choice', choice: 'invented', confidence: 1, probabilities: { invented: 1 } } } }));
   await assert.rejects(invalid.choice({ state: 'Identity has no bids.', choices: ['DELIBERATE'] }), /unavailable/);
   assert.throws(() => configuredProviders({ PRISM_PROVIDER: 'openai' }), /OPENAI_API_KEY/);
-  assert.throws(() => configuredProviders({ PRISM_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only' }), /JEV_API_KEY/);
+  const unconfigured = configuredProviders({ PRISM_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only' });
+  await assert.rejects(unconfigured.decisions.choose(self), /JEV API key/);
   const configured = configuredProviders({ PRISM_PROVIDER: 'openai', OPENAI_API_KEY: 'test-only', TYPESAFE_API_KEY: 'test-only' });
   assert.equal(configured.reasoning.label, 'openai/gpt-4.1-nano');
   assert.equal(configured.decisions.label, 'jev/jev-latest');

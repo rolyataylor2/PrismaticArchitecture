@@ -138,7 +138,9 @@ test('provider changes require the correct credential and preserve routing after
     app = new Application(store, undefined, undefined, undefined, vault);
     assert.equal(app.agentInferenceSettings(agent.id).model, 'grok-4.3');
     assert.equal((app.providers.reasoning as AgentReasoningProvider).labelForAgent(agent.id), 'xai/grok-4.3');
-    assert.throws(() => app.updateAgentInferenceSettings(agent.id, { model: 'gpt-4.1-mini' }), /Changing provider requires/);
+    app.updateAgentInferenceSettings(agent.id, { model: 'gpt-4.1-mini' });
+    assert.equal((app.providers.reasoning as AgentReasoningProvider).labelForAgent(agent.id), 'openai/gpt-4.1-mini');
+    assert.equal(store.agentProviderConnections(agent.id).length, 2, 'Switching keeps both providers available');
   } finally { store.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 

@@ -159,3 +159,5 @@ ADR [0168](../../docs/architecture/decisions/0168-retire-legacy-prediction-atten
 Administrative Agent avatars accept emoji/initials or bounded PNG/JPEG/WebP base64 data URIs. Profile images carry no cognitive meaning or authority.
 
 ADR 0169 changes the default Executive profile to enabled with Speaking on and Tool execution off. Existing saved choices and legacy profile parsing remain unchanged. Executive → Runtime exposes both module switches; tool use requires explicit enablement.
+
+ADR 0170 adds independent per-Agent JEV Classifier settings (model ID and encrypted API key) under model settings. Unsaved/reset settings use the server decision provider; an explicit JEV model uses its saved key or the server JEV/TYPESAFE key. API responses expose only credential presence. Generative credentials remain separate. Classifier calls retain their original bounded task inputs and actual-provider provenance. Schema 29 stores these settings outside cognitive state.

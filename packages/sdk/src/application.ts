@@ -1,3 +1,5 @@
+import { providerApiKey, providerConnections, encryptedProviderKey, removeProviderConnection, type ConnectedProvider } from './provider-connections.js';
+import { agentClassifiers } from './classifier-settings.js';
 import { executiveModuleEnabled } from '../../core/src/executive-profile.js';
 import { repeatedPredictionContradiction } from './thought-model-evidence.js';
 import { ThoughtRoutingSettingsSchema, type ThoughtRoutingSettings } from '../../core/src/thought-resources.js';
@@ -101,7 +103,7 @@ export class Application {
         ...(scope?.agentId === record.agentId ? { researchScope: { runId: scope.runId, stageId: scope.stageId, stageIndex: scope.stageIndex, startEventId: scope.startEventId } } : {}),
         ...(operationId ? { operationId } : {}) });
     };
-    this.providers = { ...providers, decisions: observeProvider(store, providers.decisions, 'decisions'), reasoning: new AgentReasoningProvider(providers.reasoning, (agentId, requestedModel) => {
+    this.providers = { ...providers, decisions: agentClassifiers(store, providers.decisions, vault), reasoning: new AgentReasoningProvider(providers.reasoning, (agentId, requestedModel) => {
       const settings = store.agentProviderSettings(agentId);
       if (!settings) {
         if (requestedModel) throw new Error('Thought routing requires saved Agent provider settings');
@@ -109,7 +111,7 @@ export class Application {
       }
       const model = requestedModel ?? settings.model;
       if ((model === 'grok-4.3') !== (settings.model === 'grok-4.3')) throw new Error('Thought routing cannot cross provider credential boundaries');
-      const apiKey = settings.encryptedApiKey ? vault.decrypt(settings.encryptedApiKey) : (model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
+      const apiKey = providerApiKey(store, vault, agentId, model === 'grok-4.3' ? 'xai' : 'openai');
       if (!apiKey) throw new Error(`Set an API key in this Agent's Settings to use ${settings.model}`);
       const provider = model === 'grok-4.3' ? new XaiProvider(apiKey, model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, model, fetch, promptResolver(store), 'openai', observeUsage);
       return observeProvider(store, provider, 'reasoning', provider.label);
@@ -191,20 +193,17 @@ export class Application {
     this.store.get('agent', agentId);
     const settings = this.store.agentProviderSettings(agentId);
     const xai = settings?.model === 'grok-4.3' || (!settings && projectEnvironmentValue('PROVIDER') === 'xai');
-    const apiKey = settings?.encryptedApiKey ? this.#vault.decrypt(settings.encryptedApiKey) : (xai ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
+    const apiKey = providerApiKey(this.store, this.#vault, agentId, xai ? 'xai' : 'openai');
     if (!apiKey) throw new Error('Set an API key in Agent Settings before smart creation');
     if (xai) return new XaiProvider(apiKey, settings?.model ?? process.env.XAI_MODEL, fetch, promptResolver(this.store));
     return new OpenAIProvider(apiKey, settings?.model ?? process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
   }
   simulationEvaluatorProvider(agentId: string, model?: string): Pick<OpenAIProvider, 'label' | 'author'> {
     this.store.get('agent', agentId);
-    const settings = this.store.agentProviderSettings(agentId);
     const selected = model ?? this.agentInferenceSettings(agentId).model;
     if (!['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3'].includes(selected)) throw new Error('Choose a supported evaluator model');
     const xai = selected === 'grok-4.3';
-    const sameVendor = settings && (settings.model === 'grok-4.3') === xai;
-    const key = sameVendor && settings.encryptedApiKey ? this.#vault.decrypt(settings.encryptedApiKey)
-      : (xai ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
+    const key = providerApiKey(this.store, this.#vault, agentId, xai ? 'xai' : 'openai');
     if (!key) throw new Error('Configure a key for the evaluator model in Agent Settings or the server environment');
     return xai ? new XaiProvider(key, selected) : new OpenAIProvider(key, selected);
   }
@@ -213,21 +212,55 @@ export class Application {
     this.store.saveAgentActivationSettings(agentId, { ...this.agentActivationSettings(agentId), ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)) });
     return this.agentActivationSettings(agentId);
   }
+  providerConnections(agentId: string) { return providerConnections(this.store, agentId); }
+  addProviderConnection(agentId: string, provider: ConnectedProvider, apiKey: string, accountId?: string) {
+    if (provider === 'cloudflare' && !accountId) throw new Error('Cloudflare Account ID is required');
+    const encryptedApiKey = this.#vault.encrypt(apiKey);
+    this.store.transaction(() => {
+      this.store.saveAgentProviderConnection(agentId, provider, encryptedApiKey);
+      if (provider === 'cloudflare') this.store.saveAgentImageSettings(agentId, accountId!, encryptedApiKey);
+    });
+    return this.providerConnections(agentId);
+  }
+  removeProviderConnection(agentId: string, provider: ConnectedProvider) {
+    removeProviderConnection(this.store, agentId, provider);
+    return this.providerConnections(agentId);
+  }
+  agentClassifierSettings(agentId: string) {
+    const saved = this.store.agentClassifierSettings(agentId);
+    return { model: saved?.model ?? process.env.JEV_MODEL ?? 'jev-latest', hasAgentKey: Boolean(encryptedProviderKey(this.store, agentId, 'jev')),
+      hasServerKey: Boolean(process.env.JEV_API_KEY || process.env.TYPESAFE_API_KEY),
+      usesServerProvider: !saved, provider: this.providers.decisions.labelForAgent?.(agentId) ?? this.providers.decisions.label };
+  }
+  updateAgentClassifierSettings(agentId: string, input: { model: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined }) {
+    if (input.apiKey && input.clearApiKey) throw new Error('Choose a replacement classifier key or clear the key');
+    const previous = this.store.agentClassifierSettings(agentId);
+    const encryptedApiKey = input.clearApiKey ? null : input.apiKey ? this.#vault.encrypt(input.apiKey) : previous?.encryptedApiKey ?? null;
+    if (!encryptedApiKey && (input.clearApiKey ? !process.env.JEV_API_KEY && !process.env.TYPESAFE_API_KEY : !providerApiKey(this.store, this.#vault, agentId, 'jev'))) throw new Error('Add a JEV API key for this Agent or configure JEV_API_KEY / TYPESAFE_API_KEY on the server');
+    if (input.clearApiKey) removeProviderConnection(this.store, agentId, 'jev');
+    if (input.apiKey) this.store.saveAgentProviderConnection(agentId, 'jev', encryptedApiKey!);
+    this.store.saveAgentClassifierSettings(agentId, { model: input.model, encryptedApiKey });
+    return this.agentClassifierSettings(agentId);
+  }
   agentImageSettings(agentId: string) {
     const saved = this.store.agentImageSettings(agentId);
-    return { accountId: saved?.accountId ?? '', hasApiKey: Boolean(saved?.encryptedApiKey) };
+    return { accountId: saved?.accountId ?? '', hasApiKey: Boolean(encryptedProviderKey(this.store, agentId, 'cloudflare')) };
   }
   updateAgentImageSettings(agentId: string, input: { accountId: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined }) {
     if (input.apiKey && input.clearApiKey) throw new Error('Choose a replacement key or clear the key');
     const saved = this.store.agentImageSettings(agentId);
-    this.store.saveAgentImageSettings(agentId, input.accountId, input.clearApiKey ? null : input.apiKey ? this.#vault.encrypt(input.apiKey) : saved?.encryptedApiKey ?? null);
+    const encryptedApiKey = input.clearApiKey ? null : input.apiKey ? this.#vault.encrypt(input.apiKey) : saved?.encryptedApiKey ?? null;
+    if (input.clearApiKey) removeProviderConnection(this.store, agentId, 'cloudflare');
+    if (input.apiKey) this.store.saveAgentProviderConnection(agentId, 'cloudflare', encryptedApiKey!);
+    this.store.saveAgentImageSettings(agentId, input.accountId, encryptedApiKey);
     return this.agentImageSettings(agentId);
   }
   async generateAgentImage(agentId: string, prompt: string) {
     const saved = this.store.agentImageSettings(agentId);
-    if (!saved?.accountId || !saved.encryptedApiKey) throw new Error('Configure Cloudflare Account ID and API token in Agent Settings first');
+    const apiKey = providerApiKey(this.store, this.#vault, agentId, 'cloudflare');
+    if (!saved?.accountId || !apiKey) throw new Error('Configure Cloudflare Account ID and API token in Agent Settings first');
     const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${saved.accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
-      method: 'POST', headers: { Authorization: `Bearer ${this.#vault.decrypt(saved.encryptedApiKey)}`, 'Content-Type': 'application/json' },
+      method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, steps: 4 }), signal: AbortSignal.timeout(120000),
     });
     if (!response.ok) throw new Error(`Cloudflare image generation failed (HTTP ${response.status})`);
@@ -241,8 +274,8 @@ export class Application {
     const model = saved?.model ?? (projectEnvironmentValue('PROVIDER') === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
     const serverKey = model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
     return { model, thoughtRouting: saved?.thoughtRouting ?? null, usesAgentModel: saved !== null,
-      hasAgentKey: saved?.encryptedApiKey !== null && saved?.encryptedApiKey !== undefined,
-      hasServerKey: Boolean(serverKey), hasUsableKey: Boolean(saved?.encryptedApiKey || serverKey), availableModels: [
+      hasAgentKey: Boolean(encryptedProviderKey(this.store, agentId, model === 'grok-4.3' ? 'xai' : 'openai')),
+      hasServerKey: Boolean(serverKey), hasUsableKey: Boolean(encryptedProviderKey(this.store, agentId, model === 'grok-4.3' ? 'xai' : 'openai') || serverKey), availableModels: [
         { id: 'gpt-5-nano', label: 'GPT-5 nano · $0.05 / 1M input tokens' },
         { id: 'gpt-4.1-nano', label: 'GPT-4.1 nano · $0.10 / 1M input tokens' },
         { id: 'grok-4.3', label: 'Grok 4.3 · xAI · reasoning off' },
@@ -256,7 +289,8 @@ export class Application {
     if (input.clearApiKey && input.apiKey) throw new Error('Choose either a new API key or clear the Agent key');
     const previous = this.store.agentProviderSettings(agentId);
     const switchingProvider = previous && (previous.model === 'grok-4.3') !== (input.model === 'grok-4.3');
-    if (switchingProvider && previous.encryptedApiKey && !input.apiKey && !input.clearApiKey) throw new Error('Changing provider requires its API key, or clearApiKey to use its server key');
+    const connectedKey = this.store.agentProviderConnections(agentId).find(item => item.provider === (input.model === 'grok-4.3' ? 'xai' : 'openai'))?.encryptedApiKey;
+    if (switchingProvider && previous.encryptedApiKey && !input.apiKey && !input.clearApiKey && !connectedKey) throw new Error('Changing provider requires its API key, or clearApiKey to use its server key');
     let encryptedApiKey = switchingProvider ? null : previous?.encryptedApiKey ?? null;
     if (input.clearApiKey) encryptedApiKey = null;
     if (input.apiKey) {
@@ -264,12 +298,17 @@ export class Application {
       encryptedApiKey = this.#vault.encrypt(input.apiKey);
     }
     const serverKey = input.model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
-    if (!encryptedApiKey && !serverKey) throw new Error(`Add an ${input.model === 'grok-4.3' ? 'xAI' : 'OpenAI'} API key for this Agent or to the server .env file`);
+    if (!encryptedApiKey && !serverKey && !(input.clearApiKey ? false : connectedKey)) throw new Error(`Add an ${input.model === 'grok-4.3' ? 'xAI' : 'OpenAI'} API key for this Agent or to the server .env file`);
     const thoughtRouting = input.thoughtRouting === undefined ? previous?.thoughtRouting ?? null
       : input.thoughtRouting === null ? null : ThoughtRoutingSettingsSchema.parse(input.thoughtRouting);
     if (thoughtRouting && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => !models.includes(model))) throw new Error('Choose supported thought routing models');
     if (thoughtRouting?.enabled && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => (model === 'grok-4.3') !== (input.model === 'grok-4.3')))
       throw new Error('Thought routing models must use the same provider as the Agent');
+    const provider = input.model === 'grok-4.3' ? 'xai' : 'openai';
+    if (switchingProvider && previous.encryptedApiKey && !this.store.agentProviderConnections(agentId).some(item => item.provider === (previous.model === 'grok-4.3' ? 'xai' : 'openai')))
+      this.store.saveAgentProviderConnection(agentId, previous.model === 'grok-4.3' ? 'xai' : 'openai', previous.encryptedApiKey);
+    if (input.clearApiKey) removeProviderConnection(this.store, agentId, provider);
+    if (input.apiKey) this.store.saveAgentProviderConnection(agentId, provider, encryptedApiKey!);
     this.store.saveAgentProviderSettings(agentId, { model: input.model, encryptedApiKey, thoughtRouting });
     return this.agentInferenceSettings(agentId);
   }

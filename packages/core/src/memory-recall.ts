@@ -53,7 +53,7 @@ export async function relevantMemories(decisions: DecisionProvider, inspection: 
     .sort((a, b) => b.score - a.score || a.partId.localeCompare(b.partId));
   const selected = limit === null ? ranked : ranked.slice(0, limit);
   inspection.emit(input.world.agentId, input.world.cycleId, 'memory.relevance_scored', {
-    worldId: input.world.id, purpose, provider: decisions.label,
+    worldId: input.world.id, purpose, provider: decisions.labelForAgent?.(input.world.agentId) ?? decisions.label,
     scores: scores.map(score => ({ memoryId: score.partId, partId: byId.get(score.partId)!.part.id,
       score: score.score, relevance: score.score / 4, ...(score.distribution ? { distribution: score.distribution } : {}) })),
     selectedMemoryIds: selected.map(score => score.partId),

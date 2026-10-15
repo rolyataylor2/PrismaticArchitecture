@@ -765,7 +765,7 @@ export function resumeDream(app: Application, runId: string): SimulationRun {
     throw new ConflictError('Dream Agent state changed after this run stopped; resume cannot silently replace that history');
   const runner = run.mode === 'fixture' ? new Application(app.store, undefined, undefined, run.startingConfiguration?.runtime) : app;
   const reasoning = runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string };
-  const providers = { reasoning: reasoning.labelForAgent?.(run.agentId) ?? reasoning.label, decisions: runner.providers.decisions.label, embeddings: runner.providers.embeddings.label };
+  const providers = { reasoning: reasoning.labelForAgent?.(run.agentId) ?? reasoning.label, decisions: runner.providers.decisions.labelForAgent?.(run.agentId) ?? runner.providers.decisions.label, embeddings: runner.providers.embeddings.label };
   run.resumptions = [...(run.resumptions ?? []), { at: now(), previousStatus: run.status, error: run.error, completedStages: run.stages.length, before: structuredClone(run.dream.after),
     runtime: structuredClone(runner.runtimeConfiguration), activationSettings: structuredClone(runner.agentActivationSettings(run.agentId)), model: runner.store.agentProviderSettings(run.agentId)?.model ?? null, thoughtRouting: structuredClone(runner.store.agentProviderSettings(run.agentId)?.thoughtRouting ?? null),
     engine: engineProvenance(), providers, prompts: runner.promptSettings(run.agentId).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })) }];
@@ -820,7 +820,7 @@ export function replaySimulation(app: Application, runId: string, reason: string
   if (parent.mode === 'configured') {
     if (JSON.stringify(parent.startingConfiguration.runtime) !== JSON.stringify(app.runtimeConfiguration)) throw new Error('Current runtime differs from the frozen runtime; rerun is unavailable');
     if (app.providers.embeddings.label !== parent.providers.embeddings) throw new Error('Current embedding adapter differs from the recorded provider');
-    const label = app.providers.decisions.label;
+    const label = app.providers.decisions.labelForAgent?.(parent.agentId) ?? app.providers.decisions.label;
     if (label !== parent.providers.decisions) throw new Error('Current decision adapter differs from the recorded provider');
     const model = parent.providerRouting.model;
     if (model === null) {
@@ -844,6 +844,10 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   if (mode === 'configured' && !dream) {
     const settings = app.store.agentProviderSettings(sourceAgentId);
     if (settings) app.store.saveAgentProviderSettings(agent.id, settings);
+    const classifier = app.store.agentClassifierSettings(sourceAgentId);
+    if (classifier) app.store.saveAgentClassifierSettings(agent.id, classifier);
+    for (const connection of app.store.agentProviderConnections(sourceAgentId))
+      app.store.saveAgentProviderConnection(agent.id, connection.provider, connection.encryptedApiKey);
     app.store.saveAgentActivationSettings(agent.id, app.store.agentActivationSettings(sourceAgentId));
     for (const prompt of app.promptSettings(sourceAgentId)) app.editPrompt(agent.id, prompt.task, 'agent', prompt.effective);
   }
@@ -868,7 +872,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   let reasoning = runner.providers.reasoning.label;
   try { reasoning = (runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string }).labelForAgent?.(agent.id) ?? reasoning; }
   catch (error) { setupError = error instanceof Error ? error.message : String(error); }
-  const decisions = runner.providers.decisions.label;
+  const decisions = runner.providers.decisions.labelForAgent?.(agent.id) ?? runner.providers.decisions.label;
   const mockReasoning = /mock|deterministic/i.test(reasoning); const mockDecisions = /mock|deterministic/i.test(decisions);
   const run: SimulationRun = { ...(dream ? { dream: { hostPid: process.pid, keepChanges: dream.keepChanges, sourceBefore: sourceBefore!, before: structuredClone(dreamState(app.store, agent.id)), identifierMap } } : {}), engine: engineProvenance(), id: id(dream ? 'experience' : 'simulation'), kind: 'simulation_test', testId: definition.id, title: definition.title, source: definition.source, specification: structuredClone(definition),
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',

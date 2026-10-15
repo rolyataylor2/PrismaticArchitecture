@@ -1,3 +1,4 @@
+import { InfrastructureError } from '../../core/src/contracts.js';
 import { projectEnvironmentValue } from './environment.js';
 import { MockDecisions, MockEmbeddings, MockReasoning } from './mock.js';
 import { OllamaProvider } from './ollama.js';
@@ -15,7 +16,11 @@ export function configuredProviders(environment: NodeJS.ProcessEnv = process.env
     : mode === 'ollama' ? new OllamaProvider(environment.OLLAMA_MODEL ?? '', environment.OLLAMA_URL, fetch, promptResolver) : new MockReasoning();
   const decisionMode = projectEnvironmentValue('DECISIONS', environment) ?? ((mode === 'openai' || mode === 'xai') ? 'jev' : mode === 'ollama' ? 'ollama' : 'mock');
   if (!['mock', 'ollama', 'jev'].includes(decisionMode)) throw new Error('Unknown decision provider');
-  const decisions = decisionMode === 'jev' ? new JevDecisions(jevTransport ?? new JevHttpTransport(environment.JEV_API_KEY ?? environment.TYPESAFE_API_KEY ?? '', environment.JEV_MODEL, fetch), promptResolver)
+  const jevKey = environment.JEV_API_KEY ?? environment.TYPESAFE_API_KEY ?? '';
+  const missingJevKey = async (): Promise<never> => { throw new InfrastructureError('provider', 'Set a JEV API key in Agent Classifier settings or JEV_API_KEY / TYPESAFE_API_KEY on the server'); };
+  const decisions = decisionMode === 'jev' ? new JevDecisions(jevTransport ?? (jevKey
+    ? new JevHttpTransport(jevKey, environment.JEV_MODEL, fetch)
+    : { label: `jev/${environment.JEV_MODEL ?? 'jev-latest'}`, scores: missingJevKey, choice: missingJevKey }), promptResolver)
     : decisionMode === 'ollama' ? new OllamaProvider(environment.OLLAMA_MODEL ?? '', environment.OLLAMA_URL, fetch, promptResolver) : new MockDecisions();
   return { reasoning, decisions, embeddings: new MockEmbeddings() };
 }

@@ -109,3 +109,6 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 [ADR 0165: Continuous asynchronous cognition](0165-continuous-asynchronous-cognition.md) defines the single-runtime cutover, busy-scope policy, activation allowances and remaining integration obligations.
 
 [ADR 0169: Speech-only Executive default](0169-speech-only-executive-default.md) enables Speaking in default profiles while requiring explicit Tool execution enablement.
+
+- [0170 — Per-Agent JEV classifier settings](0170-agent-classifier-settings.md)
+- [0171 — Per-Agent provider connections](0171-agent-provider-connections.md)
