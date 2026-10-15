@@ -2496,7 +2496,26 @@ function dispositionsPage(): void {
     const durable = visible.filter(item => !item.temporary);
     const rows = node('div', '', 'disposition-list'); rows.setAttribute('aria-label', 'Dispositions and temporary attention');
     list.append(rows);
+    const predictionGroups = new Map<string, HTMLElement>();
     for (const disposition of [...durable, ...temporary]) {
+      let parent: HTMLElement = rows;
+      if (disposition.temporary && disposition.sourcePredictionId) {
+        const predictionId = disposition.sourcePredictionId;
+        let items = predictionGroups.get(predictionId);
+        if (!items) {
+          const prediction = state!.predictions.find(item => item.id === predictionId);
+          const label = prediction?.expectation ?? 'Prediction unavailable';
+          const group = node('fieldset', '', 'disposition-prediction-group');
+          group.dataset.kind = 'prediction'; group.dataset.predictionId = predictionId;
+          const legend = node('legend');
+          const name = prediction ? button(label, () => openPredictionInfo(prediction), true) : node('span', label);
+          name.title = `${label} · ${predictionId}`; legend.append(name);
+          items = node('div', '', 'disposition-prediction-items');
+          items.tabIndex = 0; items.setAttribute('aria-label', `Dispositions bound to ${label}`);
+          group.append(legend, items); rows.append(group); predictionGroups.set(predictionId, items);
+        }
+        parent = items;
+      }
       const row = node('div', '', 'disposition-row');
       row.classList.toggle('temporary', disposition.temporary);
       row.dataset.kind = disposition.temporary ? 'temporary' : 'persistent';
@@ -2515,7 +2534,7 @@ function dispositionsPage(): void {
       inspect.append(icon, text);
       const edit = memoryActionIcon(`Edit ${disposition.name}`, 'pencil', async () => { componentAuthoring('disposition', false, disposition); });
       row.append(inspect, edit);
-      rows.append(row);
+      parent.append(row);
     }
     const fallbackParts = state!.parts.filter(part => part.name === 'self' && !part.instance?.dispositionBindings?.length &&
       [part.name, part.mission, part.instance?.interpretation ?? ''].join(' ').toLowerCase().includes(query));

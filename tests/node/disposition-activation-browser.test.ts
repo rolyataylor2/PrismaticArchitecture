@@ -18,14 +18,16 @@ test('activation history renders exact source judgments, filters threads and ope
   { origin: 'researcher_edit', reason: 'Explicit chart rendering starting condition', sourceIds: [] });
   await app.message(agent.id, 'A bird chirps.', 'observer', 'forest');
   await app.message(agent.id, 'A bird chirps nearby.', 'observer', 'garden');
-  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity', temporary: true }, 0,
-    { origin: 'researcher_edit', reason: 'Empty chart condition without fabricated measurements', sourceIds: [] });
   store.save('prediction', { id: 'attention-display', agentId: agent.id, partId: store.list('part', agent.id)[0]!.id,
     version: 1, schemaVersion: 1, expectation: 'A bird may return',
     capsule: { interpretation: 'A bird was heard.', details: [], entities: [], activation: 2, spike: 0, sourceIds: [] },
     confidence: .5, horizon: 'Later', evaluateAfterCycle: null, createdCycle: store.cycles(agent.id)[0]!.id,
     status: 'open', memoryId: null, evaluation: null, attention: [{ target: 'Returning birds', cues: ['More birdsong'] }] }, 0,
     { origin: 'researcher_edit', reason: 'Explicit temporary attention display fixture', sourceIds: [] });
+  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity', temporary: true, sourcePredictionId: 'attention-display' }, 0,
+    { origin: 'researcher_edit', reason: 'Empty chart condition without fabricated measurements', sourceIds: [] });
+  store.save('disposition', { ...store.get('disposition', 'quiet'), id: 'returning-birds', name: 'Returning birds' }, 0,
+    { origin: 'researcher_edit', reason: 'Second disposition with the same source prediction', sourceIds: [] });
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
   try {
@@ -34,12 +36,21 @@ test('activation history renders exact source judgments, filters threads and ope
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Quiet Curiosity', exact: true }).waitFor();
-    const rows = page.locator('.disposition-list > .disposition-row:not([data-kind="self"])');
+    const rows = page.locator('.disposition-list > [data-kind]:not([data-kind="self"])');
     const kinds = await rows.evaluateAll(elements => elements.map(element => (element as HTMLElement).dataset.kind));
-    assert.deepEqual(kinds, ['persistent', 'temporary', 'attention']);
+    assert.deepEqual(kinds, ['persistent', 'prediction', 'attention']);
     assert.equal(await rows.nth(0).evaluate(element => getComputedStyle(element).borderTopStyle), 'solid');
-    assert.equal(await rows.nth(1).evaluate(element => getComputedStyle(element).borderTopStyle), 'dashed');
-    assert.match(await rows.nth(1).evaluate(element => getComputedStyle(element).borderTopColor), /0\.45/);
+    const group = page.locator('.disposition-prediction-group');
+    assert.equal(await group.count(), 1);
+    assert.equal(await group.locator('.disposition-row').count(), 2);
+    assert.equal(await group.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)');
+    assert.equal(await group.evaluate(element => getComputedStyle(element).borderTopColor), 'rgb(255, 255, 255)');
+    assert.equal(await group.locator('.disposition-row').first().evaluate(element => getComputedStyle(element).borderTopStyle), 'dashed');
+    assert.match(await group.locator('.disposition-row').first().evaluate(element => getComputedStyle(element).borderTopColor), /0\.45/);
+    assert.ok(Math.abs((await group.boundingBox())!.height - (await rows.nth(0).boundingBox())!.height) <= 1);
+    await group.getByRole('button', { name: 'A bird may return', exact: true }).click();
+    await page.getByRole('dialog').last().waitFor();
+    await page.keyboard.press('Escape');
     assert.equal(await rows.nth(2).evaluate(element => getComputedStyle(element).borderTopStyle), 'none');
     await page.screenshot({ path: '/tmp/prism-dispositions-unified-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
