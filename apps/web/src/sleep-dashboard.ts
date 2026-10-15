@@ -96,10 +96,16 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     title.append(el('p', 'AGENT OPERATIONS', 'rd-eyebrow'), el('h2', 'Sleep')); top.append(title);
     const actions = el('div', '', 'rd-actions');
     const start = action(actions, 'Induce sleep cycle', induce, 'rd-primary');
-    start.disabled = busy || snapshot.cycles.some(cycle => cycle.status === 'running') || cycles.some(cycle => cycle.status === 'running') || !snapshot.cycles.some(cycle => cycle.status === 'completed') || snapshot.agent.architecture === 'persistent';
+    const blockedReason = busy ? 'Sleep cycle request is in progress.'
+      : snapshot.cycles.some(cycle => cycle.status === 'running') ? 'A cognitive cycle is recorded as running. Wait for it to finish; an interrupted cycle requires recovery before sleep.'
+      : cycles.some(cycle => cycle.status === 'running') ? 'A sleep cycle is recorded as running. Wait for it to finish; an interrupted sleep cycle requires recovery.'
+      : !snapshot.cycles.some(cycle => cycle.status === 'completed') ? 'Complete a cognitive cycle before inducing sleep.'
+      : snapshot.agent.architecture === 'persistent' ? 'New sleep cycles require the current memory and disposition profile.' : '';
+    start.disabled = Boolean(blockedReason); start.title = blockedReason;
     action(actions, 'Refresh', () => { void refresh().catch(options.fail); }); top.append(actions); host.append(top);
     const main = el('div', '', 'rd-main'); host.append(main);
     main.append(el('p', 'Sleep is offline memory and disposition consolidation, separate from the cognitive loop. Counts describe recorded processing, not psychological improvement.', 'rd-caption'));
+    if (blockedReason) main.append(el('p', blockedReason, 'rd-caution'));
     if (snapshot.agent.architecture === 'persistent') main.append(el('p', 'This Agent retains a historical Part-development profile. Its saved cycles remain inspectable; new sleep cycles here require the current memory and disposition profile.', 'rd-caution'));
     if (!snapshot.cycles.some(cycle => cycle.status === 'completed')) main.append(el('p', 'Complete a cognitive cycle before inducing sleep.', 'rd-caution'));
     const stats = el('div', '', 'rd-stats');

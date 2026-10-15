@@ -39,6 +39,15 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await app.message(agent.id, 'A friend listened to my uncertainty and offered to meet again.', 'friend', 'sleep-source');
     const cyclesBefore = store.cycles(agent.id).length;
     await page.reload(); await page.getByRole('button', { name: 'Sleep', exact: true }).click();
+    const interrupted = store.cycles(agent.id).at(-1)!;
+    store.saveCycle({ ...interrupted, status: 'running' });
+    await panel.getByRole('button', { name: 'Refresh', exact: true }).click();
+    await panel.getByText('A cognitive cycle is recorded as running. Wait for it to finish; an interrupted cycle requires recovery before sleep.', { exact: true }).waitFor();
+    assert.equal(await panel.getByRole('button', { name: 'Induce sleep cycle', exact: true }).isDisabled(), true);
+    app.recoverCycle(interrupted.id, 'Authored interrupted-cycle recovery fixture');
+    store.saveCycle(interrupted);
+    await panel.getByRole('button', { name: 'Refresh', exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('.sleep-dashboard .rd-primary')?.disabled);
     await panel.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Induce sleep cycle', exact: true });
     await dialog.waitFor(); assert.equal(store.consolidations(agent.id).length, 0, 'Opening confirmation does not start sleep');
