@@ -1195,18 +1195,17 @@ dialog.app-dialog > .modal-header > :first-child { min-width: 0; }
 .disposition-group { margin-bottom: 24px; }
 .disposition-group > h3 { margin: 0 0 6px; }
 .disposition-description { margin: 0 0 12px; font-size: .9em; }
-.disposition-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
-.disposition-row { min-width: 0; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border, #ddd); border-radius: 8px; padding-right: 8px; }
-.disposition-row.temporary { border-style: dashed; border-color: color-mix(in srgb, var(--border, #ddd) 65%, transparent); }
-.disposition-summary { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; width: 100%; text-align: left; padding: 12px 8px; }
-.disposition-name { min-width: 0; flex: 0 1 24%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.disposition-concern { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.disposition-concern > span { display: inline-block; }
-.disposition-cues { flex: 0 1 30%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .55; font-size: .9em; }
-.disposition-row:hover .disposition-concern.overflows, .disposition-row:focus-within .disposition-concern.overflows { text-overflow: clip; }
-.disposition-row:hover .disposition-concern.overflows > span, .disposition-row:focus-within .disposition-concern.overflows > span { animation: disposition-marquee 8s ease-in-out infinite alternate; }
-@keyframes disposition-marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(var(--marquee-distance)); } }
-@media (prefers-reduced-motion: reduce) { .disposition-row:hover .disposition-concern.overflows > span, .disposition-row:focus-within .disposition-concern.overflows > span { animation: none; } }
+.disposition-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; min-width: 0; }
+.disposition-row { position: relative; min-width: 0; display: flex; border: 1px solid var(--border, #ddd); border-radius: 8px; }
+.disposition-row.temporary { border-style: dashed; }
+.disposition-summary { display: flex; align-items: flex-start; gap: 12px; min-width: 0; width: 100%; padding: 16px 38px 16px 14px; text-align: left; border: 0; border-radius: inherit; background: transparent; color: inherit; }
+.disposition-summary:hover { background: #f1f4ef; }
+.disposition-summary:focus-visible { outline: 2px solid #667d60; outline-offset: 2px; }
+.disposition-icon { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 8px; background: #edf1e9; color: #586e50; }
+.disposition-text { display: grid; gap: 6px; min-width: 0; }
+.disposition-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.disposition-concern { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; color: #647060; font-size: .9em; line-height: 1.45; }
+.disposition-row > button:last-child:not(.disposition-summary) { position: absolute; top: 8px; right: 6px; }
 
 .disposition-inspector-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .disposition-inspector-header h2 { flex: 1; min-width: 0; overflow-wrap: anywhere; }

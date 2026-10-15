@@ -353,3 +353,7 @@ Completed realized replies appear in Audio as `You said: [text]`. The current vi
 The sidebar shows the current Agent as a full-width square linking to Perception. Hover or keyboard focus reveals its options pencil. Edit Agent opens a name and emoji/initials avatar dialog; changes persist as a versioned researcher profile edit. Change Agent opens a grid of all catalog Agents, including database labels, with the current selection marked.
 
 Sidebar navigation places icon-only Sleep and Dreams controls beneath the Agent square, followed by Primitives, Identity, Dispositions, Memories, Part History, Predictions, Analytics, Affect Analysis, Logs and Executive. Settings remains the final collapsible group. The Agent square opens Perception.
+
+## Disposition directory
+
+Dispositions use a responsive grid of compact icon tiles showing each name and concern. Tiles open the existing inspector; separate edit controls, search, filtering and temporary/durable grouping remain available. Long descriptions are limited to three lines with the full concern available on hover and in the inspector.

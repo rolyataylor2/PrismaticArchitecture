@@ -27,7 +27,6 @@ test('component menus create reviewed records and filter/sort lists through floa
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Disposition Lens', exact: true }).count(), 0);
     const navigate = async (name: string) => { await page.getByRole('button', { name, exact: true }).click(); };
     await navigate('Primitives');
@@ -87,9 +86,14 @@ test('component menus create reviewed records and filter/sort lists through floa
     await disposition.getByLabel('Cues (one per line)', { exact: true }).fill('An invitation');
     await disposition.getByRole('button', { name: 'Create disposition', exact: true }).click();
     await disposition.waitFor({ state: 'hidden' }); assert.equal(store.list('disposition', agent.id).length, 1);
+    assert.ok(await page.locator('.disposition-list').last().evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length) > 1);
+    assert.equal(await page.locator('.disposition-icon svg').count(), 1);
+    await page.getByRole('button', { name: 'Inspect Welcomed curiosity', exact: true }).click();
+    await page.getByRole('region', { name: 'Disposition inspector' }).waitFor();
+    await page.getByRole('button', { name: '← Back to dispositions', exact: true }).click();
     // Long disposition text must shrink inside the panel at desktop and narrow widths.
     await page.locator('.disposition-name').evaluate(element => { element.textContent = 'Long disposition name '.repeat(40); });
-    await page.locator('.disposition-cues').evaluate(element => { element.textContent = 'Long attention cue '.repeat(100); });
+    await page.locator('.disposition-concern').evaluate(element => { element.textContent = 'Long attention cue '.repeat(100); });
     for (const width of [1440, 1024, 768, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Dispositions overflows at ${width}px`);

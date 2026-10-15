@@ -2522,18 +2522,16 @@ function dispositionsPage(): void {
         row.classList.toggle('temporary', disposition.temporary);
         const inspect = button('', () => { void openDispositionInfo(disposition).catch(showError); }, true);
         inspect.classList.add('disposition-summary'); inspect.setAttribute('aria-label', `Inspect ${disposition.name}`);
-        const concern = node('span', '', 'disposition-concern'); const text = node('span', disposition.concern); concern.append(text);
-        inspect.append(node('span', disposition.name, 'disposition-name'), node('span', '›', 'muted'), concern,
-          node('span', '›', 'muted'), node('span', disposition.cues.join(' · '), 'disposition-cues'));
+        const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
+        const text = node('span', '', 'disposition-text');
+        const concern = node('span', disposition.concern, 'disposition-concern');
+        concern.title = disposition.concern;
+        const name = node('span', disposition.name, 'disposition-name'); name.title = disposition.name;
+        text.append(name, concern);
+        inspect.append(icon, text);
         const edit = memoryActionIcon(`Edit ${disposition.name}`, 'pencil', async () => { componentAuthoring('disposition', false, disposition); });
         row.append(inspect, edit);
-        row.onclick = event => { if (!(event.target instanceof Element && event.target.closest('button'))) void openDispositionInfo(disposition).catch(showError); };
-        row.addEventListener('focusin', () => row.dispatchEvent(new MouseEvent('mouseenter')));
-        row.onmouseenter = () => {
-          const overflow = text.scrollWidth - concern.clientWidth;
-          concern.style.setProperty('--marquee-distance', `${-Math.max(0, overflow)}px`);
-          concern.classList.toggle('overflows', overflow > 0);
-        };
         rows.append(row);
       }
     }
