@@ -23,7 +23,18 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     await page.getByRole('button', { name: /Select prompt/ }).click();
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Cog · Part formation → reflection → cognition', exact: true });
-    const headerToolbar = page.locator('.component-header .prompt-toolbar');
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      const heights: number[] = [];
+      for (const name of ['Model & key', 'Activation', 'Delete Agent', 'Prompts']) {
+        await page.getByRole('tab', { name, exact: true }).click();
+        heights.push(await page.locator('.settings-header').evaluate(header => header.getBoundingClientRect().height));
+      }
+      assert.equal(new Set(heights).size, 1, `Settings header height stays consistent at ${width}px`);
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+    assert.equal(await page.locator('.component-header').getByRole('tablist', { name: 'Settings', exact: true }).count(), 1);
+    const headerToolbar = page.locator('.prompt-settings-toolbar .prompt-toolbar');
     assert.equal(await headerToolbar.count(), 1);
     const labels = await headerToolbar.locator('.prompt-toolbar-right > button').allTextContents();
     assert.deepEqual(labels, ['data', 'output', 'preview', 'view default', '(?)']);
@@ -36,10 +47,11 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     const bounds = await editor.evaluate(editor => {
       const rect = editor.getBoundingClientRect();
       const main = document.querySelector('main')!.getBoundingClientRect();
-      const settingsPanel = document.querySelector('#settings-panel')!.getBoundingClientRect();
-      return { top: rect.top, panelTop: settingsPanel.top, bottom: rect.bottom, mainBottom: main.bottom, width: rect.width, mainWidth: main.width };
+      const toolbar = document.querySelector('.prompt-settings-toolbar')!.getBoundingClientRect();
+      const header = document.querySelector('.component-header')!.getBoundingClientRect();
+      return { top: rect.top, toolbarBottom: toolbar.bottom, toolbarTop: toolbar.top, headerBottom: header.bottom, bottom: rect.bottom, mainBottom: main.bottom, width: rect.width, mainWidth: main.width };
     });
-    assert.equal(bounds.top, bounds.panelTop); assert.equal(bounds.bottom, bounds.mainBottom); assert.equal(bounds.width, bounds.mainWidth);
+    assert.equal(bounds.toolbarTop, bounds.headerBottom); assert.equal(bounds.top, bounds.toolbarBottom); assert.equal(bounds.bottom, bounds.mainBottom); assert.equal(bounds.width, bounds.mainWidth);
     const draft = '# Draft\n{% if part.name %}Missing end tag';
     await editor.fill(draft);
     await page.getByRole('button', { name: /Select prompt/ }).click();
@@ -53,26 +65,26 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     await page.getByRole('button', { name: /Select prompt/ }).click();
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     assert.equal(await editor.inputValue(), draft);
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'data', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'data', exact: true }).click();
     assert.ok((await panel.innerText()).includes('{{ world }}'));
     assert.ok((await headerToolbar.innerText()).includes('LLM · Generation'));
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Information', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Information', exact: true }).click();
     const information = page.getByRole('dialog', { name: 'Cog · Part formation → reflection → cognition information', exact: true });
     assert.ok((await information.innerText()).includes('Parallel LLM calls'));
     await information.getByRole('button', { name: 'Close', exact: true }).click();
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Reset', exact: true }).click();
-    assert.deepEqual(await page.locator('.component-header .prompt-toolbar').getByRole('menuitem').allTextContents(), ['Reset Agent to defaults', 'Reset Global prompts to defaults', 'Reset Every prompt to defaults']);
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Reset', exact: true }).click();
+    assert.deepEqual(await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem').allTextContents(), ['Reset Agent to defaults', 'Reset Global prompts to defaults', 'Reset Every prompt to defaults']);
     await page.keyboard.press('Escape');
     for (const label of ['To Agent', 'Globally']) {
-      await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
-      await page.locator('.component-header .prompt-toolbar').getByRole('menuitem', { name: label, exact: true }).click();
+      await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
+      await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem', { name: label, exact: true }).click();
       await page.locator('.error-toast').last().getByRole('alert').waitFor();
       assert.match(await page.locator('.error-toast').last().getByRole('alert').innerText(), /Prompt not saved\. Invalid Twig prompt template:.*end tag/s);
       assert.equal(await editor.inputValue(), draft);
       assert.equal(await editor.getAttribute('aria-invalid'), 'true');
       assert.deepEqual(store.promptOverrides(), []);
     }
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Preview', exact: true }).click();
     const previewError = page.locator('.error-toast').filter({ hasText: 'Preview unavailable' }).last();
     await previewError.getByRole('alert').waitFor();
     assert.match(await previewError.innerText(), /Preview unavailable/);
@@ -83,8 +95,8 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     const corrected = '# Draft\n{% if part.name %}Hello {{ part.name }}{% endif %}';
     await editor.fill(corrected);
     assert.equal(await editor.getAttribute('aria-invalid'), null);
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
-    await page.locator('.component-header .prompt-toolbar').getByRole('menuitem', { name: 'To Agent', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem', { name: 'To Agent', exact: true }).click();
     await page.getByText('Cog · Part formation → reflection → cognition saved for this Agent.', { exact: true }).waitFor();
     assert.equal(store.promptOverrides().length, 1);
     assert.equal(store.promptOverrides()[0]!.text, corrected);
@@ -109,7 +121,7 @@ test('Preview opens the rendered unsaved draft with saved WorldState data', { sk
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Cog · Part formation → reflection → cognition', exact: true });
     await panel.getByRole('textbox', { name: 'Prompt text' }).fill('Sample: {{ world.id }} / {{ identity.agentId }}');
-    await page.locator('.component-header .prompt-toolbar').getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Preview', exact: true }).click();
     const popup = page.getByRole('dialog', { name: 'Compiled prompt preview', exact: true });
     await popup.waitFor();
     assert.equal(await popup.locator('pre').innerText(), `Sample: ${sample.cycle.worldId} / ${agent.id}`);

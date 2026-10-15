@@ -856,6 +856,21 @@ function componentHeader(title: string, description: string): HTMLElement {
 }
 let componentHeaderDescriptions: Record<string, string> = {};
 function sizeComponentHeaders(): void {
+  if (activeTab === 'Settings') {
+    const header = content.querySelector<HTMLElement>('.settings-header');
+    if (!header) return;
+    let height = 0;
+    for (const section of ['Model & key', 'Prompts', 'Activation', 'Delete Agent']) {
+      const probe = header.cloneNode(true) as HTMLElement;
+      probe.removeAttribute('id'); probe.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+      probe.setAttribute('aria-hidden', 'true'); probe.inert = true;
+      probe.querySelector('.component-header-description')!.textContent = componentHeaderDescriptions[section]!;
+      Object.assign(probe.style, { position: 'fixed', visibility: 'hidden', pointerEvents: 'none', width: `${header.getBoundingClientRect().width}px`, height: 'auto', minHeight: '0', margin: '0', top: '0', left: '0' });
+      content.append(probe); height = Math.max(height, probe.getBoundingClientRect().height); probe.remove();
+    }
+    content.style.setProperty('--component-header-height', `${Math.ceil(height)}px`);
+    return;
+  }
   if (document.body.classList.contains('model-settings-view') || document.body.classList.contains('activation-settings-view')) { content.style.setProperty('--component-header-height', 'auto'); return; }
   const current = content.querySelector<HTMLElement>('.component-header');
   if (!current || !document.body.classList.contains('component-view') || document.body.classList.contains('simulation-dashboard-view')) return;
@@ -3204,7 +3219,11 @@ function settings(): void {
     };
     tabs.append(tab);
   }
-  content.append(tabs);
+  const header = content.querySelector('.component-header')!;
+  header.querySelector('.component-header-actions')?.remove();
+  header.querySelector('.component-header-tools')?.remove();
+  header.classList.add('settings-header');
+  header.append(tabs);
   if (settingsSection === 'Delete Agent') deleteAgentSettings();
   else if (settingsSection === 'Prompts') promptSettings();
   else if (settingsSection === 'Activation') activationSettings();
@@ -3212,7 +3231,7 @@ function settings(): void {
   const panel = node('div', '', 'settings-panel'); panel.id = 'settings-panel';
   panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `settings-tab-${sections.indexOf(settingsSection)}`);
   panel.tabIndex = 0;
-  while (tabs.nextSibling) panel.append(tabs.nextSibling);
+  while (header.nextSibling) panel.append(header.nextSibling);
   content.append(panel);
 }
 
@@ -3486,7 +3505,7 @@ function promptSettings(): void {
   const header = content.querySelector('.component-header')!;
   header.querySelector('.component-header-actions')?.remove();
   header.querySelector('.component-header-tools')?.remove();
-  const headerControls = node('div', '', 'component-header-prompt-controls'); header.append(headerControls);
+  const headerControls = node('div', '', 'prompt-settings-toolbar'); content.append(headerControls);
   const workspace = node('div', '', 'prompt-workspace'); content.append(workspace);
   void api<PromptRow[]>(`agents/${agentId}/prompts`).then(rows => {
     if (agentId !== selectedAgent || !workspace.isConnected) return;

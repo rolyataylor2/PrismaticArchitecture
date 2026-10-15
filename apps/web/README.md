@@ -220,9 +220,9 @@ All menu headers use the same measured height at a given panel width, reserving 
 
 Smart creation controls for Identity, Memories and Predictions use grayscale brain icons with tooltips and accessible action labels.
 
-The sidebar has a single Settings link. Settings opens one page with Model & key, Prompts, Activation and Delete Agent tabs, preserving the selected tab when returning. Tabs support arrow keys, Home and End. Each tab retains its introduction and controls; Per-thought resources remains a separate card within Model & key.
+The sidebar has a single Settings link. Settings opens one page with Model & key, Prompts, Activation and Delete Agent tabs inside its header, preserving the selected tab when returning. Tabs support arrow keys, Home and End. The header reserves the same height across tabs at the current viewport width, including the longest description and wrapped tabs. Each tab retains its introduction and controls; Per-thought resources remains a separate card within Model & key.
 
-Prompts places the active prompt dropdown, save/reset/preview actions, Information, Data Available, Output Format and Original built-in prompt controls in one bar spanning the header’s second row. Provider/source metadata remains with the editor. Switching prompts swaps the header bar while preserving unsaved editor drafts.
+Prompts places the active prompt dropdown, save/reset/preview actions, Information, Data Available, Output Format and Original built-in prompt controls in one bar directly below the Settings header. Provider/source metadata remains with the editor. Switching prompts swaps the toolbar while preserving unsaved editor drafts.
 
 The Prompts bar orders call type, prompt dropdown, override/default status, Save, Reset, Preview, Data, output, Original built-in prompt and the far-right (?) information button. The editor fills the remaining right panel below the header; Data can open its reference pane alongside the editor.
 

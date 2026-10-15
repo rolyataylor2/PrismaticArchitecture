@@ -42,7 +42,7 @@ test('thought routing settings save explicit models and show measured evidence o
     await page.screenshot({ path: '/tmp/prism-thought-routing-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    assert.ok((await page.locator('main .component-header').boundingBox())!.height < 220, 'Model settings header fits its actual content on mobile');
+    assert.ok((await page.locator('main .component-header').boundingBox())!.height < 360, 'Settings header fits the shared descriptions and wrapped tabs on mobile');
     assert.equal(await page.getByText('ResizeObserver loop completed with undelivered notifications.', { exact: true }).count(), 0);
     await page.screenshot({ path: '/tmp/prism-thought-routing-mobile.png', fullPage: true });
     assert.deepEqual(errors, []);

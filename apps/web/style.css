@@ -1546,7 +1546,12 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 @media (max-width: 800px) { .provider-add-row.cloudflare-selected { grid-template-columns: minmax(0, 1fr); } }
 
 /* Settings shares one page and keeps section navigation in the content area. */
-.settings-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; flex-shrink: 0; border-bottom: 1px solid #aabcae; margin-bottom: 16px; }
+.settings-tabs { grid-column: 1 / -1; grid-row: 2; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .settings-tabs [aria-selected="true"] { background: #244f3c; color: #fff; border-color: #244f3c; }
 .settings-panel { min-width: 0; }
 .prompts-view .settings-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+.prompt-settings-toolbar { flex-shrink: 0; min-width: 0; padding: 12px 28px; background: #f8faf6; border-bottom: 1px solid #d8dfd4; }
+
+.component-view .settings-header { grid-template-rows: auto auto; }
+@media (max-width: 650px) { .component-view .settings-header { grid-template-rows: auto auto auto; } .settings-tabs { grid-row: 3; } }
