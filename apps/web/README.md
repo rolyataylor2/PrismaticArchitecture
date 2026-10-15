@@ -338,6 +338,8 @@ Current sensor entries display as text, matching historical entries, with right-
 
 A trash icon to the right of the current WorldState channel tabs resets staged entry edits to the latest recorded snapshot after confirmation. Cancel preserves edits; historical snapshots have no reset control.
 
+Channel tabs use three-letter labels (AUD, VIS, TAC, OLF, GUS, GEN, THO) with ear, eye, hand, nose, tongue, globe and brain icons. Full names remain available in tooltips and accessible labels; counts and keyboard navigation are preserved.
+
 Decaying thoughts appear in a dedicated read-only WorldState tab for both current and past snapshots, retaining Part attribution, recorded age and Self-selection status.
 
 Perception playback exposes Single Cycle using the existing per-Agent activation-pass setting: checked saves one pass; unchecked saves unlimited passes. Play starts or resumes that allowance while admitted Part cognition, prediction evaluation and Self finish. It does not cancel in-flight cognition.

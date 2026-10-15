@@ -19,6 +19,8 @@ test('Perception displays latest Agent snapshot and updates without a chat inter
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Perception', exact: true }).click();
     await page.getByText('No WorldState has been recorded for this Agent yet.', { exact: true }).waitFor();
+    assert.deepEqual(await page.getByRole('tablist', { name: 'WorldState channels' }).getByRole('tab').allTextContents(), ['AUD (0)', 'VIS (0)', 'TAC (0)', 'OLF (0)', 'GUS (0)', 'GEN (0)', 'THO (0)']);
+    assert.equal(await page.locator('.perception-tabs [role="tab"] svg').count(), 7);
     assert.equal(await page.locator('.chat-transcript, .chat-input-dock, .session-row').count(), 0);
     await app.message(agent.id, 'A bird is singing outside.', 'Sensor audio', 'perception-a');
     await page.locator('.perception-fact').filter({ hasText: 'A bird is singing outside.' }).first().waitFor();

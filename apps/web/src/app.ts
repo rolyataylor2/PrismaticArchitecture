@@ -1503,9 +1503,24 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
   const tabs = node('div', '', 'perception-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'WorldState channels');
   const items = current ? draft.items : facts.map(fact => ({ channel: channelOf(fact), text: fact.text, fact }));
   const changed = () => { draft.dirty = true; draft.requestId = crypto.randomUUID(); };
+  const channelIcons: Record<string, string> = {
+    audio: '<path d="M6 9a6 6 0 0 1 12 0c0 4-4 5-4 8a4 4 0 0 1-8 0M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5M9 12v2"/>',
+    visual: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    tactile: '<path d="M8 13V6a2 2 0 0 1 4 0v6M12 7a2 2 0 0 1 4 0v6M16 9a2 2 0 0 1 4 0v7a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-4-6a2 2 0 0 1 3-2l2 2M8 8V4a2 2 0 0 1 4 0v3"/>',
+    olfactory: '<path d="M9 3c0 5-1 8-3 11-2 3 0 6 3 5 2 3 4 3 6 0 3 1 5-2 3-5-2-3-3-6-3-11M7 17h2M15 17h2"/>',
+    gustatory: '<path d="M3 9c0-4 18-4 18 0 0 3-3 5-5 6M3 9c0 3 3 5 5 6M4 9h16M8 12h8v6a4 4 0 0 1-8 0v-6ZM12 13v4"/>',
+    general: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
+    '#thoughts': '<path d="M12 18V5a3 3 0 0 0-5.8-1A4 4 0 0 0 3 10a4 4 0 0 0 .5 7A4 4 0 0 0 12 18ZM12 5a3 3 0 0 1 5.8-1A4 4 0 0 1 21 10a4 4 0 0 1-.5 7A4 4 0 0 1 12 18M7 4v3M17 4v3M3 10h3l2 2M21 10h-3l-2 2M3.5 17H7l1-2M20.5 17H17l-1-2"/>',
+  };
   for (const channel of channels) {
     const label = channel === '#thoughts' ? 'Decaying thoughts' : channel === 'general' ? 'General world facts' : channel[0]!.toUpperCase() + channel.slice(1);
-    const tab = button(`${label} (${channel === '#thoughts' ? thoughts.length : items.filter(item => item.channel === channel).length})`, () => { perceptionChannel = channel; render(); }, true);
+    const count = channel === '#thoughts' ? thoughts.length : items.filter(item => item.channel === channel).length;
+    const abbreviation = (channel === '#thoughts' ? 'thoughts' : channel).slice(0, 3).toUpperCase();
+    const tab = button('', () => { perceptionChannel = channel; render(); }, true);
+    const icon = node('span', '', 'perception-channel-icon'); icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${channelIcons[channel] ?? channelIcons.general}</svg>`;
+    tab.append(icon, document.createTextNode(`${abbreviation} (${count})`));
+    tab.title = label; tab.setAttribute('aria-label', `${label} (${count})`);
     tab.id = `sensor-tab-${channel}`; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(channel === perceptionChannel));
     tab.setAttribute('aria-controls', 'sensor-panel'); tab.tabIndex = channel === perceptionChannel ? 0 : -1;
     tab.onkeydown = event => {
