@@ -132,3 +132,5 @@ ADR 0166 replacement snapshots bound automatic thread-scoped external fact carry
 Executive profiles default missing ADR 0167 module permissions to Speaking and Tool execution enabled under the existing master switch. No schema migration or historical rewrite is needed. Automatic execution feedback respects each action module, and tool checkpoint/teaching feedback requires Tool execution.
 
 Completed speech execution feedback projects into Sensor audio with `You said: [rendered text]`, including legacy speech records. Projection preserves timestamp, cycle and execution references without changing archived executions or frozen snapshots.
+
+ADR 0168 removes legacy prediction attention from current domain schemas and activation. Preserved prediction versions project current schema fields on read without rewriting raw version bytes. Explicit researcher cleanup appends current versions; no automatic live-state migration or legacy activation path is provided.

@@ -334,7 +334,7 @@ for (const origin of ['part', 'gap'] as const) {
         ...(origin === 'part' ? [world.id, world.id] : [])];
       const draft = { expectation: initial.expectation, kind: initial.kind, confidence: initial.confidence,
         horizon: initial.horizon, evaluateAfterCycle: initial.evaluateAfterCycle,
-        capsule: { ...initial.capsule, sourceIds: opaqueSources }, scaffolds: [], attention: [] };
+        capsule: { ...initial.capsule, sourceIds: opaqueSources }, scaffolds: [] };
       let prediction = origin === 'gap' ? app.runtime.predictions.formGap(world, draft, {
         threadId: 'ancestry', gap: 'Uncertain source', consequentialValue: 'Identify the signal',
         futureInference: { prediction: 'Calibration', retrieval: 'Recall', causal: 'Attribution', action: 'Inquiry', compression: 'Continuity' },

@@ -126,3 +126,5 @@ The synthesis factory v2 uses an explicit recorded detail policy and optional gu
 Terminology: [ADR 0161](../../docs/architecture/decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
 
 Simulation assessment v4 sends exact compact evaluation packets: deduplicated relevant versions, original source citation paths and explicit unused inherited-state exclusions. Full source evidence and earlier assessments remain immutable. Oversized requests fall back to per-criterion packets; unserviceable criteria remain explicitly inconclusive without truncation. Agent cognitive access is unchanged.
+
+ADR [0168](../../docs/architecture/decisions/0168-retire-legacy-prediction-attention.md) removes the legacy prediction `attention` field and synthesized scopes. Temporary relevance is proposed only through `scaffolds`, persisted as versioned prediction-bound dispositions. Old-Agent migration is intentionally excluded.

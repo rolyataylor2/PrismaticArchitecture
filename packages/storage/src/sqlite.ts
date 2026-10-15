@@ -7,7 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import {
-  memoryPartIds, IdentityAuthoringSettingsSchema, type IdentityAuthoringSettings, AgentActivationSettingsSchema, readIdentity, entitySchemas, ExecutionSchema, freeze, id, Id, now, Origin, Text, WorldStateSchema, PartSchema, PromptTaskSchema,
+  memoryPartIds, IdentityAuthoringSettingsSchema, type IdentityAuthoringSettings, AgentActivationSettingsSchema, readIdentity, entitySchemas, ExecutionSchema, freeze, id, Id, now, Origin, Text, WorldStateSchema, PartSchema, PredictionSchema, PromptTaskSchema,
   type Part,
   type Change, type Cycle, type EntityKind, type EntityMap, type Execution, type Fact, type VersionRecord, type WorldState, PromptOverrideSchema, type PromptOverride, type PromptTask,
 } from '../../core/src/domain.js';
@@ -359,7 +359,9 @@ export class SqliteStore implements Store {
   }
   versions<K extends EntityKind>(kind: K, entityId: string): VersionRecord<EntityMap[K]>[] {
     return this.#db.prepare('SELECT body,change,at FROM versions WHERE kind = ? AND id = ? ORDER BY version').all(kind, entityId)
-      .map(row => freeze({ state: this.readEntity(kind, row.body as string),
+      .map(row => freeze({ state: kind === 'prediction'
+        ? PredictionSchema.strip().parse(JSON.parse(row.body as string)) as EntityMap[K]
+        : this.readEntity(kind, row.body as string),
         change: JSON.parse(row.change as string) as Change, at: row.at as string }));
   }
   saveWorld(world: WorldState, previousWorldId?: string): void {

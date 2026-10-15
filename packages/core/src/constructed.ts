@@ -193,23 +193,16 @@ export class ConstructedCognition {
     const agentId = world.agentId;
     const openPredictions = this.store.list('prediction', agentId).filter(prediction => prediction.status === 'open');
     const durable = this.store.list('disposition', agentId).filter(disposition => disposition.active && !disposition.temporary);
-    const persistedTemporary = this.store.list('disposition', agentId).filter(disposition => disposition.temporary && disposition.active
+    const temporary = this.store.list('disposition', agentId).filter(disposition => disposition.temporary && disposition.active
       && disposition.scaffold && disposition.scaffold.createdCycle !== world.cycleId
       && disposition.scaffold.threadId === (threadId ?? null)
       && openPredictions.some(prediction => prediction.id === disposition.sourcePredictionId));
-    const temporary = [...persistedTemporary, ...openPredictions.filter(prediction => prediction.createdCycle !== world.cycleId && (prediction.gapOrigin?.threadId ?? (prediction.partId ? this.store.get('part', prediction.partId).instance?.threadId : null)) === (threadId ?? null))
-      .flatMap(prediction => (prediction.attention ?? []).map((attention, index) => DispositionSchema.parse({
-        id: `attention_${prediction.id}_${index}`, agentId, version: 1, schemaVersion: 1,
-        name: `Inspect ${attention.target}`, concern: prediction.expectation, cues: attention.cues,
-        scope: attention.target, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: prediction.id,
-        temporary: true, active: true,
-      })))];
     const includeProcessing = this.store.agentActivationSettings(agentId).includeProcessingDispositions ?? false;
     const busy = (dispositionId: string) => this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId });
     const eligible = [...durable, ...temporary].filter(disposition => includeProcessing || !busy(disposition.id));
     const eligibleIds = new Set(eligible.map(disposition => disposition.id));
     const persisted = this.store.list('disposition', agentId);
-    const eligibility = [...persisted, ...temporary.filter(disposition => !persisted.some(stored => stored.id === disposition.id))].map(disposition => {
+    const eligibility = persisted.map(disposition => {
       const available = eligibleIds.has(disposition.id);
       const reasons = available ? [disposition.temporary ? 'open prior-cycle investigation in this thread' : 'live durable scope'] : [
         ...(!disposition.active ? ['inactive scope'] : []),

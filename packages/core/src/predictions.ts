@@ -147,7 +147,7 @@ export class Predictions {
             scaffold: { ...current.scaffold!, endedCycle: world.cycleId, endReason: validated.reason },
             development: current.development ? { ...current.development, previousVersion: current.version } : undefined });
           this.store.save('disposition', ended, current.version, { origin: 'prediction_evaluation',
-            reason: 'End temporary attention while preserving its hypothesis and use history', sourceIds: [prediction.id, world.id] });
+            reason: 'End prediction-bound disposition eligibility while preserving its hypothesis and use history', sourceIds: [prediction.id, world.id] });
           this.inspection.emit(world.agentId, world.cycleId, 'disposition.learned', ended);
         }
       }

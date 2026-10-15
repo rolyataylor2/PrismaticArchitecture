@@ -19,7 +19,7 @@ import { previewPrompt } from '../../packages/sdk/src/prompt-preview.js';
 
 const providers = (reasoning = new MockReasoning(), decisions = new MockDecisions()) => ({ reasoning, decisions, embeddings: new MockEmbeddings() });
 
-test('expressed memory bridges and prediction attention reach later thread cycles without same-cycle descent', async () => {
+test('expressed memory bridges and prediction-bound dispositions reach later thread cycles without same-cycle descent', async () => {
   const store = new SqliteStore(':memory:'); const requests: ConstructedInput[] = [];
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
@@ -29,7 +29,10 @@ test('expressed memory bridges and prediction attention reach later thread cycle
       const product = PartGenerationSchema.parse(result);
       if (input.dispositions?.[0]?.id === 'social') {
         product.cognition.thought = 'I recall a BBQ where guests brought food; perhaps this gathering is similar.';
-        if (product.cognition.prediction) product.cognition.prediction.attention = [{ target: 'outdoor gathering', cues: ['Look for grilling or food contributions; this is an expectation, not an observed fact'] }];
+        if (product.cognition.prediction) product.cognition.prediction.scaffolds = [{ name: 'Gathering evidence', target: 'outdoor gathering',
+          cues: ['Look for grilling or food contributions; this is an expectation, not an observed fact'],
+          retrievalIntent: 'Recall similar gatherings', relevantMemoryIds: [], supportEvidence: ['Food contributions'],
+          contradictEvidence: ['No shared food'], trackedDistinction: 'Whether this is a food gathering', futureValue: 'Clarify the invitation' }];
       }
       return product;
     }
@@ -38,7 +41,7 @@ test('expressed memory bridges and prediction attention reach later thread cycle
     override async checkPrediction(): Promise<'incomplete'> { return 'incomplete'; }
     override async judge(input: JudgmentInput) {
       return input.candidates.map(candidate => ({ partId: candidate.id, score: input.task === 'memory_accessibility' || candidate.id === 'social'
-        || candidate.id.startsWith('attention_') || input.world.thoughtHistory?.some(thought => thought.thought.includes('BBQ')) ? 4 : 0 }));
+        || candidate.id.startsWith('scaffold_') || input.world.thoughtHistory?.some(thought => thought.thought.includes('BBQ')) ? 4 : 0 }));
     }
   }
   try {
@@ -50,14 +53,14 @@ test('expressed memory bridges and prediction attention reach later thread cycle
     assert.deepEqual(requests.map(input => input.dispositions?.[0]?.id), ['social']);
     requests.length = 0;
     await app.message(agent.id, 'There is more to learn about the gathering.', 'host', 'b');
-    assert.deepEqual(requests.map(input => input.dispositions?.[0]?.id), ['social'], 'Another thread cannot receive the bridge or attention');
+    assert.deepEqual(requests.map(input => input.dispositions?.[0]?.id), ['social'], 'Another thread cannot receive the bridge or prediction-bound disposition');
     requests.length = 0;
     await app.message(agent.id, 'We are still discussing the invitation.', 'host', 'a');
     assert.ok(requests.some(input => input.dispositions?.[0]?.id === 'BBQ'));
     assert.ok(requests.some(input => input.dispositions?.[0]?.temporary && input.dispositions[0].scope === 'outdoor gathering'));
     assert.ok(requests.every(input => input.world!.thoughtHistory!.some(thought => thought.thought.includes('BBQ'))));
     assert.ok(store.list('prediction', agent.id).some(prediction => prediction.status === 'open'));
-    assert.equal(store.list('disposition', agent.id).length, 2, 'Prediction attention does not become a durable learned sensitivity');
+    assert.equal(store.list('disposition', agent.id).filter(disposition => !disposition.temporary).length, 2, 'Prediction-bound dispositions do not become durable learned sensitivities online');
   } finally { store.close(); }
 });
 

@@ -127,7 +127,6 @@ export const RelevanceScaffoldDraftSchema = z.strictObject({
 export const PredictionDraftSchema = z.strictObject({
   expectation: Text.describe('A testable adjustable proposition about an unresolved state, hidden cause, continuity, current interpretation or future event, grounded in selected experienced context.'), capsule: CapsuleSchema, confidence: z.number().min(0).max(1),
   scaffolds: z.array(RelevanceScaffoldDraftSchema).max(4).optional(),
-  attention: z.array(z.strictObject({ target: Text, cues: z.array(Text).min(1).max(12) })).max(12).optional(),
   horizon: Text, evaluateAfterCycle: z.number().int().nonnegative().nullable(),
   kind: z.enum(['trajectory', 'action_conditioned', 'state_hypothesis']).optional(),
   conditions: z.array(Text).max(12).optional(),

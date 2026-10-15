@@ -244,7 +244,7 @@ Hosted xAI is available as `grok-4.3` with reasoning effort `none`. Agent model 
 
 Dispositions use the same Name › Concern › Cues rows for durable and temporary records. Temporary dispositions appear in a separate container above durable dispositions, with slightly transparent dashed borders; durable rows use solid borders. Search, filters and sorting apply to both groups, with sorting preserved within each group.
 
-Dispositions has three always-visible sections: Temporary dispositions, Persistent dispositions and Temporary attention, each with a short description and an empty state. Disposition rows open their versioned inspector; temporary attention rows inspect prediction-owned targets and cues and link to the source prediction inspector. Search matches attention expectations, targets and cues; disposition-specific filters apply to the two disposition lists.
+Dispositions lists persistent and temporary prediction-bound dispositions. Tiles open their versioned inspector, with temporary dispositions grouped under their source prediction. Legacy prediction-attention tiles are removed (ADR 0168).
 
 ## Automated simulation assessment (ADR 0141)
 
@@ -363,10 +363,14 @@ Embedded disposition inspection opens on the current disposition version and dis
 
 Disposition directory tiles open the combined inspector within Dispositions with the disposition selected. The inspector uses the latest non-retired bound Part when available, otherwise the latest retired instance; dispositions without a bound Part retain the same disposition information and version navigation with an explicit empty Perspective History. There is no separate standalone disposition inspector. Directory pencil controls retain disposition editing.
 
-The disposition directory uses one continuous tile grid: persistent dispositions first with solid color borders, temporary prediction-bound dispositions next with translucent dashed borders, and temporary attention last without borders. Stable ID-derived colors distinguish records without implying psychological meaning. Each tile retains a textual type label; search and within-type sorting remain available.
+The disposition directory uses one continuous tile grid: persistent dispositions first with solid color borders, then temporary prediction-bound dispositions with translucent dashed borders. Stable ID-derived colors distinguish records without implying psychological meaning. Each tile retains a textual type label; search and within-type sorting remain available.
 
 The standalone Part History directory and sidebar link are removed. Existing unbound fallback Parts named `self` appear as ordinary tiles in the Dispositions grid, without a separate category or fabricated disposition. Each opens its preserved perspective versions; no fallback tile is shown unless that Part exists. Inspection remains researcher-only and does not create cognitive state.
 
 Prediction-bound disposition tiles are grouped by their recorded source prediction in transparent, white-outlined containers. The prediction text sits in the top-left border and opens its evidence inspector. Compact child tiles retain disposition inspection and editing; horizontal scrolling keeps all children accessible while each container stays the same height as other directory tiles. Missing source records are labeled explicitly; temporary dispositions without a source ID remain individual tiles.
 
 The Dispositions directory hides ended temporary prediction-bound dispositions by default. Filter → Show expired dispositions includes them; Reset filters restores the default. This visibility preference is retained per Agent during browsing and does not change cognitive state. Inactive durable dispositions remain visible.
+
+When no saved selection or main-database Agent is available, startup clears stale selection/context and opens the new-Agent form in the main database. Research Agents remain available through explicit selection; they are not automatically loaded as an empty-main fallback.
+
+Change Agent uses a vertical list with separate selection and trash buttons. Deletion confirms the named Agent and database, removes only that Agent, retains the list when deleting another Agent, and returns to creation after the last available local Agent is removed.

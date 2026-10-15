@@ -246,7 +246,7 @@ test('conflicting and action-conditioned imagined futures preserve their own bra
   } finally { store.close(); }
 });
 
-test('deliberation recruitment uses immutable assessment snapshots and only prior-snapshot prediction attention', async () => {
+test('deliberation recruitment uses immutable assessment snapshots and only prior-snapshot prediction-bound dispositions', async () => {
   const store = new SqliteStore(':memory:'); let testApp: Application | undefined; const requests: ConstructedInput[] = []; const judgments: JudgmentInput[] = []; const selves: SelfContext[] = [];
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
@@ -254,7 +254,10 @@ test('deliberation recruitment uses immutable assessment snapshots and only prio
       if (input.task !== 'part_cognition') return result;
       requests.push(input);
       const product = PartGenerationSchema.parse(result);
-      if (product.cognition.prediction) product.cognition.prediction.attention = [{ target: 'imagined new branch', cues: ['a further imagined perspective'] }];
+      if (product.cognition.prediction) product.cognition.prediction.scaffolds = [{ name: 'Further interpretation', target: 'imagined new branch',
+        cues: ['a further imagined perspective'], retrievalIntent: 'Recall alternatives', relevantMemoryIds: [],
+        supportEvidence: ['A different interpretation fits'], contradictEvidence: ['The interpretation conflicts with later evidence'],
+        trackedDistinction: 'Whether another interpretation helps', futureValue: 'Understand the uncertainty' }];
       return product;
     }
     override async question(context: SelfContext) {

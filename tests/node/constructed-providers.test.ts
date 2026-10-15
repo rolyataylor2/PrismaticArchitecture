@@ -88,7 +88,7 @@ test('live provider wire schemas restrict formation citations to current recall 
   }
 });
 
-test('OpenAI prediction attention distinguishes omission from present array values', async () => {
+test('OpenAI prediction-bound dispositions distinguish omission from present array values', async () => {
   const input: ConstructedInput = { task: 'part_cognition', agentId: 'agent', world, memories: [], dispositions: [] };
   const output = PartGenerationSchema.parse(await new MockReasoning().constructed(input));
   output.cognition.prediction = {
@@ -96,28 +96,32 @@ test('OpenAI prediction attention distinguishes omission from present array valu
     capsule: { interpretation: 'Contact is open.', details: ['An ordinary scene'], entities: [], activation: 2, spike: 0, sourceIds: [] },
     confidence: 0.5, horizon: 'next exchange', evaluateAfterCycle: null,
   };
-  for (const attention of [
+  assert.equal(PartGenerationSchema.safeParse({ ...output, cognition: { ...output.cognition, prediction: {
+    ...output.cognition.prediction, attention: [{ target: 'next exchange', cues: ['someone responds'] }],
+  } } }).success, false, 'Legacy prediction attention is rejected at the domain boundary');
+  for (const scaffolds of [
     { __present: false, __value: null },
     { __present: true, __value: [] },
-    { __present: true, __value: [{ target: 'next exchange', cues: ['someone responds'] }] },
+    { __present: true, __value: [{ name: 'Response evidence', target: 'next exchange', cues: ['someone responds'], retrievalIntent: 'Recall responses', relevantMemoryIds: [], supportEvidence: ['A response arrives'], contradictEvidence: ['No response'], trackedDistinction: 'Whether contact continues', futureValue: 'Clarify contact' }] },
   ]) {
     const transport: typeof fetch = async (_url, options) => {
       const body = JSON.parse(options!.body as string);
       const predictionEnvelope = productBranch(body.text.format.schema.properties.result).properties.cognition.properties.prediction;
       const prediction = predictionEnvelope.anyOf.find((branch: any) => branch.properties?.__present.const === true)
         .properties.__value.anyOf.find((branch: any) => branch.type === 'object');
-      const branches = prediction.properties.attention.anyOf;
+      assert.equal(prediction.properties.attention, undefined, 'Legacy attention is not offered to the provider');
+      const branches = prediction.properties.scaffolds.anyOf;
       assert.equal(branches[0].properties.__present.const, false);
       assert.equal(branches[0].properties.__value.type, 'null');
       assert.equal(branches[1].properties.__present.const, true);
-      assert.equal(branches[1].properties.__value.type, 'array', 'Present attention cannot be null');
+      assert.equal(branches[1].properties.__value.type, 'array', 'Present scaffolds cannot be null');
       const result = { ...output, cognition: { ...output.cognition, prediction: {
-        __present: true, __value: { ...output.cognition.prediction, attention },
+        __present: true, __value: { ...output.cognition.prediction, scaffolds },
       } } };
       return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ result }) }] }] });
     };
     const result = PartGenerationSchema.parse(await new OpenAIProvider('fixture-credential', 'fixture-model', transport).constructed(input));
-    assert.deepEqual(result.cognition.prediction?.attention, attention.__present ? attention.__value : undefined);
+    assert.deepEqual(result.cognition.prediction?.scaffolds, scaffolds.__present ? scaffolds.__value : undefined);
   }
 });
 

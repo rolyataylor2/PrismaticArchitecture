@@ -96,7 +96,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('searchbox', { name: 'Search dispositions' }).fill('no match');
-    await page.getByText('No matching dispositions or temporary attention.', { exact: true }).waitFor();
+    await page.getByText('No matching dispositions.', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Part History', exact: true }).count(), 0);
     for (const kind of ['memory', 'prediction'] as const) {
       await navigate(kind === 'memory' ? 'Memories' : 'Predictions');

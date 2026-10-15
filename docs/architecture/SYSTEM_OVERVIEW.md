@@ -230,3 +230,5 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 [ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds optional disposition-scoped sleep synthesis. New subjective memories preserve source-version lineage; separately enabled retrieval replacement affects only that disposition, preserving original records and other scopes. Inputs are captured before sleep writes; activation selects review, not a required conclusion.
 
 Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
+
+ADR [0168](decisions/0168-retire-legacy-prediction-attention.md) removes legacy prediction `attention` scopes. Predictions propose temporary relevance only through persisted, versioned prediction-bound dispositions (`scaffolds`); no old-Agent migration is provided.

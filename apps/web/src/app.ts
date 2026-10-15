@@ -283,8 +283,8 @@ function showError(error: unknown): void {
 }
 window.addEventListener('error', event => showError(event.error ?? event.message));
 window.addEventListener('unhandledrejection', event => showError(event.reason));
-async function api<T>(path: string, method = 'GET', data?: unknown): Promise<T> {
-  const prefix = path === 'agent-catalog' ? '/api/' : apiPrefix();
+async function api<T>(path: string, method = 'GET', data?: unknown, databaseId = selectedDatabase): Promise<T> {
+  const prefix = path === 'agent-catalog' || !databaseId ? '/api/' : `/api/research/${encodeURIComponent(databaseId)}/`;
   const response = await fetch(`${prefix}${path}`, { method, ...(data === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }) });
   const result: unknown = await response.json();
   if (!response.ok) throw new Error((result as { error: string }).error);
@@ -624,29 +624,50 @@ function openEditAgentModal(agent: AvailableAgent): void {
 
 function openChangeAgentModal(): void {
   const modal = node('dialog', '', 'agent-picker-dialog');
+  modal.setAttribute('aria-label', 'Change Agent');
   modal.append(node('h3', 'Change Agent'));
-  const grid = node('div', '', 'agent-picker-grid');
-  for (const agent of agentList) {
-    const selected = agent.id === selectedAgent && agent.databaseId === selectedDatabase;
-    const item = button('', () => {
-      modal.close(); activeTab = 'Perception';
-      void selectAgent(agent.id, agent.databaseId).catch(showError);
-    });
-    item.className = 'agent-picker-item'; item.setAttribute('aria-pressed', String(selected));
-    item.append(node('span', agent.avatar ?? '🧠', 'agent-avatar-preview'), node('strong', agent.name));
-    if (agent.databaseLabel) item.append(node('small', agent.databaseLabel));
-    if (selected) item.append(node('small', '✓ Current Agent'));
-    grid.append(item);
-  }
-  modal.append(grid, button('+ Create Prismatic Agent', () => { modal.close(); openCreateAgentModal(); }));
+  const list = node('ul', '', 'agent-picker-list'); list.setAttribute('aria-label', 'Available Agents');
+  const draw = (): void => {
+    list.replaceChildren();
+    for (const agent of agentList) {
+      const selected = agent.id === selectedAgent && agent.databaseId === selectedDatabase;
+      const row = node('li', '', 'agent-picker-row');
+      const item = button('', () => {
+        modal.close(); activeTab = 'Perception';
+        return selectAgent(agent.id, agent.databaseId);
+      });
+      item.className = 'agent-picker-item'; item.setAttribute('aria-pressed', String(selected));
+      const text = node('span', '', 'agent-picker-text'); text.append(node('strong', agent.name));
+      if (agent.databaseLabel) text.append(node('small', agent.databaseLabel));
+      if (selected) text.append(node('small', '✓ Current Agent'));
+      item.append(node('span', agent.avatar ?? '🧠', 'agent-picker-avatar'), text);
+      const remove = memoryActionIcon(`Delete ${agent.name}`, 'trash', async () => {
+        if (!window.confirm(`Permanently delete “${agent.name}” from ${agent.databaseLabel || 'Main'}? All of its saved data will be removed. This cannot be undone.`)) return;
+        await api(`agents/${agent.id}`, 'DELETE', {}, agent.databaseId);
+        const removedCurrent = agent.id === selectedAgent && agent.databaseId === selectedDatabase;
+        localStorage.removeItem(`prism-sessions-${agent.databaseId ? `${agent.databaseId}-` : ''}${agent.id}`);
+        agentList = agentList.filter(item => item.id !== agent.id || item.databaseId !== agent.databaseId);
+        if (removedCurrent || !agentList.length) {
+          modal.close(); clearAgentSelection(); await agents();
+          if (selectedAgent) openChangeAgentModal();
+        } else { renderAgentControls(); if (modal.isConnected) draw(); }
+      });
+      remove.classList.add('agent-picker-delete');
+      row.append(item, remove); list.append(row);
+    }
+  };
+  draw();
+  modal.append(list, button('+ Create Prismatic Agent', () => { modal.close(); openCreateAgentModal(); }));
+  modal.addEventListener('close', () => modal.remove(), { once: true });
   document.body.append(modal); modal.showModal();
 }
 
 function renderAgentControls(): void {
   const controls = document.querySelector('#agent-controls')!;
   controls.replaceChildren();
-  if (agentList.length === 0) {
+  if (!selectedAgent || agentList.length === 0) {
     controls.append(button('+ Create Prismatic Agent', () => openCreateAgentModal()));
+    if (agentList.length) controls.append(button('Change Agent', () => openChangeAgentModal()));
     return;
   }
   const agent = agentList.find(a => a.id === selectedAgent && a.databaseId === selectedDatabase) ?? agentList[0]!;
@@ -699,19 +720,24 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+function clearAgentSelection(): void {
+  stream?.close(); stream = null;
+  selectedAgent = ''; selectedDatabase = ''; state = null; events = []; sessions = []; activeSessionId = null;
+  submittedChat = null; frozenCycle = ''; brainSeekSequence = null;
+  localStorage.removeItem('prism-agent'); localStorage.removeItem('prism-database');
+  settingsSection = 'Model & key'; activeTab = 'Perception';
+}
+
 async function agents(): Promise<void> {
   agentList = await api<AvailableAgent[]>('agent-catalog');
-  if (agentList.length === 0) {
-    selectedAgent = ''; state = null;
-    renderAgentControls();
-    openCreateAgentModal();
-    render();
+  const selected = agentList.find(agent => agent.id === selectedAgent && agent.databaseId === selectedDatabase);
+  const available = selected ?? agentList.find(agent => agent.databaseId === '');
+  if (!available) {
+    clearAgentSelection();
+    renderAgentControls(); render(); openCreateAgentModal();
     return;
   }
-  if (!agentList.some(a => a.id === selectedAgent && a.databaseId === selectedDatabase)) {
-    selectedAgent = agentList[0]?.id ?? '';
-    selectedDatabase = agentList[0]?.databaseId ?? '';
-  }
+  selectedAgent = available.id; selectedDatabase = available.databaseId;
   renderAgentControls();
   if (selectedAgent) {
     await selectAgent(selectedAgent);
@@ -2501,7 +2527,7 @@ function dispositionsPage(): void {
     const visible = browse.apply(state!.dispositions.filter(item => [item.name, item.concern, item.scope ?? '', ...item.cues, ...dispositionAssociations(item).map(associationLabel)].join(' ').toLowerCase().includes(query)));
     const temporary = visible.filter(item => item.temporary);
     const durable = visible.filter(item => !item.temporary);
-    const rows = node('div', '', 'disposition-list'); rows.setAttribute('aria-label', 'Dispositions and temporary attention');
+    const rows = node('div', '', 'disposition-list'); rows.setAttribute('aria-label', 'Dispositions');
     list.append(rows);
     const predictionGroups = new Map<string, HTMLElement>();
     for (const disposition of [...durable, ...temporary]) {
@@ -2555,26 +2581,7 @@ function dispositionsPage(): void {
         node('small', `Identity fallback · ${readableDate(recordDate(part.instance?.createdCycle ?? ''))}`, 'disposition-kind'));
       inspect.append(icon, text); row.append(inspect); rows.append(row);
     }
-    const attentionPredictions = state!.predictions.filter(prediction => prediction.status === 'open' && prediction.attention?.length);
-    const matches = attentionPredictions.filter(prediction => [prediction.expectation, ...prediction.attention!.flatMap(item => [item.target, ...item.cues])].join(' ').toLowerCase().includes(query));
-    for (const prediction of matches) {
-      const row = node('div', '', 'disposition-row attention'); row.dataset.kind = 'attention';
-      const inspect = button('', () => inspectorPopup('Temporary attention', [
-        inspectorSection('Source prediction', [prediction.expectation]),
-        ...prediction.attention!.map(item => inspectorSection(item.target, item.cues)),
-        button('Inspect source prediction', () => openPredictionInfo(prediction), true),
-        details('Attention record', { sourcePredictionId: prediction.id, attention: prediction.attention }),
-      ]), true);
-      inspect.classList.add('disposition-summary');
-      inspect.setAttribute('aria-label', `Inspect temporary attention: ${prediction.expectation}`);
-      const expectation = node('span', prediction.expectation, 'disposition-concern'); expectation.title = prediction.expectation;
-      const targets = node('span', prediction.attention!.map(item => item.target).join(' · '), 'disposition-cues'); targets.title = targets.textContent ?? '';
-      const text = node('span', '', 'disposition-text');
-      text.append(expectation, targets, node('small', 'Temporary attention', 'disposition-kind'));
-      inspect.append(text);
-      row.append(inspect); rows.append(row);
-    }
-    if (!visible.length && !fallbackParts.length && !matches.length) list.append(node('p', query || browse.active() ? 'No matching dispositions or temporary attention.' : 'No dispositions or temporary attention yet.', 'muted'));
+    if (!visible.length && !fallbackParts.length) list.append(node('p', query || browse.active() ? 'No matching dispositions.' : 'No dispositions yet.', 'muted'));
   };
   const browse = componentBrowse<AgentSnapshot['dispositions'][number]>([
     { key: 'expired', label: 'Show expired dispositions', checkbox: true, value: item => Number(item.temporary && (!item.active || Boolean(item.scaffold?.endedCycle))) },
@@ -3152,11 +3159,7 @@ function deleteAgentSettings(): void {
       await api(`agents/${agent.id}`, 'DELETE', {});
       localStorage.removeItem(sessionStorageKey(agent.id));
       if (selectedAgent === agent.id) {
-        stream?.close(); stream = null;
-        selectedAgent = ''; state = null; events = []; sessions = []; activeSessionId = null;
-        submittedChat = null; frozenCycle = ''; brainSeekSequence = null;
-        localStorage.removeItem('prism-agent');
-        settingsSection = 'Model & key'; activeTab = 'Perception';
+        clearAgentSelection();
       }
       await agents();
     } catch (error) { remove.disabled = false; showError(error); }
@@ -3291,7 +3294,7 @@ const promptPurposes: Record<string, string> = {
   thought_resources: 'Assess one immutable owning-scope workload for optional intuitive/deliberative model routing; independent difficulty, uncertainty and urgency estimates are not psychological traits or action authority.',
   memory_accessibility: 'Judge subjective memory relevance for the current disposition scope, including transferable methods, diagnostic exceptions and contrary evidence across different objects or situations.',
   disposition_activation: 'Score eligible attention conditions for entities, situations, methods, strategies and configurations independently against immutable WorldState. One association pass considers contributing/inhibiting keywords and frozen direct disposition scores; no prerequisite gating or recursive feedback.',
-  part_cognition: 'Code assembles each scope and chooses continuity. Parallel LLM calls return formation, subjective reflection, gist and cognition in order. Each perspective reasons at its scope’s level about unresolved conditions and changing relevance. Only fallback self receives Identity; Self chooses and external systems execute.',
+  part_cognition: 'Code assembles each scope and chooses continuity. Parallel LLM calls return formation, subjective reflection, gist and cognition in order. Each perspective reasons at its scope’s level about unresolved conditions and changing relevance. Predictions can propose versioned temporary prediction-bound dispositions through scaffolds. Only fallback self receives Identity; Self chooses and external systems execute.',
   hypothesis_outcome: 'Bounded gap hypothesis classification from its capsule and later factual evidence. No owning Part, imagination or durable promotion.',
   hypothesis_reflection: 'Subjective gap outcome interpretation and optional attributed memory. No fabricated owning Part, private state or structural edits.',
   cognition_coverage: 'Assess consequential gaps from immutable experience and expressed cognition; propose bounded testable hypotheses and temporary prediction-bound dispositions. No Identity, private Part state, selection or durable formation authority.',

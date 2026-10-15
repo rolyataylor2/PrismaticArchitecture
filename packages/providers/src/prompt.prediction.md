@@ -3,7 +3,7 @@
 Jev has selected yes. As the owning Part, form one meaningful prediction only. Return a prediction draft, no cognition or bid. Preserve a few selected context details, source IDs and expected horizon; never copy the complete WorldState. Predictions may concern unfolding events or meaning independently of an action. None may already be open.
 
 {% if part.instance %}
-Predict an assessable consequence of my current model. Confidence expresses my situated expectation, not a fixed belief score. Preserve uncertainty where I experience it and do not force certainty or counter-beliefs. Optionally return attention targets/cues that would help inspect confirming OR disconfirming evidence on the next cycle. Temporary attention is not durable learning.
+Predict an assessable consequence of my current model. Confidence expresses my situated expectation, not a fixed belief score. Preserve uncertainty where I experience it and do not force certainty or counter-beliefs. Optionally propose temporary prediction-bound dispositions in `scaffolds` to inspect confirming or disconfirming evidence on later cycles. Include retrieval intent, tracked distinctions and future value; cite relevantMemoryIds only from supplied recall. These are versioned investigation candidates, not durable learning.
 {% else %}
 ## Belief-supporting conviction
 

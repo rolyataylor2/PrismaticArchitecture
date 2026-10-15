@@ -18,13 +18,13 @@ test('activation history renders exact source judgments, filters threads and ope
   { origin: 'researcher_edit', reason: 'Explicit chart rendering starting condition', sourceIds: [] });
   await app.message(agent.id, 'A bird chirps.', 'observer', 'forest');
   await app.message(agent.id, 'A bird chirps nearby.', 'observer', 'garden');
-  store.save('prediction', { id: 'attention-display', agentId: agent.id, partId: store.list('part', agent.id)[0]!.id,
+  store.save('prediction', { id: 'prediction-display', agentId: agent.id, partId: store.list('part', agent.id)[0]!.id,
     version: 1, schemaVersion: 1, expectation: 'A bird may return',
     capsule: { interpretation: 'A bird was heard.', details: [], entities: [], activation: 2, spike: 0, sourceIds: [] },
     confidence: .5, horizon: 'Later', evaluateAfterCycle: null, createdCycle: store.cycles(agent.id)[0]!.id,
-    status: 'open', memoryId: null, evaluation: null, attention: [{ target: 'Returning birds', cues: ['More birdsong'] }] }, 0,
-    { origin: 'researcher_edit', reason: 'Explicit temporary attention display fixture', sourceIds: [] });
-  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity', temporary: true, sourcePredictionId: 'attention-display' }, 0,
+    status: 'open', memoryId: null, evaluation: null }, 0,
+    { origin: 'researcher_edit', reason: 'Explicit prediction-bound disposition display fixture', sourceIds: [] });
+  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity', temporary: true, sourcePredictionId: 'prediction-display' }, 0,
     { origin: 'researcher_edit', reason: 'Empty chart condition without fabricated measurements', sourceIds: [] });
   store.save('disposition', { ...store.get('disposition', 'quiet'), id: 'returning-birds', name: 'Returning birds' }, 0,
     { origin: 'researcher_edit', reason: 'Second disposition with the same source prediction', sourceIds: [] });
@@ -43,6 +43,10 @@ test('activation history renders exact source judgments, filters threads and ope
     const filterMenu = page.getByRole('dialog', { name: 'Filter', exact: true });
     const showExpired = filterMenu.getByRole('checkbox', { name: 'Show expired dispositions' });
     assert.equal(await showExpired.isChecked(), false);
+    await page.screenshot({ path: '/tmp/prism-disposition-filter-desktop.png' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-disposition-filter-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await showExpired.check();
     await page.getByRole('button', { name: 'Inspect Expired bird concern', exact: true }).waitFor();
     await filterMenu.getByRole('button', { name: 'Reset filters', exact: true }).click();
@@ -51,7 +55,7 @@ test('activation history renders exact source judgments, filters threads and ope
     await page.keyboard.press('Escape');
     const rows = page.locator('.disposition-list > [data-kind]:not([data-kind="self"])');
     const kinds = await rows.evaluateAll(elements => elements.map(element => (element as HTMLElement).dataset.kind));
-    assert.deepEqual(kinds, ['persistent', 'prediction', 'attention']);
+    assert.deepEqual(kinds, ['persistent', 'prediction']);
     assert.equal(await rows.nth(0).evaluate(element => getComputedStyle(element).borderTopStyle), 'solid');
     const group = page.locator('.disposition-prediction-group');
     assert.equal(await group.count(), 1);
@@ -64,7 +68,7 @@ test('activation history renders exact source judgments, filters threads and ope
     await group.getByRole('button', { name: 'A bird may return', exact: true }).click();
     await page.getByRole('dialog').last().waitFor();
     await page.keyboard.press('Escape');
-    assert.equal(await rows.nth(2).evaluate(element => getComputedStyle(element).borderTopStyle), 'none');
+    assert.equal(await page.locator('.disposition-row[data-kind="attention"]').count(), 0);
     await page.screenshot({ path: '/tmp/prism-dispositions-unified-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);

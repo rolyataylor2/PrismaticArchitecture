@@ -243,7 +243,6 @@ export class MockReasoning implements ReasoningProvider {
           capsule: { interpretation: part.instance.interpretation, details: [context.world.facts.at(-1)!.text.slice(0, 240)],
             entities: [context.world.facts.at(-1)!.source], activation: context.activation.score, spike: context.activation.delta, sourceIds: [context.world.id] },
           horizon: 'When a later response clarifies this concern', evaluateAfterCycle: context.world.sequence + 1,
-          attention: [{ target: context.world.facts.at(-1)!.source, cues: ['Response to my concern, including disagreement or clarification.'] }],
         } } : {}),
     };
   }
@@ -254,7 +253,7 @@ export class MockReasoning implements ReasoningProvider {
     if (part.instance) return { expectation: 'I expect a response that will help clarify my concern.',
       capsule: { interpretation: part.instance.interpretation, details: [newest.text.slice(0, 240)], entities: [newest.source], activation: activation.score, spike: activation.delta, sourceIds: [world.id] },
       confidence: 0.6, horizon: 'When a later response clarifies this concern', evaluateAfterCycle: world.sequence + 1,
-      attention: [{ target: newest.source, cues: ['Response to my concern, including disagreement or clarification.'] }] };
+    };
     const learned = part.beliefs.some(b => b.includes('Some people'));
     return {
         expectation: learned ? 'Some people may respond with care if I share uncertainty.' : 'If I express vulnerability, people will reject me.',
