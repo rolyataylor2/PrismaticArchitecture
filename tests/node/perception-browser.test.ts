@@ -108,11 +108,12 @@ test('sensor draft finalizes speech and raw channels only on Play and preserves 
     assert.equal(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).inputValue(), 'Taylor Says "Hello"');
     await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Bird is chirping');
     await page.locator('.sensor-channel').getByRole('button', { name: 'Add entry', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).nth(1).fill('Bird is chirping nearby');
-    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).nth(1).fill('Bird is chirping');
+    assert.deepEqual(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).evaluateAll(inputs => inputs.map(input => (input as HTMLTextAreaElement).value)), ['Bird is chirping', 'Taylor Says "Hello"']);
+    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).first().fill('Bird is chirping nearby');
+    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).first().fill('Bird is chirping');
     await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Discard this observation');
     await page.locator('.sensor-channel').getByRole('button', { name: 'Add entry', exact: true }).click();
-    await page.locator('.sensor-channel').getByRole('button', { name: 'Delete entry', exact: true }).last().click();
+    await page.locator('.sensor-channel').getByRole('button', { name: 'Delete entry', exact: true }).first().click();
     await page.getByRole('tab', { name: /^Visual/ }).click();
     await page.getByRole('textbox', { name: 'Raw visual data', exact: true }).fill('A sign reads "Welcome" beside C:\\garden');
     await page.locator('.sensor-channel').getByRole('button', { name: 'Add entry', exact: true }).click();
@@ -141,6 +142,7 @@ test('sensor draft finalizes speech and raw channels only on Play and preserves 
     const next = page.waitForResponse(response => response.url().endsWith('/worldstate-observation'));
     await page.getByRole('button', { name: 'Play cognition', exact: true }).click(); await next; await app.runtime.idle(agent.id);
     await page.waitForFunction(() => [...document.querySelectorAll('textarea')].some(input => input.value.includes('Rain begins')));
+    assert.equal(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).first().inputValue(), 'Rain begins');
     assert.equal(JSON.stringify(store.events(agent.id).find(event => event.id === first.id)), original);
     await page.screenshot({ path: '/tmp/prism-sensor-editor-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });

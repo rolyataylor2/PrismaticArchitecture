@@ -1527,7 +1527,17 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
     if (!thoughts.length) panel.append(node('p', 'No carried thoughts recorded.', 'muted'));
     editor.append(panel); page.append(editor); return;
   }
-  const entries = items.filter(item => item.channel === perceptionChannel);
+  const entries = items.map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.channel === perceptionChannel)
+    .sort((a, b) => {
+      const time = (item: typeof a.item) => {
+        if (!item.fact) return Infinity; // Staged observations are newer than recorded facts.
+        const timestamp = Date.parse(item.fact.timestamp ?? '');
+        return Number.isNaN(timestamp) ? -Infinity : timestamp;
+      };
+      return (time(b.item) - time(a.item)) || b.index - a.index;
+    })
+    .map(({ item }) => item);
   if (!entries.length) panel.append(node('p', 'No entries in this channel.', 'muted'));
   for (const item of entries) {
     const entry = node('article', '', 'perception-fact');
