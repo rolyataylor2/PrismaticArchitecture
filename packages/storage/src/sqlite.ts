@@ -864,13 +864,13 @@ export class SqliteStore implements Store {
       ON CONFLICT(agent_id) DO UPDATE SET vector_search_enabled=excluded.vector_search_enabled, reevaluate_after_deliberation=excluded.reevaluate_after_deliberation, primitives_first=excluded.primitives_first, memory_search_enabled=excluded.memory_search_enabled, memory_relevance_threshold=excluded.memory_relevance_threshold, memory_recall_limit=excluded.memory_recall_limit, continuous_settings=excluded.continuous_settings`)
       .run(agentId, validated.vectorSearchEnabled ? 1 : 0, validated.reevaluateAfterDeliberation ? 1 : 0, validated.primitivesFirst ? 1 : 0, validated.memorySearchEnabled ? 1 : 0, validated.memoryRelevanceThreshold, validated.memoryRecallLimit, JSON.stringify({ includeProcessingDispositions: validated.includeProcessingDispositions, maxConcurrentThoughts: validated.maxConcurrentThoughts, maxQueuedThoughts: validated.maxQueuedThoughts, activationPassLimit: validated.activationPassLimit })));
   }
-  agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string }[] {
+  agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string; baseUrl?: string | null }[] {
     this.get('agent', agentId);
-    return this.#db.prepare('SELECT provider, encrypted_api_key AS encryptedApiKey FROM agent_provider_connections WHERE agent_id=? ORDER BY provider').all(agentId) as { provider: string; encryptedApiKey: string }[];
+    return this.#db.prepare('SELECT provider, encrypted_api_key AS encryptedApiKey, base_url AS baseUrl FROM agent_provider_connections WHERE agent_id=? ORDER BY provider').all(agentId) as { provider: string; encryptedApiKey: string; baseUrl?: string | null }[];
   }
-  saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string): void {
+  saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string, baseUrl?: string | null): void {
     this.get('agent', agentId);
-    this.#db.prepare(`INSERT INTO agent_provider_connections VALUES(?,?,?) ON CONFLICT(agent_id,provider) DO UPDATE SET encrypted_api_key=excluded.encrypted_api_key`).run(agentId, provider, encryptedApiKey);
+    this.#db.prepare(`INSERT INTO agent_provider_connections(agent_id,provider,encrypted_api_key,base_url) VALUES(?,?,?,?) ON CONFLICT(agent_id,provider) DO UPDATE SET encrypted_api_key=excluded.encrypted_api_key, base_url=COALESCE(excluded.base_url,agent_provider_connections.base_url)`).run(agentId, provider, encryptedApiKey, baseUrl ?? null);
   }
   deleteAgentProviderConnection(agentId: string, provider: string): void {
     this.get('agent', agentId);

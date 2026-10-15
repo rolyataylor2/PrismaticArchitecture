@@ -10,14 +10,15 @@ import { observeProvider } from './provider-observation.js';
 export function agentClassifiers(store: Store, fallback: DecisionProvider, vault: SecretVault): DecisionProvider {
   const resolve = (agentId: string) => {
     const saved = store.agentClassifierSettings(agentId);
-    if (!saved) return observeProvider(store, fallback, 'decisions', fallback.label);
+    const connected = store.agentProviderConnections(agentId).some(item => item.provider === 'jev');
+    if (!saved && !connected) return observeProvider(store, fallback, 'decisions', fallback.label);
     const key = providerApiKey(store, vault, agentId, 'jev');
-    const provider = new JevDecisions(new JevHttpTransport(key, saved.model), promptResolver(store));
+    const provider = new JevDecisions(new JevHttpTransport(key, saved?.model ?? process.env.JEV_MODEL ?? 'jev-latest'), promptResolver(store));
     return observeProvider(store, provider, 'decisions', provider.label);
   };
   const labelForAgent = (agentId: string) => {
     const saved = store.agentClassifierSettings(agentId);
-    return saved ? `jev/${saved.model}` : fallback.label;
+    return saved || store.agentProviderConnections(agentId).some(item => item.provider === 'jev') ? `jev/${saved?.model ?? process.env.JEV_MODEL ?? 'jev-latest'}` : fallback.label;
   };
   return new Proxy(fallback, { get(target, property) {
     if (property === 'labelForAgent') return labelForAgent;

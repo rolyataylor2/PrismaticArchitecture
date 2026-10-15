@@ -1,3 +1,4 @@
+import { modelLabel } from '../../core/src/generative-models.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -35,7 +36,7 @@ export function observeProvider<T extends { label: string }>(store: Store, provi
       if (!agentId || suppressProviderObservation.getStore()) return value.apply(target, args);
       const taskNames = context?.task ? [context.task] : tasks[method] ?? [];
       const selectedModel = component === 'reasoning' ? store.agentProviderSettings(agentId)?.model : null;
-      const providerLabel = actualProviderLabel ?? (selectedModel ? `${selectedModel === 'grok-4.3' ? 'xai' : 'openai'}/${selectedModel}` : provider.label);
+      const providerLabel = actualProviderLabel ?? (selectedModel ? modelLabel(selectedModel) : provider.label);
       const catalog = promptSettings(store, agentId);
       const startedAt = now(); const started = performance.now();
       const inputArguments = structuredClone(args);

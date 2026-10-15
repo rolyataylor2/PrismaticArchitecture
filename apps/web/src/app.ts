@@ -3279,20 +3279,13 @@ function activationSettings(): void {
 function imageSettings(): void {
   const agentId = selectedAgent;
   const panel = card('Agent image generation'); content.append(panel);
-  panel.append(node('p', 'Generate portraits with Cloudflare FLUX.1 Schnell from Edit Agent. Your API token needs Workers AI access and is encrypted on this machine.', 'muted'));
-  void api<{ accountId: string; hasApiKey: boolean }>(`agents/${agentId}/image-settings`).then(configuration => {
+  const label = node('label', 'Image generator'); const select = node('select'); select.setAttribute('aria-label', 'Image generator'); label.append(select); panel.append(label);
+  void api<{ providers: { id: string }[] }>(`agents/${agentId}/providers`).then(configuration => {
     if (!panel.isConnected || selectedAgent !== agentId) return;
-    const account = field(panel, 'Cloudflare Account ID', configuration.accountId, false) as HTMLInputElement;
-    const key = field(panel, 'Cloudflare API token (leave blank to keep saved token)', '', false) as HTMLInputElement;
-    key.type = 'password'; key.autocomplete = 'new-password';
-    const status = node('p', configuration.hasApiKey ? 'Encrypted token saved.' : 'No token configured.', 'muted'); panel.append(status);
-    panel.append(button('Save Cloudflare settings', async () => {
-      await api(`agents/${agentId}/image-settings`, 'PATCH', { accountId: account.value.trim(), ...(key.value ? { apiKey: key.value.trim() } : {}) });
-      key.value = ''; notice.textContent = 'Cloudflare settings saved.'; render();
-    }), button('Clear Cloudflare token', async () => {
-      await api(`agents/${agentId}/image-settings`, 'PATCH', { accountId: account.value.trim(), clearApiKey: true });
-      key.value = ''; notice.textContent = 'Cloudflare token cleared.'; render();
-    }, true));
+    if (configuration.providers.some(provider => provider.id === 'cloudflare')) {
+      select.append(new Option('Cloudflare · FLUX.1 Schnell', 'cloudflare'));
+      panel.append(node('p', 'Use this provider to generate an image from Edit Agent.', 'muted'));
+    } else { select.append(new Option('Add an image provider above', '')); select.disabled = true; }
   }).catch(showError);
 }
 function modelProviderSettings(): void {
@@ -3300,19 +3293,22 @@ function modelProviderSettings(): void {
   const panel = card('Model providers'); panel.classList.add('model-provider-settings'); content.append(panel);
   panel.append(node('p', 'Add providers for this Agent, then choose generative and Classifier models below. Saved keys are encrypted and never displayed.', 'muted'));
   type Provider = { id: string; label: string; purpose: string };
-  type Connections = { supportedProviders: Provider[]; providers: (Provider & { hasAgentKey: boolean; hasServerKey: boolean; accountId?: string })[] };
+  type Connections = { supportedProviders: Provider[]; providers: (Provider & { hasAgentKey: boolean; hasServerKey: boolean; accountId?: string; baseUrl?: string })[] };
   const list = node('ul', '', 'provider-connection-list'); list.setAttribute('aria-label', 'Available model providers');
   const form = node('form', '', 'provider-add-row');
   const providerLabel = node('label', 'Provider'); const select = node('select'); select.setAttribute('aria-label', 'Provider to add'); providerLabel.append(select);
   const accountLabel = node('label', 'Account ID'); const account = node('input'); account.maxLength = 32; account.pattern = '[a-fA-F0-9]{32}'; account.setAttribute('aria-label', 'New Cloudflare Account ID'); accountLabel.append(account); accountLabel.hidden = true;
   const keyLabel = node('label', 'API key'); const key = node('input'); key.type = 'password'; key.autocomplete = 'new-password'; key.required = true; key.maxLength = 512; key.setAttribute('aria-label', 'New provider API key'); keyLabel.append(key);
+  const baseLabel = node('label', 'Qwen API base URL'); const base = node('input'); base.type = 'url'; base.value = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'; base.setAttribute('aria-label', 'Qwen API base URL'); baseLabel.append(base); baseLabel.hidden = true;
   const add = node('button', 'Add provider'); add.type = 'submit';
   const status = node('p', '', 'muted'); status.setAttribute('role', 'status');
-  form.append(providerLabel, accountLabel, keyLabel, add); panel.append(list, form, status);
+  form.append(providerLabel, accountLabel, baseLabel, keyLabel, add); panel.append(list, form, status);
   let connections: Connections | null = null;
   const updateAction = () => {
     const cloudflare = select.value === 'cloudflare'; accountLabel.hidden = !cloudflare; account.required = cloudflare;
-    form.classList.toggle('cloudflare-selected', cloudflare);
+    form.classList.toggle('cloudflare-selected', cloudflare || select.value === 'qwen');
+    baseLabel.hidden = select.value !== 'qwen'; base.required = select.value === 'qwen';
+    if (select.value === 'qwen') base.value = connections?.providers.find(provider => provider.id === 'qwen')?.baseUrl ?? base.value;
     if (cloudflare) account.value = connections?.providers.find(provider => provider.id === 'cloudflare')?.accountId ?? account.value;
     add.textContent = connections?.providers.some(provider => provider.id === select.value && provider.hasAgentKey) ? 'Update provider key' : 'Add provider';
   };
@@ -3338,7 +3334,7 @@ function modelProviderSettings(): void {
     event.preventDefault(); if (!key.value.trim()) return;
     add.disabled = true; status.textContent = '';
     try {
-      const configuration = await api<Connections>(`agents/${agentId}/providers`, 'POST', { provider: select.value, apiKey: key.value.trim(), ...(select.value === 'cloudflare' ? { accountId: account.value.trim() } : {}) });
+      const configuration = await api<Connections>(`agents/${agentId}/providers`, 'POST', { provider: select.value, apiKey: key.value.trim(), ...(select.value === 'cloudflare' ? { accountId: account.value.trim() } : {}), ...(select.value === 'qwen' ? { baseUrl: base.value.trim() } : {}) });
       key.value = ''; draw(configuration); notice.textContent = 'Provider key saved. Choose its model below.'; render();
     } catch (err) { status.textContent = err instanceof Error ? err.message : String(err); }
     finally { add.disabled = false; }
@@ -3349,33 +3345,17 @@ function modelProviderSettings(): void {
 }
 function classifierSettings(): void {
   const agentId = selectedAgent;
-  const panel = card('Classifier · JEV'); content.append(panel);
-  panel.append(node('p', 'JEV handles bounded activation, memory relevance, prediction checks and Self selection. Configure its model and key separately from the generative model.', 'muted'));
-  type ClassifierSettings = { model: string; hasAgentKey: boolean; hasServerKey: boolean; usesServerProvider: boolean; provider: string };
-  void api<ClassifierSettings>(`agents/${agentId}/classifier-settings`).then(configuration => {
+  const panel = card('Classifier'); content.append(panel);
+  const label = node('label', 'Classifier model'); const select = node('select'); select.setAttribute('aria-label', 'Classifier model'); label.append(select); panel.append(label);
+  void api<{ model: string; hasAgentKey: boolean; hasServerKey: boolean }>(`agents/${agentId}/classifier-settings`).then(configuration => {
     if (!panel.isConnected || selectedAgent !== agentId) return;
-    const model = field(panel, 'Classifier model (JEV)', configuration.model, false) as HTMLInputElement;
-    model.placeholder = 'jev-latest'; model.maxLength = 100;
-    const key = field(panel, 'Classifier API key (leave blank to keep saved key)', '', false) as HTMLInputElement;
-    key.type = 'password'; key.autocomplete = 'new-password';
-    const status = node('p', '', 'muted'); panel.append(status);
-    const clear = button('Clear Agent classifier key and use server key', async () => {
-      draw(await api<ClassifierSettings>(`agents/${agentId}/classifier-settings`, 'PATCH', { model: model.value.trim(), clearApiKey: true })); render();
-    }, true);
-    const draw = (settings: ClassifierSettings) => {
-      model.value = settings.model; key.value = '';
-      status.textContent = settings.usesServerProvider ? `Using server classifier: ${settings.provider}.` : `Using ${settings.provider}. ${settings.hasAgentKey ? 'Encrypted Agent key saved.' : 'Using the server JEV key.'}`;
-      clear.disabled = !settings.hasAgentKey || !settings.hasServerKey;
-    };
-    panel.append(button('Save Classifier model and key', async () => {
-      draw(await api<ClassifierSettings>(`agents/${agentId}/classifier-settings`, 'PATCH', {
-        model: model.value.trim(), ...(key.value.trim() ? { apiKey: key.value.trim() } : {}),
-      })); notice.textContent = 'Classifier settings saved.'; render();
-    }), clear, button('Use server classifier settings', async () => {
-      draw(await api<ClassifierSettings>(`agents/${agentId}/classifier-settings`, 'DELETE', {}));
-      notice.textContent = 'Using server classifier settings.';
-    }, true));
-    draw(configuration);
+    if (!configuration.hasAgentKey && !configuration.hasServerKey) {
+      select.append(new Option('Add JEV above to select a classifier model', '')); select.disabled = true; return;
+    }
+    select.append(new Option('JEV · latest', 'jev-latest'));
+    if (configuration.model !== 'jev-latest') select.append(new Option(`JEV · ${configuration.model}`, configuration.model));
+    select.value = [...select.options].some(option => option.value === configuration.model) ? configuration.model : '';
+    select.onchange = () => { void api(`agents/${agentId}/classifier-settings`, 'PATCH', { model: select.value }).then(() => { notice.textContent = 'Classifier model saved.'; }).catch(showError); };
   }).catch(showError);
 }
 function modelSettings(): void {
@@ -3383,12 +3363,15 @@ function modelSettings(): void {
   classifierSettings();
   imageSettings();
   const panel = card('Model inference for this Agent');
-  panel.append(node('p', 'Choose the language model used for this Agent. Add its provider above, or enter a provider key below. You can switch between added providers without pasting their keys again. Keys are encrypted on this machine and never shown again.', 'muted'));
+  panel.append(node('p', 'Choose from models whose provider credentials are available above. Model choices use the matching saved key.', 'muted'));
   content.append(panel);
   const agentId = selectedAgent;
-  void api<{ model: string; thoughtRouting: { enabled: boolean; intuitiveModel: string; deliberativeModel: string; escalateAfterIncorrectPredictions?: number } | null; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string }[] }>(`agents/${agentId}/settings`).then(configuration => {
+  void Promise.all([api<{ model: string; thoughtRouting: { enabled: boolean; intuitiveModel: string; deliberativeModel: string; escalateAfterIncorrectPredictions?: number } | null; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string; provider?: string }[] }>(`agents/${agentId}/settings`), api<{ providers: { id: string }[] }>(`agents/${agentId}/providers`)]).then(([configuration, connections]) => {
     if (agentId !== selectedAgent) return;
+    const availableProviders = new Set(connections.providers.map(provider => provider.id));
+    configuration.availableModels = configuration.availableModels.filter(model => availableProviders.has(model.provider ?? (model.id.includes(':') ? model.id.split(':')[0]! : model.id === 'grok-4.3' ? 'xai' : 'openai')));
     const select = node('select'); select.setAttribute('aria-label', 'Model for this Agent');
+    const empty = new Option(availableProviders.size ? 'Choose an available model' : 'Add a generative provider above', ''); empty.disabled = true; select.append(empty);
     for (const item of configuration.availableModels) { const option = node('option', item.label); option.value = item.id; select.append(option); }
     select.value = configuration.model;
     const modelLabel = node('label', 'Model'); modelLabel.append(select); panel.append(modelLabel, node('h3', 'Per-thought resources'));
@@ -3399,31 +3382,36 @@ function modelSettings(): void {
     const refreshRoutingModels = () => {
       for (const [control, configured] of [[intuitive, configuration.thoughtRouting?.intuitiveModel], [deliberative, configuration.thoughtRouting?.deliberativeModel]] as const) {
         const current = control.value || configured || select.value; control.replaceChildren();
-        for (const model of configuration.availableModels.filter(model => (model.id === 'grok-4.3') === (select.value === 'grok-4.3'))) control.append(new Option(model.label, model.id));
+        for (const model of configuration.availableModels) control.append(new Option(model.label, model.id));
         control.value = [...control.options].some(option => option.value === current) ? current : select.value;
       }
     };
     refreshRoutingModels(); select.addEventListener('change', refreshRoutingModels);
+    if (availableProviders.has('openrouter')) {
+      const catalogStatus = node('p', 'Loading available OpenRouter models…', 'muted'); panel.append(catalogStatus);
+      void api<{ id: string; label: string; provider: string }[]>(`agents/${agentId}/models/openrouter`).then(models => {
+        if (!panel.isConnected || selectedAgent !== agentId) return;
+        const current = select.value;
+        for (const model of models) {
+          const existing = configuration.availableModels.find(item => item.id === model.id);
+          if (existing) Object.assign(existing, model); else configuration.availableModels.push(model);
+          const option = [...select.options].find(item => item.value === model.id);
+          if (option) option.textContent = model.label; else select.append(new Option(model.label, model.id));
+        }
+        select.value = current; refreshRoutingModels(); catalogStatus.remove();
+      }).catch(() => { if (panel.isConnected) catalogStatus.textContent = 'Additional OpenRouter models could not be loaded. Saved and bundled model choices remain available.'; });
+    }
     const intuitiveLabel = node('label', 'Intuitive thought model'); intuitiveLabel.append(intuitive);
     const deliberativeLabel = node('label', 'Deliberative thought model'); deliberativeLabel.append(deliberative);
-    panel.append(routingLabel, node('p', 'Optional workload assessment adds an inference call. Complex or uncertain thoughts use the deliberative model, including urgent thoughts. Models share this Agent’s provider key. These settings do not change disposition identity.', 'muted'), intuitiveLabel, deliberativeLabel);
+    panel.append(routingLabel, node('p', 'Optional workload assessment adds an inference call. Complex or uncertain thoughts use the deliberative model, including urgent thoughts. Each model uses its provider’s saved key. These settings do not change disposition identity.', 'muted'), intuitiveLabel, deliberativeLabel);
     const escalation = field(panel, 'Consecutive incorrect predictions before escalation', String(configuration.thoughtRouting?.escalateAfterIncorrectPredictions ?? 2), false) as HTMLInputElement;
     escalation.type = 'number'; escalation.min = '1'; escalation.max = '10';
     const thoughtRouting = () => ({ enabled: routingEnabled.checked, intuitiveModel: intuitive.value, deliberativeModel: deliberative.value, escalateAfterIncorrectPredictions: Number(escalation.value) });
-    const key = field(panel, 'Provider API key (leave blank to keep the current key)', '', false) as HTMLInputElement;
-    key.type = 'password'; key.autocomplete = 'new-password'; key.placeholder = configuration.hasAgentKey ? 'Agent key saved · enter a replacement' : configuration.hasUsableKey ? 'Using server key · optional Agent override' : 'Required before saving';
-    const status = node('p', configuration.hasAgentKey ? 'This Agent has its own encrypted key.' : configuration.hasUsableKey ? 'Using the server provider key.' : 'No key configured for this provider.', 'muted'); panel.append(status);
-    const clear = button(configuration.hasServerKey ? 'Clear Agent key and use server key' : 'Clear Agent key (server key required)', async () => {
-      await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, clearApiKey: true, thoughtRouting: thoughtRouting() }); render();
-    }, true);
-    clear.disabled = !configuration.hasAgentKey || !configuration.hasServerKey; panel.append(clear);
-    panel.append(button('Save Agent model and key', async () => {
-      const result = await api<{ model: string; hasAgentKey: boolean; hasUsableKey: boolean }>(`agents/${agentId}/settings`, 'PATCH', {
-        model: select.value, thoughtRouting: thoughtRouting(), ...(key.value ? { apiKey: key.value } : {}),
-      });
-      key.value = ''; status.textContent = result.hasAgentKey ? 'Saved. This Agent has its own encrypted key.' : 'Saved. Using the server provider key.';
+    const save = button('Save model settings', async () => {
+      await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, thoughtRouting: thoughtRouting() });
       notice.textContent = 'Agent inference settings saved.'; render();
-    }));
+    });
+    const updateSave = () => { save.disabled = !select.value; }; select.addEventListener('change', updateSave); updateSave(); panel.append(save);
   }).catch(showError);
   const evidence = card('Observed model evidence'); content.append(evidence);
   evidence.append(node('p', 'Loading recorded model operations…', 'muted'));

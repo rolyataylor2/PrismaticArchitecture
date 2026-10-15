@@ -86,7 +86,7 @@ export class OpenAIProvider implements ReasoningProvider {
     this.label = `${service}/${model}`;
   }
   private get vendor(): string { return this.service === 'xai' ? 'xAI' : 'OpenAI'; }
-  private async request<T>(schema: z.ZodType<T>, prompt: string | string[], maxOutputTokens = 4096, context?: { agentId: string; cycleId: string | null; task: string }): Promise<T> {
+  protected async request<T>(schema: z.ZodType<T>, prompt: string | string[], maxOutputTokens = 4096, context?: { agentId: string; cycleId: string | null; task: string }): Promise<T> {
     const input = typeof prompt === 'string' ? prompt : prompt.map(content => ({ role: 'user', content }));
     const cacheKey = this.service === 'xai' && context?.task === 'part_cognition' ? createHash('sha256').update(`${context.agentId}:part_cognition`).digest('hex').slice(0, 32) : null;
     try {

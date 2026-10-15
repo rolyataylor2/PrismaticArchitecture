@@ -41,14 +41,14 @@ test('routing is per thought; urgency does not reduce complex or uncertain work 
   await disabled.constructed(input); assert.deepEqual(calls.map(call => call.model), ['primary']);
 });
 
-test('routing configuration persists, stays private and rejects unsupported/cross-provider choices', async () => {
+test('routing configuration persists, stays private and rejects unsupported models and unavailable provider keys', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'prism-thought-routing-')); const path = join(directory, 'agent.sqlite');
   let store = new SqliteStore(path); let app = new Application(store, undefined, undefined, undefined, new SecretVault(join(directory, 'vault')));
   try {
     const agent = app.createAgent();
     const saved = await api(app, 'PATCH', `/api/agents/${agent.id}/settings`, { model: settings.intuitiveModel, apiKey: 'sk-routing-fixture-never-a-real-key', thoughtRouting: settings }) as { thoughtRouting: unknown };
     assert.deepEqual(saved.thoughtRouting, settings); assert.equal('apiKey' in saved, false);
-    await assert.rejects(api(app, 'PATCH', `/api/agents/${agent.id}/settings`, { model: settings.intuitiveModel, thoughtRouting: { ...settings, deliberativeModel: 'grok-4.3' } }), /same provider/);
+    await assert.rejects(api(app, 'PATCH', `/api/agents/${agent.id}/settings`, { model: settings.intuitiveModel, thoughtRouting: { ...settings, deliberativeModel: 'grok-4.3' } }), /thought model provider/);
     await assert.rejects(api(app, 'PATCH', `/api/agents/${agent.id}/settings`, { model: settings.intuitiveModel, thoughtRouting: { ...settings, deliberativeModel: 'invented' } }), /supported/);
     await app.close(); store.close(); store = new SqliteStore(path); app = new Application(store);
     assert.deepEqual(store.agentProviderSettings(agent.id)!.thoughtRouting, settings);

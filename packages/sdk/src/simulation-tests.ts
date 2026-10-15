@@ -847,7 +847,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     const classifier = app.store.agentClassifierSettings(sourceAgentId);
     if (classifier) app.store.saveAgentClassifierSettings(agent.id, classifier);
     for (const connection of app.store.agentProviderConnections(sourceAgentId))
-      app.store.saveAgentProviderConnection(agent.id, connection.provider, connection.encryptedApiKey);
+      app.store.saveAgentProviderConnection(agent.id, connection.provider, connection.encryptedApiKey, connection.baseUrl);
     app.store.saveAgentActivationSettings(agent.id, app.store.agentActivationSettings(sourceAgentId));
     for (const prompt of app.promptSettings(sourceAgentId)) app.editPrompt(agent.id, prompt.task, 'agent', prompt.effective);
   }

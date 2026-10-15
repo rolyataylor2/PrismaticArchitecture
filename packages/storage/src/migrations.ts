@@ -4,7 +4,7 @@ import { readIdentity, now } from '../../core/src/domain.js';
 export function migrate(db: DatabaseSync): void {
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;');
   const version = (db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version;
-  if (version > 30) throw new Error(`Database schema ${version} is newer than this application`);
+  if (version > 31) throw new Error(`Database schema ${version} is newer than this application`);
   if (version < 1) db.exec(`BEGIN IMMEDIATE;
     CREATE TABLE entities (
       kind TEXT NOT NULL, id TEXT NOT NULL, agent_id TEXT NOT NULL,
@@ -299,5 +299,15 @@ export function migrate(db: DatabaseSync): void {
   if (version < 30) db.exec(`BEGIN IMMEDIATE;
     CREATE TABLE IF NOT EXISTS agent_provider_connections (agent_id TEXT NOT NULL, provider TEXT NOT NULL, encrypted_api_key TEXT NOT NULL, PRIMARY KEY(agent_id,provider));
     PRAGMA user_version = 30; COMMIT;`);
+  if (version < 31) {
+    const connectionColumns = db.prepare('PRAGMA table_info(agent_provider_connections)').all() as { name: string }[];
+    db.exec(`BEGIN IMMEDIATE;
+    CREATE TABLE agent_provider_settings_expanded (agent_id TEXT PRIMARY KEY, model TEXT NOT NULL CHECK(length(model) BETWEEN 1 AND 100), encrypted_api_key TEXT, thought_routing TEXT CHECK(thought_routing IS NULL OR json_valid(thought_routing)));
+    INSERT INTO agent_provider_settings_expanded SELECT agent_id,model,encrypted_api_key,thought_routing FROM agent_provider_settings;
+    DROP TABLE agent_provider_settings;
+    ALTER TABLE agent_provider_settings_expanded RENAME TO agent_provider_settings;
+    ${connectionColumns.some(column => column.name === 'base_url') ? '' : 'ALTER TABLE agent_provider_connections ADD COLUMN base_url TEXT;'}
+    PRAGMA user_version = 31; COMMIT;`);
+  }
 
 }

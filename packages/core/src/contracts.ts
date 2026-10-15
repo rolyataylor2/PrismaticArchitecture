@@ -72,7 +72,7 @@ export type EventPayloads = {
   'execution.procedure_review': { contractId: string; skillId: string; sourceVersion: number; resultVersion: number; decision: 'approval' | 'rejection'; reason: string; packageDigest: string }; 
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
   'provider.operation': import('./provider-operation.js').ProviderOperation;
-  'provider.usage': { researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'provider.usage': { servingProvider?: string; actualModel?: string; researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
   'cognition.stream': { rootWorldId: string; threadId: string | null; passCount: number; passLimit: number | null; status: 'running' | 'paused' | 'settled' | 'superseded' | 'failed'; reason: string };
   'cognition.job': { jobId: string; worldId: string; threadId: string | null; dispositionId: string;
     status: 'queued' | 'started' | 'completed' | 'superseded' | 'deferred' | 'closed' | 'failed' };
@@ -235,8 +235,8 @@ export interface Store {
   savePrimitiveSettings(agentId: string, settings: PrimitiveSettings, expectedRevision: number): void;
   agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
   saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
-  agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string }[];
-  saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string): void;
+  agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string; baseUrl?: string | null }[];
+  saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string, baseUrl?: string | null): void;
   deleteAgentProviderConnection(agentId: string, provider: string): void;
   agentClassifierSettings(agentId: string): { model: string; encryptedApiKey: string | null } | undefined;
   saveAgentClassifierSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null }): void;

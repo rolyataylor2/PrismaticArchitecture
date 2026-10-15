@@ -36,7 +36,10 @@ for (const missingTimestamp of [true, false]) {
       assert.equal(store.promptOverrides({ scope: 'agent', agentId: agent.id, task: 'cognition' })[0]?.text, 'Legacy Agent cognition prompt.');
       assert.deepEqual(store.events(agent.id), events);
       assert.deepEqual(store.executions(agent.id), executions);
-      assert.equal(store.executiveProfile(agent.id).enabled, false, 'Migrated Agents require explicit Executive opt-in');
+      assert.equal(store.executiveProfile(agent.id).enabled, true, 'Unconfigured migrated Agents use the speech-only default');
+      assert.deepEqual(store.executiveProfile(agent.id).modules, { speaking: true, tools: false });
+      const initialProfile = store.executiveProfile(agent.id);
+      store.saveExecutiveProfile(agent.id, { ...initialProfile, enabled: false, revision: initialProfile.revision + 1 }, initialProfile.revision);
       assert.ok(!store.recentFacts(agent.id, 20, 'thread-a').some(fact => fact.referenceId === first.execution!.id));
       const profile = store.executiveProfile(agent.id);
       store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1 }, profile.revision);

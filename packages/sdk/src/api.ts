@@ -1,3 +1,4 @@
+import { openRouterModels } from './openrouter-models.js';
 import { AgentAvatarSchema } from '../../core/src/domain.js';
 import { thoughtModelEvidence } from './thought-model-evidence.js';
 import { ThoughtRoutingSettingsSchema } from '../../core/src/thought-resources.js';
@@ -350,14 +351,15 @@ export async function api(app: Application, method: string, path: string, body: 
       return app.resetPrompt(entityId, PromptTaskSchema.parse(subresource), input.scope);
     }
     if (method === 'POST' && action === 'prompts' && subresource === 'reset-all') return app.resetAllPrompts();
+    if (method === 'GET' && action === 'models' && subresource === 'openrouter') { app.store.get('agent', entityId); return openRouterModels(); }
     if (action === 'providers') {
-      const Provider = z.enum(['openai', 'xai', 'jev', 'cloudflare']);
+      const Provider = z.enum(['openai', 'xai', 'gemini', 'qwen', 'openrouter', 'jev', 'cloudflare']);
       if (method === 'GET' && !subresource) return app.providerConnections(entityId);
       if (method === 'POST' && !subresource) {
         const input = z.strictObject({ provider: Provider, apiKey: z.string().trim().min(1).max(512).regex(/^\S+$/),
-          accountId: z.string().trim().regex(/^[a-fA-F0-9]{32}$/).optional(),
+          accountId: z.string().trim().regex(/^[a-fA-F0-9]{32}$/).optional(), baseUrl: z.string().trim().max(500).optional(),
         }).refine(value => value.provider !== 'cloudflare' || Boolean(value.accountId), { message: 'Cloudflare Account ID is required', path: ['accountId'] }).parse(body);
-        return app.addProviderConnection(entityId, input.provider, input.apiKey, input.accountId);
+        return app.addProviderConnection(entityId, input.provider, input.apiKey, input.accountId, input.baseUrl);
       }
       if (method === 'DELETE' && subresource) return app.removeProviderConnection(entityId, Provider.parse(subresource));
     }

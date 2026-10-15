@@ -1,4 +1,7 @@
-import { providerApiKey, providerConnections, encryptedProviderKey, removeProviderConnection, type ConnectedProvider } from './provider-connections.js';
+import { generativeModels, modelProvider, vendorModel } from '../../core/src/generative-models.js';
+import { generativeProvider } from '../../providers/src/generative.js';
+import { validateQwenBaseUrl } from '../../providers/src/compatible-chat.js';
+import { providerApiKey, providerConnections, encryptedProviderKey, serverProviderKey, removeProviderConnection, type ConnectedProvider } from './provider-connections.js';
 import { agentClassifiers } from './classifier-settings.js';
 import { executiveModuleEnabled } from '../../core/src/executive-profile.js';
 import { repeatedPredictionContradiction } from './thought-model-evidence.js';
@@ -31,7 +34,6 @@ import { Inspection } from '../../core/src/inspection.js';
 import { MockDecisions, MockEmbeddings, MockReasoning } from '../../providers/src/mock.js';
 import { demoIdentity, demoParts } from './seed.js';
 import { Consolidation } from '../../core/src/consolidation.js';
-import { XaiProvider } from '../../providers/src/xai.js';
 import { OpenAIProvider, type UsageObserver } from '../../providers/src/openai.js';
 import { AgentReasoningProvider } from '../../providers/src/agent-reasoning.js';
 import { SecretVault } from '../../providers/src/secret-vault.js';
@@ -110,10 +112,9 @@ export class Application {
         return observeProvider(store, providers.reasoning, 'reasoning', providers.reasoning.label);
       }
       const model = requestedModel ?? settings.model;
-      if ((model === 'grok-4.3') !== (settings.model === 'grok-4.3')) throw new Error('Thought routing cannot cross provider credential boundaries');
-      const apiKey = providerApiKey(store, vault, agentId, model === 'grok-4.3' ? 'xai' : 'openai');
+      const apiKey = providerApiKey(store, vault, agentId, modelProvider(model));
       if (!apiKey) throw new Error(`Set an API key in this Agent's Settings to use ${settings.model}`);
-      const provider = model === 'grok-4.3' ? new XaiProvider(apiKey, model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, model, fetch, promptResolver(store), 'openai', observeUsage);
+      const provider = generativeProvider(model, apiKey, promptResolver(store), observeUsage, store.agentProviderConnections(agentId).find(item => item.provider === 'qwen')?.baseUrl ?? process.env.QWEN_BASE_URL);
       return observeProvider(store, provider, 'reasoning', provider.label);
     }, { settings: agentId => store.agentProviderSettings(agentId)?.thoughtRouting ?? null,
       historyEscalation: (input, provider, threshold) => repeatedPredictionContradiction(store, input, provider, threshold),
@@ -191,33 +192,30 @@ export class Application {
   identityAuthoringProvider(agentId: string): OpenAIProvider { return this.researcherAuthoringProvider(agentId); }
   researcherAuthoringProvider(agentId: string): OpenAIProvider {
     this.store.get('agent', agentId);
-    const settings = this.store.agentProviderSettings(agentId);
-    const xai = settings?.model === 'grok-4.3' || (!settings && projectEnvironmentValue('PROVIDER') === 'xai');
-    const apiKey = providerApiKey(this.store, this.#vault, agentId, xai ? 'xai' : 'openai');
-    if (!apiKey) throw new Error('Set an API key in Agent Settings before smart creation');
-    if (xai) return new XaiProvider(apiKey, settings?.model ?? process.env.XAI_MODEL, fetch, promptResolver(this.store));
-    return new OpenAIProvider(apiKey, settings?.model ?? process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
+    const model = this.agentInferenceSettings(agentId).model;
+    const key = providerApiKey(this.store, this.#vault, agentId, modelProvider(model));
+    if (!key) throw new Error('Set an API key in Agent Settings before smart creation');
+    return generativeProvider(model, key, promptResolver(this.store), undefined, this.store.agentProviderConnections(agentId).find(item => item.provider === 'qwen')?.baseUrl ?? process.env.QWEN_BASE_URL);
   }
   simulationEvaluatorProvider(agentId: string, model?: string): Pick<OpenAIProvider, 'label' | 'author'> {
-    this.store.get('agent', agentId);
     const selected = model ?? this.agentInferenceSettings(agentId).model;
-    if (!['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3'].includes(selected)) throw new Error('Choose a supported evaluator model');
-    const xai = selected === 'grok-4.3';
-    const key = providerApiKey(this.store, this.#vault, agentId, xai ? 'xai' : 'openai');
+    const key = providerApiKey(this.store, this.#vault, agentId, modelProvider(selected));
     if (!key) throw new Error('Configure a key for the evaluator model in Agent Settings or the server environment');
-    return xai ? new XaiProvider(key, selected) : new OpenAIProvider(key, selected);
+    return generativeProvider(selected, key, promptResolver(this.store), undefined, this.store.agentProviderConnections(agentId).find(item => item.provider === 'qwen')?.baseUrl ?? process.env.QWEN_BASE_URL);
   }
+
   agentActivationSettings(agentId: string) { return this.store.agentActivationSettings(agentId); }
   updateAgentActivationSettings(agentId: string, settings: { includeProcessingDispositions?: boolean | undefined; maxConcurrentThoughts?: number | undefined; maxQueuedThoughts?: number | undefined; activationPassLimit?: number | null | undefined; memorySearchEnabled?: boolean | undefined; memoryRelevanceThreshold?: number | undefined; memoryRecallLimit?: number | null | undefined; vectorSearchEnabled?: boolean | undefined; primitivesFirst?: boolean | undefined; reevaluateAfterDeliberation?: boolean | undefined }) {
     this.store.saveAgentActivationSettings(agentId, { ...this.agentActivationSettings(agentId), ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)) });
     return this.agentActivationSettings(agentId);
   }
   providerConnections(agentId: string) { return providerConnections(this.store, agentId); }
-  addProviderConnection(agentId: string, provider: ConnectedProvider, apiKey: string, accountId?: string) {
+  addProviderConnection(agentId: string, provider: ConnectedProvider, apiKey: string, accountId?: string, baseUrl?: string) {
     if (provider === 'cloudflare' && !accountId) throw new Error('Cloudflare Account ID is required');
+    if (provider === 'qwen' && baseUrl) validateQwenBaseUrl(baseUrl);
     const encryptedApiKey = this.#vault.encrypt(apiKey);
     this.store.transaction(() => {
-      this.store.saveAgentProviderConnection(agentId, provider, encryptedApiKey);
+      this.store.saveAgentProviderConnection(agentId, provider, encryptedApiKey, baseUrl);
       if (provider === 'cloudflare') this.store.saveAgentImageSettings(agentId, accountId!, encryptedApiKey);
     });
     return this.providerConnections(agentId);
@@ -271,25 +269,21 @@ export class Application {
   agentInferenceSettings(agentId: string) {
     this.store.get('agent', agentId);
     const saved = this.store.agentProviderSettings(agentId);
-    const model = saved?.model ?? (projectEnvironmentValue('PROVIDER') === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
-    const serverKey = model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
+    const mode = projectEnvironmentValue('PROVIDER');
+    const model = saved?.model ?? (mode === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : mode === 'gemini' ? `gemini:${process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite'}` : mode === 'qwen' ? `qwen:${process.env.QWEN_MODEL ?? 'qwen-flash'}` : mode === 'openrouter' ? `openrouter:${process.env.OPENROUTER_MODEL ?? 'google/gemini-2.5-flash-lite'}` : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
+    const serverKey = serverProviderKey(modelProvider(model));
+    const additionalModels = [...new Set([model, saved?.thoughtRouting?.intuitiveModel, saved?.thoughtRouting?.deliberativeModel].filter((item): item is string => Boolean(item)))].filter(id => !generativeModels.some(item => item.id === id)).map(id => ({ id, label: `${vendorModel(id)} · ${modelProvider(id)}`, provider: modelProvider(id) }));
     return { model, thoughtRouting: saved?.thoughtRouting ?? null, usesAgentModel: saved !== null,
-      hasAgentKey: Boolean(encryptedProviderKey(this.store, agentId, model === 'grok-4.3' ? 'xai' : 'openai')),
-      hasServerKey: Boolean(serverKey), hasUsableKey: Boolean(encryptedProviderKey(this.store, agentId, model === 'grok-4.3' ? 'xai' : 'openai') || serverKey), availableModels: [
-        { id: 'gpt-5-nano', label: 'GPT-5 nano · $0.05 / 1M input tokens' },
-        { id: 'gpt-4.1-nano', label: 'GPT-4.1 nano · $0.10 / 1M input tokens' },
-        { id: 'grok-4.3', label: 'Grok 4.3 · xAI · reasoning off' },
-        { id: 'gpt-4.1-mini', label: 'GPT-4.1 mini · non-reasoning · $0.40 / 1M input tokens' },
-      ] };
+      hasAgentKey: Boolean(encryptedProviderKey(this.store, agentId, modelProvider(model))),
+      hasServerKey: Boolean(serverKey), hasUsableKey: Boolean(encryptedProviderKey(this.store, agentId, modelProvider(model)) || serverKey), availableModels: [...generativeModels, ...additionalModels] };
   }
   updateAgentInferenceSettings(agentId: string, input: { model: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined; thoughtRouting?: ThoughtRoutingSettings | null | undefined }) {
     this.store.get('agent', agentId);
-    const models = ['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3'];
-    if (!models.includes(input.model)) throw new Error('Choose a supported inference model');
+    const provider = modelProvider(input.model);
     if (input.clearApiKey && input.apiKey) throw new Error('Choose either a new API key or clear the Agent key');
     const previous = this.store.agentProviderSettings(agentId);
-    const switchingProvider = previous && (previous.model === 'grok-4.3') !== (input.model === 'grok-4.3');
-    const connectedKey = this.store.agentProviderConnections(agentId).find(item => item.provider === (input.model === 'grok-4.3' ? 'xai' : 'openai'))?.encryptedApiKey;
+    const switchingProvider = previous && modelProvider(previous.model) !== provider;
+    const connectedKey = this.store.agentProviderConnections(agentId).find(item => item.provider === provider)?.encryptedApiKey;
     if (switchingProvider && previous.encryptedApiKey && !input.apiKey && !input.clearApiKey && !connectedKey) throw new Error('Changing provider requires its API key, or clearApiKey to use its server key');
     let encryptedApiKey = switchingProvider ? null : previous?.encryptedApiKey ?? null;
     if (input.clearApiKey) encryptedApiKey = null;
@@ -297,16 +291,18 @@ export class Application {
       if (input.apiKey.length < 16 || input.apiKey.length > 512 || /\s/.test(input.apiKey)) throw new Error('Enter a valid API key without whitespace');
       encryptedApiKey = this.#vault.encrypt(input.apiKey);
     }
-    const serverKey = input.model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
-    if (!encryptedApiKey && !serverKey && !(input.clearApiKey ? false : connectedKey)) throw new Error(`Add an ${input.model === 'grok-4.3' ? 'xAI' : 'OpenAI'} API key for this Agent or to the server .env file`);
+    const serverKey = serverProviderKey(provider);
+    if (!encryptedApiKey && !serverKey && !(input.clearApiKey ? false : connectedKey)) throw new Error(`Add an ${provider} API key for this Agent or to the server .env file`);
     const thoughtRouting = input.thoughtRouting === undefined ? previous?.thoughtRouting ?? null
       : input.thoughtRouting === null ? null : ThoughtRoutingSettingsSchema.parse(input.thoughtRouting);
-    if (thoughtRouting && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => !models.includes(model))) throw new Error('Choose supported thought routing models');
-    if (thoughtRouting?.enabled && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => (model === 'grok-4.3') !== (input.model === 'grok-4.3')))
-      throw new Error('Thought routing models must use the same provider as the Agent');
-    const provider = input.model === 'grok-4.3' ? 'xai' : 'openai';
-    if (switchingProvider && previous.encryptedApiKey && !this.store.agentProviderConnections(agentId).some(item => item.provider === (previous.model === 'grok-4.3' ? 'xai' : 'openai')))
-      this.store.saveAgentProviderConnection(agentId, previous.model === 'grok-4.3' ? 'xai' : 'openai', previous.encryptedApiKey);
+    if (thoughtRouting) for (const model of [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel]) modelProvider(model);
+    if (thoughtRouting?.enabled) for (const model of [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel]) {
+      const selectedProvider = modelProvider(model);
+      if (selectedProvider !== provider && !providerApiKey(this.store, this.#vault, agentId, selectedProvider))
+        throw new Error(`Add a key for the thought model provider ${selectedProvider}`);
+    }
+    if (switchingProvider && previous.encryptedApiKey && !this.store.agentProviderConnections(agentId).some(item => item.provider === modelProvider(previous.model)))
+      this.store.saveAgentProviderConnection(agentId, modelProvider(previous.model), previous.encryptedApiKey);
     if (input.clearApiKey) removeProviderConnection(this.store, agentId, provider);
     if (input.apiKey) this.store.saveAgentProviderConnection(agentId, provider, encryptedApiKey!);
     this.store.saveAgentProviderSettings(agentId, { model: input.model, encryptedApiKey, thoughtRouting });
