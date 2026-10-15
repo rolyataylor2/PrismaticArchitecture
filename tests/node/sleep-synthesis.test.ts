@@ -81,6 +81,25 @@ test('optional synthesis captures independent scopes, preserves shared source ve
   } finally { await app.close(); store.close(); }
 });
 
+test('sleep synthesis preserves retained legacy memories whose originating cycles are unavailable', async () => {
+  const { store, app, agent } = await setup();
+  try {
+    const source = store.list('memory', agent.id)[0]!;
+    const retainedId = 'retained_legacy_memory';
+    store.save('memory', { ...source, id: retainedId, version: 1, createdCycle: 'missing_legacy_cycle', predictionId: null }, 0,
+      { origin: 'seed', reason: 'Legacy memory retained after cutover', sourceIds: [] });
+    const disposition = store.get('disposition', 'cold');
+    store.save('disposition', { ...disposition, version: disposition.version + 1, memoryIds: [...disposition.memoryIds, retainedId] }, disposition.version,
+      { origin: 'researcher_edit', reason: 'Attach retained subjective memory', sourceIds: [] });
+    await app.message(agent.id, 'The cold car still needs attention.', 'observer', 'car');
+    const scopes = captureSynthesisScopes(store, agent.id, store.cycles(agent.id).map(cycle => cycle.id));
+    assert.ok(scopes.find(scope => scope.disposition.id === 'cold')!.memories.some(memory => memory.id === retainedId));
+    const run = await app.consolidation.run(agent.id, 1, 3, { synthesizeMemories: true });
+    assert.equal(run.status, 'completed');
+    assert.deepEqual(store.get('memory', retainedId).createdCycle, 'missing_legacy_cycle');
+  } finally { await app.close(); store.close(); }
+});
+
 test('synthesis-only retains recall sources and repeating the same evidence does not duplicate memories', async () => {
   const { store, app, agent } = await setup();
   try {

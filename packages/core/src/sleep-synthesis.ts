@@ -21,9 +21,20 @@ export function captureSynthesisScopes(store: Store, agentId: string, cycleIds: 
       const selected = scopes.get(score.partId) ?? new Set<string>(); selected.add(event.cycleId); scopes.set(score.partId, selected);
     }
   }
-  const period = store.cycles(agentId).filter(cycle => cycleIds.includes(cycle.id));
+  const cycles = store.cycles(agentId);
+  const cycleSequences = new Map(cycles.map(cycle => [cycle.id, cycle.sequence]));
+  const period = cycles.filter(cycle => cycleIds.includes(cycle.id));
   const last = period.at(-1);
-  const memories = store.list('memory', agentId).filter(memory => !memory.deleted && (!last || store.cycle(memory.createdCycle).sequence <= last.sequence));
+  const memories = store.list('memory', agentId).filter(memory => {
+    if (memory.deleted) return false;
+    if (!last) return true;
+    const sequence = cycleSequences.get(memory.createdCycle);
+    if (sequence !== undefined) return sequence <= last.sequence;
+    // Legacy cutover can retain subjective memories after removing their cycles.
+    // Use recorded creation time without reconstructing missing experience history.
+    const createdAt = store.versions('memory', memory.id)[0]?.at;
+    return createdAt !== undefined && createdAt <= last.startedAt;
+  });
   const predictions = store.list('prediction', agentId);
   return freeze([...scopes].flatMap(([dispositionId, scopeCycles]) => {
     const disposition = store.list('disposition', agentId).find(item => item.id === dispositionId && !item.deleted);
