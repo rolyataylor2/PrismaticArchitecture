@@ -174,6 +174,14 @@ test('sensor draft finalizes speech and raw channels only on Play and preserves 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: '/tmp/prism-sensor-editor-mobile.png', fullPage: true });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    assert.equal(await page.getByRole('heading', { name: 'Subjective context', exact: true }).count(), 0);
+    await page.getByRole('tab', { name: /^Decaying thoughts/ }).click();
+    await page.getByRole('tabpanel').getByRole('heading', { name: 'Subjective context', exact: true }).waitFor();
+    assert.equal(await page.locator('.sensor-channel > :last-child').getAttribute('class'), 'perception-subjective-context');
+    await page.screenshot({ path: '/tmp/prism-thoughts-context-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.screenshot({ path: '/tmp/prism-thoughts-context-desktop.png', fullPage: true });
+    await page.getByRole('tab', { name: /^Audio/ }).click();
     await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
     assert.equal(await page.locator('.sensor-editor textarea').count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Edit entry', exact: true }).count(), 0);

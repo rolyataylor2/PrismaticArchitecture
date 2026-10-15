@@ -342,6 +342,8 @@ Channel tabs use three-letter labels (AUD, VIS, TAC, OLF, GUS, GEN, THO) with ea
 
 Decaying thoughts appear in a dedicated read-only WorldState tab for both current and past snapshots, retaining Part attribution, recorded age and Self-selection status.
 
+Subjective context appears at the bottom of the Decaying thoughts tab, after carried thoughts, with the selected snapshot’s prospective alternatives, remembered interpretations and posture.
+
 Perception playback exposes Single Cycle using the existing per-Agent activation-pass setting: checked saves one pass; unchecked saves unlimited passes. Play starts or resumes that allowance while admitted Part cognition, prediction evaluation and Self finish. It does not cancel in-flight cognition.
 
 Executive Runtime shows Speaking and Tool execution module switches directly below Enable Executive. The master switch disables both; saved module choices survive switching it off. Speaking realizes selected Say/Ask as text. Tool execution gates native/MCP operations and their tool/skill/checkpoint context. Skills, verification, background execution and monitoring retain their existing settings; audible playback and external-agent adapters remain unavailable.

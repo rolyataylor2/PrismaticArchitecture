@@ -1496,7 +1496,7 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
   if (sendError) showError(sendError);
 }
 
-function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: PerceptionFact[], current: boolean, thoughts: NonNullable<import('../../../packages/core/src/domain.js').WorldState['thoughtHistory']>): void {
+function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: PerceptionFact[], current: boolean, thoughts: NonNullable<import('../../../packages/core/src/domain.js').WorldState['thoughtHistory']>, experienced: import('../../../packages/core/src/domain.js').WorldState['experienced']): void {
   const channelOf = (fact: PerceptionFact) => fact.source.startsWith('Sensor ') ? fact.source.slice(7) : 'general';
   const channels = [...new Set(['audio', 'visual', 'tactile', 'olfactory', 'gustatory', 'general', ...facts.map(channelOf), ...draft.items.map(item => item.channel), '#thoughts'])];
   const editor = node('section', '', 'sensor-editor');
@@ -1550,6 +1550,14 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
       panel.append(entry);
     }
     if (!thoughts.length) panel.append(node('p', 'No carried thoughts recorded.', 'muted'));
+    if (experienced) {
+      const context = node('section', '', 'perception-subjective-context');
+      context.append(node('h3', 'Subjective context'));
+      for (const prediction of experienced.prospective) context.append(card('Prospective alternative', prediction.expectation));
+      for (const memory of experienced.rememberedInterpretations) context.append(card('Remembered interpretation', memory.interpretation));
+      for (const stance of experienced.posture) context.append(card(stance.name, stance.interpretation + (stance.affect ? ` · ${stance.affect}` : '')));
+      panel.append(context);
+    }
     editor.append(panel); page.append(editor); return;
   }
   const entries = items.map((item, index) => ({ item, index }))
@@ -1698,7 +1706,7 @@ function perceptionPage(): void {
   }
   page.append(transport);
   if (snapshot) page.append(node('p', `Snapshot ${snapshot.payload.sequence} · ${snapshot.payload.capturedAt}`, 'muted'));
-  perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current, snapshot?.payload.thoughtHistory ?? []);
+  perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current, snapshot?.payload.thoughtHistory ?? [], snapshot?.payload.experienced);
   if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
   if (!snapshot) {
     page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted')); content.append(page); return;
@@ -1720,14 +1728,6 @@ function perceptionPage(): void {
     actions.append(iconButton('Inspect source cycle', '<path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7M12 7v5l3 2"/>', () => showCycleInspector(cycleId)));
   }
   heading.append(actions);
-  const context = node('section');
-  context.append(node('h3', 'Subjective context'));
-  if (world.experienced) {
-    for (const prediction of world.experienced.prospective) context.append(card('Prospective alternative', prediction.expectation));
-    for (const memory of world.experienced.rememberedInterpretations) context.append(card('Remembered interpretation', memory.interpretation));
-    for (const stance of world.experienced.posture) context.append(card(stance.name, stance.interpretation + (stance.affect ? ` · ${stance.affect}` : '')));
-  }
-  page.append(context);
   content.append(page);
 }
 function brain(): void {
