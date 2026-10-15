@@ -1492,16 +1492,16 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
   if (sendError) showError(sendError);
 }
 
-function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: PerceptionFact[], current: boolean): void {
+function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: PerceptionFact[], current: boolean, thoughts: NonNullable<import('../../../packages/core/src/domain.js').WorldState['thoughtHistory']>): void {
   const channelOf = (fact: PerceptionFact) => fact.source.startsWith('Sensor ') ? fact.source.slice(7) : 'general';
-  const channels = [...new Set(['audio', 'visual', 'tactile', 'olfactory', 'gustatory', 'general', ...facts.map(channelOf), ...draft.items.map(item => item.channel)])];
+  const channels = [...new Set(['audio', 'visual', 'tactile', 'olfactory', 'gustatory', 'general', ...facts.map(channelOf), ...draft.items.map(item => item.channel), '#thoughts'])];
   const editor = node('section', '', 'sensor-editor');
   const tabs = node('div', '', 'perception-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'WorldState channels');
   const items = current ? draft.items : facts.map(fact => ({ channel: channelOf(fact), text: fact.text, fact }));
   const changed = () => { draft.dirty = true; draft.requestId = crypto.randomUUID(); };
   for (const channel of channels) {
-    const label = channel === 'general' ? 'General world facts' : channel[0]!.toUpperCase() + channel.slice(1);
-    const tab = button(`${label} (${items.filter(item => item.channel === channel).length})`, () => { perceptionChannel = channel; render(); }, true);
+    const label = channel === '#thoughts' ? 'Decaying thoughts' : channel === 'general' ? 'General world facts' : channel[0]!.toUpperCase() + channel.slice(1);
+    const tab = button(`${label} (${channel === '#thoughts' ? thoughts.length : items.filter(item => item.channel === channel).length})`, () => { perceptionChannel = channel; render(); }, true);
     tab.id = `sensor-tab-${channel}`; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(channel === perceptionChannel));
     tab.setAttribute('aria-controls', 'sensor-panel'); tab.tabIndex = channel === perceptionChannel ? 0 : -1;
     tab.onkeydown = event => {
@@ -1514,6 +1514,16 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
   }
   editor.append(tabs);
   const panel = node('div', '', 'sensor-channel'); panel.id = 'sensor-panel'; panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `sensor-tab-${perceptionChannel}`);
+  if (perceptionChannel === '#thoughts') {
+    panel.append(node('p', 'Attributed subjective thoughts carried into this snapshot.', 'muted'));
+    for (const thought of thoughts) {
+      const entry = node('article', '', 'perception-fact');
+      entry.append(node('h4', thought.partName), node('p', thought.thought), node('p', `Age: ${thought.age} · ${thought.selectedBySelf ? 'Selected by Self' : 'Not selected by Self'}`, 'muted'));
+      panel.append(entry);
+    }
+    if (!thoughts.length) panel.append(node('p', 'No carried thoughts recorded.', 'muted'));
+    editor.append(panel); page.append(editor); return;
+  }
   const entries = items.filter(item => item.channel === perceptionChannel);
   if (!entries.length) panel.append(node('p', 'No entries in this channel.', 'muted'));
   for (const item of entries) {
@@ -1602,7 +1612,7 @@ function perceptionPage(): void {
   transport.append(play);
   page.append(transport);
   page.append(node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
-  perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current);
+  perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current, snapshot?.payload.thoughtHistory ?? []);
   if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
   if (!snapshot) {
     page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted')); content.append(page); return;
@@ -1621,12 +1631,6 @@ function perceptionPage(): void {
   page.append(actions);
   const context = node('section');
   context.append(node('h3', 'Subjective context'));
-  for (const thought of world.thoughtHistory ?? []) {
-    const entry = node('article', '', 'perception-fact');
-    entry.append(node('h4', thought.partName), node('p', thought.thought), node('p', `Age: ${thought.age} · ${thought.selectedBySelf ? 'Selected by Self' : 'Not selected by Self'}`, 'muted'));
-    context.append(entry);
-  }
-  if (!world.thoughtHistory?.length) context.append(node('p', 'No carried thoughts recorded.', 'muted'));
   if (world.experienced) {
     for (const prediction of world.experienced.prospective) context.append(card('Prospective alternative', prediction.expectation));
     for (const memory of world.experienced.rememberedInterpretations) context.append(card('Remembered interpretation', memory.interpretation));
