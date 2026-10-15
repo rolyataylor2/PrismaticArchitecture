@@ -1499,3 +1499,21 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .executive-modules { min-width: 0; }
 .executive-panel label.executive-master-switch.form-setting, .executive-panel .executive-modules label.form-setting { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
 .executive-modules .form-toggle { flex-shrink: 0; }
+
+.agent-square-wrapper { position: relative; width: 100%; }
+.agent-square { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px 12px; background: #e8eee3; border: 1px solid #cbd7c7; border-radius: 12px; color: #254f3c; }
+.agent-square:hover { background: #dfe9da; }
+.agent-square-avatar { font-size: 64px; line-height: 1.2; overflow-wrap: anywhere; max-width: 100%; }
+.agent-square-name { max-width: 100%; overflow-wrap: anywhere; font-size: 17px; }
+.agent-square-wrapper .agent-pencil-btn { position: absolute; top: 8px; right: 8px; background: #f7f9f3; opacity: 0; pointer-events: none; }
+.agent-square-wrapper:hover .agent-pencil-btn, .agent-square-wrapper:focus-within .agent-pencil-btn { opacity: 1; pointer-events: auto; }
+.agent-context-menu { position: absolute; top: 44px; right: 8px; z-index: 10; display: grid; min-width: 150px; padding: 5px; background: white; border: 1px solid #cbd7c7; border-radius: 8px; box-shadow: 0 8px 22px #21332e22; }
+.agent-context-menu button { text-align: left; background: transparent; color: #254f3c; border: 0; }
+.agent-context-menu button:hover { background: #e8eee3; }
+.agent-picker-dialog { width: min(720px, calc(100vw - 32px)); }
+.agent-picker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.agent-picker-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-width: 0; padding: 20px 12px; background: #f4f5ef; color: #254f3c; border: 1px solid #cbd7c7; overflow-wrap: anywhere; }
+.agent-picker-item[aria-pressed="true"] { border: 2px solid #456e50; background: #e8eee3; }
+.agent-avatar-preview { font-size: 48px; text-align: center; overflow-wrap: anywhere; margin-bottom: 12px; }
+.agent-edit-dialog input { display: block; width: 100%; margin-top: 8px; }
+@media (hover: none) { .agent-square-wrapper .agent-pencil-btn { opacity: 1; pointer-events: auto; } }

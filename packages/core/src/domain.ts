@@ -24,7 +24,7 @@ export const PromptOverrideSchema = z.strictObject({
 }).refine(value => value.scope === 'agent' ? value.agentId !== null : value.agentId === null);
 export type PromptOverride = z.infer<typeof PromptOverrideSchema>;
 const Version = { id: Id, agentId: Id, version: z.number().int().positive(), schemaVersion: z.literal(1) };
-export const AgentSchema = z.strictObject({ ...Version, name: Text, createdAt: Text, architecture: z.enum(['constructed', 'persistent']).optional() });
+export const AgentSchema = z.strictObject({ ...Version, name: Text, avatar: z.string().trim().min(1).max(16).optional(), createdAt: Text, architecture: z.enum(['constructed', 'persistent']).optional() });
 export type Agent = z.infer<typeof AgentSchema>;
 /** Researcher wizard preferences, never cognitive Identity or Part state. */
 export const IdentityAuthoringSettingsSchema = z.strictObject({

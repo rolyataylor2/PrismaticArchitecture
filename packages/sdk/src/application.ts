@@ -274,12 +274,12 @@ export class Application {
     this.store.save('agent', next, agent.version, { origin: 'researcher_edit', reason: `Selected ${architecture} offline consolidation profile`, sourceIds: [] });
     return next;
   }
-  renameAgent(agentId: string, name: string) {
+  renameAgent(agentId: string, name: string, avatar?: string) {
     const trimmed = name.trim();
     const agent = this.store.get('agent', agentId);
-    const updated = { ...agent, name: trimmed, version: agent.version + 1 };
+    const updated = { ...agent, name: trimmed, ...(avatar === undefined ? {} : { avatar }), version: agent.version + 1 };
     this.inspection.atomic(() => {
-      this.store.save('agent', updated, agent.version, { origin: 'researcher_edit', reason: 'Researcher renamed Agent', sourceIds: [] });
+      this.store.save('agent', updated, agent.version, { origin: 'researcher_edit', reason: 'Researcher edited Agent profile', sourceIds: [] });
     });
     return updated;
   }

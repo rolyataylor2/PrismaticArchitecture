@@ -151,3 +151,5 @@ Researcher external-fact replacements (ADR 0166) enter the ordinary runtime as a
 Async prediction updates, including gap reflection and coverage adjustments, commit only against their inference input version. Superseded output emits prediction.update_discarded and preserves the newer version without failing the cognitive cycle or rebasing old conclusions. Explicit synchronous edits retain ordinary optimistic conflict errors.
 
 ADR 0167 adds Speaking and Tool execution permissions beneath the existing Executive master switch. Runtime checks the selected action module before contract creation and again before external handoff; disabled proposals remain recorded. Tool/skill/guidance context and checkpoint cognition require Tool execution. Legacy profiles retain both modules beneath the existing master switch; no new cognitive process is introduced.
+
+Agent profiles optionally retain a short display avatar (emoji or initials). This researcher-facing profile metadata is distinct from cognitive Identity; existing records default to the browser's brain avatar.

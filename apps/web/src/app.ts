@@ -539,7 +539,6 @@ async function selectAgent(agentId: string, databaseId = selectedDatabase): Prom
   render();
 }
 let agentDropdownOpen = false;
-let isRenamingAgent = false;
 type AvailableAgent = Agent & { databaseId: string; databaseLabel: string };
 let agentList: AvailableAgent[] = [];
 
@@ -596,165 +595,82 @@ function openCreateAgentModal(): void {
   document.body.append(modal); modal.showModal(); input.focus();
 }
 
+function openEditAgentModal(agent: AvailableAgent): void {
+  const modal = node('dialog', '', 'agent-edit-dialog');
+  modal.append(node('h3', 'Edit Agent'));
+  const form = node('form');
+  const nameLabel = node('label', 'Name');
+  const name = node('input'); name.value = agent.name; name.required = true;
+  name.setAttribute('aria-label', 'Agent name'); nameLabel.append(name);
+  const avatarLabel = node('label', 'Avatar (emoji or initials)');
+  const avatar = node('input'); avatar.value = agent.avatar ?? '🧠'; avatar.required = true; avatar.maxLength = 16;
+  avatar.setAttribute('aria-label', 'Agent avatar'); avatarLabel.append(avatar);
+  const preview = node('div', avatar.value, 'agent-avatar-preview');
+  avatar.oninput = () => { preview.textContent = avatar.value; };
+  const save = node('button', 'Save changes'); save.type = 'submit';
+  const error = node('p'); error.setAttribute('role', 'alert');
+  form.append(preview, nameLabel, avatarLabel, error, save);
+  form.onsubmit = async event => {
+    event.preventDefault();
+    if (!name.value.trim() || !avatar.value.trim()) { error.textContent = 'Enter a name and avatar.'; return; }
+    save.disabled = true;
+    try {
+      const updated = await api<Agent>(`agents/${agent.id}`, 'PATCH', { name: name.value.trim(), avatar: avatar.value.trim() });
+      Object.assign(agent, updated);
+      if (state?.agent.id === agent.id) Object.assign(state.agent, updated);
+      modal.close(); renderAgentControls(); render();
+    } catch (err) { error.textContent = err instanceof Error ? err.message : String(err); save.disabled = false; }
+  };
+  modal.append(form); document.body.append(modal); modal.showModal(); name.focus();
+}
+
+function openChangeAgentModal(): void {
+  const modal = node('dialog', '', 'agent-picker-dialog');
+  modal.append(node('h3', 'Change Agent'));
+  const grid = node('div', '', 'agent-picker-grid');
+  for (const agent of agentList) {
+    const selected = agent.id === selectedAgent && agent.databaseId === selectedDatabase;
+    const item = button('', () => {
+      modal.close(); activeTab = 'Perception';
+      void selectAgent(agent.id, agent.databaseId).catch(showError);
+    });
+    item.className = 'agent-picker-item'; item.setAttribute('aria-pressed', String(selected));
+    item.append(node('span', agent.avatar ?? '🧠', 'agent-avatar-preview'), node('strong', agent.name));
+    if (agent.databaseLabel) item.append(node('small', agent.databaseLabel));
+    if (selected) item.append(node('small', '✓ Current Agent'));
+    grid.append(item);
+  }
+  modal.append(grid, button('+ Create Prismatic Agent', () => { modal.close(); openCreateAgentModal(); }));
+  document.body.append(modal); modal.showModal();
+}
+
 function renderAgentControls(): void {
   const controls = document.querySelector('#agent-controls')!;
   controls.replaceChildren();
-
   if (agentList.length === 0) {
-    const createBtn = button('+ Create Prismatic Agent', () => openCreateAgentModal());
-    createBtn.className = 'agent-create-prompt-btn';
-    controls.append(createBtn);
+    controls.append(button('+ Create Prismatic Agent', () => openCreateAgentModal()));
     return;
   }
-
-  const currentAgent = agentList.find(a => a.id === selectedAgent && a.databaseId === selectedDatabase) ?? agentList[0]!;
-
-  if (isRenamingAgent) {
-    const renameForm = node('form', '', 'agent-rename-form');
-    const input = node('input', '', 'agent-rename-input');
-    input.type = 'text';
-    input.value = currentAgent.name;
-    input.setAttribute('aria-label', 'Agent name');
-    input.required = true;
-
-    const saveBtn = node('button', '', 'agent-icon-btn agent-save-btn');
-    saveBtn.type = 'submit';
-    saveBtn.title = 'Save agent name';
-    saveBtn.setAttribute('aria-label', 'Save agent name');
-    saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-
-    const cancelBtn = node('button', '', 'agent-icon-btn agent-cancel-btn');
-    cancelBtn.type = 'button';
-    cancelBtn.title = 'Cancel';
-    cancelBtn.setAttribute('aria-label', 'Cancel rename');
-    cancelBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-    cancelBtn.onclick = () => {
-      isRenamingAgent = false;
-      renderAgentControls();
-    };
-
-    input.onkeydown = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        isRenamingAgent = false;
-        renderAgentControls();
-      }
-    };
-
-    renameForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const newName = input.value.trim();
-      if (!newName || newName === currentAgent.name) {
-        isRenamingAgent = false;
-        renderAgentControls();
-        return;
-      }
-      try {
-        saveBtn.disabled = true;
-        const updated = await api<Agent>(`agents/${currentAgent.id}`, 'PATCH', { name: newName });
-        currentAgent.name = updated.name;
-        if (state?.agent.id === currentAgent.id) state.agent.name = updated.name;
-        isRenamingAgent = false;
-        agentList = await api<AvailableAgent[]>('agent-catalog');
-        renderAgentControls();
-        render();
-      } catch (err) {
-        saveBtn.disabled = false;
-        showError(err);
-      }
-    };
-
-    renameForm.append(input, saveBtn, cancelBtn);
-    controls.append(renameForm);
-    setTimeout(() => { input.focus(); input.select(); }, 20);
-    return;
-  }
-
-  const wrapper = node('div', '', 'agent-selector-wrapper');
-
-  const dropdownBtn = node('button', '', 'agent-dropdown-btn' + (agentDropdownOpen ? ' active' : ''));
-  dropdownBtn.type = 'button';
-  dropdownBtn.setAttribute('aria-haspopup', 'listbox');
-  dropdownBtn.setAttribute('aria-expanded', String(agentDropdownOpen));
-  dropdownBtn.setAttribute('aria-label', `Select Agent (currently ${currentAgent.name})`);
-
-  const avatar = node('span', '🧠', 'agent-avatar-badge');
-  const nameLabel = node('span', currentAgent.name, 'agent-display-name');
-  const caret = node('span', agentDropdownOpen ? '▴' : '▾', 'agent-caret');
-  dropdownBtn.append(avatar, nameLabel, caret);
-
-  dropdownBtn.onclick = (e) => {
-    e.stopPropagation();
-    agentDropdownOpen = !agentDropdownOpen;
-    renderAgentControls();
-  };
-
-  const pencilBtn = node('button', '', 'agent-pencil-btn');
-  pencilBtn.type = 'button';
-  pencilBtn.title = 'Rename Agent';
-  pencilBtn.setAttribute('aria-label', 'Rename Agent');
-  pencilBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`;
-
-  pencilBtn.onclick = (e) => {
-    e.stopPropagation();
-    agentDropdownOpen = false;
-    isRenamingAgent = true;
-    renderAgentControls();
-  };
-
-  wrapper.append(dropdownBtn, pencilBtn);
-
+  const agent = agentList.find(a => a.id === selectedAgent && a.databaseId === selectedDatabase) ?? agentList[0]!;
+  const wrapper = node('div', '', 'agent-square-wrapper');
+  wrapper.onclick = event => event.stopPropagation();
+  const square = button('', () => { agentDropdownOpen = false; activeTab = 'Perception'; renderAgentControls(); render(); });
+  square.className = 'agent-square'; square.setAttribute('aria-label', `${agent.name} — open Perception`);
+  square.append(node('span', agent.avatar ?? '🧠', 'agent-square-avatar'), node('strong', agent.name, 'agent-square-name'));
+  const pencil = button('', () => {
+    agentDropdownOpen = !agentDropdownOpen; renderAgentControls();
+    controls.querySelector<HTMLElement>(agentDropdownOpen ? '.agent-context-menu button' : '.agent-pencil-btn')?.focus();
+  });
+  pencil.className = 'agent-pencil-btn'; pencil.title = 'Agent options'; pencil.setAttribute('aria-label', 'Agent options');
+  pencil.setAttribute('aria-expanded', String(agentDropdownOpen));
+  pencil.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+  wrapper.append(square, pencil);
   if (agentDropdownOpen) {
-    const dropdownMenu = node('div', '', 'agent-dropdown-menu');
-    dropdownMenu.setAttribute('role', 'listbox');
-
-    const menuHeader = node('div', 'All available Prismatic Agents', 'agent-menu-header');
-    dropdownMenu.append(menuHeader);
-
-    const listContainer = node('div', '', 'agent-menu-list');
-    for (const agent of agentList) {
-      const isSelected = agent.id === selectedAgent && agent.databaseId === selectedDatabase;
-      const item = node('button', '', 'agent-menu-item' + (isSelected ? ' selected' : ''));
-      item.type = 'button';
-      item.setAttribute('role', 'option');
-      item.setAttribute('aria-selected', String(isSelected));
-
-      const itemName = node('span', agent.name, 'agent-menu-name');
-      item.append(itemName);
-      if (agent.databaseId) item.append(node('span', ` · ${agent.databaseLabel}`, 'muted'));
-
-      if (isSelected) {
-        const check = node('span', '✓', 'agent-menu-check');
-        item.append(check);
-      }
-
-      item.onclick = (e) => {
-        e.stopPropagation();
-        agentDropdownOpen = false;
-        renderAgentControls();
-        void selectAgent(agent.id, agent.databaseId).catch(showError);
-      };
-      listContainer.append(item);
-    }
-    dropdownMenu.append(listContainer);
-
-    const divider = node('div', '', 'agent-menu-divider');
-    dropdownMenu.append(divider);
-
-    const createOption = node('button', '', 'agent-menu-create-btn');
-    createOption.type = 'button';
-    createOption.innerHTML = `<span class="agent-menu-plus">+</span> Create Prismatic Agent`;
-    createOption.onclick = (e) => {
-      e.stopPropagation();
-      agentDropdownOpen = false;
-      renderAgentControls();
-      openCreateAgentModal();
-    };
-    dropdownMenu.append(createOption);
-
-    wrapper.append(dropdownMenu);
+    const menu = node('div', '', 'agent-context-menu');
+    const edit = button('Edit Agent', () => { agentDropdownOpen = false; renderAgentControls(); openEditAgentModal(agent); });
+    const change = button('Change Agent', () => { agentDropdownOpen = false; renderAgentControls(); openChangeAgentModal(); });
+    menu.append(edit, change); wrapper.append(menu);
   }
-
   controls.append(wrapper);
 }
 

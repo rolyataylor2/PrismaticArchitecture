@@ -336,3 +336,5 @@ The perception tabs stage a complete external-fact set for the next observation.
 ADR 0167 Executive modules gate operational discovery, skill-document intake, checkpoint feedback, procedural learning and per-call MCP submission independently of Speaking. Module permissions persist and copy with Executive profiles. Administrative inspection and grants remain available separately.
 
 Chat execution records completed realized speech as Sensor audio / says with `You said: [text]`. The exact unprefixed rendered words remain in execution.speech.text. Proposed or failed speech never supplies spoken feedback.
+
+The Agent PATCH endpoint accepts a name and optional short display avatar, persisted together as a versioned researcher profile edit. Name-only requests preserve the existing avatar.

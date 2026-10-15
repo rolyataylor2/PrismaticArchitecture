@@ -282,8 +282,8 @@ export async function api(app: Application, method: string, path: string, body: 
       }
     }
     if (method === 'PATCH' && !action) {
-      const input = z.strictObject({ name: Text }).parse(body);
-      return app.renameAgent(entityId, input.name);
+      const input = z.strictObject({ name: Text, avatar: z.string().trim().min(1).max(16).optional() }).parse(body);
+      return app.renameAgent(entityId, input.name, input.avatar);
     }
     if (action === 'primitives') {
       const current = app.store.primitiveSettings(entityId);

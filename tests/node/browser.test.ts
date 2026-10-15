@@ -26,14 +26,18 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
 
     // Verify pencil edit renaming
-    await page.getByRole('button', { name: 'Rename Agent' }).click();
+    await page.locator('.agent-square').hover();
+    await page.getByRole('button', { name: 'Agent options', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit Agent', exact: true }).click();
     await page.getByRole('textbox', { name: 'Agent name' }).fill('Renamed Agent');
-    await page.getByRole('button', { name: 'Save agent name' }).click();
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
     await page.getByRole('heading', { name: 'Renamed Agent', exact: true }).waitFor();
     assert.equal(store.list('agent')[0]!.name, 'Renamed Agent');
 
     // Verify agent dropdown and create popup
-    await page.getByRole('button', { name: /Select Agent/ }).click();
+    await page.locator('.agent-square').hover();
+    await page.getByRole('button', { name: 'Agent options', exact: true }).click();
+    await page.getByRole('button', { name: 'Change Agent', exact: true }).click();
     await page.getByRole('button', { name: '+ Create Prismatic Agent' }).click();
     await page.getByRole('dialog').waitFor();
     await page.getByRole('dialog').getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Second Agent');
@@ -42,8 +46,10 @@ test('browser workflow: create, converse, inspect frozen cycle, learn, sleep, ma
     assert.equal(store.list('agent').length, 2);
 
     // Switch back to Renamed Agent
-    await page.getByRole('button', { name: /Select Agent/ }).click();
-    await page.getByRole('option', { name: 'Renamed Agent' }).click();
+    await page.locator('.agent-square').hover();
+    await page.getByRole('button', { name: 'Agent options', exact: true }).click();
+    await page.getByRole('button', { name: 'Change Agent', exact: true }).click();
+    await page.locator('.agent-picker-item').filter({ hasText: 'Renamed Agent' }).click();
 
     await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Identity', exact: true }).click();
