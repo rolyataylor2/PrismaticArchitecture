@@ -68,6 +68,8 @@ export function createResearchServer(app: Application, root = process.cwd(), dat
         '/executive.js': ['dist/apps/web/src/executive.js', 'text/javascript'],
         '/mcp-registration.js': ['dist/apps/web/src/mcp-registration.js', 'text/javascript'],
         '/affect-analysis.js': ['dist/apps/web/src/affect-analysis.js', 'text/javascript'],
+        '/disposition-activation-chart.js': ['dist/apps/web/src/disposition-activation-chart.js', 'text/javascript'],
+        '/packages/sdk/src/cognition-timeline.js': ['dist/packages/sdk/src/cognition-timeline.js', 'text/javascript'],
         '/sleep-dashboard.js': ['dist/apps/web/src/sleep-dashboard.js', 'text/javascript'],
         '/simulation-dashboard.js': ['dist/apps/web/src/simulation-dashboard.js', 'text/javascript'],
         '/simulation-metrics.js': ['dist/apps/web/src/simulation-metrics.js', 'text/javascript'],

@@ -1,3 +1,24 @@
+# Active continuous cognition thread — ADR 0165
+
+Full source scope and requirement audit: `docs/development/CONTINUOUS_COGNITION_AUDIT.md`.
+
+- [x] Read supplied discussion and document the single asynchronous runtime target.
+- [x] Add bounded noninterruptible scope jobs and overlapping observation intake.
+- [x] Commit completed thoughts independently and serialize/coalesce Self decisions within an observation.
+- [x] Persist default busy exclusion, optional rescoring, inference bounds and one-pass pause/resume settings.
+- [x] Add per-disposition activation chart, exact judgments, thread filters and source links.
+- [x] Register paired ordinary concurrent-observation experiments with declared wall-clock timing and preserved evidence.
+- [x] Implement cross-observation versioned bids, owner review, structural support and mediated commitment history.
+- [x] Complete applicability/lifecycle and commitment/interruptibility integration audit.
+- [x] Separate committed affect cadence and external-adapter waiting from serialized Self decisions.
+- [x] Recover concurrent dream batches without replaying delivered observations or hiding failed siblings.
+- [x] Verify affect rendering, prediction/lifecycle races and shutdown/recovery boundaries.
+- [x] Implement opt-in per-thought workload routing, actual-model provenance, separate outcome evidence and prediction-history escalation.
+- [x] Route intuitive-to-deliberative owning inquiry/revision through bounded scope scheduling with exact revised-bid provenance.
+- [x] Register sourced comparisons and finish the rendered and requirement-by-requirement audit.
+- [ ] Obtain terminal final regression/build/lint evidence and complete delivery checks.
+- [ ] Commit task-only changes and push the configured branch after completion.
+
 # Active Self affect thread — ADR 0157
 
 - [x] Record source requirements and architectural access/lifecycle boundaries.

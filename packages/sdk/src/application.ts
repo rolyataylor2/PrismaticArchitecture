@@ -1,3 +1,5 @@
+import { repeatedPredictionContradiction } from './thought-model-evidence.js';
+import { ThoughtRoutingSettingsSchema, type ThoughtRoutingSettings } from '../../core/src/thought-resources.js';
 import { sensorFacts } from './sensor-input.js';
 import { recoverInterruptedDreams } from './dream-state.js';
 import { observeProvider, providerOperationContext, researchStageContext, suppressProviderObservation } from './provider-observation.js';
@@ -98,13 +100,22 @@ export class Application {
         ...(scope?.agentId === record.agentId ? { researchScope: { runId: scope.runId, stageId: scope.stageId, stageIndex: scope.stageIndex, startEventId: scope.startEventId } } : {}),
         ...(operationId ? { operationId } : {}) });
     };
-    this.providers = { ...providers, decisions: observeProvider(store, providers.decisions, 'decisions'), reasoning: observeProvider(store, new AgentReasoningProvider(providers.reasoning, agentId => {
+    this.providers = { ...providers, decisions: observeProvider(store, providers.decisions, 'decisions'), reasoning: new AgentReasoningProvider(providers.reasoning, (agentId, requestedModel) => {
       const settings = store.agentProviderSettings(agentId);
-      if (!settings) return providers.reasoning;
-      const apiKey = settings.encryptedApiKey ? vault.decrypt(settings.encryptedApiKey) : (settings.model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
+      if (!settings) {
+        if (requestedModel) throw new Error('Thought routing requires saved Agent provider settings');
+        return observeProvider(store, providers.reasoning, 'reasoning', providers.reasoning.label);
+      }
+      const model = requestedModel ?? settings.model;
+      if ((model === 'grok-4.3') !== (settings.model === 'grok-4.3')) throw new Error('Thought routing cannot cross provider credential boundaries');
+      const apiKey = settings.encryptedApiKey ? vault.decrypt(settings.encryptedApiKey) : (model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY) ?? '';
       if (!apiKey) throw new Error(`Set an API key in this Agent's Settings to use ${settings.model}`);
-      return settings.model === 'grok-4.3' ? new XaiProvider(apiKey, settings.model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, settings.model, fetch, promptResolver(store), 'openai', observeUsage);
-    }), 'reasoning') };
+      const provider = model === 'grok-4.3' ? new XaiProvider(apiKey, model, fetch, promptResolver(store), observeUsage) : new OpenAIProvider(apiKey, model, fetch, promptResolver(store), 'openai', observeUsage);
+      return observeProvider(store, provider, 'reasoning', provider.label);
+    }, { settings: agentId => store.agentProviderSettings(agentId)?.thoughtRouting ?? null,
+      historyEscalation: (input, provider, threshold) => repeatedPredictionContradiction(store, input, provider, threshold),
+      record: (input, assessment, model, reason, purpose) => store.appendEvent(input.agentId, input.world?.cycleId ?? null, 'cognition.resources',
+        { worldId: input.world?.id ?? null, dispositionIds: input.dispositions?.map(disposition => disposition.id) ?? [], model, assessment, reason, purpose }) }) };
     this.procedureConsolidation = new ProcedureConsolidator(store, this.providers.reasoning, this.executiveSkills);
     this.inspection = new Inspection(store, agentId => {
       const scope = researchStageContext.getStore();
@@ -197,7 +208,7 @@ export class Application {
     return xai ? new XaiProvider(key, selected) : new OpenAIProvider(key, selected);
   }
   agentActivationSettings(agentId: string) { return this.store.agentActivationSettings(agentId); }
-  updateAgentActivationSettings(agentId: string, settings: { memorySearchEnabled?: boolean | undefined; memoryRelevanceThreshold?: number | undefined; memoryRecallLimit?: number | null | undefined; vectorSearchEnabled?: boolean | undefined; primitivesFirst?: boolean | undefined; reevaluateAfterDeliberation?: boolean | undefined }) {
+  updateAgentActivationSettings(agentId: string, settings: { includeProcessingDispositions?: boolean | undefined; maxConcurrentThoughts?: number | undefined; maxQueuedThoughts?: number | undefined; activationPassLimit?: number | null | undefined; memorySearchEnabled?: boolean | undefined; memoryRelevanceThreshold?: number | undefined; memoryRecallLimit?: number | null | undefined; vectorSearchEnabled?: boolean | undefined; primitivesFirst?: boolean | undefined; reevaluateAfterDeliberation?: boolean | undefined }) {
     this.store.saveAgentActivationSettings(agentId, { ...this.agentActivationSettings(agentId), ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)) });
     return this.agentActivationSettings(agentId);
   }
@@ -206,7 +217,7 @@ export class Application {
     const saved = this.store.agentProviderSettings(agentId);
     const model = saved?.model ?? (projectEnvironmentValue('PROVIDER') === 'xai' ? process.env.XAI_MODEL ?? 'grok-4.3' : process.env.OPENAI_MODEL ?? 'gpt-4.1-nano');
     const serverKey = model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
-    return { model, usesAgentModel: saved !== null,
+    return { model, thoughtRouting: saved?.thoughtRouting ?? null, usesAgentModel: saved !== null,
       hasAgentKey: saved?.encryptedApiKey !== null && saved?.encryptedApiKey !== undefined,
       hasServerKey: Boolean(serverKey), hasUsableKey: Boolean(saved?.encryptedApiKey || serverKey), availableModels: [
         { id: 'gpt-5-nano', label: 'GPT-5 nano · $0.05 / 1M input tokens' },
@@ -215,7 +226,7 @@ export class Application {
         { id: 'gpt-4.1-mini', label: 'GPT-4.1 mini · non-reasoning · $0.40 / 1M input tokens' },
       ] };
   }
-  updateAgentInferenceSettings(agentId: string, input: { model: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined }) {
+  updateAgentInferenceSettings(agentId: string, input: { model: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined; thoughtRouting?: ThoughtRoutingSettings | null | undefined }) {
     this.store.get('agent', agentId);
     const models = ['gpt-5-nano', 'gpt-4.1-nano', 'gpt-4.1-mini', 'grok-4.3'];
     if (!models.includes(input.model)) throw new Error('Choose a supported inference model');
@@ -231,7 +242,12 @@ export class Application {
     }
     const serverKey = input.model === 'grok-4.3' ? process.env.XAI_API_KEY : process.env.OPENAI_API_KEY;
     if (!encryptedApiKey && !serverKey) throw new Error(`Add an ${input.model === 'grok-4.3' ? 'xAI' : 'OpenAI'} API key for this Agent or to the server .env file`);
-    this.store.saveAgentProviderSettings(agentId, { model: input.model, encryptedApiKey });
+    const thoughtRouting = input.thoughtRouting === undefined ? previous?.thoughtRouting ?? null
+      : input.thoughtRouting === null ? null : ThoughtRoutingSettingsSchema.parse(input.thoughtRouting);
+    if (thoughtRouting && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => !models.includes(model))) throw new Error('Choose supported thought routing models');
+    if (thoughtRouting?.enabled && [thoughtRouting.intuitiveModel, thoughtRouting.deliberativeModel].some(model => (model === 'grok-4.3') !== (input.model === 'grok-4.3')))
+      throw new Error('Thought routing models must use the same provider as the Agent');
+    this.store.saveAgentProviderSettings(agentId, { model: input.model, encryptedApiKey, thoughtRouting });
     return this.agentInferenceSettings(agentId);
   }
   promptSettings(agentId: string) { return promptSettings(this.store, agentId); }
@@ -281,16 +297,18 @@ export class Application {
     return capabilities;
   }
   /** Coordinate inference only; external workers/cancellation continue independently. */
-  #coordinate<T>(agentId: string, operation: () => Promise<T>): Promise<T> {
+  #coordinate<T>(agentId: string, operation: () => Promise<T>, concurrent = false): Promise<T> {
     if (this.#closing) return Promise.reject(new Error('Application is closing'));
-    const result = (this.#inference.get(agentId) ?? Promise.resolve()).then(operation);
-    const tail = result.then(() => {}, () => {});
+    const previous = this.#inference.get(agentId) ?? Promise.resolve();
+    const result = (concurrent ? Promise.resolve() : previous).then(operation);
+    const tail = Promise.allSettled([previous, result]).then(() => {});
     this.#inference.set(agentId, tail);
     void tail.then(() => { if (this.#inference.get(agentId) === tail) this.#inference.delete(agentId); });
     return result;
   }
   async waitForInference(agentId: string): Promise<void> {
     while (this.#inference.has(agentId)) await this.#inference.get(agentId);
+    await this.runtime.idle(agentId);
   }
   async consolidate(agentId: string, fromCycle?: number, toCycle?: number, options: Partial<import('../../core/src/consolidation-domain.js').SleepOptions> = {}) {
     return this.#coordinate(agentId, () => this.consolidation.run(agentId, fromCycle, toCycle, options));
@@ -299,7 +317,7 @@ export class Application {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }
   protected messageFacts(text: string, source: string): Fact[] { return sensorFacts(text, source); }
-  async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = []) {
+  async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = [], clientMessageId?: string) {
     const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && (run.status === 'running' || run.status === 'paused') && run.agentId === agentId && run.dream);
     if (activeDream && (threadId !== activeDream.id || researchStageContext.getStore()?.runId !== activeDream.id)) throw new ConflictError('Agent is experiencing a dream; wait for it to finish');
     const facts = this.messageFacts(text, source);
@@ -312,8 +330,8 @@ export class Application {
         return { id: proposal.id, digest: proposal.digest, name: proposal.name, description: proposal.package.frontmatter.description,
           reviewRevision: review.revision, instructions: proposal.package.instructions };
       }));
-      return this.runtime.run(agentId, facts, threadId, await this.#capabilities(agentId), documents);
-    });
+      return this.runtime.run(agentId, facts, threadId, await this.#capabilities(agentId), documents, clientMessageId);
+    }, true);
   }
   async observeExecution(agentId: string, executionId: string, facts: Fact[], checkpoint: 'tool_result' | 'environment' = 'environment',
     competence: ExecutiveCompetence = { confidence: null, coverage: null, evidence: 'No operational competence or procedure coverage assessment was supplied.' }) {
@@ -371,7 +389,7 @@ export class Application {
     this.#closing = true;
     try { await this.executiveWorkers.close(); }
     finally {
-      try { await Promise.allSettled(this.#inference.values()); }
+      try { await Promise.allSettled(this.#inference.values()); await this.runtime.close(); }
       finally {
         try { await this.agentSkillPackages.flush(); }
         finally { await this.executiveConnections.close(); }

@@ -36,6 +36,7 @@ export class MockDecisions implements DecisionProvider {
       })];
   }
   async judge(input: Parameters<NonNullable<DecisionProvider['judge']>>[0]) {
+    if (input.task === 'bid_applicability') return input.candidates.map(candidate => ({ partId: candidate.id, score: 2 }));
     const text = JSON.stringify(input.world);
     return input.candidates.map(candidate => {
       const context = candidate.context as { memory?: { content: string; gist: string }; disposition?: { cues: string[] }; baselineActivation?: number; associationSignals?: ({ kind: 'keyword'; keyword: string; effect: 'contribute' | 'inhibit' } | { kind: 'disposition'; baselineActivation: number; effect: 'contribute' | 'inhibit' })[]; relation?: string; interpretation?: string };
@@ -172,6 +173,7 @@ export class MockReasoning implements ReasoningProvider {
     return { candidates: [], reason: 'Deterministic fixture abstains from conditional procedural inference; this is not model evidence.' };
   }
   async constructed(input: Parameters<NonNullable<ReasoningProvider['constructed']>>[0]): Promise<unknown> {
+    if (input.task === 'thought_resources') return { difficulty: 'simple', uncertainty: 'low', urgency: 'routine', reason: 'Deterministic workload fixture; not evidence of real task difficulty.' };
     const current = input.world?.facts.filter(fact => fact.originCycleId === input.world!.cycleId).map(fact => fact.text).join(' ') || input.world?.facts.at(-1)?.text || 'No current observation';
     if (input.task === 'part_cognition') {
       const disposition = input.dispositions?.[0];

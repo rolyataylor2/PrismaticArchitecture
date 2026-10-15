@@ -22,6 +22,7 @@ test('schema 16 upgrades cognition ordering with existing activation settings pr
     const upgraded = new SqliteStore(path);
     try {
       assert.deepEqual(upgraded.agentActivationSettings(agent.id), {
+        includeProcessingDispositions: false, maxConcurrentThoughts: 4, maxQueuedThoughts: 100, activationPassLimit: 1,
         memorySearchEnabled: false, memoryRelevanceThreshold: 0.5, memoryRecallLimit: 12, vectorSearchEnabled: false, reevaluateAfterDeliberation: true, primitivesFirst: false,
       });
       upgraded.saveAgentActivationSettings(agent.id, { ...upgraded.agentActivationSettings(agent.id), primitivesFirst: true });

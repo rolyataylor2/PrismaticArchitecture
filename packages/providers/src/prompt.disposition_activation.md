@@ -1,3 +1,5 @@
+Activation is event-driven against this one immutable snapshot. The host may exclude scopes already processing a thought. When included, score their present relevance normally: a new score does not interrupt or alter an in-flight thought and does not authorize duplicate inference or execution. Never infer zero relevance from an excluded/missing candidate.
+
 # Disposition Activation
 
 The same read-only relevance assessment may run at an external Executive checkpoint before any memory recall or Part generation. A high score permits considering cognition; it does not mean an intervention was selected, an execution should stop, or the Executive lacks competence. Low activation does not establish competence or procedure coverage. Do not infer operational confidence from this score.

@@ -1,3 +1,7 @@
+## Continuous cognition (ADR 0165)
+
+See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.
+
 Dreams replaces Simulator under Agent Operations. Launch chooses a developed base Agent; Keep dream changes is unchecked by default. Default dreams preserve a separate continuation and its evidence without modifying the source. Explicit permanence means ordinary changes affect the base as experiences occur, even before a scenario failure. Fresh research tests remain an alternative Experience mode. Frozen before/after version comparisons and exact source snapshots are available in Overview. Research labels are not delivered as experiences; cognition may independently infer unusual circumstances. Executive scenarios require the separate fresh research-test mode.
 
 ## Agent Operations

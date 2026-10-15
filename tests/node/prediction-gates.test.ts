@@ -1,3 +1,4 @@
+import { Application as ProductionApplication } from '../../packages/sdk/src/application.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Application } from './persistent-fixture.js';
@@ -140,4 +141,23 @@ test('outcome evidence excludes facts recorded before prediction formation', asy
     assert.equal(store.list('prediction', agent.id)[0]!.status, 'open');
     assert.equal(store.get('part', store.list('prediction', agent.id)[0]!.partId!).beliefConfidence, 1);
   } finally { store.close(); }
+});
+
+
+test('production outcome contexts expose only facts later than the committed prediction frontier', async () => {
+  const store = new SqliteStore(':memory:'); let checks = 0;
+  class Decisions extends MockDecisions {
+    override async checkPrediction(context: Parameters<DecisionProvider['checkPrediction']>[0]) {
+      checks++; assert.ok(context.world.facts.every(fact => !fact.text.includes('Thank you')));
+      assert.deepEqual(context.world.facts, context.laterEvidence);
+      return super.checkPrediction(context);
+    }
+  }
+  const app = new ProductionApplication(store, { decisions: new Decisions(), reasoning: new MockReasoning(), embeddings: new MockEmbeddings() });
+  try {
+    const agent = app.createAgent();
+    await app.message(agent.id, 'Thank you. I am uncertain about a personal question.');
+    await app.message(agent.id, 'We have not heard an answer yet.');
+    assert.ok(checks); assert.equal(store.list('prediction', agent.id)[0]!.status, 'open');
+  } finally { await app.close(); store.close(); }
 });

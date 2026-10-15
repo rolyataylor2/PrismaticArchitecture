@@ -28,6 +28,12 @@ test('Chrome affect panel shows period use, original affect, source inspection a
     await page.getByRole('button', { name: 'Affect Analysis', exact: true }).click();
     await page.getByRole('heading', { name: 'Affect periods', exact: true }).waitFor();
     const panel = page.locator('.affect-analysis');
+    await panel.getByRole('heading', { name: 'Latest committed choices', exact: true }).waitFor();
+    assert.ok((await panel.innerText()).includes('independent of the historical date range'));
+    await page.screenshot({ path: '/tmp/prism-affect-ledger-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-affect-ledger-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await panel.locator('summary').filter({ hasText: /^Careful curiosity ·/ }).click();
     await panel.getByText('Motivation: Understand while caring', { exact: true }).waitFor();
     assert.ok((await panel.innerText()).includes('Lifetime period'));

@@ -1,4 +1,8 @@
+import type { thoughtModelEvidence } from '../../../packages/sdk/src/thought-model-evidence.js';
 import { affectAnalysisPage } from './affect-analysis.js';
+import { cognitionTimeline } from '../../../packages/sdk/src/cognition-timeline.js';
+import { dispositionActivationChart } from './disposition-activation-chart.js';
+import type { DispositionActivationSample } from '../../../packages/sdk/src/disposition-activation-history.js';
 import type { MemoryOverview, MemorySearchResult } from '../../../packages/sdk/src/memory-search.js';
 import { executivePage } from './executive.js';
 import type { PrimitiveSettings, Primitive } from '../../../packages/core/src/primitives.js';
@@ -55,7 +59,7 @@ function sensorDraft(): SensorDraft {
 }
 
 let pendingMessage = false;
-let submittedChat: { agentId: string; databaseId: string; threadId: string; text: string; source: string; cycleId?: string; error?: string } | null = null;
+let submittedChat: { requestId: string; agentId: string; databaseId: string; threadId: string; text: string; source: string; cycleId?: string; error?: string } | null = null;
 let threadLoading = false;
 let threadSelectionRevision = 0;
 
@@ -368,6 +372,10 @@ function field(parent: HTMLElement, title: string, value: string, multiline = fa
   const label = node('label', title); const input = multiline ? node('textarea') : node('input'); input.value = value; label.append(input); parent.append(label); return input;
 }
 const fieldDescriptions: Record<string, string> = {
+  'Evaluate activation of dispositions that are thinking': 'Include busy dispositions in scoring. Their latest measured activation changes; their running thought continues unchanged.',
+  'Maximum concurrent thoughts': 'Limit running scope inference across this Agent. Each disposition can run only one job at a time.',
+  'Maximum queued thoughts': 'Bound waiting inference jobs. New context replaces queued context only for the same disposition and kind of work.',
+  'Activation passes per observation': 'Count the initial activation and later attention or recruitment assessments. At the limit, pause new activation and finish accepted thoughts.',
   'Name': 'Use a short, recognizable name.',
   'Agent Name': 'The name shown in the Agent selector.',
   'Experiment': 'Choose a benchmark to run on a fresh Agent.',
@@ -420,6 +428,10 @@ const fieldDescriptions: Record<string, string> = {
   'Development version': 'Inspect a preserved version without changing the current skill.',
   'From cycle': 'The first cycle included in this range.',
   'Through cycle': 'The last cycle included in this range.',
+  'Assess resources separately for each thought': 'Enable workload assessment before choosing the model for each independent thought.',
+  'Intuitive thought model': 'Use for work assessed as simple with low uncertainty.',
+  'Deliberative thought model': 'Use for complex or uncertain work, including urgent work.',
+  'Consecutive incorrect predictions before escalation': 'Escalate later thoughts after this many consecutive conclusive prediction checks from the same scope, conversation and intuitive model.',
   'Model': 'The language model used for this Agent’s inference.',
   'OpenAI API key': 'Leave blank to keep the current key. Saved keys are encrypted.',
 };
@@ -500,10 +512,14 @@ async function selectAgent(agentId: string, databaseId = selectedDatabase): Prom
       events.push(item);
       if (item.type === 'infrastructure.error') showError(item.payload.message);
     }
+    if (item.type === 'cognition.stream') window.dispatchEvent(new CustomEvent('cognition-stream-updated', { detail: item }));
     if (item.type === 'cycle.started' && item.payload.threadId) {
       const session = sessions.find(session => session.id === item.payload.threadId);
       if (session && !session.cycleIds.includes(item.payload.id)) { session.cycleIds.push(item.payload.id); saveSessions(); }
-      if (item.payload.kind !== 'attention_monitor' && submittedChat?.agentId === item.agentId && submittedChat.databaseId === databaseId && submittedChat.threadId === item.payload.threadId && !submittedChat.cycleId) submittedChat.cycleId = item.payload.id;
+      if (item.payload.kind !== 'attention_monitor' && submittedChat?.agentId === item.agentId && submittedChat.databaseId === databaseId && submittedChat.threadId === item.payload.threadId && submittedChat.requestId === item.payload.clientMessageId && !submittedChat.cycleId) submittedChat.cycleId = item.payload.id;
+    }
+    if (item.type === 'worldstate.frozen' && submittedChat?.cycleId === item.cycleId) {
+      pendingMessage = false; submittedChat = null;
     }
     if (activeTab === 'Perception' || activeTab === 'Interaction') render();
     if ((activeTab === 'Brain' || activeTab === 'Brain Monitor') && !frozenCycle) render();
@@ -900,6 +916,7 @@ function componentHeader(title: string, description: string): HTMLElement {
 }
 let componentHeaderDescriptions: Record<string, string> = {};
 function sizeComponentHeaders(): void {
+  if (document.body.classList.contains('model-settings-view') || document.body.classList.contains('activation-settings-view')) { content.style.setProperty('--component-header-height', 'auto'); return; }
   const current = content.querySelector<HTMLElement>('.component-header');
   if (!current || !document.body.classList.contains('component-view') || document.body.classList.contains('simulation-dashboard-view')) return;
   let largest = 0;
@@ -930,9 +947,13 @@ function sizeComponentHeaders(): void {
   content.style.setProperty('--component-header-height', `${Math.ceil(largest)}px`);
 }
 let componentPanelWidth = 0;
+let componentHeaderFrame = 0;
 new ResizeObserver(entries => {
   const width = entries[0]?.contentRect.width ?? 0;
-  if (width !== componentPanelWidth) { componentPanelWidth = width; sizeComponentHeaders(); }
+  if (width !== componentPanelWidth) {
+    componentPanelWidth = width;
+    if (!componentHeaderFrame) componentHeaderFrame = requestAnimationFrame(() => { componentHeaderFrame = 0; sizeComponentHeaders(); });
+  }
 }).observe(content);
 function componentCreationControls(...controls: HTMLElement[]): void {
   content.querySelector('.component-header-actions')?.append(...controls);
@@ -1094,8 +1115,12 @@ function render(): void {
   const isBrain = activeTab === 'Brain' || activeTab === 'Brain Monitor';
   document.body.classList.toggle('chat-view', isChat || isBrain);
   document.body.classList.toggle('brain-view', isBrain);
+  const isPerception = activeTab === 'Perception' || activeTab === 'Interaction';
+  document.body.classList.toggle('perception-view', isPerception);
   const isPrompts = activeTab === 'Prompts' || (activeTab === 'Settings' && settingsSection === 'Prompts');
   document.body.classList.toggle('prompts-view', isPrompts);
+  document.body.classList.toggle('activation-settings-view', activeTab === 'Activation' || (activeTab === 'Settings' && settingsSection === 'Activation'));
+  document.body.classList.toggle('model-settings-view', activeTab === 'Model & key' || (activeTab === 'Settings' && settingsSection === 'Model & key'));
   const pageKey = activeTab === 'Settings' ? settingsSection : activeTab;
   const displayTitle = ({ Perception: 'Perception', Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
   const descriptions: Record<string, string> = {
@@ -1110,7 +1135,7 @@ function render(): void {
     Settings: 'Configure the models and inference instructions used by the Agent. These researcher controls support cognition without becoming part of the Agent’s psychological state.',
     'Model & key': 'Configure model providers and external inference access for the Agent’s cognitive processes.',
     Prompts: 'Inspect and edit inference instructions for the Agent’s cognitive processes. Runtime boundaries still determine each process’s access and authority.',
-    Activation: 'Activation settings are researcher controls for how subjective memories become accessible during cognition. They configure recall limits and relevance thresholds without assigning psychological meaning or decision authority to retrieval scores.',
+    Activation: 'Control disposition activation, independent thought capacity and when further attention pauses. Recall settings govern accessible subjective memories. Activation scores grant no action authority.',
     'Delete Agent': 'Agent deletion is a researcher operation that removes an Agent and its stored psychology and audit history. It acts outside cognition and requires confirmation before permanent removal.',
     Sleep: 'Offline consolidation of selected cognitive experiences, with preserved sleep-cycle history.',
     Dreams: 'Explore experiences from a chosen Agent base and inspect preserved before-and-after evidence.',
@@ -1119,7 +1144,7 @@ function render(): void {
   componentHeaderDescriptions = descriptions;
   document.body.classList.toggle('component-view', Boolean(description));
   document.body.classList.toggle('simulation-dashboard-view', pageKey === 'Dreams' || pageKey === 'Sleep');
-  content.replaceChildren(...(isChat || isBrain || pageKey === 'Dreams' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
+  content.replaceChildren(...(isChat || isBrain || isPerception || pageKey === 'Dreams' || pageKey === 'Sleep' ? [] : description ? [componentHeader(displayTitle, description)] : [node('h2', displayTitle)]));
   if ((isChat || isBrain) && state) {
     const chatHeader = node('div', '', 'chat-agent-header');
     chatHeader.append(node('h2', state.agent.name), threadViewButton(isBrain ? 'Perception' : 'Brain'));
@@ -1193,7 +1218,7 @@ function renderCycleInspector(cycle: Cycle, recordedEvents: CognitiveEvent[]): v
   titleBox.append(
     node('h3', `${reviewing ? 'Attention Review' : monitored ? 'Attention Checkpoint' : 'Cognitive Steps'} · Cycle ${cycle?.sequence ?? ''}`),
     node('p', monitored ? 'This checkpoint records read-only relevance monitoring. No Part generation, Self selection or intervention occurred.'
-      : 'Inspect learned Part thoughts and surfaced primitive reactions contributing to this response.', 'muted')
+      : 'Inspect independent thoughts, proposal review and Self choices for this observation.', 'muted')
   );
   const closeBtn = button('✕', () => dialog.close(), true);
   closeBtn.className = 'modal-close-btn';
@@ -1202,6 +1227,22 @@ function renderCycleInspector(cycle: Cycle, recordedEvents: CognitiveEvent[]): v
   dialog.append(header);
 
   const body = node('div', '', 'modal-body');
+  const timeline = cognitionTimeline(cycleEvents);
+  if (timeline.length) {
+    const section = card('Asynchronous activity', 'Recorded order of activation, reasoning, proposal review and committed choices. Later updates to a proposal can appear after its originating observation completed. A choice is not proof of execution.');
+    const scroll = node('div'); scroll.style.overflowX = 'auto';
+    const rows = table(['Recorded at', 'Stage', 'Status', 'Meaning', 'Evidence'], timeline.map(row => [new Date(row.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3, hour12: false }), row.phase,
+      row.status.replaceAll('_', ' '), row.summary, details('Source record', cycleEvents.find(event => event.id === row.eventId))]));
+    rows.style.minWidth = '720px'; rows.style.tableLayout = 'fixed'; rows.style.width = '100%';
+    const columns = node('colgroup');
+    for (const width of [100, 90, 105, 300, 125]) { const column = node('col'); column.style.width = `${width}px`; columns.append(column); }
+    rows.prepend(columns);
+    for (const cell of rows.querySelectorAll<HTMLElement>('td, th')) { cell.style.wordBreak = 'normal'; cell.style.overflowWrap = 'normal'; }
+    for (const cell of rows.querySelectorAll<HTMLElement>('tr > :first-child')) cell.style.whiteSpace = 'nowrap';
+    for (const disclosure of rows.querySelectorAll<HTMLElement>('details')) Object.assign(disclosure.style, { margin: '0', padding: '0', border: '0', borderRadius: '0', boxShadow: 'none' });
+    for (const source of rows.querySelectorAll<HTMLElement>('summary')) { source.style.padding = '4px'; source.style.whiteSpace = 'nowrap'; source.textContent = 'Source'; }
+    scroll.append(rows); section.append(node('p', 'Times include milliseconds. On smaller screens, scroll horizontally for meaning and source evidence.', 'muted'), scroll); body.append(section);
+  }
   for (const event of cycleEvents) {
     if (event.type === 'execution.consultation_requested') body.append(card('Executive consultation request', event.payload.reason));
     if (event.type === 'execution.review_completed') body.append(card('Review outcome', event.payload.outcome === 'continued'
@@ -1404,19 +1445,22 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
     sessions.unshift(requestedSession); activeSessionId = requestedSession.id; saveSessions();
   }
   const requestedSessionId = requestedSession.id;
-  const previousCycleIds = new Set(state?.cycles.map(c => c.id) ?? []);
+  let returnedCycle: Cycle | undefined;
   let sendError: unknown;
   pendingMessage = true;
-  submittedChat = { agentId, databaseId, threadId: requestedSessionId, text: trimmed, source };
+  submittedChat = { requestId: crypto.randomUUID(), agentId, databaseId, threadId: requestedSessionId, text: trimmed, source };
+  const submission = submittedChat;
+
   render();
-  try { await api(`agents/${agentId}/message`, 'POST', { text: trimmed, source, threadId: requestedSessionId,
-    ...(skillDocumentIds.length ? { skillDocumentIds } : {}) }); }
+  try { returnedCycle = (await api<{ cycle: Cycle }>(`agents/${agentId}/message`, 'POST', { text: trimmed, source, threadId: requestedSessionId, clientMessageId: submission.requestId,
+    ...(skillDocumentIds.length ? { skillDocumentIds } : {}) })).cycle; }
   catch (error) { sendError = error; }
   try { await refresh(); }
   catch (error) { sendError ??= error; }
 
-  if (agentId !== selectedAgent || databaseId !== selectedDatabase) { pendingMessage = false; return; }
-  const newCycle = state?.cycles.find(c => c.threadId === requestedSessionId && !previousCycleIds.has(c.id));
+  if (agentId !== selectedAgent || databaseId !== selectedDatabase) return;
+  if (submittedChat && submittedChat !== submission) return;
+  const newCycle = returnedCycle ? state?.cycles.find(c => c.id === returnedCycle!.id) ?? returnedCycle : undefined;
   if (newCycle) {
     let activeSess = requestedSessionId ? sessions.find(s => s.id === requestedSessionId) : null;
     const snippet = trimmed.length > 28 ? trimmed.slice(0, 28) + '…' : trimmed;
@@ -1429,14 +1473,11 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
         cycleIds: [newCycle.id],
       };
       sessions.unshift(activeSess);
-      activeSessionId = activeSess.id;
     } else {
       if (!activeSess.cycleIds.includes(newCycle.id)) {
         activeSess.cycleIds.push(newCycle.id);
       }
     }
-    activeSessionId = activeSess.id;
-    if (messageDraft === text) messageDraft = '';
     saveSessions();
   }
   pendingMessage = false;
@@ -1497,7 +1538,6 @@ function perceptionPage(): void {
   const snapshot = snapshots[index];
   const current = index === snapshots.length - 1;
   const page = node('section', '', 'perception-page');
-  page.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'), node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
   const transport = node('div', '', 'row perception-transport');
   transport.setAttribute('role', 'group'); transport.setAttribute('aria-label', 'WorldState playback');
   const seek = (target: number) => {
@@ -1510,7 +1550,7 @@ function perceptionPage(): void {
   forward.setAttribute('aria-label', 'Next WorldState'); forward.disabled = current;
   const position = node('span', `${Math.max(0, index + 1)} / ${snapshots.length} · ${current ? 'Current' : 'Historical'}`, 'muted');
   position.setAttribute('role', 'status');
-  transport.append(rewind, position, forward);
+  transport.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'), rewind, position, forward);
   const agentId = selectedAgent; const databaseId = selectedDatabase;
   const threadId = state?.cycles.find(cycle => cycle.id === snapshot?.payload.cycleId)?.threadId ?? null;
   const draft = sensorDraft();
@@ -1541,6 +1581,7 @@ function perceptionPage(): void {
   play.title = draft.items.length && current ? 'Finalize sensor observations and continue cognition' : !current ? 'Return to the current WorldState to start cognition' : !streamStatus ? 'No resumable cognition stream recorded for this snapshot' : streamStatus.status === 'running' ? 'Cognition is already running' : 'Resume cognition with the configured activation allowance';
   transport.append(play);
   page.append(transport);
+  page.append(node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
   if (current) perceptionEditor(page, draft);
   if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
   if (!snapshot) {
@@ -2406,7 +2447,7 @@ async function openDispositionInfo(disposition: AgentSnapshot['dispositions'][nu
   type Disposition = AgentSnapshot['dispositions'][number];
   const agentId = selectedAgent;
   const databaseId = selectedDatabase;
-  const record = await api<{ disposition: Disposition; versions: VersionRecord<Disposition>[]; statistics: { activatedCycles: number; associatedPredictions: number; correct: number; incorrect: number; incomplete: number; irrelevant: number } }>(`dispositions/${disposition.id}`);
+  const record = await api<{ disposition: Disposition; versions: VersionRecord<Disposition>[]; activationHistory: DispositionActivationSample[]; statistics: { activatedCycles: number; associatedPredictions: number; correct: number; incorrect: number; incomplete: number; irrelevant: number } }>(`dispositions/${disposition.id}`);
   if (selectedAgent !== agentId || selectedDatabase !== databaseId || activeTab !== 'Dispositions') return;
   const panel = node('section', '', 'disposition-inspector part-description'); panel.setAttribute('aria-label', 'Disposition inspector');
   const header = node('div', '', 'disposition-inspector-header');
@@ -2418,6 +2459,7 @@ async function openDispositionInfo(disposition: AgentSnapshot['dispositions'][nu
   });
   header.append(edit, remove);
   const body = node('div', '', 'disposition-inspector-body'); body.append(node('p', `Recorded activation cycles: ${record.statistics.activatedCycles} · Associated predictions: ${record.statistics.associatedPredictions} · Correct: ${record.statistics.correct} · Incorrect: ${record.statistics.incorrect} · Incomplete: ${record.statistics.incomplete} · Irrelevant: ${record.statistics.irrelevant}`), node('h3', 'Version timeline'));
+  body.insertBefore(dispositionActivationChart(record.activationHistory, cycleId => showCycleInspector(cycleId, agentId)), body.lastChild);
   for (const version of record.versions.slice().sort((a, b) => b.state.version - a.state.version)) {
     const item = version.state; const entry = node('details'); entry.setAttribute('name', `disposition-${item.id}`);
     entry.open = item.version === record.disposition.version;
@@ -3131,7 +3173,7 @@ function activationSettings(): void {
   const panel = card('Part activation');
   panel.append(node('p', 'JEV scores dispositions and memory relevance. Code assembles independent scopes; Parts form and think in parallel. Primitives are configured separately and do not participate in cognition.', 'muted'));
   content.append(panel);
-  void api<{ memorySearchEnabled: boolean; memoryRelevanceThreshold: number; memoryRecallLimit: number | null; vectorSearchEnabled: boolean; reevaluateAfterDeliberation: boolean; primitivesFirst: boolean }>(`agents/${agentId}/activation-settings`).then(configuration => {
+  void api<{ includeProcessingDispositions: boolean; maxConcurrentThoughts: number; maxQueuedThoughts: number; activationPassLimit: number | null; memorySearchEnabled: boolean; memoryRelevanceThreshold: number; memoryRecallLimit: number | null; vectorSearchEnabled: boolean; reevaluateAfterDeliberation: boolean; primitivesFirst: boolean }>(`agents/${agentId}/activation-settings`).then(configuration => {
     if (agentId !== selectedAgent || settingsSection !== 'Activation' || !panel.isConnected) return;
     const thresholdLabel = node('label', 'Memory relevance threshold (0–1) ');
     const threshold = node('input'); threshold.type = 'range'; threshold.min = '0'; threshold.max = '1'; threshold.step = '0.05'; threshold.value = String(configuration.memoryRelevanceThreshold);
@@ -3140,8 +3182,44 @@ function activationSettings(): void {
     const limit = node('input'); limit.type = 'number'; limit.min = '1'; limit.max = '10000'; limit.step = '1'; limit.value = configuration.memoryRecallLimit === null ? '' : String(configuration.memoryRecallLimit);
     limitLabel.append(limit);
     panel.append(thresholdLabel, limitLabel, node('p', 'Accessibility scores select subjective episodes that can support or contradict a current perspective.', 'muted'));
+    const processingLabel = node('label', 'Evaluate activation of dispositions that are thinking ');
+    const processing = node('input'); processing.type = 'checkbox'; processing.checked = configuration.includeProcessingDispositions;
+    processingLabel.append(processing);
+    const concurrencyLabel = node('label', 'Maximum concurrent thoughts ');
+    const concurrency = node('input'); concurrency.type = 'number'; concurrency.min = '1'; concurrency.max = '64'; concurrency.value = String(configuration.maxConcurrentThoughts); concurrencyLabel.append(concurrency);
+    const queueLabel = node('label', 'Maximum queued thoughts ');
+    const queue = node('input'); queue.type = 'number'; queue.min = '0'; queue.max = '10000'; queue.value = String(configuration.maxQueuedThoughts); queueLabel.append(queue);
+    const passesLabel = node('label', 'Activation passes per observation before pause (blank for unlimited) ');
+    const passes = node('input'); passes.type = 'number'; passes.min = '1'; passes.max = '10000'; passes.value = configuration.activationPassLimit === null ? '' : String(configuration.activationPassLimit); passesLabel.append(passes);
+    panel.append(processingLabel, concurrencyLabel, queueLabel, passesLabel,
+      node('p', 'Running thoughts retain their starting experience and finish without interruption. Rescoring updates activation without starting a second thought for that disposition.', 'muted'));
+    const streamThread = activeSessionId;
+    const streamState = node('p', 'Loading activation stream status…', 'muted');
+    type StreamStatus = { status: string; passCount: number; passLimit: number | null; reason: string };
+    const displayStream = (status: StreamStatus | null) => {
+      streamState.textContent = status ? `${status.status} · ${status.passCount} activation passes · ${status.passLimit === null ? 'unlimited allowance' : `allowance ${status.passLimit}`} · ${status.reason}` : 'No activation stream recorded for the selected conversation.';
+    };
+    let latestStreamEvent = 0;
+    const loadStream = async () => {
+      const eventBeforeRequest = latestStreamEvent;
+      const status = await api<StreamStatus | null>(`agents/${agentId}/cognition-control${streamThread ? `/${encodeURIComponent(streamThread)}` : ''}`);
+      if (panel.isConnected && eventBeforeRequest === latestStreamEvent) displayStream(status);
+    };
+    const streamUpdated = (event: Event) => {
+      const record = (event as CustomEvent<CognitiveEvent>).detail;
+      if (record.type === 'cognition.stream' && record.agentId === agentId && record.payload.threadId === streamThread && record.sequence > latestStreamEvent) {
+        latestStreamEvent = record.sequence; displayStream(record.payload);
+      }
+    };
+    window.addEventListener('cognition-stream-updated', streamUpdated);
+    const unmount = new MutationObserver(() => { if (!panel.isConnected) { window.removeEventListener('cognition-stream-updated', streamUpdated); unmount.disconnect(); } });
+    unmount.observe(content, { childList: true });
+    panel.append(node('h3', 'Selected conversation'), streamState,
+      button('Pause further activation', async () => { await api(`agents/${agentId}/cognition-control`, 'POST', { threadId: streamThread, directive: 'pause' }); await loadStream(); }, true),
+      button('Resume activation', async () => { await api(`agents/${agentId}/cognition-control`, 'POST', { threadId: streamThread, directive: 'resume' }); await loadStream(); }, true));
+    void loadStream().catch(showError);
     panel.append(button('Save activation settings', async () => {
-      await api(`agents/${agentId}/activation-settings`, 'PATCH', { memoryRelevanceThreshold: Number(threshold.value), memoryRecallLimit: limit.value === '' ? null : Number(limit.value) });
+      await api(`agents/${agentId}/activation-settings`, 'PATCH', { memoryRelevanceThreshold: Number(threshold.value), memoryRecallLimit: limit.value === '' ? null : Number(limit.value), includeProcessingDispositions: processing.checked, maxConcurrentThoughts: Number(concurrency.value), maxQueuedThoughts: Number(queue.value), activationPassLimit: passes.value === '' ? null : Number(passes.value) });
       notice.textContent = 'Activation settings saved.';
     }));
   }).catch(showError);
@@ -3151,31 +3229,65 @@ function modelSettings(): void {
   panel.append(node('p', 'Choose the language model used for this Agent. Use the key for the selected provider. When changing providers, enter its key or clear the Agent key to use its server key. Keys are encrypted on this machine and never shown again.', 'muted'));
   content.append(panel);
   const agentId = selectedAgent;
-  void api<{ model: string; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string }[] }>(`agents/${agentId}/settings`).then(configuration => {
+  void api<{ model: string; thoughtRouting: { enabled: boolean; intuitiveModel: string; deliberativeModel: string; escalateAfterIncorrectPredictions?: number } | null; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string }[] }>(`agents/${agentId}/settings`).then(configuration => {
     if (agentId !== selectedAgent) return;
     const select = node('select'); select.setAttribute('aria-label', 'Model for this Agent');
     for (const item of configuration.availableModels) { const option = node('option', item.label); option.value = item.id; select.append(option); }
     select.value = configuration.model;
+    const modelLabel = node('label', 'Model'); modelLabel.append(select); panel.append(modelLabel, node('h3', 'Per-thought resources'));
+    const routingEnabled = node('input'); routingEnabled.type = 'checkbox'; routingEnabled.checked = configuration.thoughtRouting?.enabled ?? false;
+    const routingLabel = node('label', 'Assess resources separately for each thought'); routingLabel.append(routingEnabled);
+    const intuitive = node('select'); intuitive.setAttribute('aria-label', 'Intuitive thought model');
+    const deliberative = node('select'); deliberative.setAttribute('aria-label', 'Deliberative thought model');
+    const refreshRoutingModels = () => {
+      for (const [control, configured] of [[intuitive, configuration.thoughtRouting?.intuitiveModel], [deliberative, configuration.thoughtRouting?.deliberativeModel]] as const) {
+        const current = control.value || configured || select.value; control.replaceChildren();
+        for (const model of configuration.availableModels.filter(model => (model.id === 'grok-4.3') === (select.value === 'grok-4.3'))) control.append(new Option(model.label, model.id));
+        control.value = [...control.options].some(option => option.value === current) ? current : select.value;
+      }
+    };
+    refreshRoutingModels(); select.addEventListener('change', refreshRoutingModels);
+    const intuitiveLabel = node('label', 'Intuitive thought model'); intuitiveLabel.append(intuitive);
+    const deliberativeLabel = node('label', 'Deliberative thought model'); deliberativeLabel.append(deliberative);
+    panel.append(routingLabel, node('p', 'Optional workload assessment adds an inference call. Complex or uncertain thoughts use the deliberative model, including urgent thoughts. Models share this Agent’s provider key. These settings do not change disposition identity.', 'muted'), intuitiveLabel, deliberativeLabel);
+    const escalation = field(panel, 'Consecutive incorrect predictions before escalation', String(configuration.thoughtRouting?.escalateAfterIncorrectPredictions ?? 2), false) as HTMLInputElement;
+    escalation.type = 'number'; escalation.min = '1'; escalation.max = '10';
+    const thoughtRouting = () => ({ enabled: routingEnabled.checked, intuitiveModel: intuitive.value, deliberativeModel: deliberative.value, escalateAfterIncorrectPredictions: Number(escalation.value) });
     const key = field(panel, 'Provider API key (leave blank to keep the current key)', '', false) as HTMLInputElement;
     key.type = 'password'; key.autocomplete = 'new-password'; key.placeholder = configuration.hasAgentKey ? 'Agent key saved · enter a replacement' : configuration.hasUsableKey ? 'Using server key · optional Agent override' : 'Required before saving';
-    const modelLabel = node('label', 'Model'); modelLabel.append(select); panel.append(modelLabel);
     const status = node('p', configuration.hasAgentKey ? 'This Agent has its own encrypted key.' : configuration.hasUsableKey ? 'Using the server provider key.' : 'No key configured for this provider.', 'muted'); panel.append(status);
     const clear = button(configuration.hasServerKey ? 'Clear Agent key and use server key' : 'Clear Agent key (server key required)', async () => {
-      await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, clearApiKey: true }); render();
+      await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, clearApiKey: true, thoughtRouting: thoughtRouting() }); render();
     }, true);
     clear.disabled = !configuration.hasAgentKey || !configuration.hasServerKey; panel.append(clear);
     panel.append(button('Save Agent model and key', async () => {
       const result = await api<{ model: string; hasAgentKey: boolean; hasUsableKey: boolean }>(`agents/${agentId}/settings`, 'PATCH', {
-        model: select.value, ...(key.value ? { apiKey: key.value } : {}),
+        model: select.value, thoughtRouting: thoughtRouting(), ...(key.value ? { apiKey: key.value } : {}),
       });
       key.value = ''; status.textContent = result.hasAgentKey ? 'Saved. This Agent has its own encrypted key.' : 'Saved. Using the server provider key.';
       notice.textContent = 'Agent inference settings saved.';
     }));
   }).catch(showError);
+  const evidence = card('Observed model evidence'); content.append(evidence);
+  evidence.append(node('p', 'Loading recorded model operations…', 'muted'));
+  void api<ReturnType<typeof thoughtModelEvidence>>(`agents/${agentId}/thought-model-evidence`).then(report => {
+    if (!evidence.isConnected || agentId !== selectedAgent) return;
+    evidence.replaceChildren(node('h3', 'Observed model evidence'), node('p', report.limitations, 'muted'));
+    if (!report.providers.length) { evidence.append(node('p', 'No recorded model operations yet.')); return; }
+    const scroll = node('div'); scroll.style.overflowX = 'auto';
+    scroll.append(table(['Actual provider / model', 'Calls returned / total', 'Measured adapter time', 'Prediction checks', 'Selected / proposed bids', 'Verified / reported executions'], report.providers.map(row => [
+      row.provider, `${row.returned} / ${row.calls} · ${row.failed} failed`,
+      row.measuredCalls ? `${(row.totalLatencyMs / row.measuredCalls).toFixed(0)} ms mean · n=${row.measuredCalls}` : 'Unmeasured',
+      `${row.correct} correct · ${row.incorrect} incorrect · ${row.incomplete} incomplete · ${row.irrelevant} irrelevant / ${row.formedPredictions} formed`,
+      `${row.selectedBids} / ${row.proposedBids}`, `${row.independentlyVerifiedReports} / ${row.executionReports}`,
+    ])));
+    evidence.append(scroll, node('p', `${report.unattributedThoughts} thoughts and ${report.unattributedBids} bids lack exact model provenance. No model is inferred from current settings.`, 'muted'), details('Recorded source links and counts', report));
+  }).catch(showError);
 }
 type PromptRow = { task: string; title: string; category: string; version: string; original: string; effective: string; source: string;
   inspection: { variables: { name: string; description: string; schema: unknown }[]; outputSchema: unknown; outputNote: string } };
 const promptPurposes: Record<string, string> = {
+  thought_resources: 'Assess one immutable owning-scope workload for optional intuitive/deliberative model routing; independent difficulty, uncertainty and urgency estimates are not psychological traits or action authority.',
   memory_accessibility: 'Judge subjective memory relevance for the current disposition scope, including transferable methods, diagnostic exceptions and contrary evidence across different objects or situations.',
   disposition_activation: 'Score eligible attention conditions for entities, situations, methods, strategies and configurations independently against immutable WorldState. One association pass considers contributing/inhibiting keywords and frozen direct disposition scores; no prerequisite gating or recursive feedback.',
   part_cognition: 'Code assembles each scope and chooses continuity. Parallel LLM calls return formation, subjective reflection, gist and cognition in order. Each perspective reasons at its scope’s level about unresolved conditions and changing relevance. Only fallback self receives Identity; Self chooses and external systems execute.',

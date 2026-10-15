@@ -1,3 +1,4 @@
+import { simulationSourceCycles, stageOwnsCycle } from './simulation-source-cycles.js';
 import { evaluationPacket, packetIncludesReference, type EvaluationPacket } from './evaluation-packet.js';
 import { createHash } from 'node:crypto';
 import { predictionAlignmentCriteria } from './simulation-alignment.js';
@@ -57,11 +58,11 @@ export function startSimulationAssessment(app: Application, runId: string, optio
   for (const [index, stage] of evidence.stages.entries()) {
     if (!stage.cycleId) continue;
     if (stage.executions === undefined) {
-      stage.executions = executions.filter(execution => execution.cycleId === stage.cycleId);
+      stage.executions = executions.filter(execution => stageOwnsCycle(stage, execution.cycleId));
       evidence.supplementalEvidence.push(`/stages/${index}/executions: saved execution records for cycle ${stage.cycleId}`);
     }
     if (stage.selfChoices === undefined) {
-      stage.selfChoices = app.store.eventsByType(run.agentId, ['self.choice'], [stage.cycleId]).flatMap(event => event.type === 'self.choice' ? [event.payload] : []);
+      stage.selfChoices = app.store.eventsByType(run.agentId, ['self.choice'], simulationSourceCycles(stage)).flatMap(event => event.type === 'self.choice' ? [event.payload] : []);
       evidence.supplementalEvidence.push(`/stages/${index}/selfChoices: saved Self choices for cycle ${stage.cycleId}`);
     }
   }
@@ -79,7 +80,7 @@ export function startSimulationAssessment(app: Application, runId: string, optio
         criterion.blockedReason = 'No assessable baseline forecast with a recorded later factual check supports this prediction-correction criterion.';
       }
       const episodes = new Set(run.stages.filter(stage => stage.phase === 'training' && stage.cycleId)
-        .flatMap(stage => stage.memories.filter(memory => memory.createdCycle === stage.cycleId).map(memory => memory.id)));
+        .flatMap(stage => stage.memories.filter(memory => stageOwnsCycle(stage, memory.createdCycle)).map(memory => memory.id)));
       const retest = run.stages.find(stage => stage.name === 'Familiar source retest');
       if (index === 1 && (!episodes.size || !retest?.recalls.some(recall => recall.memoryIds.some(memoryId => episodes.has(memoryId))))) {
         criterion.blockedReason = 'No training episode with recorded relevant later recall supports memory-driven learning at the familiar retest.';

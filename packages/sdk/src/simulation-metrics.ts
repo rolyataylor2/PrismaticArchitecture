@@ -1,3 +1,4 @@
+import { stageOwnsCycle } from './simulation-source-cycles.js';
 import type { CognitiveEvent } from '../../core/src/contracts.js';
 import type { SimulationRun } from './simulation-tests.js';
 export const researchMetricCatalog = [
@@ -22,7 +23,7 @@ export function simulationMetrics(run: SimulationRun, events: CognitiveEvent[]) 
   const predictions = predictionIds.map(id => {
     const occurrences = run.stages.flatMap((stage, index) => stage.predictions.filter(prediction => prediction.id === id).map(prediction => ({ stageIndex: index, prediction })));
     const last = occurrences.at(-1)!.prediction;
-    const originStage = run.stages.findIndex(stage => stage.cycleId === last.createdCycle);
+    const originStage = run.stages.findIndex(stage => stageOwnsCycle(stage, last.createdCycle));
     const checks = run.stages.flatMap((stage, index) => (stage.predictionChecks ?? []).filter(check => check.predictionId === id).map(check => ({ stageIndex: index, outcome: check.outcome })));
     const firstClosure = occurrences.find(item => item.prediction.status !== 'open');
     const laterCycles = run.stages.slice(Math.max(originStage, occurrences[0]!.stageIndex) + 1).filter(stage => stage.cycleId).length;

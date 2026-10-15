@@ -105,3 +105,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 [ADR 0163: Dream pause, resume and execution console](0163-dream-pause-resume-and-console.md) defines persisted external run controls and read-only live/historical evidence.
 
 [ADR 0164: Compact simulation evaluation evidence](0164-compact-simulation-evaluation-evidence.md) defines evaluator packet selection, deduplication and bounded criterion requests.
+
+[ADR 0165: Continuous asynchronous cognition](0165-continuous-asynchronous-cognition.md) defines the single-runtime cutover, busy-scope policy, activation allowances and remaining integration obligations.

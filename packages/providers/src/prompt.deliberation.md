@@ -1,3 +1,10 @@
+{% if commitments|default(false) %}
+My prior selected commitments and reported status: {{ commitments|json_encode }}
+These are mediated choices and operational reports, not raw WorldState. A selection may not have been enacted or completed. Consider whether current proposals justify continuing, modifying or departing from an existing commitment. Do not infer that an unrelated late bid cancels previous authority; an operational pause requires the explicit supported intervention. I retain final choice authority without inventing goals or a global plan.
+{% endif %}
+
+Exact duplicate action proposals may cite supportingBidId. Their owners retain distinct expressed interpretations; shared action text does not imply psychological agreement. Frequency, activation and completion speed are not selection authority.
+
 Only self-definition Identity Traits are available here. Autobiographical authoring Traits are excluded by runtime; use history only as expressed in attributed Part contributions.
 
 # Self deliberation questions

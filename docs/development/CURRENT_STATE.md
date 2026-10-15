@@ -1,3 +1,13 @@
+## Continuous cognition final integration — 2026-10-14
+
+ADR 0165 implements the supplied asynchronous-cognition discussion through one production runtime. Completion remains pending the terminal regression and delivery gates in [CONTINUOUS_COGNITION_AUDIT.md](CONTINUOUS_COGNITION_AUDIT.md), which maps the complete source scope to implementation and tests.
+
+Observation intake, bounded independent scope jobs, versioned bids, owner review, duplicate supporters, serialized commitment-aware Self, guarded external submission, persistent affect, temporal prediction learning and per-thought model routing are implemented. Default busy exclusion and optional rescoring preserve running thoughts. One-pass pause/resume and historical activation charts are available in the interface. Twelve sourced protocols include bounded/unrestricted 300-ms attention windows with preserved source cycles and explicit time/resource limitations.
+
+Latest boundary/recovery/prediction/protocol checks passed 53/53; the later admission/bid checks passed 43/43. Five Chrome workflows passed with no skips. Desktop/mobile settings, chart, chronology and committed-affect screenshots were inspected; oversized settings headers and dense chronology disclosures were corrected. Unselected prediction learning now survives queued Self inquiry, and no-generation observations still process later evidence. Failed asynchronous recruitment is preserved on its actual source cycle without fabricated psychology. Final build and strict TypeScript/dependency lint passed. The full suite remains in progress; current-source boundary and browser follow-ups are green. No paid-model benefit or human psychological conclusion is claimed.
+
+No task commit/push yet. Preserve unrelated `docs/Example-Prompt.txt` deletion and generated `workspace/` files.
+
 ## Observatory final delivery — 2026-10-11
 
 The full simulation-analytics source audit is complete; `SIMULATION_ANALYTICS_THREAD_AUDIT.md` maps original requirements to implementation and verification. Synchronized comparisons now show readable prediction/execution outcomes and memory/disposition version changes on both sides, with explicit first-capture and missing-evidence limits.

@@ -1,3 +1,4 @@
+import { simulationSourceCycles, stageOwnsCycle } from './simulation-source-cycles.js';
 import { simulationMetrics } from './simulation-metrics.js';
 import { simulationEventFocus } from './simulation-event-focus.js';
 import { simulationEventScope } from './simulation-event-scope.js';
@@ -40,19 +41,19 @@ function changes<T extends Versioned>(before: T[], after: T[]) {
 /** Research-only projection: never reads current psychology to reconstruct a historical run. */
 export function analyzeSimulation(store: Store, run: SimulationRun) {
   const recorded = store.events(run.agentId);
-  const cycleIds = new Set(run.stages.flatMap(stage => stage.cycleId ? [stage.cycleId] : []));
+  const cycleIds = new Set(run.stages.flatMap(simulationSourceCycles));
   const inRun = (event: CognitiveEvent) => simulationEventScope(event)?.runId === run.id
     || (!simulationEventScope(event) && event.at >= run.createdAt && (!run.finishedAt || event.at <= run.finishedAt));
   const events = recorded.filter(event => simulationEventScope(event)?.runId === run.id || (event.cycleId && cycleIds.has(event.cycleId)));
   const stages = run.stages.map((stage, index) => {
     const previous = run.stages[index - 1];
     const trace = events.filter(event => simulationEventScope(event)?.runId === run.id && simulationEventScope(event)?.stageId === stage.id
-      || (!!stage.cycleId && event.cycleId === stage.cycleId && !simulationEventScope(event)));
+      || (stageOwnsCycle(stage, event.cycleId) && !simulationEventScope(event)));
     return { index, name: stage.name, phase: stage.phase, cycleId: stage.cycleId,
       measures: stageMeasures(stage),
-      lifecycle: { formed: stage.parts.filter(part => part.instance?.createdCycle === stage.cycleId && stage.cycleId).map(part => part.id),
+      lifecycle: { formed: stage.parts.filter(part => stageOwnsCycle(stage, part.instance?.createdCycle)).map(part => part.id),
         continued: stage.thoughts.filter(thought => previous?.parts.some(part => part.id === thought.partId)).map(thought => thought.partId),
-        retired: stage.parts.filter(part => part.instance?.retirement?.cycleId === stage.cycleId && stage.cycleId).map(part => ({ partId: part.id, reason: part.instance!.retirement!.reason })),
+        retired: stage.parts.filter(part => stageOwnsCycle(stage, part.instance?.retirement?.cycleId)).map(part => ({ partId: part.id, reason: part.instance!.retirement!.reason })),
         recruited: stage.recruitedScopes ?? [] },
       changes: {
         parts: changes(previous?.parts ?? [], stage.parts),
@@ -85,7 +86,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
   });
   const latest = new Map(run.stages.flatMap(stage => stage.predictions).map(prediction => [prediction.id, prediction]));
   const predictions = [...latest.values()].map(prediction => {
-    const origin = run.stages.findIndex(stage => stage.cycleId === prediction.createdCycle);
+    const origin = run.stages.findIndex(stage => stageOwnsCycle(stage, prediction.createdCycle));
     const firstSeen = run.stages.findIndex(stage => stage.predictions.some(item => item.id === prediction.id));
     const versions = run.stages.flatMap((stage, index) => stage.predictions.filter(item => item.id === prediction.id).map(item => ({ stageIndex: index, prediction: item })))
       .filter((entry, index, all) => index === 0 || entry.prediction.version !== all[index - 1]!.prediction.version);
@@ -118,14 +119,14 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
     }
   }
   const parts = [...new Map(run.stages.flatMap(stage => stage.parts).map(part => [part.id, part])).values()].map(part => ({
-    part, originStage: run.stages.findIndex(stage => stage.cycleId === part.instance?.createdCycle),
+    part, originStage: run.stages.findIndex(stage => stageOwnsCycle(stage, part.instance?.createdCycle)),
     contributions: run.stages.flatMap((stage, index) => stage.thoughts.filter(item => item.partId === part.id).map(thought => ({ stageIndex: index, thought,
       recalls: stage.recalls.filter(item => item.partId === part.id),
-      predictions: stage.predictions.filter(item => item.partId === part.id && item.createdCycle === stage.cycleId) }))),
+      predictions: stage.predictions.filter(item => item.partId === part.id && stageOwnsCycle(stage, item.createdCycle)) }))),
     retirement: part.instance?.retirement ?? null,
   }));
   const memories = [...new Map(run.stages.flatMap(stage => stage.memories).map(memory => [memory.id, memory])).values()].map(memory => ({
-    memory, originStage: run.stages.findIndex(stage => stage.cycleId === memory.createdCycle),
+    memory, originStage: run.stages.findIndex(stage => stageOwnsCycle(stage, memory.createdCycle)),
     retrievals: run.stages.flatMap((stage, index) => stage.recalls.filter(item => item.memoryIds.includes(memory.id)).map(item => ({ stageIndex: index, partId: item.partId, dispositionIds: item.dispositionIds }))),
     versions: run.stages.flatMap((stage, index) => stage.memories.filter(item => item.id === memory.id).map(item => ({ stageIndex: index, memory: item })))
       .filter((entry, index, all) => index === 0 || entry.memory.version !== all[index - 1]!.memory.version),

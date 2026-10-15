@@ -1,3 +1,7 @@
+## Continuous cognition revision (ADR 0165)
+
+[ADR 0165](decisions/0165-continuous-asynchronous-cognition.md) supersedes the online whole-batch completion barrier. Observation intake and bounded scoped reasoning overlap; validated scopes commit independently and Self decisions serialize per Agent. Each reasoning job retains its own immutable snapshot; jobs from different observations need not share a snapshot. Busy dispositions are excluded from activation by default; optional rescoring changes relevance telemetry without interrupting or duplicating thought. A one-pass activation allowance pauses the same runtime, rather than selecting a legacy synchronous mode. The [implementation audit](../development/CONTINUOUS_COGNITION_AUDIT.md) distinguishes verified behavior from remaining target work, including bid-pool applicability, commitment mediation and adaptive routing. Historical synchronous sequencing below is superseded where it conflicts with ADR 0165.
+
 ## Self affect extension target (ADR 0157)
 
 [ADR 0157](decisions/0157-two-pass-self-and-affect-exploration.md) adds separately invoked affect selection before focused bid revision and final behavioral arbitration. Both Self modes remain world-blind; Parts supply proposals and interpretation against the unchanged cycle snapshot. Routine cycles without proposals or active voluntary focus retain ordinary arbitration. Ordinary runtime integrates dispatch and completed-cycle persistence; the implementation audit records source experiments, verification evidence and measurement limitations.

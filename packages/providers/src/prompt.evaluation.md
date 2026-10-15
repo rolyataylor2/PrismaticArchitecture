@@ -1,5 +1,7 @@
 # Prediction evaluation
 
+The supplied factual snapshot contains only admissible observations later than this prediction’s committed observation frontier. Earlier context comes from its preserved capsule and any permitted subjective memories, never independent outcome evidence.
+
 ## Output requirements
 
 Return only the requested result. Give concise interpretations, evidence summaries and proposals, never hidden reasoning.

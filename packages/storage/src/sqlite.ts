@@ -1,3 +1,4 @@
+import { ThoughtRoutingSettingsSchema, type ThoughtRoutingSettings } from '../../core/src/thought-resources.js';
 import { selectedSkillReview, verifyProcedureReviewReport } from '../../core/src/selected-skill-review.js';
 import { prepareSkillApproval } from '../../core/src/skill-approval.js';
 import { initialPrimitiveSettings, PrimitiveSettingsSchema, type PrimitiveSettings } from '../../core/src/primitives.js';
@@ -582,7 +583,15 @@ export class SqliteStore implements Store {
           facts: [{ source: 'External execution', kind: 'observes' as const, text: teachingFeedback(event.payload), timestamp: event.at,
             originCycleId: event.cycleId, referenceId: event.payload.executionId }] }];
       });
-    const facts = [...worlds, ...executions, ...teaching].sort((a, b) => a.cycle - b.cycle || a.phase - b.phase || a.at.localeCompare(b.at) || a.order - b.order).flatMap(record => record.facts);
+    const rejections = !executiveEnabled ? [] : this.eventsByType(agentId, ['execution.bid_rejected']).filter(event => event.cycleId
+      && (this.cycle(event.cycleId).threadId ?? null) === (threadId ?? null)).slice(limit === null ? 0 : -limit).flatMap(event => {
+        if (event.type !== 'execution.bid_rejected' || !event.cycleId) return [];
+        return [{ cycle: this.cycle(event.cycleId).sequence, phase: 1, at: event.at, order: event.sequence,
+          facts: [{ source: 'External execution admission', kind: 'observes' as const,
+            text: `The host did not submit the selected recommendation. Admission report: ${event.payload.reason}`,
+            timestamp: event.at, originCycleId: event.cycleId, referenceId: event.id }] }];
+      });
+    const facts = [...worlds, ...executions, ...teaching, ...rejections].sort((a, b) => a.cycle - b.cycle || a.phase - b.phase || a.at.localeCompare(b.at) || a.order - b.order).flatMap(record => record.facts);
     const factual = facts.filter(fact => !isLegacyCapabilityFact(fact));
     return limit === null ? factual : factual.slice(-limit);
   }
@@ -830,28 +839,28 @@ export class SqliteStore implements Store {
       this.#db.prepare('INSERT INTO primitive_settings_history VALUES(?,?,?,?)').run(agentId, validated.revision, JSON.stringify(validated), now());
     });
   }
-  agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean } {
+  agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean } {
     this.get('agent', agentId);
-    const row = this.#db.prepare('SELECT memory_search_enabled, memory_relevance_threshold, memory_recall_limit, vector_search_enabled, reevaluate_after_deliberation, primitives_first FROM agent_activation_settings WHERE agent_id = ?').get(agentId);
-    return { memorySearchEnabled: row ? row.memory_search_enabled === 1 : false, memoryRelevanceThreshold: row ? Number(row.memory_relevance_threshold) : 0.5, memoryRecallLimit: row ? row.memory_recall_limit === null ? null : Number(row.memory_recall_limit) : 12, vectorSearchEnabled: row ? row.vector_search_enabled === 1 : true, reevaluateAfterDeliberation: row ? row.reevaluate_after_deliberation === 1 : false, primitivesFirst: row ? row.primitives_first === 1 : false };
+    const row = this.#db.prepare('SELECT continuous_settings, memory_search_enabled, memory_relevance_threshold, memory_recall_limit, vector_search_enabled, reevaluate_after_deliberation, primitives_first FROM agent_activation_settings WHERE agent_id = ?').get(agentId);
+    return { ...{ includeProcessingDispositions: false, maxConcurrentThoughts: 4, maxQueuedThoughts: 100, activationPassLimit: 1 }, ...(row ? JSON.parse(String(row.continuous_settings)) : {}), memorySearchEnabled: row ? row.memory_search_enabled === 1 : false, memoryRelevanceThreshold: row ? Number(row.memory_relevance_threshold) : 0.5, memoryRecallLimit: row ? row.memory_recall_limit === null ? null : Number(row.memory_recall_limit) : 12, vectorSearchEnabled: row ? row.vector_search_enabled === 1 : true, reevaluateAfterDeliberation: row ? row.reevaluate_after_deliberation === 1 : false, primitivesFirst: row ? row.primitives_first === 1 : false };
   }
-  saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void {
+  saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void {
     this.get('agent', agentId);
     const validated = AgentActivationSettingsSchema.parse(settings);
-    this.transaction(() => this.#db.prepare(`INSERT INTO agent_activation_settings(agent_id,vector_search_enabled,reevaluate_after_deliberation,primitives_first,memory_search_enabled,memory_relevance_threshold,memory_recall_limit) VALUES(?,?,?,?,?,?,?)
-      ON CONFLICT(agent_id) DO UPDATE SET vector_search_enabled=excluded.vector_search_enabled, reevaluate_after_deliberation=excluded.reevaluate_after_deliberation, primitives_first=excluded.primitives_first, memory_search_enabled=excluded.memory_search_enabled, memory_relevance_threshold=excluded.memory_relevance_threshold, memory_recall_limit=excluded.memory_recall_limit`)
-      .run(agentId, validated.vectorSearchEnabled ? 1 : 0, validated.reevaluateAfterDeliberation ? 1 : 0, validated.primitivesFirst ? 1 : 0, validated.memorySearchEnabled ? 1 : 0, validated.memoryRelevanceThreshold, validated.memoryRecallLimit));
+    this.transaction(() => this.#db.prepare(`INSERT INTO agent_activation_settings(agent_id,vector_search_enabled,reevaluate_after_deliberation,primitives_first,memory_search_enabled,memory_relevance_threshold,memory_recall_limit,continuous_settings) VALUES(?,?,?,?,?,?,?,?)
+      ON CONFLICT(agent_id) DO UPDATE SET vector_search_enabled=excluded.vector_search_enabled, reevaluate_after_deliberation=excluded.reevaluate_after_deliberation, primitives_first=excluded.primitives_first, memory_search_enabled=excluded.memory_search_enabled, memory_relevance_threshold=excluded.memory_relevance_threshold, memory_recall_limit=excluded.memory_recall_limit, continuous_settings=excluded.continuous_settings`)
+      .run(agentId, validated.vectorSearchEnabled ? 1 : 0, validated.reevaluateAfterDeliberation ? 1 : 0, validated.primitivesFirst ? 1 : 0, validated.memorySearchEnabled ? 1 : 0, validated.memoryRelevanceThreshold, validated.memoryRecallLimit, JSON.stringify({ includeProcessingDispositions: validated.includeProcessingDispositions, maxConcurrentThoughts: validated.maxConcurrentThoughts, maxQueuedThoughts: validated.maxQueuedThoughts, activationPassLimit: validated.activationPassLimit })));
   }
-  agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null } | null {
+  agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null; thoughtRouting?: ThoughtRoutingSettings | null } | null {
     this.get('agent', agentId);
-    const row = this.#db.prepare('SELECT model, encrypted_api_key AS encryptedApiKey FROM agent_provider_settings WHERE agent_id = ?').get(agentId) as { model: string; encryptedApiKey: string | null } | undefined;
-    return row ? { model: row.model, encryptedApiKey: row.encryptedApiKey } : null;
+    const row = this.#db.prepare('SELECT model, encrypted_api_key AS encryptedApiKey, thought_routing AS thoughtRouting FROM agent_provider_settings WHERE agent_id = ?').get(agentId) as { model: string; encryptedApiKey: string | null; thoughtRouting: string | null } | undefined;
+    return row ? { model: row.model, encryptedApiKey: row.encryptedApiKey, ...(row.thoughtRouting ? { thoughtRouting: ThoughtRoutingSettingsSchema.parse(JSON.parse(row.thoughtRouting)) } : {}) } : null;
   }
-  saveAgentProviderSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null }): void {
+  saveAgentProviderSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null; thoughtRouting?: ThoughtRoutingSettings | null }): void {
     this.get('agent', agentId);
-    this.transaction(() => this.#db.prepare(`INSERT INTO agent_provider_settings(agent_id,model,encrypted_api_key) VALUES(?,?,?)
-      ON CONFLICT(agent_id) DO UPDATE SET model=excluded.model, encrypted_api_key=excluded.encrypted_api_key`)
-      .run(agentId, settings.model, settings.encryptedApiKey));
+    this.transaction(() => this.#db.prepare(`INSERT INTO agent_provider_settings(agent_id,model,encrypted_api_key,thought_routing) VALUES(?,?,?,?)
+      ON CONFLICT(agent_id) DO UPDATE SET model=excluded.model, encrypted_api_key=excluded.encrypted_api_key, thought_routing=excluded.thought_routing`)
+      .run(agentId, settings.model, settings.encryptedApiKey, settings.thoughtRouting ? JSON.stringify(ThoughtRoutingSettingsSchema.parse(settings.thoughtRouting)) : null));
   }
   promptOverrides(input: { scope?: 'global' | 'agent'; agentId?: string; task?: PromptTask } = {}): PromptOverride[] {
     if (input.scope === 'agent' && !input.agentId) throw new Error('Agent prompt overrides require an Agent ID');

@@ -246,8 +246,8 @@ test('conflicting and action-conditioned imagined futures preserve their own bra
   } finally { store.close(); }
 });
 
-test('deliberation recruits missing perspectives with one unchanged world, soft associations and no prediction cascade', async () => {
-  const store = new SqliteStore(':memory:'); const requests: ConstructedInput[] = []; const judgments: JudgmentInput[] = []; const selves: SelfContext[] = [];
+test('deliberation recruitment uses immutable assessment snapshots and only prior-snapshot prediction attention', async () => {
+  const store = new SqliteStore(':memory:'); let testApp: Application | undefined; const requests: ConstructedInput[] = []; const judgments: JudgmentInput[] = []; const selves: SelfContext[] = [];
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
       const result = await super.constructed(input);
@@ -276,30 +276,40 @@ test('deliberation recruits missing perspectives with one unchanged world, soft 
     }
   }
   try {
-    const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent();
+    const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent(); testApp = app;
+    app.updateAgentActivationSettings(agent.id, { activationPassLimit: 8 });
     for (const [name, prerequisites] of [['initial', []], ['missing', []], ['child', ['missing']]] as const) store.save('disposition', { id: name, agentId: agent.id, version: 1, schemaVersion: 1,
       name, concern: 'Understand the situation', cues: ['personal uncertainty'], scope: name, prerequisites: [...prerequisites], threshold: 2,
       memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0, { origin: 'seed', reason: 'Recruitment plumbing fixture', sourceIds: [] });
     await app.message(agent.id, 'I am uncertain about a personal question.', 'observer', 'a');
-    assert.deepEqual(requests.map(request => request.dispositions?.[0]?.id), ['initial', 'missing', 'child']);
-    assert.equal(requests[1]!.question, 'What other interpretation might be missing?');
-    assert.ok(requests.every(request => request.world === requests[0]!.world));
-    assert.ok(judgments.every(judgment => judgment.world === requests[0]!.world));
-    const recruitmentScores = judgments.filter(judgment => judgment.task === 'disposition_activation').find(judgment => judgment.candidates.some(candidate => Boolean((candidate.context as { inquiry?: string }).inquiry)))!;
-    assert.deepEqual(recruitmentScores.candidates.map(candidate => candidate.id), ['initial', 'missing', 'child']);
-    assert.ok(!recruitmentScores.candidates.some(candidate => candidate.id.startsWith('attention_')));
-    assert.equal(new Set(store.list('part', agent.id).map(part => part.id)).size, 3);
-    assert.ok(store.list('part', agent.id).every(part => !part.instance?.retirement));
-    assert.deepEqual(selves.at(-1)!.contributions.map(contribution => contribution.name), ['initial', 'missing', 'child']);
-    assert.equal(selves.length, 3, 'Repeated inquiry stays within the existing round budget without duplicate recruitment');
+    await app.runtime.idle(agent.id);
+    await app.close();
+    const recruited = requests.filter(request => request.question === 'What other interpretation might be missing?');
+    assert.ok(recruited.some(request => request.dispositions?.[0]?.id === 'missing'));
+    assert.ok(recruited.some(request => request.dispositions?.[0]?.id === 'child'));
+    for (const worldId of new Set(requests.map(request => request.world!.id))) {
+      const batch = requests.filter(request => request.world!.id === worldId);
+      assert.ok(batch.every(request => request.world === batch[0]!.world));
+      assert.equal(new Set(batch.map(request => request.dispositions?.[0]?.id)).size, batch.length, 'A scope is not generated twice for the same immutable snapshot');
+    }
+    for (const judgment of judgments.filter(judgment => judgment.task === 'disposition_activation')) {
+      for (const candidate of judgment.candidates) {
+        const disposition = (candidate.context as { disposition: import('../../packages/core/src/domain.js').Disposition }).disposition;
+        if (disposition.sourcePredictionId) assert.notEqual(store.get('prediction', disposition.sourcePredictionId).createdCycle, judgment.world.cycleId);
+      }
+    }
+    const recruitmentScores = judgments.filter(judgment => judgment.task === 'disposition_activation'
+      && judgment.candidates.some(candidate => Boolean((candidate.context as { inquiry?: string }).inquiry)));
+    assert.ok(recruitmentScores.some(judgment => judgment.candidates.some(candidate => candidate.id === 'missing')));
+    assert.ok(selves.every(context => (context.completedDeliberationRounds ?? 0) <= 2));
     assert.ok(selves.every(context => !('world' in context) && !('prospective' in context) && !('forecastReports' in context)));
-    assert.ok(selves.at(-1)!.contributionHistory?.some(contribution => contribution.name === 'missing'));
+    assert.ok(selves.some(context => context.contributionHistory?.some(contribution => contribution.name === 'missing')));
     assert.equal(store.cycles(agent.id)[0]!.status, 'completed');
-  } finally { store.close(); }
+  } finally { await testApp?.close(); store.close(); }
 });
 
 test('recruitment provider failure is infrastructure failure, never an invented alternative or action', async () => {
-  const store = new SqliteStore(':memory:');
+  const store = new SqliteStore(':memory:'); let testApp: Application | undefined;
   class Decisions extends MockDecisions {
     override async judge(input: JudgmentInput) {
       if (input.candidates.some(candidate => (candidate.context as { inquiry?: string }).inquiry)) throw new Error('Recruitment transport unavailable');
@@ -308,15 +318,17 @@ test('recruitment provider failure is infrastructure failure, never an invented 
     override async choose() { return { choice: 'DELIBERATE', explanation: 'Seek another perspective.', identityConflict: '' }; }
   }
   try {
-    const app = new Application(store, { reasoning: new MockReasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent();
+    const app = new Application(store, { reasoning: new MockReasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent(); testApp = app;
+    app.updateAgentActivationSettings(agent.id, { activationPassLimit: 8 });
     for (const name of ['initial', 'missing']) store.save('disposition', { id: name, agentId: agent.id, version: 1, schemaVersion: 1,
       name, concern: 'Interpret this situation', cues: ['uncertainty'], scope: name, prerequisites: [], threshold: 2,
       memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0, { origin: 'seed', reason: 'Transport failure fixture', sourceIds: [] });
-    await assert.rejects(app.message(agent.id, 'An ambiguous explanation.', 'observer', 'a'), /Recruitment transport unavailable/);
-    assert.equal(store.cycles(agent.id)[0]!.status, 'failed');
-    assert.equal(store.list('part', agent.id).length, 1);
-    assert.equal(store.list('part', agent.id)[0]!.name, 'initial');
+    await app.message(agent.id, 'An ambiguous explanation.', 'observer', 'a');
+    await app.runtime.idle(agent.id);
+    assert.ok(store.cycles(agent.id).some(cycle => cycle.status === 'failed' && cycle.error?.includes('Recruitment transport unavailable')), 'A failed asynchronous recruitment remains an infrastructure failure on its actual source cycle');
+    assert.ok(store.list('part', agent.id).some(part => part.name === 'initial'));
+    assert.ok(store.list('part', agent.id).every(part => part.name !== 'missing'), 'Failed recruitment cannot invent the missing perspective; ordinary fallback cognition remains permitted');
     assert.equal(store.executions(agent.id).length, 0);
     assert.ok(store.eventsByType(agent.id, ['infrastructure.error']).length);
-  } finally { store.close(); }
+  } finally { await testApp?.close(); store.close(); }
 });

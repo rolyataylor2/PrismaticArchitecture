@@ -1,3 +1,4 @@
+import { ThoughtJobs, type ThoughtScope, type ThoughtJob } from './thought-jobs.js';
 import { z } from 'zod';
 import { SynthesisPolicySchema } from './sleep-policy.js';
 import { predictionTrajectories, PredictionTrajectorySchema } from './prediction-lineage.js';
@@ -19,22 +20,66 @@ export type DispositionAssessment = {
 };
 
 export type ConstructedCycle = { world: WorldState; threadId?: string; memories: Memory[]; parts: Part[];
-  generatedCognition: Record<string, { worldId: string; output: Cognition; durationMs: number }>;
+  generatedCognition: Record<string, { worldId: string; output: Cognition; durationMs: number; inferenceSource?: import('./contracts.js').InferenceSource }>;
   recalledMemoryIds: Record<string, string[]>; dispositions: Disposition[];
   dispositionBindings: { entityId: string; dispositionId: string }[] };
 
 /** Code owns assembly and continuity; models supply ordered psychological products. */
 export class ConstructedCognition {
+  private closed = false;
+  async close(): Promise<void> { this.closed = true; await Promise.all([...this.jobQueues.values()].map(queue => queue.close())); }
+  private readonly pendingBidOwners = new Set<string>();
+  holdBidOwner(partId: string, retained: boolean): void {
+    if (retained) this.pendingBidOwners.add(partId); else this.pendingBidOwners.delete(partId);
+  }
+  private readonly jobQueues = new Map<string, ThoughtJobs>();
+  private jobs(agentId: string): ThoughtJobs {
+    const settings = this.store.agentActivationSettings(agentId);
+    let jobs = this.jobQueues.get(agentId);
+    if (!jobs || (!jobs.activeCount && !jobs.queuedCount
+      && (jobs.concurrency !== (settings.maxConcurrentThoughts ?? 4) || jobs.queueLimit !== (settings.maxQueuedThoughts ?? 100)))) {
+      jobs = new ThoughtJobs(settings.maxConcurrentThoughts ?? 4, settings.maxQueuedThoughts ?? 100);
+      this.jobQueues.set(agentId, jobs);
+    }
+    return jobs;
+  }
+  isProcessing(scope: ThoughtScope): boolean { return this.jobQueues.get(scope.agentId)?.isProcessing(scope) ?? false; }
+  async scheduleJob<T>(job: ThoughtJob<T>) {
+    const jobId = id('thought_job');
+    const world = this.store.world(job.worldId);
+    const emit = (status: import('./contracts.js').EventPayloads['cognition.job']['status']) =>
+      this.inspection.emit(job.agentId, world.cycleId, 'cognition.job', {
+        jobId, worldId: job.worldId, threadId: job.threadId, dispositionId: job.dispositionId, status });
+    emit('queued');
+    if (this.closed) { emit('closed'); return { status: 'closed' as const }; }
+    try {
+      const result = await this.jobs(job.agentId).submit({ ...job, run: async () => { emit('started'); return job.run(); } });
+      emit(result.status);
+      return result;
+    } catch (error) { emit('failed'); throw error; }
+  }
+  isThinking(agentId: string): boolean { const jobs = this.jobQueues.get(agentId); return Boolean(jobs && (jobs.activeCount || jobs.queuedCount)); }
+  async idle(agentId: string): Promise<void> { await this.jobQueues.get(agentId)?.idle(); }
+  async checkBidConditions(world: WorldState, bids: import('./domain.js').ActionBid[]) {
+    const candidates = bids.flatMap(bid => (bid.validWhile ?? []).map((condition, index) => ({ id: `${bid.id}:condition:${index}`,
+      question: 'Is this declared external condition supported by the currently available factual observations? Unknown is at most 2; do not treat a subjective interpretation as confirmation.',
+      context: { bidId: bid.id, condition, action: { kind: bid.action.kind, text: bid.action.text } } })));
+    const scores = await this.judge({ task: 'bid_applicability', agentId: world.agentId, world, candidates });
+    return bids.map(bid => ({ bidId: bid.id, conditions: candidates.filter(candidate => candidate.context.bidId === bid.id).map(candidate => ({
+      condition: candidate.context.condition, score: scores.find(score => score.partId === candidate.id)?.score ?? null,
+    })) }));
+  }
   private readonly assessments = new WeakMap<DispositionAssessment, { world: WorldState; threadId: string | null; inquiry: string | null }>();
   constructor(private readonly store: Store, private readonly decisions: DecisionProvider,
     private readonly reasoning: ReasoningProvider, private readonly mutations: PartMutations, private readonly inspection: Inspection, private readonly maxTemporaryParts = 12) {}
+  private readonly inferenceSources = new WeakMap<object, import('./contracts.js').InferenceSource>();
   async infer<T extends ConstructedTask>(task: T, input: Omit<ConstructedInput, 'task'>): Promise<z.infer<typeof constructedOutputs[T]>> {
     if (!this.reasoning.constructed) throw new InfrastructureError(task, 'Reasoning provider does not support assembled Part cognition');
     if ((input.hypothesisHistory ?? []).some(prediction => prediction.agentId !== input.agentId)) throw new InfrastructureError(task, 'Hypothesis history ownership mismatch');
     if ((input.predictions ?? []).some(prediction => prediction.agentId !== input.agentId) || (input.hypothesis && input.hypothesis.agentId !== input.agentId))
       throw new InfrastructureError(task, 'Inference prediction ownership mismatch');
     if (input.world && input.world.agentId !== input.agentId) throw new InfrastructureError(task, 'Inference WorldState ownership mismatch');
-    if (!['part_cognition', 'cognition_coverage', 'hypothesis_reflection'].includes(task) && input.world) throw new InfrastructureError(task, 'Offline learning and subjective detail recall cannot receive WorldState');
+    if (!['thought_resources', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection'].includes(task) && input.world) throw new InfrastructureError(task, 'Offline learning and subjective detail recall cannot receive WorldState');
     if (task === 'cognition_coverage' && (input.workingParts || input.identity || input.memories || input.memory || input.dispositionBindings || input.question))
       throw new InfrastructureError(task, 'Coverage receives expressed products and relevant definitions, never private Part state or raw memories');
     if ((input.coverageProducts || input.hypothesisLimit !== undefined) && task !== 'cognition_coverage') throw new InfrastructureError(task, 'Coverage products are reserved for coverage inference');
@@ -55,8 +100,8 @@ export class ConstructedCognition {
     if ((input.memories ?? []).some(memory => memory.agentId !== input.agentId) || (input.memory && input.memory.agentId !== input.agentId)) throw new InfrastructureError(task, 'Inference memory ownership mismatch');
     if ((input.workingParts ?? []).some(part => part.agentId !== input.agentId)
       || (input.dispositions ?? []).some(disposition => disposition.agentId !== input.agentId)
-      || (task === 'part_cognition' && (input.workingParts?.length ?? 0) > 1)
-      || (input.identity && (input.identity.agentId !== input.agentId || task !== 'part_cognition' || input.dispositions?.length
+      || (['thought_resources', 'part_cognition'].includes(task) && (input.workingParts?.length ?? 0) > 1)
+      || (input.identity && (input.identity.agentId !== input.agentId || !['thought_resources', 'part_cognition'].includes(task) || input.dispositions?.length
         || input.dispositionBindings?.length || input.workingParts?.some(part => part.name !== 'self'))))
       throw new InfrastructureError(task, 'Identity is permitted only for the same-Agent fallback Part');
     const request: ConstructedInput = freeze({ task, agentId: input.agentId,
@@ -86,6 +131,8 @@ export class ConstructedCognition {
       issues: result.success ? [] : result.error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })),
       result: result.success ? result.data : null });
     if (!result.success) throw result.error;
+    const inferenceSource = this.reasoning.sourceFor?.(raw);
+    if (inferenceSource) this.inferenceSources.set(result.data, inferenceSource);
     return result.data as z.infer<typeof constructedOutputs[T]>;
   }
   private async judge(input: JudgmentInput) {
@@ -157,13 +204,16 @@ export class ConstructedCognition {
         scope: attention.target, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: prediction.id,
         temporary: true, active: true,
       })))];
-    const eligible = [...durable, ...temporary];
+    const includeProcessing = this.store.agentActivationSettings(agentId).includeProcessingDispositions ?? false;
+    const busy = (dispositionId: string) => this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId });
+    const eligible = [...durable, ...temporary].filter(disposition => includeProcessing || !busy(disposition.id));
     const eligibleIds = new Set(eligible.map(disposition => disposition.id));
     const persisted = this.store.list('disposition', agentId);
     const eligibility = [...persisted, ...temporary.filter(disposition => !persisted.some(stored => stored.id === disposition.id))].map(disposition => {
       const available = eligibleIds.has(disposition.id);
       const reasons = available ? [disposition.temporary ? 'open prior-cycle investigation in this thread' : 'live durable scope'] : [
         ...(!disposition.active ? ['inactive scope'] : []),
+        ...(!includeProcessing && busy(disposition.id) ? ['currently processing; excluded by activation policy'] : []),
         ...(disposition.temporary && !disposition.scaffold ? ['no current persisted scaffold'] : []),
         ...(disposition.scaffold?.createdCycle === world.cycleId ? ['created in this cycle; later-cycle eligibility required'] : []),
         ...(disposition.scaffold && disposition.scaffold.threadId !== (threadId ?? null) ? ['different thread'] : []),
@@ -202,7 +252,7 @@ export class ConstructedCognition {
     this.assessments.set(assessment, { world, threadId: threadId ?? null, inquiry: inquiry ?? null });
     return assessment;
   }
-  async prepare(world: WorldState, threadId?: string, recruitment?: { question: string; participatingDispositionIds: string[]; temporaryBudget?: number }, assessment?: DispositionAssessment): Promise<ConstructedCycle> {
+  async prepare(world: WorldState, threadId?: string, recruitment?: { question: string; participatingDispositionIds: string[]; temporaryBudget?: number }, assessment?: DispositionAssessment, onCompleted?: (state: ConstructedCycle) => void): Promise<ConstructedCycle> {
     const agentId = world.agentId;
     const workingParts = this.store.list('part', agentId).filter(part => part.instance
       && !part.instance.retirement && part.lifecycle === 'active' && part.instance.threadId === (threadId ?? null));
@@ -218,18 +268,20 @@ export class ConstructedCognition {
     const qualifiedTemporary = qualifiedBindings.filter(binding => binding.disposition.temporary)
       .sort((a, b) => scores.find(score => score.partId === b.disposition.id)!.score - scores.find(score => score.partId === a.disposition.id)!.score);
     const admittedTemporary = new Set(qualifiedTemporary.slice(0, temporaryBudget).map(binding => binding.disposition.id));
-    const activeBindings = qualifiedBindings.filter(binding => !binding.disposition.temporary || admittedTemporary.has(binding.disposition.id));
+    const activeBindings = qualifiedBindings.filter(binding => (!binding.disposition.temporary || admittedTemporary.has(binding.disposition.id))
+      && !this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId: binding.disposition.id }));
     this.inspection.emit(agentId, world.cycleId, 'construction.admission', { worldId: world.id, inquiry: recruitment?.question ?? null,
       scopes: assessed.bindings.map(binding => ({ dispositionId: binding.disposition.id, score: scores.find(score => score.partId === binding.disposition.id)?.score ?? null,
         threshold: binding.disposition.threshold, status: recruitment?.participatingDispositionIds.includes(binding.disposition.id) ? 'already_participating' as const
           : !qualifiedBindings.some(candidate => candidate.disposition.id === binding.disposition.id) ? 'below_threshold' as const
-          : binding.disposition.temporary && !admittedTemporary.has(binding.disposition.id) ? 'budget_deferred' as const : 'admitted' as const })) });
+          : binding.disposition.temporary && !admittedTemporary.has(binding.disposition.id) ? 'budget_deferred' as const
+          : this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId: binding.disposition.id }) ? 'busy' as const : 'admitted' as const })) });
     if (qualifiedTemporary.length) this.inspection.emit(agentId, world.cycleId, 'construction.temporary_scope_budget', {
       limit: temporaryBudget, activeScopeIds: qualifiedTemporary.map(binding => binding.disposition.id),
       admittedScopeIds: [...admittedTemporary], deferredScopeIds: qualifiedTemporary.filter(binding => !admittedTemporary.has(binding.disposition.id)).map(binding => binding.disposition.id) });
     const autobiography = this.store.list('memory', agentId).map(ordinaryMemory);
     const settings = this.store.agentActivationSettings(agentId);
-    const groups = activeBindings.length ? activeBindings : recruitment ? [] : [{ disposition: null, entityId: 'fallback_self' }];
+    const groups = activeBindings.length ? activeBindings : recruitment || this.jobs(agentId).activeCount ? [] : [{ disposition: null, entityId: 'fallback_self' }];
     // Freeze every assembly before inference. Model output cannot select continuity or expose another scope's private state.
     const assemblies = groups.map(group => {
       const matches = workingParts.filter(part => group.disposition
@@ -239,8 +291,52 @@ export class ConstructedCognition {
       return { ...group, current: matches[0] ?? null };
     });
     const identity = this.store.get('identity', agentId);
-    // Both recall batches and Part generations are independent and concurrent. No writes occur until all complete.
-    const products = await Promise.all(assemblies.map(async assembly => {
+    const generatedCognition: ConstructedCycle['generatedCognition'] = {};
+    const recalledMemoryIds: Record<string, string[]> = {};
+    const parts: Part[] = [];
+    const commitProduct = ({ assembly, selected, product, durationMs }: {
+      assembly: typeof assemblies[number]; selected: Memory[]; product: z.infer<typeof PartGenerationSchema>; durationMs: number;
+    }) => {
+      const part = this.inspection.atomic(() => {
+        const formation = product.formation;
+        const dispositionBindings = assembly.disposition ? [{ entityId: assembly.entityId, dispositionId: assembly.disposition.id }] : [];
+        const fields = { name: assembly.disposition ? formation.name : 'self', mission: formation.mission,
+          beliefs: formation.beliefs, strategies: formation.strategies, triggers: formation.triggers,
+          emotionalCharge: formation.affect || null,
+          stickiness: { retained: true, unresolved: true, concern: formation.concern },
+          instance: { createdCycle: assembly.current?.instance?.createdCycle ?? world.cycleId, threadId: threadId ?? null,
+            interpretation: formation.interpretation, evidenceMemoryIds: formation.evidenceMemoryIds,
+            counterevidenceMemoryIds: formation.counterevidenceMemoryIds, dispositionBindings, retirement: null },
+        };
+        const change = { origin: 'organic_cognition' as const, reason: 'Assembled scope perspective from disposition and chronological memories', sourceIds: [world.id, ...selected.map(memory => memory.id)] };
+        const part = assembly.current
+          ? this.mutations.patch(assembly.current.id, assembly.current.version, fields, change, world.cycleId)
+          : this.mutations.create(agentId, { ...fields, temporary: true, lifecycle: 'active', mode: 'perspective',
+            cognitiveCharacteristics: [], associations: [], lineage: [], provenance: change.sourceIds.slice(0, 200) }, change);
+        parts.push(part);
+        const inferenceSource = this.inferenceSources.get(product);
+        generatedCognition[part.id] = { worldId: world.id, output: product.cognition, durationMs, ...(inferenceSource ? { inferenceSource } : {}) };
+        recalledMemoryIds[part.id] = selected.map(memory => memory.id);
+        this.inspection.emit(agentId, world.cycleId, 'construction.generated', { partId: part.id, result: product });
+        for (const selectedMemory of selected) {
+          const memory = this.store.get('memory', selectedMemory.id);
+          if ((memory.referencingPartIds ?? (memory.partId ? [memory.partId] : [])).includes(part.id)) continue;
+          this.store.save('memory', { ...memory, referencingPartIds: [...new Set([...(memory.referencingPartIds ?? (memory.partId ? [memory.partId] : [])), part.id])], version: memory.version + 1 }, memory.version,
+            { origin: 'organic_cognition', reason: 'Assembled Part references its selected subjective evidence', sourceIds: [part.id, world.id] });
+        }
+        this.commitReflection(part, world, product);
+        return part;
+      });
+      onCompleted?.({ world, ...(threadId ? { threadId } : {}), memories: freeze([...selected]),
+        parts: [part], generatedCognition: { [part.id]: generatedCognition[part.id]! },
+        recalledMemoryIds: { [part.id]: recalledMemoryIds[part.id]! },
+        dispositions: assembly.disposition ? [assembly.disposition] : [],
+        dispositionBindings: assembly.disposition ? [{ entityId: assembly.entityId, dispositionId: assembly.disposition.id }] : [] });
+    };
+    // Each validated job commits independently; no cohort completion barrier.
+    const settled = await Promise.allSettled(assemblies.map(assembly => this.scheduleJob({
+      agentId, threadId: threadId ?? null, dispositionId: assembly.disposition?.id ?? '__identity_fallback__', worldId: world.id,
+      run: async () => {
       const recallScores = await this.judge({ task: 'memory_accessibility', agentId, world,
         candidates: autobiography.filter(memory => !assembly.disposition?.suppressedMemoryIds?.includes(memory.id)).map(memory => ({ id: memory.id,
           question: 'Could this lived episode materially inform this disposition perspective, including contrary evidence? Score independently 0–4.',
@@ -273,42 +369,19 @@ export class ConstructedCognition {
         throw new InfrastructureError('part_cognition', 'Navigation requires an available mediated stance');
       if ((product.memoryReflection === null) !== (product.memoryGist === null))
         throw new InfrastructureError('part_cognition', 'Memory reflection and gist must be supplied together');
-      return { assembly, selected, product, durationMs: performance.now() - started };
-    }));
-    const generatedCognition: ConstructedCycle['generatedCognition'] = {};
-    const recalledMemoryIds: Record<string, string[]> = {};
-    const parts: Part[] = [];
+      const result = { assembly, selected, product, durationMs: performance.now() - started };
+      commitProduct(result);
+      return result;
+    } })));
+    const failure = settled.find(result => result.status === 'rejected');
+    if (failure?.status === 'rejected') throw failure.reason;
+    const products = settled.flatMap(result => result.status === 'fulfilled' && result.value.status === 'completed' ? [result.value.value] : []);
     this.inspection.atomic(() => {
-      for (const { assembly, selected, product, durationMs } of products) {
-        const formation = product.formation;
-        const dispositionBindings = assembly.disposition ? [{ entityId: assembly.entityId, dispositionId: assembly.disposition.id }] : [];
-        const fields = { name: assembly.disposition ? formation.name : 'self', mission: formation.mission,
-          beliefs: formation.beliefs, strategies: formation.strategies, triggers: formation.triggers,
-          emotionalCharge: formation.affect || null,
-          stickiness: { retained: true, unresolved: true, concern: formation.concern },
-          instance: { createdCycle: assembly.current?.instance?.createdCycle ?? world.cycleId, threadId: threadId ?? null,
-            interpretation: formation.interpretation, evidenceMemoryIds: formation.evidenceMemoryIds,
-            counterevidenceMemoryIds: formation.counterevidenceMemoryIds, dispositionBindings, retirement: null },
-        };
-        const change = { origin: 'organic_cognition' as const, reason: 'Assembled scope perspective from disposition and chronological memories', sourceIds: [world.id, ...selected.map(memory => memory.id)] };
-        const part = assembly.current
-          ? this.mutations.patch(assembly.current.id, assembly.current.version, fields, change, world.cycleId)
-          : this.mutations.create(agentId, { ...fields, temporary: true, lifecycle: 'active', mode: 'perspective',
-            cognitiveCharacteristics: [], associations: [], lineage: [], provenance: change.sourceIds.slice(0, 200) }, change);
-        parts.push(part);
-        generatedCognition[part.id] = { worldId: world.id, output: product.cognition, durationMs };
-        recalledMemoryIds[part.id] = selected.map(memory => memory.id);
-        this.inspection.emit(agentId, world.cycleId, 'construction.generated', { partId: part.id, result: product });
-        for (const selectedMemory of selected) {
-          const memory = this.store.get('memory', selectedMemory.id);
-          if ((memory.referencingPartIds ?? (memory.partId ? [memory.partId] : [])).includes(part.id)) continue;
-          this.store.save('memory', { ...memory, referencingPartIds: [...new Set([...(memory.referencingPartIds ?? (memory.partId ? [memory.partId] : [])), part.id])], version: memory.version + 1 }, memory.version,
-            { origin: 'organic_cognition', reason: 'Assembled Part references its selected subjective evidence', sourceIds: [part.id, world.id] });
-        }
-        this.commitReflection(part, world, product);
-      }
       const retained = new Set(parts.map(part => part.id));
-      if (!recruitment) for (const part of workingParts.filter(part => !retained.has(part.id))) this.retire(part, world, 'Disposition scope no longer participates in the current cycle');
+      const unfinishedCycles = this.store.cycles(agentId).filter(cycle => cycle.status === 'running').map(cycle => cycle.id);
+      const pendingContributors = new Set(this.store.eventsByType(agentId, ['construction.generated'], unfinishedCycles)
+        .flatMap(event => event.type === 'construction.generated' ? [event.payload.partId] : []));
+      if (!recruitment) for (const part of workingParts.filter(part => !retained.has(part.id) && !this.pendingBidOwners.has(part.id) && !pendingContributors.has(part.id) && !(part.instance?.dispositionBindings?.length ? part.instance.dispositionBindings.map(binding => binding.dispositionId) : ['__identity_fallback__']).some(dispositionId => this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId })))) this.retire(part, world, 'Disposition scope no longer participates in the current cycle');
       for (const part of this.store.list('part', agentId).filter(part => !part.instance && part.lifecycle === 'active'))
         this.retire(part, world, 'Historical persistent Part does not participate in assembled cognition');
     });

@@ -1,3 +1,9 @@
+## Continuous cognition (ADR 0165)
+
+See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.
+
+Self answers (including requested subjective recall), focused revisions and generative prediction reflection now share the ordinary scope queue. Queued contexts coalesce within the same scope and inference purpose, so inquiry cannot discard prediction reflection; one running job per scope and shared resource bounds remain enforced. Admission deferral or changed owning versions preserve prior expressions without fabricated responses or stale psychological commits. Inquiry captures the scope's committed post-thought state while preserving its immutable experience snapshot.
+
 ADR 0159 adds a researcher-only Store branching contract preserving owned psychology and history under remapped identities. This is administrative copying, not Part learning or a new cognitive subsystem. Dream framing and before/after snapshots never enter cognitive inputs.
 
 ## Self affect extension (ADR 0157)

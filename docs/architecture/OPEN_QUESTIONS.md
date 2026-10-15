@@ -1,3 +1,9 @@
+## Continuous cognition (ADR 0165)
+
+[ADR 0165](decisions/0165-continuous-asynchronous-cognition.md) defines the current online execution target: immutable observations, independent activation, bounded scope inference, versioned expressed bids and serialized world-blind Self decisions. Activation-pass allowances, busy-scope policy, commitment/affect persistence and optional per-request resource routing are explicit. One runtime supports one-pass pause and continued attention; the former synchronous production loop is removed. The older flow summaries below preserve design context and do not reopen superseded decisions.
+
+Open empirical questions include when repeated thought is useful, how workload estimates and escalation thresholds affect quality/latency, which attention budgets prevent starvation without suppressing useful reconsideration, and how to compare matched consumed computation. Current simulation protocols expose these questions without prescribing psychological conclusions.
+
 ## Soft activation associations (ADR 0139)
 
 Disposition prerequisites no longer gate activation. Every live eligible scope receives a direct independent score; contributing/inhibiting keyword or disposition associations then inform one bounded second judgment using frozen direct scores and the identical WorldState. Final scores govern ordinary activation/admission. No recursive feedback, private-state sharing or automatic associative learning occurs. Legacy dependencies read as contributing associations; history stays preserved. See [ADR 0139](decisions/0139-soft-disposition-activation-associations.md). This supersedes prerequisite descriptions below.
@@ -8,12 +14,12 @@ Disposition prerequisites no longer gate activation. Every live eligible scope r
 
 # Open Architectural Questions
 
-## Current cycle (ADR 0132)
+## Earlier cycle revision (ADR 0132)
 
 [ADR 0132](decisions/0132-direct-worldstate-disposition-activation.md) supersedes the online perception stage: immutable WorldState + thread steering → direct independent Jev disposition activation → disposition-specific subjective memory accessibility → ordered construction/evidence/cognition. No perception inference runs. Prior-cycle prerequisites gate eligibility; each disposition's current scope is judged from WorldState. Compatibility binding IDs denote scopes, not inferred individual entities. Self remains world-blind; Identity guides and execution stays external.
 
 
-## Current default revision (ADR 0126)
+## Earlier constructed revision (ADR 0126)
 
 [ADR 0126](decisions/0126-constructed-perspectives-and-dispositions.md) supersedes older persistent-Part and private-only recall guidance for the default constructed architecture. Parts are temporary working perspectives reconstructed from subjective Agent autobiography; retired instances remain inspectable. Thread steering and gated entity-bound disposition graphs guide perception and recall. Self remains world-blind and Identity-guided; execution remains external. ADR 0128 removes the earlier online flow from application code. Historical regression fixtures and offline Part-development consolidation remain separate.
 
@@ -37,7 +43,7 @@ Parts may use language models, smaller models, classifiers, deterministic system
 
 ## History, concurrency, learning, and performance
 
-Git-like history is desired, but its persistence mechanism is undecided. Sequential, concurrent, asynchronous, hierarchical, and mixed evaluation remain open. Prediction-to-adaptation rules should remain configurable. Indexing, caching, embeddings, batching, model allocation, and other optimizations should respond to real performance requirements rather than prematurely define the architecture.
+Git-like history is desired, but its persistence mechanism is undecided. ADR 0165 selects asynchronous online scope inference with serialized Self decisions. Empirical resource policies and retained offline evaluation mechanisms remain open. Prediction-to-adaptation rules should remain configurable. Indexing, caching, embeddings, batching, model allocation, and other optimizations should respond to real performance requirements rather than prematurely define the architecture.
 
 ## Part semantic development
 

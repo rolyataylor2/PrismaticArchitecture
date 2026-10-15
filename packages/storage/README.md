@@ -1,3 +1,11 @@
+## Continuous cognition (ADR 0165)
+
+See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.
+
+Enabled Executive feedback includes narrowly projected host admission rejections: no action was submitted, with its factual admission reason and timestamp. It creates no Execution or environmental outcome and stays excluded when Executive is disconnected.
+
+Schema 27 adds nullable validated thought-routing configuration to protected Agent provider settings. Missing legacy routing remains disabled, credentials remain encrypted, and branch copying preserves routing alongside the owning provider configuration.
+
 Researcher dream branching transactionally copies same-Agent entities, immutable versions, experiences, cycles, audit, settings and selected caches with an explicit internal identifier map. Reports, shared registry and MCP grants are excluded. Source rows are never edited; ciphertext remains solely in protected settings. Branch histories retain source provenance, and default discard preserves the developed branch for inspection. See ADR 0159.
 
 ## Conditional procedural consolidation (ADR 0147)

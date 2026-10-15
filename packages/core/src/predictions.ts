@@ -47,6 +47,10 @@ export class Predictions {
     return this.commitFormation(prediction, world);
   }
   private commitFormation(prediction: Prediction, world: WorldState): Prediction {
+    const threadId = this.store.cycle(world.cycleId).threadId;
+    const frontier = Math.max(world.sequence, ...this.store.cycles(world.agentId)
+      .filter(cycle => cycle.threadId === threadId && cycle.status !== 'failed').map(cycle => cycle.sequence));
+    if (frontier > world.sequence) prediction = { ...prediction, committedAfterSequence: frontier };
     this.inspection.atomic(() => {
       this.store.save('prediction', prediction, 0, { origin: 'organic_cognition', reason: prediction.gapOrigin ? 'Coverage formed unresolved-state hypothesis' : 'Part formed prediction', sourceIds: [world.id] });
       this.inspection.emit(world.agentId, world.cycleId, 'part.prediction_created', prediction);

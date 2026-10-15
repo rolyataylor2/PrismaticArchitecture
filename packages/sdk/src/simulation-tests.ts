@@ -1,3 +1,5 @@
+import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
+import { continuousSimulations } from './continuous-simulations.js';
 import { dreamState, type DreamState } from './dream-state.js';
 import { engineProvenance, type EngineProvenance } from './engine-provenance.js';
 import { researchStageContext } from './provider-observation.js';
@@ -17,14 +19,33 @@ import { id, now, type ActivationAssociation, type Disposition, type Memory, typ
 
 const source = 'https://chatgpt.com/share/6ac31e3b-ef5c-83e8-bef9-935849391ba9';
 type Seed = { name: string; concern: string; cues: string[]; scope: string | null; prerequisites?: string[]; activationAssociations?: ActivationAssociation[] };
-type Step = { name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; sleepOptions?: Partial<import('../../core/src/consolidation-domain.js').SleepOptions>; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
-export type SimulationTestDefinition = { id: string; title: string; hypothesis: string; source: string;
+type Step = { attentionWindowMs?: number; concurrentObservations?: { text: string; afterMs: number }[]; name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; sleepOptions?: Partial<import('../../core/src/consolidation-domain.js').SleepOptions>; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
+export type SimulationTestDefinition = { activationSettings?: Partial<import('../../core/src/domain.js').AgentActivationSettings>; thoughtRoutingEnabled?: boolean; timePolicy?: 'wall_clock_observation_offsets' | 'externally_stepped'; id: string; title: string; hypothesis: string; source: string;
   seeds: Seed[]; steps: Step[]; criteria: string[]; limitations: string; executiveSandbox?: { review: boolean; awaitCheckpointReview?: boolean }; procedureLearning?: boolean;
   skillReviewPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['skillReviewPolicy'];
   consolidationPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['consolidation'] };
 const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepare and arrange painting a surface', cues: ['paint + surface + intention; attend to preparation, progress and remaining work'], scope: 'painting activity' };
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
+  ...continuousSimulations,
+  ...([false, true] as const).map(includeProcessing => ({
+    id: `continuous-attention-${includeProcessing ? 'rescore' : 'exclude'}-busy`,
+    title: `Overlapping experiences · ${includeProcessing ? 'rescore' : 'exclude'} thinking dispositions`,
+    source: 'Researcher asynchronous-cognition attachment, 2026-10-14; ADR 0165',
+    hypothesis: 'Independent thinking may permit new observations and useful responses before earlier reasoning finishes, without duplicate reasoning for a busy scope.',
+    timePolicy: 'wall_clock_observation_offsets' as const,
+    activationSettings: { includeProcessingDispositions: includeProcessing, activationPassLimit: 1, maxConcurrentThoughts: 4, maxQueuedThoughts: 100 },
+    seeds: [{ name: 'Delight In Birds', concern: 'Notice and appreciate birdsong', cues: ['birdsong outdoors'], scope: 'birdsong' },
+      { name: 'Desire For Connection', concern: 'Understand and participate in conversation', cues: ['another person speaking or awaiting a response'], scope: 'conversation' },
+      { name: 'Careful Understanding', concern: 'Understand ambiguous details before advocating consequential action', cues: ['uncertainty and incomplete evidence'], scope: 'uncertain practical decisions' }],
+    steps: [{ name: 'Unrelated control', phase: 'control' as const, text: 'A clock is visible on the wall. No one is speaking.' },
+      { name: 'Overlapping ordinary observations', phase: 'probe' as const, text: 'Outside, a bird chirps. Morgan asks whether an unfamiliar plant is safe to touch; no identifying evidence is available.',
+        concurrentObservations: [{ afterMs: 25, text: 'Morgan continues: I have moved away from the plant. What did you notice about the birdsong?' }] },
+      { name: 'Later factual clarification', phase: 'probe' as const, text: 'Morgan says no one touched the plant. The bird is no longer audible. We are still talking outside.' }],
+    criteria: ['A later observation is admitted before prior cognition completes', 'A thought or Self decision completes while another observation remains in progress',
+      'Busy-scope handling preserves one running reasoning job per scope', 'Later behavior accounts for changed circumstances without suppressing an unresolved concern'],
+    limitations: 'Starting dispositions are researcher-authored. Observations use real wall-clock offsets; simulation time is explicitly the delivery clock, with no hidden conversion of model latency. No provider response or activation is forced. Fast fixture calls may finish before the 25 ms observation, making overlap unobserved rather than a failure. Compare paired settings with identical models and inference limits; configured-model repetitions are required. Semantic appropriateness, latency benefit and human psychological validity are not established by operational traces.'
+  })),
   ...(['control', 'synthesis', 'replacement', 'belief-changes', 'compact'] as const).map(mode => ({
     id: `sleep-car-${mode}`, title: `Cold-car memory consolidation · ${mode}`,
     source: 'Researcher sleep synthesis discussion, 2026-10-11; ADR 0160',
@@ -472,7 +493,7 @@ for (const enabled of [false, true]) simulationTests.push({
   limitations: manualProcedureControl.limitations + ' Review policy is an explicit researcher setting. No candidate, activation, approval, selection or reuse is forced. A successful exact-input reuse does not establish transfer, causal learning or human psychology.',
 });
 
-export type SimulationStage = { id?: string; affectInputs?: EventPayloads['self.affect_selection_started'][]; affectChoices?: EventPayloads['self.affect_choice'][]; affectTrace?: { eventId: string; type: string; sequence: number }[]; affectProposals?: EventPayloads['part.affect_proposals'][]; affectDecisions?: EventPayloads['self.affect_decision'][]; affectBaselines?: EventPayloads['self.affect_baseline'][]; focusedRevisions?: EventPayloads['part.focused_bid_revision'][]; affectCycles?: EventPayloads['self.affect_cycle'][]; procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
+export type SimulationStage = { attentionWindow?: AttentionWindowEvidence; resourceDecisions?: EventPayloads['cognition.resources'][]; inferenceSources?: EventPayloads['cognition.source'][]; bidInferenceSources?: EventPayloads['cognition.bid_source'][]; bidLifecycle?: EventPayloads['cognition.bid'][]; commitments?: EventPayloads['self.commitment'][]; conditionChecks?: EventPayloads['execution.applicability_checked'][]; affectCommits?: EventPayloads['self.affect_committed'][]; concurrentCycleIds?: string[]; concurrencyTrace?: { eventId: string; cycleId: string | null; type: string; sequence: number; at: string }[]; id?: string; affectInputs?: EventPayloads['self.affect_selection_started'][]; affectChoices?: EventPayloads['self.affect_choice'][]; affectTrace?: { eventId: string; type: string; sequence: number }[]; affectProposals?: EventPayloads['part.affect_proposals'][]; affectDecisions?: EventPayloads['self.affect_decision'][]; affectBaselines?: EventPayloads['self.affect_baseline'][]; focusedRevisions?: EventPayloads['part.focused_bid_revision'][]; affectCycles?: EventPayloads['self.affect_cycle'][]; procedureSkills?: import('../../core/src/executive-skill.js').ExecutiveSkill[]; procedureReviews?: EventPayloads['execution.procedure_review'][]; remainderClaims?: EventPayloads['execution.remainder_claim'][]; remainderReady?: EventPayloads['execution.remainder_ready'][]; remainderFailures?: EventPayloads['execution.remainder_handoff_failed'][]; executionContracts?: EventPayloads['execution.contract'][]; toolSubmissions?: EventPayloads['execution.tool_trace'][]; procedureConsolidation?: import('./procedure-consolidation.js').ProcedureConsolidationRun; checkpointNote?: string; attention?: EventPayloads['execution.attention'][]; reviews?: EventPayloads['execution.review_completed'][]; interventions?: EventPayloads['execution.intervention'][]; name: string; phase: Step['phase']; cycleId: string | null; text: string | null;
   temporaryScopeBudgets?: { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] }[];
   coverage?: import('../../core/src/cognition-coverage.js').CognitionCoverage[];
   experienced?: import('../../core/src/domain.js').WorldState['experienced'];
@@ -492,7 +513,7 @@ export type SimulationRun = { dream?: { hostPid: number; keepChanges: boolean; s
   startingConfiguration?: { identity: import('../../core/src/domain.js').Identity; activationSettings: ReturnType<Application['agentActivationSettings']>;
     runtime: import('../../core/src/runtime.js').RuntimeOptions; executiveProfile: import('../../core/src/executive-profile.js').ExecutiveProfile };
   specification: SimulationTestDefinition;
-  providerRouting?: { model: string | null };
+  providerRouting?: { model: string | null; thoughtRouting?: import('../../core/src/thought-resources.js').ThoughtRoutingSettings | null };
   lineage?: { parentRunId: string; kind: 'rerun' | 'fork'; reason: string; activationChanges: Record<string, unknown> };
   sourceAgentId: string | null; mode: 'fixture' | 'configured'; evidenceBasis: 'fixture' | 'mixed' | 'configured_models';
   providers: { reasoning: string; decisions: string; embeddings?: string }; prompts: { task: string; version: string; text: string }[];
@@ -500,8 +521,8 @@ export type SimulationRun = { dream?: { hostPid: number; keepChanges: boolean; s
   researchAnalysisError?: string;
   createdAt: string; finishedAt: string | null; status: 'running' | 'paused' | 'completed' | 'failed';
   pauseRequested?: boolean;
-  checkpoint?: { stageIndex: number; cycleId: string | null; sleepCompleted: boolean };
-  resumptions?: { at: string; previousStatus: string; error: string | null; completedStages: number; before: DreamState; runtime: Application['runtimeConfiguration']; activationSettings: ReturnType<Application['agentActivationSettings']>; model: string | null; engine: EngineProvenance; providers: SimulationRun['providers']; prompts: SimulationRun['prompts'] }[];
+  checkpoint?: { stageIndex: number; cycleId: string | null; sleepCompleted: boolean; concurrentRecoveryCycleIds?: string[] };
+  resumptions?: { at: string; previousStatus: string; error: string | null; completedStages: number; before: DreamState; runtime: Application['runtimeConfiguration']; activationSettings: ReturnType<Application['agentActivationSettings']>; model: string | null; thoughtRouting?: import('../../core/src/thought-resources.js').ThoughtRoutingSettings | null; engine: EngineProvenance; providers: SimulationRun['providers']; prompts: SimulationRun['prompts'] }[];
   executiveEvidence?: { cleanup: string; executions: import('../../core/src/domain.js').Execution[] };
   totalSteps: number; currentStep: string; stages: SimulationStage[]; measures: SimulationMeasure[]; error: string | null };
 
@@ -513,6 +534,21 @@ export function measureSimulation(definition: SimulationTestDefinition, stages: 
   const semantic = (criterion: string, evidence: string): SimulationMeasure => ({ criterion, outcome: 'inconclusive', evidence, assessmentKind: 'semantic' });
   const first = stages[0]!; const last = stages.at(-1)!;
   if (!first || !last) return [measure('Sufficient stage evidence', null, 'No completed stages.')];
+  if (definition.id.startsWith('continuous-attention-')) {
+    const stage = stages.find(stage => stage.concurrentCycleIds?.length);
+    const trace = stage?.concurrencyTrace ?? [];
+    const starts = trace.filter(event => event.type === 'worldstate.frozen');
+    const ends = new Map(trace.filter(event => event.type === 'cycle.completed').map(event => [event.cycleId, event.sequence]));
+    const overlap = starts.some(later => starts.some(earlier => earlier.cycleId !== later.cycleId
+      && earlier.sequence < later.sequence && (ends.get(earlier.cycleId) ?? Infinity) > later.sequence));
+    const independentCompletion = trace.some(event => ['part.thought', 'self.choice'].includes(event.type)
+      && starts.some(other => other.cycleId !== event.cycleId && other.sequence < event.sequence
+        && (ends.get(other.cycleId) ?? Infinity) > event.sequence));
+    return [measure(definition.criteria[0]!, starts.length > 1 ? overlap : null, JSON.stringify({ cycles: stage?.concurrentCycleIds, trace })),
+      measure(definition.criteria[1]!, overlap ? independentCompletion : null, JSON.stringify({ overlap, independentCompletion, trace })),
+      semantic(definition.criteria[2]!, 'Inspect preserved cognition.job lifecycle events in the cited concurrent source cycles; absence of overlapping observations is inconclusive.'),
+      semantic(definition.criteria[3]!, 'Inspect ordinary Part interpretations, proposed applicability, Self choices and later clarification. Operational overlap alone cannot establish appropriate cognition.')];
+  }
   if (definition.skillReviewPolicy) {
     const candidateStage = stages.find(stage => stage.name === 'Offline procedural consolidation');
     const candidates = candidateStage?.procedureSkills?.filter(skill => skill.status === 'proposed' && skill.validations.some(item => item.result === 'passed')) ?? [];
@@ -731,7 +767,7 @@ export function resumeDream(app: Application, runId: string): SimulationRun {
   const reasoning = runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string };
   const providers = { reasoning: reasoning.labelForAgent?.(run.agentId) ?? reasoning.label, decisions: runner.providers.decisions.label, embeddings: runner.providers.embeddings.label };
   run.resumptions = [...(run.resumptions ?? []), { at: now(), previousStatus: run.status, error: run.error, completedStages: run.stages.length, before: structuredClone(run.dream.after),
-    runtime: structuredClone(runner.runtimeConfiguration), activationSettings: structuredClone(runner.agentActivationSettings(run.agentId)), model: runner.store.agentProviderSettings(run.agentId)?.model ?? null,
+    runtime: structuredClone(runner.runtimeConfiguration), activationSettings: structuredClone(runner.agentActivationSettings(run.agentId)), model: runner.store.agentProviderSettings(run.agentId)?.model ?? null, thoughtRouting: structuredClone(runner.store.agentProviderSettings(run.agentId)?.thoughtRouting ?? null),
     engine: engineProvenance(), providers, prompts: runner.promptSettings(run.agentId).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })) }];
   const allProviders = [run.providers, ...run.resumptions.map(attempt => attempt.providers)];
   const mockRoles = allProviders.flatMap(provider => [provider.reasoning, provider.decisions].map(label => /mock|deterministic/i.test(label)));
@@ -792,6 +828,7 @@ export function replaySimulation(app: Application, runId: string, reason: string
       if (app.store.agentProviderSettings(parent.agentId) || (reasoning.labelForAgent?.(parent.agentId) ?? reasoning.label) !== parent.providers.reasoning)
         throw new Error('Current reasoning adapter differs from the recorded provider');
     } else if (app.store.agentProviderSettings(parent.agentId)?.model !== model) throw new Error('Recorded model credential routing changed; restore that model before rerunning');
+    if (JSON.stringify(app.store.agentProviderSettings(parent.agentId)?.thoughtRouting ?? null) !== JSON.stringify(parent.providerRouting.thoughtRouting ?? null)) throw new Error('Recorded thought routing changed; restore it before rerunning');
   }
   return launchSimulation(app, structuredClone(parent.specification), parent.mode, parent.agentId, { enabled: false }, { parent, reason: reason.trim(), activationChanges });
 }
@@ -810,6 +847,11 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     app.store.saveAgentActivationSettings(agent.id, app.store.agentActivationSettings(sourceAgentId));
     for (const prompt of app.promptSettings(sourceAgentId)) app.editPrompt(agent.id, prompt.task, 'agent', prompt.effective);
   }
+  if (!dream && !replay && definition.thoughtRoutingEnabled !== undefined) {
+    const settings = runner.store.agentProviderSettings(agent.id);
+    if (settings) runner.store.saveAgentProviderSettings(agent.id, { ...settings, thoughtRouting: {
+      intuitiveModel: settings.model, deliberativeModel: settings.model, ...settings.thoughtRouting, enabled: definition.thoughtRoutingEnabled } });
+  }
   if (replay) {
     const start = replay.parent.startingConfiguration!;
     const identity = app.store.get('identity', agent.id);
@@ -821,6 +863,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     app.store.saveExecutiveProfile(agent.id, { ...structuredClone(start.executiveProfile), revision: profile.revision + 1 }, profile.revision);
     for (const prompt of replay.parent.prompts) app.editPrompt(agent.id, prompt.task as import('../../core/src/domain.js').PromptTask, 'agent', prompt.text);
   }
+  if (!dream && !replay && definition.activationSettings) runner.updateAgentActivationSettings(agent.id, definition.activationSettings);
   let setupError: string | null = null;
   let reasoning = runner.providers.reasoning.label;
   try { reasoning = (runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string }).labelForAgent?.(agent.id) ?? reasoning; }
@@ -831,7 +874,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     agentId: agent.id, sourceAgentId, mode, evidenceBasis: mockReasoning && mockDecisions ? 'fixture' : mockReasoning || mockDecisions ? 'mixed' : 'configured_models',
     ...(replay ? { lineage: { parentRunId: replay.parent.id, kind: Object.keys(replay.activationChanges).length ? 'fork' as const : 'rerun' as const,
       reason: replay.reason, activationChanges: structuredClone(replay.activationChanges) } } : {}),
-    providerRouting: { model: runner.store.agentProviderSettings(agent.id)?.model ?? null },
+    providerRouting: { model: runner.store.agentProviderSettings(agent.id)?.model ?? null, thoughtRouting: structuredClone(runner.store.agentProviderSettings(agent.id)?.thoughtRouting ?? null) },
     providers: { reasoning, decisions, embeddings: runner.providers.embeddings.label }, prompts: runner.promptSettings(agent.id).map(prompt => ({ task: prompt.task, version: prompt.version, text: prompt.effective })),
     startingConfiguration: { identity: structuredClone(app.store.get('identity', agent.id)), activationSettings: structuredClone(runner.agentActivationSettings(agent.id)),
       runtime: structuredClone(runner.runtimeConfiguration), executiveProfile: structuredClone(app.store.executiveProfile(agent.id)) },
@@ -910,10 +953,54 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             && event.researchScope.stageIndex === stageIndex).map(event => event.cycleId) : []);
           const priorCycle = run.dream && resumed ? app.store.cycles(run.agentId).findLast(cycle => cycle.status === 'completed' && cycle.threadId === run.id
             && (cycle.id === checkpoint?.cycleId || priorStageCycleIds.has(cycle.id))) : undefined;
-          const result = priorCycle ? { cycle: priorCycle } : step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
+          const concurrentCycleIds: string[] = [];
+          let concurrentRecoveryCycleIds = checkpoint?.concurrentRecoveryCycleIds ?? [];
+          const recoverConcurrentObservations = async (initial: string) => {
+            const observations = [{ text: initial, afterMs: 0 }, ...step.concurrentObservations!];
+            const known = app.store.cycles(run.agentId).filter(cycle => cycle.threadId === run.id);
+            const hasReceipts = known.some(cycle => cycle.clientMessageId?.startsWith(`${run.id}:${stageIndex}:`));
+            if (resumed && priorStageCycleIds.size) checkpointNote = 'Resumed concurrent stage with preserved observation receipts. This stage is not an uninterrupted latency trial.';
+            const deliveries = await Promise.allSettled(observations.map(async (observation, observationIndex) => {
+              if (!Number.isFinite(observation.afterMs) || observation.afterMs < 0 || observation.afterMs > 1000) throw new Error('Invalid concurrent observation offset');
+              const receipt = `${run.id}:${stageIndex}:${observationIndex}`;
+              const prior = known.find(cycle => cycle.clientMessageId === receipt);
+              if (prior) return prior;
+              if (resumed && priorStageCycleIds.size && !hasReceipts) throw new Error('Concurrent observation receipts are incomplete; refusing to replay an unidentified historical input');
+              if (observation.afterMs) await new Promise(resolve => setTimeout(resolve, observation.afterMs));
+              return (await app.message(run.agentId, observation.text, run.dream ? 'Experience' : 'Scenario observer', run.id, [], receipt)).cycle;
+            }));
+            concurrentCycleIds.push(...known.filter(cycle => priorStageCycleIds.has(cycle.id)).map(cycle => cycle.id));
+            for (const delivery of deliveries) if (delivery.status === 'fulfilled' && !concurrentCycleIds.includes(delivery.value.id)) concurrentCycleIds.push(delivery.value.id);
+            const failure = deliveries.find(delivery => delivery.status === 'rejected');
+            if (failure?.status === 'rejected') throw failure.reason;
+            const delivered = deliveries.flatMap(delivery => delivery.status === 'fulfilled' ? [delivery.value] : []);
+            if (delivered.some(cycle => cycle.status !== 'completed')) {
+              if (!resumed) throw new Error('A concurrent observation did not complete cognition');
+              let recovery = concurrentRecoveryCycleIds.map(cycleId => app.store.cycle(cycleId));
+              if (!recovery.length || recovery.some(cycle => cycle.status !== 'completed')) {
+                const before = new Set(app.store.cycles(run.agentId).map(cycle => cycle.id));
+                app.runtime.resumeThinking(run.agentId, run.id);
+                await app.runtime.idle(run.agentId);
+                recovery = app.store.cycles(run.agentId).filter(cycle => cycle.threadId === run.id && !before.has(cycle.id));
+              }
+              for (const cycle of recovery) if (!concurrentCycleIds.includes(cycle.id)) concurrentCycleIds.push(cycle.id);
+              if (!recovery.length || recovery.some(cycle => cycle.status !== 'completed')) throw new Error('Resumed concurrent attention did not complete');
+              concurrentRecoveryCycleIds = recovery.map(cycle => cycle.id);
+              checkpointNote = 'Recovered failed concurrent cognition through fresh ordinary attention against current experience. Original observations were not replayed; this stage is not an uninterrupted latency trial.';
+            }
+            return { cycle: delivered[0]! };
+          };
+          if (step.attentionWindowMs !== undefined && resumed && priorStageCycleIds.size) throw new Error('Interrupted attention windows require a fresh trial; a historical deadline cannot be replayed as uninterrupted latency evidence');
+          const deliver = async () => step.concurrentObservations && text ? await recoverConcurrentObservations(text)
+            : priorCycle ? { cycle: priorCycle } : step.executiveCheckpoint ? target && text ? await app.observeExecution(run.agentId, target.id, [{ source: 'Scenario observer', kind: 'observes', text, timestamp: now(), referenceId: null }]) : null
             : text ? await app.message(run.agentId, text, run.dream ? 'Experience' : 'Scenario observer', run.id) : null;
+          const windowed = step.attentionWindowMs !== undefined ? await attentionWindow(app, run.agentId, run.id, step.attentionWindowMs, deliver) : null;
+          const result = windowed ? windowed.result : await deliver();
+          const attentionEvidence = windowed?.evidence;
+          if (attentionEvidence) concurrentCycleIds.push(...attentionEvidence.cycleIds.filter(cycleId => !concurrentCycleIds.includes(cycleId)));
           if (run.dream) {
-            run.checkpoint = { stageIndex, cycleId: result?.cycle.id ?? null, sleepCompleted: checkpoint?.sleepCompleted ?? false };
+            run.checkpoint = { stageIndex, cycleId: result?.cycle.id ?? null, sleepCompleted: checkpoint?.sleepCompleted ?? false,
+              ...(concurrentRecoveryCycleIds.length ? { concurrentRecoveryCycleIds } : {}) };
             app.store.saveExperiment(run);
           }
           if (step.settleExecutive) {
@@ -935,8 +1022,13 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             await app.consolidate(run.agentId, undefined, undefined, step.sleepOptions);
             if (run.checkpoint) { run.checkpoint.sleepCompleted = true; app.store.saveExperiment(run); }
           }
-          const events = result ? app.store.eventsByType(run.agentId, ['construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention'], [result.cycle.id]) : [];
-          run.stages.push({ id: stageId, name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
+          const captureTypes: (keyof EventPayloads)[] = ['cognition.stream', 'construction.judgment', 'construction.inference_started', 'part.thought', 'cognition.coverage', 'construction.temporary_scope_budget', 'worldstate.frozen', 'self.experienced_transition', 'part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.arbitration_started', 'self.affect_decision', 'self.affect_baseline', 'part.focused_bid_revision', 'self.affect_cycle', 'prediction.outcome_checked', 'self.question', 'self.choice', 'execution.attention', 'execution.review_completed', 'execution.intervention', 'cognition.job', 'cognition.resources', 'cognition.source', 'cognition.bid_source', 'cognition.inquiry_deferred', 'cycle.completed', 'cognition.bid', 'self.commitment', 'execution.applicability_checked', 'execution.bid_rejected', 'self.affect_committed'];
+          const sourceEvents = result ? app.store.eventsByType(run.agentId, captureTypes,
+            concurrentCycleIds.length ? concurrentCycleIds : [result.cycle.id]) : [];
+          const scopedEvents = app.store.eventsByType(run.agentId, captureTypes).filter(event =>
+            event.researchScope?.runId === run.id && event.researchScope.stageId === stageId);
+          const events = [...new Map([...sourceEvents, ...scopedEvents].map(event => [event.id, event])).values()].sort((a, b) => a.sequence - b.sequence);
+          run.stages.push({ ...(attentionEvidence ? { attentionWindow: attentionEvidence } : {}), ...((step.concurrentObservations || attentionEvidence) ? { concurrentCycleIds, concurrencyTrace: events.map(event => ({ eventId: event.id, cycleId: event.cycleId, type: event.type, sequence: event.sequence, at: event.at })) } : {}), id: stageId, name: step.name, phase: step.phase, cycleId: result?.cycle.id ?? null, text, ...(procedureConsolidation ? { procedureConsolidation } : {}), ...(checkpointNote ? { checkpointNote } : {}),
             ...(definition.procedureLearning || definition.id.startsWith('executive-remainder-') ? {
               remainderClaims: app.store.eventsByType(run.agentId, ['execution.remainder_claim']).flatMap(event => event.type === 'execution.remainder_claim' ? [event.payload] : []),
               remainderReady: app.store.eventsByType(run.agentId, ['execution.remainder_ready']).flatMap(event => event.type === 'execution.remainder_ready' ? [event.payload] : []),
@@ -946,6 +1038,13 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
               executionContracts: app.store.eventsByType(run.agentId, ['execution.contract']).flatMap(event => event.type === 'execution.contract' ? [event.payload] : []),
               toolSubmissions: app.store.eventsByType(run.agentId, ['execution.tool_trace']).flatMap(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted' ? [event.payload] : []),
             } : {}),
+            bidInferenceSources: events.flatMap(event => event.type === 'cognition.bid_source' ? [event.payload] : []),
+            resourceDecisions: events.flatMap(event => event.type === 'cognition.resources' ? [event.payload] : []),
+            inferenceSources: events.flatMap(event => event.type === 'cognition.source' ? [event.payload] : []),
+            bidLifecycle: events.flatMap(event => event.type === 'cognition.bid' ? [event.payload] : []),
+            commitments: events.flatMap(event => event.type === 'self.commitment' ? [event.payload] : []),
+            conditionChecks: events.flatMap(event => event.type === 'execution.applicability_checked' ? [event.payload] : []),
+            affectCommits: events.flatMap(event => event.type === 'self.affect_committed' ? [event.payload] : []),
             affectInputs: events.flatMap(event => event.type === 'self.affect_selection_started' ? [event.payload] : []),
             affectChoices: events.flatMap(event => event.type === 'self.affect_choice' ? [event.payload] : []),
             affectTrace: events.filter(event => ['part.affect_proposals', 'self.affect_selection_started', 'self.affect_choice', 'self.affect_baseline', 'self.affect_decision', 'part.focused_bid_revision', 'self.arbitration_started', 'self.choice', 'self.affect_cycle'].includes(event.type))
@@ -980,7 +1079,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             recruitedScopes: events.flatMap(event => event.type === 'construction.inference_started' && event.payload.task === 'part_cognition' && event.payload.question
               ? event.payload.dispositions?.map(disposition => disposition.id) ?? [] : []),
             selfChoices: events.flatMap(event => event.type === 'self.choice' ? [event.payload] : []),
-            executions: result ? app.store.executions(run.agentId).filter(execution => execution.cycleId === result.cycle.id) : [],
+            executions: result ? app.store.executions(run.agentId).filter(execution => (concurrentCycleIds.length ? concurrentCycleIds : [result.cycle.id]).includes(execution.cycleId)) : [],
             parts: app.store.list('part', run.agentId), predictions: app.store.list('prediction', run.agentId),
             memories: app.store.list('memory', run.agentId), dispositions: app.store.list('disposition', run.agentId) });
           delete run.checkpoint;

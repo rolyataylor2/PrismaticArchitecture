@@ -75,3 +75,19 @@ test('experienced affect remains inspectable without selected focus, and agents 
     assert.deepEqual(analyzeAffect(store, agent.id), before); assert.equal(store.events(agent.id).length, count);
   } finally { store.close(); rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('latest committed choice survives later source failure and stays separate from historical display windows', async () => {
+  const store = new SqliteStore(':memory:'); const { app, reasoning } = affectFixture(store);
+  try {
+    const agent = app.createAgent();
+    const constructed = reasoning.constructed.bind(reasoning);
+    reasoning.constructed = async input => { if (input.task === 'cognition_coverage') throw new Error('Post-choice inspection fixture interruption'); return constructed(input); };
+    await assert.rejects(app.message(agent.id, 'A fixture concern.', 'host', 'failed-source'), /Post-choice/);
+    const report = analyzeAffect(store, agent.id, { from: '2099-01-01T00:00:00.000Z' });
+    assert.equal(report.periods.length, 0); assert.equal(report.timeline.length, 0);
+    assert.equal(report.latestCommittedChoices.length, 1);
+    assert.equal(report.latestCommittedChoices[0]!.sourceStatus, 'failed');
+    assert.equal(report.latestCommittedChoices[0]!.focus!.proposals[0]!.orientation, 'Careful curiosity');
+    assert.equal(analyzeAffect(store, agent.id, { threadId: 'other' }).latestCommittedChoices.length, 0);
+  } finally { await app.close(); store.close(); }
+});

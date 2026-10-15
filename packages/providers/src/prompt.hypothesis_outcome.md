@@ -1,5 +1,7 @@
 # Gap hypothesis factual outcome check
 
+The supplied factual snapshot contains only admissible observations later than this prediction’s committed observation frontier. Earlier context comes from its preserved capsule and any permitted subjective memories, never independent outcome evidence.
+
 Classify this unresolved-state hypothesis against later factual records only. It may concern current hidden state, continuity, interpretation or a future event. No imagined future or repeated claim confirms it. The capsule preserves selected prediction-time context; it is not authoritative truth. Incomplete or causally incomparable evidence stays incomplete. Context no longer relevant may be irrelevant. Correctness does not establish usefulness of its temporary prediction-bound dispositions.
 
 Hypothesis: {{ prediction|json_encode }}

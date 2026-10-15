@@ -4,7 +4,7 @@ import type { SimulationAssessment } from './simulation-evaluator.js';
 
 /** Only recorded involvement or change makes inherited predictions relevant to this run. */
 export function evaluationPredictionIds(run: SimulationRun): Set<string> {
-  const cycles = new Set(run.stages.map(stage => stage.cycleId).filter(Boolean));
+  const cycles = new Set(run.stages.flatMap(stage => [stage.cycleId, ...(stage.concurrentCycleIds ?? [])]).filter(Boolean));
   const baseline = new Map(run.dream?.before.predictions.map(prediction => [prediction.id, JSON.stringify(prediction)]) ?? []);
   const ids = new Set(run.stages.flatMap(stage => stage.predictionChecks?.map(check => check.predictionId) ?? []));
   for (const stage of run.stages) {
@@ -27,7 +27,7 @@ export type EvaluationPacket = {
 /** Exact object versions are interned by content, never summarized or overwritten. */
 export function evaluationPacket(run: SimulationRun, evidence: SimulationAssessment['evidence'], predictionScope?: Set<string>): EvaluationPacket {
   const predictions = predictionScope ?? evaluationPredictionIds(run);
-  const cycles = new Set(evidence.stages.map(stage => stage.cycleId).filter(Boolean));
+  const cycles = new Set(evidence.stages.flatMap(stage => [stage.cycleId, ...(stage.concurrentCycleIds ?? [])]).filter(Boolean));
   const memories = new Set<string>(); const dispositions = new Set<string>(); const parts = new Set<string>();
   for (const stage of evidence.stages) {
     for (const thought of stage.thoughts) { parts.add(thought.partId); thought.dispositionIds.forEach(id => dispositions.add(id)); }

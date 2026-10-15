@@ -1,3 +1,5 @@
+import { thoughtModelEvidence } from './thought-model-evidence.js';
+import { ThoughtRoutingSettingsSchema } from '../../core/src/thought-resources.js';
 import { dreamConsole } from './dream-console.js';
 import { SynthesisPolicySchema } from '../../core/src/sleep-policy.js';
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
@@ -13,6 +15,7 @@ import { parseAgentSkillPackage } from '../../core/src/agent-skill-format.js';
 import { simulationAssessmentAvailable, startSimulationAssessment } from './simulation-evaluator.js';
 import { simulationRubric } from './simulation-rubrics.js';
 import { dispositionStatistics } from './disposition-statistics.js';
+import { dispositionActivationHistory, currentDispositionActivation } from './disposition-activation-history.js';
 import { createComponent, draftComponent } from './component-authoring.js';
 import { referencesMemory } from '../../core/src/domain.js';
 import { memoryOverview, searchMemories } from './memory-search.js';
@@ -94,6 +97,8 @@ export async function api(app: Application, method: string, path: string, body: 
     }
     if (method === 'POST' && entityId && (action === 'rerun' || action === 'fork')) {
       const settings = z.strictObject({ vectorSearchEnabled: z.boolean().optional(), memorySearchEnabled: z.boolean().optional(),
+        includeProcessingDispositions: z.boolean().optional(), maxConcurrentThoughts: z.number().int().min(1).max(64).optional(),
+        maxQueuedThoughts: z.number().int().min(0).max(10000).optional(), activationPassLimit: z.number().int().min(1).max(10000).nullable().optional(),
         memoryRelevanceThreshold: z.number().min(0).max(1).optional(), memoryRecallLimit: z.number().int().min(1).max(10000).nullable().optional(),
         primitivesFirst: z.boolean().optional(), reevaluateAfterDeliberation: z.boolean().optional() });
       const input = z.strictObject({ reason: z.string().trim().min(1).max(4000), activationChanges: settings.optional() }).parse(body);
@@ -315,8 +320,20 @@ export async function api(app: Application, method: string, path: string, body: 
       return { ...next, items: next.items.map(effectivePrimitive) };
     }
     if (method === 'GET' && action === 'events') return app.store.events(entityId);
+    if (action === 'cognition-control') {
+      const input = z.strictObject({ threadId: z.string().nullable().default(null), directive: z.enum(['pause', 'resume']).optional() }).parse(body ?? {});
+      if (method === 'GET') return app.runtime.streamStatus(entityId, subresource ?? input.threadId);
+      if (method === 'POST' && input.directive === 'pause') return app.runtime.pauseThinking(entityId, input.threadId);
+      if (method === 'POST' && input.directive === 'resume') return app.runtime.resumeThinking(entityId, input.threadId);
+      throw new Error('A cognition pause or resume directive is required');
+    }
     if (method === 'GET' && action === 'activation-settings') return app.agentActivationSettings(entityId);
-    if (method === 'PATCH' && action === 'activation-settings') return app.updateAgentActivationSettings(entityId, AgentActivationSettingsSchema.extend({ reevaluateAfterDeliberation: z.boolean(), primitivesFirst: z.boolean() }).partial().parse(body));
+    if (method === 'PATCH' && action === 'activation-settings') {
+      const supplied = z.record(z.string(), z.unknown()).parse(body);
+      const validated = AgentActivationSettingsSchema.partial().parse(supplied);
+      return app.updateAgentActivationSettings(entityId, Object.fromEntries(Object.entries(validated).filter(([key]) => Object.hasOwn(supplied, key))));
+    }
+    if (method === 'GET' && action === 'thought-model-evidence') return thoughtModelEvidence(app.store, entityId);
     if (method === 'GET' && action === 'settings') return app.agentInferenceSettings(entityId);
     if (method === 'GET' && action === 'prompts') return app.promptSettings(entityId);
     if (method === 'POST' && action === 'prompts' && subresource && operation === 'preview') {
@@ -335,7 +352,7 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'PATCH' && action === 'settings') {
       const input = z.strictObject({ model: z.string().min(1).max(100),
         apiKey: z.string().min(16).max(512).refine(value => !/\s/.test(value), 'API key must not contain whitespace').optional(),
-        clearApiKey: z.boolean().optional() }).parse(body);
+        clearApiKey: z.boolean().optional(), thoughtRouting: ThoughtRoutingSettingsSchema.nullable().optional() }).parse(body);
       return app.updateAgentInferenceSettings(entityId, input);
     }
     if (action === 'identity-authoring' && subresource === 'settings') {
@@ -355,8 +372,8 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'GET' && action === 'identity-history') return app.store.versions('identity', entityId);
     if (method === 'POST' && action === 'message') {
       const input = z.strictObject({ text: Text, source: Text.optional(), threadId: z.string().min(1).max(200).optional(),
-        skillDocumentIds: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(10).optional() }).parse(body);
-      return app.message(entityId, input.text, input.source, input.threadId, input.skillDocumentIds);
+        skillDocumentIds: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(10).optional(), clientMessageId: z.string().min(1).max(200).optional() }).parse(body);
+      return app.message(entityId, input.text, input.source, input.threadId, input.skillDocumentIds, input.clientMessageId);
     }
     if (method === 'POST' && action === 'consolidate') {
       const input = z.strictObject({ fromCycle: z.number().int().positive().optional(), toCycle: z.number().int().positive().optional(),
@@ -450,7 +467,11 @@ export async function api(app: Application, method: string, path: string, body: 
   }
   if (resource === 'dispositions') {
     const current = app.store.get('disposition', entityId);
-    if (method === 'GET') return { disposition: current, versions: app.store.versions('disposition', entityId), statistics: dispositionStatistics(app.store, entityId) };
+    if (method === 'GET') {
+      const activationHistory = dispositionActivationHistory(app.store, entityId);
+      return { disposition: current, versions: app.store.versions('disposition', entityId), statistics: dispositionStatistics(app.store, entityId),
+        activationHistory, currentActivation: currentDispositionActivation(activationHistory) };
+    }
     if (current.deleted) throw new Error('Disposition has been deleted');
     if (method === 'DELETE' || (method === 'POST' && action === 'restore')) {
       const input = z.strictObject({ expectedVersion: z.number().int().positive(), ...(method === 'POST' ? { version: z.number().int().positive() } : {}) }).parse(body);

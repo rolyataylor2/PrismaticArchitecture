@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { InfrastructureError, type Store } from '../../core/src/contracts.js';
+import { InfrastructureError, type Store, type InferenceSource } from '../../core/src/contracts.js';
 import { id, now } from '../../core/src/domain.js';
 import type { ProviderOperation } from '../../core/src/provider-operation.js';
 import { promptSettings } from './prompt-settings.js';
@@ -19,9 +19,11 @@ const tasks: Record<string, string[]> = {
 type Context = { agentId?: string; task?: string; world?: { agentId: string; cycleId: string; id: string };
   identity?: { agentId: string }; part?: { agentId: string; id: string }; prediction?: { id: string } | null };
 /** Observe existing calls without injecting audit metadata into domain inputs or provider prompts. */
-export function observeProvider<T extends { label: string }>(store: Store, provider: T, component: ProviderOperation['component']): T {
+export function observeProvider<T extends { label: string }>(store: Store, provider: T, component: ProviderOperation['component'], actualProviderLabel?: string): T {
   const functions = new Map<PropertyKey, unknown>();
+  const sources = new WeakMap<object, InferenceSource>();
   return new Proxy(provider, { get(target, property) {
+    if (property === 'sourceFor') return (product: unknown) => product && typeof product === 'object' ? sources.get(product) : undefined;
     const value = Reflect.get(target, property, target) as unknown;
     if (typeof value !== 'function') return value;
     if (property === 'labelForAgent' || property === 'close') return value.bind(target);
@@ -33,7 +35,7 @@ export function observeProvider<T extends { label: string }>(store: Store, provi
       if (!agentId || suppressProviderObservation.getStore()) return value.apply(target, args);
       const taskNames = context?.task ? [context.task] : tasks[method] ?? [];
       const selectedModel = component === 'reasoning' ? store.agentProviderSettings(agentId)?.model : null;
-      const providerLabel = selectedModel ? `${selectedModel === 'grok-4.3' ? 'xai' : 'openai'}/${selectedModel}` : provider.label;
+      const providerLabel = actualProviderLabel ?? (selectedModel ? `${selectedModel === 'grok-4.3' ? 'xai' : 'openai'}/${selectedModel}` : provider.label);
       const catalog = promptSettings(store, agentId);
       const startedAt = now(); const started = performance.now();
       const inputArguments = structuredClone(args);
@@ -57,6 +59,7 @@ export function observeProvider<T extends { label: string }>(store: Store, provi
         const result = await providerOperationContext.run(operation.operationId, () => value.apply(target, args));
         store.appendEvent(agentId, cycleId, 'provider.operation', { ...operation, phase: 'returned', usage: recordedUsage(), finishedAt: now(), elapsedMs: performance.now() - started,
           output: { id: id('provider_output'), hash: hash(result), value: structuredClone(result) } });
+        if (result && typeof result === 'object') sources.set(result, { operationId: operation.operationId, provider: providerLabel });
         return result;
       } catch (error) {
         // Raw arbitrary vendor messages/response bodies may contain secrets. Retain safe contract locations and sanitized infrastructure messages only.

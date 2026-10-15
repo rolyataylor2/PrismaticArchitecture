@@ -1,11 +1,11 @@
 import { ExperiencedStateSchema, StanceRecordSchema, WorldStateSchema, freeze, type Cycle, type WorldState } from './domain.js';
 import type { Store } from './contracts.js';
 import { isLegacyCapabilityFact } from './mcp-configuration.js';
-import { priorAffect } from './affect-history.js';
+import { currentAffect } from './affect-history.js';
 
 /** Assemble attributed subjective layers without merging alternatives or authoring meaning. */
-export function experiencedState(store: Store, current: Cycle): NonNullable<WorldState['experienced']> {
-  const prior = store.cycles(current.agentId).filter(cycle => cycle.kind !== 'attention_monitor' && cycle.status === 'completed'
+export function experiencedState(store: Store, current: Cycle, rootWorldId?: string): NonNullable<WorldState['experienced']> {
+  const prior = store.cycles(current.agentId).filter(cycle => cycle.kind !== 'attention_monitor'
     && cycle.sequence < current.sequence && cycle.threadId === current.threadId);
   const allowed = new Set(prior.map(cycle => cycle.id));
   const prospective = store.list('prediction', current.agentId).filter(prediction => prediction.status === 'open'
@@ -23,7 +23,7 @@ export function experiencedState(store: Store, current: Cycle): NonNullable<Worl
   const expressed = events.flatMap(event => event.type === 'part.thought' ? [event] : []);
   const transitions = store.eventsByType(current.agentId, ['self.experienced_transition'], prior.map(cycle => cycle.id));
   const latestTransition = transitions.at(-1);
-  const focus = priorAffect(store, current).activeFocus;
+  const focus = currentAffect(store, current, rootWorldId).activeFocus;
   return freeze(ExperiencedStateSchema.parse({ prospective,
     ...(focus ? { selectedFocus: focus } : {}),
     stanceHistory: transitions.flatMap(event => event.type === 'self.experienced_transition'

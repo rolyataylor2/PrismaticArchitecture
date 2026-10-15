@@ -141,3 +141,74 @@ test('historical failed rest without a checkpoint resumes after its preserved co
     assert.ok(controlSequences.every(sequence => captured.includes(sequence)), 'Historical console pages retain every control receipt');
   } finally { await app.close(); store.close(); }
 });
+
+test('concurrent dream recovery preserves both observations and resumes failed cognition without replay', async () => {
+  const definition = { id: 'concurrent-recovery-plumbing', title: 'Concurrent recovery plumbing', source: 'ADR 0165 engineering regression',
+    hypothesis: 'Engineering regression only', seeds: [], criteria: ['No replay or hidden sibling failure'], limitations: 'Deterministic infrastructure fixture',
+    timePolicy: 'wall_clock_observation_offsets' as const,
+    steps: [{ name: 'Overlapping observations', phase: 'probe' as const, text: 'The first distinct observation.', sleep: true,
+      concurrentObservations: [{ afterMs: 30, text: 'The second distinct observation.' }] }] };
+  simulationTests.push(definition);
+  const store = new SqliteStore(':memory:'); let fail = true; let failRest = true;
+  class Reasoning extends MockReasoning {
+    override async constructed(input: ConstructedInput) {
+      if (input.task === 'part_cognition' && fail) { fail = false; throw new Error('First observation inference interruption'); }
+      if (input.task === 'disposition_learning' && failRest) { failRest = false; throw new Error('Post-recovery rest interruption'); }
+      return super.constructed(input);
+    }
+  }
+  const app = new Application(store, { reasoning: new Reasoning(), decisions: new MockDecisions(), embeddings: new MockEmbeddings() });
+  try {
+    const source = app.createAgent(); const before = dreamState(store, source.id);
+    const started = startDream(app, definition.id, 'configured', source.id, false, { enabled: false });
+    const failed = await settled(app, started.id);
+    assert.equal(failed.status, 'failed'); assert.equal(failed.stages.length, 0);
+    const originals = store.cycles(failed.agentId).filter(cycle => cycle.threadId === failed.id);
+    assert.equal(originals.length, 2); assert.equal(originals.filter(cycle => cycle.status === 'failed').length, 1);
+    assert.equal(originals.filter(cycle => cycle.status === 'completed').length, 1);
+    resumeDream(app, failed.id); const interruptedRest = await settled(app, failed.id);
+    assert.equal(interruptedRest.status, 'failed'); assert.match(interruptedRest.error!, /Post-recovery rest/);
+    assert.equal(interruptedRest.checkpoint!.concurrentRecoveryCycleIds!.length, 1);
+    resumeDream(app, failed.id); const recovered = await settled(app, failed.id);
+    assert.equal(recovered.status, 'completed', recovered.error ?? '');
+    const stage = recovered.stages[0]!;
+    assert.match(stage.checkpointNote!, /not an uninterrupted latency trial/);
+    assert.ok(originals.every(cycle => stage.concurrentCycleIds!.includes(cycle.id)));
+    assert.equal(stage.concurrentCycleIds!.length, 3, 'two original sources plus one fresh attention pass');
+    const worlds = store.cycles(failed.agentId).filter(cycle => cycle.threadId === failed.id).map(cycle => store.world(cycle.worldId!));
+    for (const text of ['The first distinct observation.', 'The second distinct observation.']) {
+      assert.equal(worlds.flatMap(world => world.facts.filter(fact => fact.originCycleId === world.cycleId && fact.text === `Experience says: ${text}`)).length, 1);
+    }
+    assert.deepEqual(dreamState(store, source.id), before);
+  } finally { await app.close(); store.close(); simulationTests.splice(simulationTests.indexOf(definition), 1); }
+});
+
+test('concurrent dream resume delivers an input missing its receipt without duplicating a completed sibling', async () => {
+  const definition = { id: 'concurrent-missing-input-plumbing', title: 'Missing concurrent input plumbing', source: 'ADR 0165 engineering regression',
+    hypothesis: 'Engineering regression only', seeds: [], criteria: ['Only missing input is delivered'], limitations: 'Deterministic infrastructure fixture',
+    steps: [{ name: 'Concurrent input delivery', phase: 'probe' as const, text: 'First input.',
+      concurrentObservations: [{ afterMs: 30, text: 'Second input.' }] }] };
+  simulationTests.push(definition);
+  const store = new SqliteStore(':memory:');
+  class InterruptedIntake extends Application {
+    interrupt = true;
+    override async message(...args: Parameters<Application['message']>) {
+      if (args[1] === 'Second input.' && this.interrupt) { this.interrupt = false; throw new Error('Intake interrupted before observation'); }
+      return super.message(...args);
+    }
+  }
+  const app = new InterruptedIntake(store);
+  try {
+    const source = app.createAgent(); const started = startDream(app, definition.id, 'configured', source.id, false, { enabled: false });
+    const failed = await settled(app, started.id);
+    assert.equal(failed.status, 'failed'); assert.equal(store.cycles(failed.agentId).length, 1);
+    const original = store.cycles(failed.agentId)[0]!;
+    resumeDream(app, failed.id); const recovered = await settled(app, failed.id);
+    assert.equal(recovered.status, 'completed', recovered.error ?? '');
+    assert.equal(store.cycles(failed.agentId).length, 2);
+    assert.ok(recovered.stages[0]!.concurrentCycleIds!.includes(original.id));
+    assert.match(recovered.stages[0]!.checkpointNote!, /not an uninterrupted latency trial/);
+    const cycles = store.cycles(failed.agentId);
+    assert.equal(new Set(cycles.map(cycle => cycle.clientMessageId)).size, 2);
+  } finally { await app.close(); store.close(); simulationTests.splice(simulationTests.indexOf(definition), 1); }
+});

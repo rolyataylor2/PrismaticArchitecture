@@ -15,9 +15,9 @@ export const Text = z.string().trim().min(1).max(16000);
 export const Id = z.string().min(1).max(200);
 export const Origin = z.enum(['seed', 'organic_cognition', 'prediction_evaluation', 'consolidation', 'researcher_edit', 'migration']);
 export type Origin = z.infer<typeof Origin>;
-export const AgentActivationSettingsSchema = z.strictObject({ vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false) });
+export const AgentActivationSettingsSchema = z.strictObject({ vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false), includeProcessingDispositions: z.boolean().default(false), maxConcurrentThoughts: z.number().int().min(1).max(64).default(4), maxQueuedThoughts: z.number().int().min(0).max(10000).default(100), activationPassLimit: z.number().int().min(1).max(10000).nullable().default(1) });
 export type AgentActivationSettings = z.infer<typeof AgentActivationSettingsSchema>;
-export const PromptTaskSchema = z.enum(['executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
+export const PromptTaskSchema = z.enum(['thought_resources', 'bid_applicability', 'executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
 export type PromptTask = z.infer<typeof PromptTaskSchema>;
 export const PromptOverrideSchema = z.strictObject({
   scope: z.enum(['global', 'agent']), agentId: z.string().nullable(), task: PromptTaskSchema, text: z.string().min(1).max(32768).refine(value => Boolean(value.trim()), 'Prompt cannot be empty'),
@@ -147,6 +147,7 @@ export const InheritedConcernDraftSchema = z.strictObject({ concern: Text, meani
 export const PredictionSchema = z.strictObject({
   ...Version, ...PredictionDraftSchema.shape, partId: Id.nullable(), createdCycle: Id,
   cognitionOrigin: PredictionCognitionOriginSchema.optional(),
+  committedAfterSequence: z.number().int().positive().optional(),
   gapOrigin: z.strictObject({ threadId: Id.nullable(), gap: Text, consequentialValue: Text,
     futureInference: z.strictObject({ prediction: Text, retrieval: Text, causal: Text, action: Text, compression: Text }),
     existingStructureInsufficient: Text }).optional(),
@@ -212,6 +213,7 @@ export type Action = z.infer<typeof ActionSchema>;
 export const ActionProposalSchema = z.strictObject({
   type: z.literal('action').optional(),
   action: ActionSchema, argument: Text, identityFit: z.array(Text), executionOrder: z.array(Text).max(20),
+  validWhile: z.array(Text).max(12).optional(),
   resultingPosture: z.strictObject({ interpretation: Text, affect: z.string().max(4000) }).optional(),
 });
 export const DeliberationProposalSchema = z.strictObject({
@@ -244,8 +246,8 @@ export const JudgmentDistributionSchema = z.array(z.strictObject({ label: Text, 
 export const ActivationScoreSchema = z.strictObject({ partId: Id, score: z.number().min(0).max(4), distribution: JudgmentDistributionSchema.optional() });
 export type ActivationScore = z.infer<typeof ActivationScoreSchema>;
 export type Activation = ActivationScore & { similarity: number; reasons: string[]; previous: number; delta: number; active: boolean };
-export type Contribution = { sourceKind?: 'part' | 'primitive'; partId: string; name: string; thought: string; interpretation: string; affect?: string; affectProposals?: AffectBid[]; evidenceSummary: string[]; prediction: string | null; bid: Bid | null };
-export type SelfContext = { identity: Identity; contributions: Contribution[]; deliberation: DeliberationMessage[]; selectedFocus?: SelectedAffect; ongoingActivity?: z.infer<typeof SelectedActivitySchema>; stanceHistory?: StanceRecord[]; contributionHistory?: Contribution[]; inquiries?: (Partial<z.infer<typeof DeliberationSchema>> & { question: string; target_parts: string[]; sourceBidId: string | null })[]; completedDeliberationRounds?: number };
+export type Contribution = { sourceKind?: 'part' | 'primitive'; partId: string; name: string; thought: string; interpretation: string; affect?: string; affectProposals?: AffectBid[]; supportingBidId?: string; evidenceSummary: string[]; prediction: string | null; bid: Bid | null };
+export type SelfContext = { identity: Identity; contributions: Contribution[]; deliberation: DeliberationMessage[]; commitments?: import('./commitments.js').SelectedCommitment[]; selectedFocus?: SelectedAffect; ongoingActivity?: z.infer<typeof SelectedActivitySchema>; stanceHistory?: StanceRecord[]; contributionHistory?: Contribution[]; inquiries?: (Partial<z.infer<typeof DeliberationSchema>> & { question: string; target_parts: string[]; sourceBidId: string | null })[]; completedDeliberationRounds?: number };
 export type DeliberationMessage = { partId: string; question: string; answer: string };
 export const ChoiceSchema = z.strictObject({ choice: Id, explanation: Text, identityConflict: z.string().max(4000), distribution: JudgmentDistributionSchema.optional(), selectedBidIds: z.array(Id).optional(), scores: z.array(ActivationScoreSchema.extend({ selectedBefore: z.array(Id) })).optional() });
 export type Choice = z.infer<typeof ChoiceSchema>;
@@ -307,6 +309,7 @@ export type Execution = z.infer<typeof ExecutionSchema>;
 export type Cycle = {
   id: string; agentId: string; sequence: number; worldId: string; startedAt: string;
   threadId?: string;
+  clientMessageId?: string;
   kind?: 'attention_monitor' | 'attention_review';
   status: 'running' | 'completed' | 'failed'; error: string | null; selectedBidId: string | null; selectedBidIds?: string[];
 };

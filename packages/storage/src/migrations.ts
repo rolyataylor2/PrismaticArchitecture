@@ -4,7 +4,7 @@ import { readIdentity, now } from '../../core/src/domain.js';
 export function migrate(db: DatabaseSync): void {
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;');
   const version = (db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version;
-  if (version > 25) throw new Error(`Database schema ${version} is newer than this application`);
+  if (version > 27) throw new Error(`Database schema ${version} is newer than this application`);
   if (version < 1) db.exec(`BEGIN IMMEDIATE;
     CREATE TABLE entities (
       kind TEXT NOT NULL, id TEXT NOT NULL, agent_id TEXT NOT NULL,
@@ -273,6 +273,21 @@ export function migrate(db: DatabaseSync): void {
     db.exec(`BEGIN IMMEDIATE;
       ${columns.some(column => column.name === 'research_scope') ? '' : 'ALTER TABLE events ADD COLUMN research_scope TEXT CHECK(research_scope IS NULL OR json_valid(research_scope));'}
       PRAGMA user_version = 25; COMMIT;`);
+  }
+
+  if (version < 26) {
+    const columns = db.prepare('PRAGMA table_info(agent_activation_settings)').all() as { name: string }[];
+    db.exec(`BEGIN IMMEDIATE;
+      ${columns.some(column => column.name === 'continuous_settings') ? '' : "ALTER TABLE agent_activation_settings ADD COLUMN continuous_settings TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(continuous_settings));"}
+      DROP INDEX IF EXISTS one_running_cycle;
+      PRAGMA user_version = 26; COMMIT;`);
+  }
+
+  if (version < 27) {
+    const columns = db.prepare('PRAGMA table_info(agent_provider_settings)').all() as { name: string }[];
+    db.exec(`BEGIN IMMEDIATE;
+      ${columns.some(column => column.name === 'thought_routing') ? '' : 'ALTER TABLE agent_provider_settings ADD COLUMN thought_routing TEXT CHECK(thought_routing IS NULL OR json_valid(thought_routing));'}
+      PRAGMA user_version = 27; COMMIT;`);
   }
 
 }

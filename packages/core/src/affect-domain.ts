@@ -17,11 +17,11 @@ export const SelectedAffectSchema = z.strictObject({
   periodId: Reference, agentId: Reference, threadId: Reference.nullable(),
   startedCycleId: Reference, renewedCycleId: Reference,
   startedSequence: z.number().int().positive(), renewedSequence: z.number().int().positive(),
-  // Completed ordinary cognition in this thread; monitor cycles do not advance it.
+  // Committed choice epochs in this thread; internal attention/monitor passes do not advance it.
   expiresAfterSequence: z.number().int().positive(),
   proposals: z.array(AffectBidSchema).min(1).max(2), reason: Language,
 }).refine(value => value.renewedSequence >= value.startedSequence, 'Renewal cannot precede period start')
-  .refine(value => value.expiresAfterSequence === value.renewedSequence + 1, 'Focus expires after the next same-thread cycle');
+  .refine(value => value.expiresAfterSequence === value.renewedSequence + 1, 'Focus expires after the next same-thread choice epoch');
 export type SelectedAffect = z.infer<typeof SelectedAffectSchema>;
 
 export const AffectFeedbackSchema = z.strictObject({

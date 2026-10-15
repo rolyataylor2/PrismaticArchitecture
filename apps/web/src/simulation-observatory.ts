@@ -238,7 +238,12 @@ export async function renderRunExplorer(root: HTMLElement, run: SimulationRun, a
     const selected = projected.trace.find(event => event.id === eventId);
     if (selected) { const d = disclosure(timeline, `Selected event · ${readable(selected.type)}`, selected); d.open = true; d.dataset.evidenceReference = `/events/${selected.id}`; }
     if (!projected.traceAvailable) timeline.append(node('p', 'No cycle trace recorded. Snapshot evidence remains available.'));
+    if (stage.attentionWindow) {
+      const window = stage.attentionWindow;
+      inspector.append(node('p', `Attention window: ${window.allowanceMs} ms allowed; ${window.elapsedToPauseMs?.toFixed(0) ?? 'unmeasured'} ms to admission pause; ${window.passesAtPause ?? 'unmeasured'} passes. Pass cap: ${window.passLimit ?? 'unrestricted within window'}. Accepted inference drained at ${new Date(window.drainedAt).toLocaleTimeString()}. Equal ceilings do not establish equal consumed computation.`));
+    }
     if (stage.cycleId) button(inspector, 'Inspect authoritative source cycle', () => cycle(stage.cycleId!, run.agentId), fail);
+    for (const [position, cycleId] of (stage.concurrentCycleIds ?? []).entries()) if (cycleId !== stage.cycleId) button(inspector, `Inspect ${stage.attentionWindow ? 'attention snapshot' : 'overlapping observation'} ${position + 1}`, () => cycle(cycleId, run.agentId), fail);
     disclosure(inspector, 'Full stage snapshot', stage);
   }
   function render() { if (!developmentOnly) { renderActivation(); renderPredictions(); } renderDevelopment(); renderInspector(); }

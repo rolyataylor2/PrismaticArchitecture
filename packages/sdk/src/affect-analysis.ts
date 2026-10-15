@@ -102,9 +102,20 @@ export function analyzeAffect(store: Store, agentId: string, supplied: AffectAna
         periodIds: records.filter(record => record.cycleId === cycle.id && record.usedFocus).map(record => record.usedFocus!.periodId) }] : [];
     return [];
   });
+  const committedChoices = store.eventsByType(agentId, ['self.affect_committed']).flatMap(event => event.type === 'self.affect_committed' ? [event] : []);
+  const latestByThread = new Map<string | null, typeof committedChoices[number]>();
+  for (const event of committedChoices) {
+    const previous = latestByThread.get(event.payload.record.threadId);
+    if (!previous || event.payload.record.sequence >= previous.payload.record.sequence) latestByThread.set(event.payload.record.threadId, event);
+  }
+  const latestCommittedChoices = [...latestByThread.values()].filter(event => fitsThread(event.payload.record.threadId)
+    && (!filter.partId || [...(event.payload.record.focusAfter?.proposals ?? []), ...(event.payload.record.focusBefore?.proposals ?? [])].some(proposal => proposal.partId === filter.partId)))
+    .map(event => ({ eventId: event.id, cycleId: event.cycleId!, at: event.at, threadId: event.payload.record.threadId,
+      sourceStatus: cycleMap.get(event.cycleId!)?.status ?? null, choiceEpoch: event.payload.record.sequence,
+      focus: event.payload.record.focusAfter, record: event.payload.record }));
   const range = cycles.filter(cycle => cycle.kind !== 'attention_monitor').map(cycle => cycle.startedAt).sort();
   return { agentId, filter, lifetime: { from: range.at(0) ?? null, to: range.at(-1) ?? null },
-    threads: [...new Set(cycles.map(cycle => cycle.threadId ?? null))], periods, timeline,
+    threads: [...new Set(cycles.map(cycle => cycle.threadId ?? null))], latestCommittedChoices, periods, timeline,
     totals: { periods: periods.length, completedCycles: new Set(timeline.filter(item => item.completed).map(item => item.cycleId)).size,
       failedCycles: new Set(timeline.filter(item => !item.completed && cycleMap.get(item.cycleId)?.status === 'failed').map(item => item.cycleId)).size,
       revisions: periods.reduce((sum, period) => sum + period.revisions.filter(revision => fitsCycle(revision.cycleId)).length, 0) },
@@ -112,6 +123,6 @@ export function analyzeAffect(store: Store, agentId: string, supplied: AffectAna
       'Prediction outcomes use the latest recorded version, including resolutions after the displayed window or period ended.',
       'Baseline scoring enacts no action and may already reflect carried focus in the immutable snapshot; differences do not establish causality.',
       'No calibrated binary probabilities or comparable learning measurements are recorded: Brier scores and learning progress are unavailable.',
-      'Meaningful usefulness requires Part interpretation; correctness does not establish disposition maturity. Failed attempts are audit evidence only.'] };
+      'Meaningful usefulness requires Part interpretation; correctness does not establish disposition maturity. Completed-observation cohorts are historical; latest committed choices remain valid records even if later source processing fails.'] };
 }
 export type AffectAnalysis = ReturnType<typeof analyzeAffect>;

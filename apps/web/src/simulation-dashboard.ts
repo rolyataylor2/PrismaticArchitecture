@@ -351,7 +351,12 @@ export function simulationDashboard(root: HTMLElement, options: Options) {
     const decision = section(grid, 'Choice & outcome', 'Selected behavior, recorded execution and verification stay separate.');
     (stage.selfChoices ?? []).forEach(c => action(decision, 'Inspect recorded Self choice', () => raw('Recorded Self choice', c), fail)); (stage.executions ?? []).forEach(e => { const p = el('p', `${e.status} · ${e.operational?.verified === true ? 'verified' : 'not verified'}`); action(p, 'Inspect execution', () => raw('Recorded execution', e), fail); decision.append(p); });
     if (!stage.selfChoices?.length && !stage.executions?.length) decision.append(el('p', 'No choice or execution record in this snapshot.'));
+    if (stage.attentionWindow) {
+      const window = stage.attentionWindow;
+      s.append(el('p', `Attention window: ${window.allowanceMs} ms allowed; ${window.elapsedToPauseMs?.toFixed(0) ?? 'unmeasured'} ms to admission pause; ${window.passesAtPause ?? 'unmeasured'} passes. Pass cap: ${window.passLimit ?? 'unrestricted within window'}. Accepted inference drained at ${new Date(window.drainedAt).toLocaleTimeString()}. Equal ceilings do not establish equal consumed computation.`));
+    }
     const sources = section(parent, 'Evidence access'); if (stage.cycleId) action(sources, 'Inspect source cognitive cycle', () => options.cycle(stage.cycleId!, run.agentId), fail); action(sources, 'Original stage JSON', () => raw(`${stage.name} · original stage JSON`, stage), fail);
+    for (const [position, cycleId] of (stage.concurrentCycleIds ?? []).entries()) if (cycleId !== stage.cycleId) action(sources, `Inspect ${stage.attentionWindow ? 'attention snapshot' : 'overlapping observation'} ${position + 1}`, () => options.cycle(cycleId, run.agentId), fail);
     action(sources, 'Activation analytics', () => goto('Activation', run.id), fail); action(sources, 'Learning analytics', () => goto('Learning', run.id), fail);
     analysis(run, parent, a => { const projected = a.stages[index]; if (!projected) return; const timeline = section(parent, 'Recorded event sequence', 'Audit order only; chronology does not establish causal parents.');
       choose(timeline, 'Event lane', [['', 'All lanes'], ...['Environment','Activation','Parts','Cognition','Self','Executive','Learning'].map((s): [string,string] => [s,s])], lane, value => { lane = value; stagePageRedraw(); });

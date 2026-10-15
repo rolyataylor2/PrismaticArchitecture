@@ -109,7 +109,14 @@ export async function affectAnalysisPage(root: HTMLElement, agentId: string, api
     result.replaceChildren();
     result.append(node('p', `Lifetime: ${report.lifetime.from ? date(report.lifetime.from) : 'No cycles'} — ${report.lifetime.to ? date(report.lifetime.to) : 'No cycles'}`),
       node('p', `${report.totals.periods} periods · ${report.totals.completedCycles} completed cycles in view · ${report.totals.revisions} focused revisions · ${report.totals.failedCycles} failed attempts`));
-    result.append(node('h3', 'Affect periods'));
+    result.append(node('h3', 'Latest committed choices'), node('p', 'Latest recorded choice in each conversation, independent of the historical date range. A choice is separate from completion of its source observation.'));
+    if (!report.latestCommittedChoices.length) result.append(node('p', 'No committed-choice ledger is available for this selection. Historical records below are not used to invent one.'));
+    for (const choice of report.latestCommittedChoices) {
+      const row = details(result, `Committed focus: ${choice.focus?.proposals.map(proposal => proposal.orientation).join(' + ') ?? 'No voluntary focus'} · Choice epoch ${choice.choiceEpoch}`);
+      row.append(node('p', `Committed ${date(choice.at)} · Conversation: ${choice.threadId ?? 'Unthreaded'} · Source observation: ${choice.sourceStatus ?? 'Unavailable'}`));
+      button(row, 'Inspect committed choice source', () => cycle(choice.cycleId)); evidence(row, 'Committed choice record', choice.record);
+    }
+    result.append(node('h3', 'Affect periods'), node('p', 'Historical summaries from completed observations; the committed-choice ledger above owns live carryover.'));
     if (!report.periods.length) result.append(node('p', 'No selected affect periods in this view. Experienced affect may still appear in the timeline.'));
     const timeline = node('div'); timeline.className = 'affect-period-chart'; timeline.setAttribute('aria-label', 'Selected affect periods over time'); result.append(timeline);
     const min = Date.parse(report.filter.from ?? report.lifetime.from ?? new Date().toISOString());
@@ -127,7 +134,7 @@ export async function affectAnalysisPage(root: HTMLElement, agentId: string, api
     result.append(node('h3', 'Experienced affect and decisions'));
     if (!report.timeline.length) result.append(node('p', 'No affect records in this view.'));
     for (const item of report.timeline) {
-      const row = details(result, `${date(item.at)} · ${item.type.replaceAll('.', ' ')}${item.completed ? '' : ' · Uncommitted attempt'}`);
+      const row = details(result, `${date(item.at)} · ${item.type.replaceAll('.', ' ')}${item.completed ? '' : ' · Source observation not completed'}`);
       row.append(node('p', `Cycle ${item.sequence} · Thread: ${item.threadId ?? 'Unthreaded'}`));
       if (item.type === 'self.experienced_transition' && 'before' in item.detail) {
         for (const [label, stances] of [['Before choice', item.detail.before], ['Chosen', item.detail.chosen], ['Resulting', item.detail.resulting]] as const) {

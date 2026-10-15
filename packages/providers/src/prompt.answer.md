@@ -1,3 +1,5 @@
+This owning-Part response may answer ordinary Self inquiry or reconsider my pending recommendation after newer experience. The supplied question states the reason; a host applicability review is not a claim that Self selected or rejected my bid. Evaluate my own validWhile conditions against the supplied immutable experience and retain, replace or withdraw my recommendation. If replacing an external action, preserve any still-relevant conditions in validWhile. I may keep an unresolved concern while withdrawing an obsolete action. My private state remains mine; no other scope receives it.
+
 Optional affectProposals may revise my explicit attentional offers in response to this inquiry. Omit the field to retain my prior offers; [] withdraws them. New offers express orientation, motivation, reason, expectedValue and supportingPredictionIds from my supplied own prediction only (otherwise []). They do not overwrite experienced affect or establish facts.
 
 My current affect offers: {{ currentAffectProposals|json_encode }}

@@ -47,11 +47,11 @@ export function partContext(store: Store, world: WorldState, part: Part, activat
 }
 
 /** Explicit projection prevents extra runtime properties from crossing into Self input. */
-export function selfContext(identity: Identity, contributions: Contribution[], deliberation: DeliberationMessage[], history: Pick<SelfContext, 'contributionHistory' | 'inquiries' | 'completedDeliberationRounds' | 'stanceHistory' | 'ongoingActivity' | 'selectedFocus'> = {}): SelfContext {
+export function selfContext(identity: Identity, contributions: Contribution[], deliberation: DeliberationMessage[], history: Pick<SelfContext, 'commitments' | 'contributionHistory' | 'inquiries' | 'completedDeliberationRounds' | 'stanceHistory' | 'ongoingActivity' | 'selectedFocus'> = {}): SelfContext {
   if (history.selectedFocus && history.selectedFocus.agentId !== identity.agentId) throw new Error('Selected focus ownership mismatch');
   return freeze({
     identity: { ...structuredClone(identity), traits: structuredClone(identity.traits.filter(trait => trait.role !== 'autobiographical')) },
-    contributions: contributions.map(c => ({ ...(c.sourceKind ? { sourceKind: c.sourceKind } : {}), partId: c.partId, name: c.name, thought: c.thought,
+    contributions: contributions.map(c => ({ ...(c.sourceKind ? { sourceKind: c.sourceKind } : {}), ...(c.supportingBidId ? { supportingBidId: c.supportingBidId } : {}), partId: c.partId, name: c.name, thought: c.thought,
       interpretation: c.interpretation, ...(c.affect !== undefined ? { affect: c.affect } : {}), evidenceSummary: [...c.evidenceSummary], prediction: c.prediction,
       bid: c.bid ? { ...ProposalSchema.parse(Object.fromEntries(Object.entries(c.bid).filter(([key]) => !['id', 'partId', 'sourceKind', 'replacesBidId'].includes(key)))),
         ...(c.bid.sourceKind ? { sourceKind: c.bid.sourceKind } : {}), id: c.bid.id, partId: c.bid.partId,
@@ -63,6 +63,11 @@ export function selfContext(identity: Identity, contributions: Contribution[], d
       posture: record.posture.map(stance => ({ partId: stance.partId, name: stance.name, interpretation: stance.interpretation,
         affect: stance.affect, thought: stance.thought })) })) } : {}),
     deliberation: deliberation.map(d => ({ partId: d.partId, question: d.question, answer: d.answer })),
+    ...(history.commitments?.length ? { commitments: history.commitments.map(record => ({ id: record.id, cycleId: record.cycleId,
+      threadId: record.threadId, selectedAt: record.selectedAt, status: record.status,
+      proposals: record.proposals.map(proposal => ({ bidId: proposal.bidId, partId: proposal.partId, kind: proposal.kind,
+        text: proposal.text, argument: proposal.argument, executionOrder: [...proposal.executionOrder], validWhile: [...proposal.validWhile],
+        constraints: [...proposal.constraints], successCriteria: proposal.successCriteria })) })) } : {}),
     ...(history.ongoingActivity ? { ongoingActivity: SelectedActivitySchema.parse(history.ongoingActivity) } : {}),
     ...(history.selectedFocus ? { selectedFocus: SelectedAffectSchema.parse(history.selectedFocus) } : {}),
   });

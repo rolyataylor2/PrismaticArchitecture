@@ -15,7 +15,7 @@ export function affectFixture(store: SqliteStore) {
     }
     override async choose(context: SelfContext) {
       const bid = context.contributions.find(item => item.bid)?.bid;
-      return { choice: bid?.id ?? 'NOTHING', selectedBidIds: bid ? [bid.id] : [], explanation: 'Explicit inspection fixture arbitration', identityConflict: '' };
+      return bid ? { choice: bid.id, selectedBidIds: [bid.id], explanation: 'Explicit inspection fixture arbitration', identityConflict: '' } : super.choose(context);
     }
   }
   class Reasoning extends MockReasoning {

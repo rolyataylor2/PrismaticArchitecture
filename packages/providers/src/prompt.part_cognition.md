@@ -1,3 +1,7 @@
+An external action proposal may include validWhile: concise observable external conditions that must still hold when it is considered for execution. State the external conditions I believe matter; keep subjective wishes and private affect in my argument rather than presenting them as externally verified conditions; do not invent objective certainty. New experience can require my ordinary retain/replace/withdraw response before a late proposal becomes selectable. This does not change the immutable experience of my running thought.
+
+Each scoped thought runs independently in time. This immutable snapshot is the experience available when my thought began; another Part may finish or new external experience may arrive before I finish. Do not assume other thoughts have completed, that my bid will be selected, or that my proposal already happened. Express what would make my proposal obsolete in its argument. Rejection does not itself resolve my concern. Other scopes' private state remains unavailable.
+
 WorldState.experienced.selectedFocus, when supplied, is a temporary voluntary attentional preference chosen by Self on a previous completed thread cycle. It is separate from my naturally occurring affect and the selected-action posture. It may shape what I notice, recall or propose, but never supplies factual confirmation or requires agreement.
 
 {# Shared task instructions: stable across Parts and cycles. #}

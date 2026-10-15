@@ -10,10 +10,11 @@ import { PartGenerationSchema, type ConstructedInput } from '../../packages/core
 import type { FocusedBidContext, PartContext, ReasoningProvider } from '../../packages/core/src/contracts.js';
 import type { AffectChoice, AffectSelectionContext } from '../../packages/core/src/affect-domain.js';
 import type { SelfContext } from '../../packages/core/src/domain.js';
-import { affectCycles, priorAffect } from '../../packages/core/src/affect-history.js';
+import { affectCycles, priorAffect, currentAffect } from '../../packages/core/src/affect-history.js';
 import { factualWorld } from '../../packages/core/src/experienced.js';
 import { previewPrompt } from '../../packages/sdk/src/prompt-preview.js';
 import { prompts } from '../../packages/providers/src/prompts.js';
+import type { Executor } from '../../packages/core/src/contracts.js';
 
 // Deterministic plumbing fixtures; they do not validate a psychological hypothesis.
 class Decisions extends MockDecisions {
@@ -314,6 +315,13 @@ test('behavioral Self can select another perspective instead of the owner of its
       cues: ['A relationship concern'], scope: name, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true,
     }, 0, { origin: 'seed', reason: 'Explicit behavioral-authority plumbing starting conditions', sourceIds: [] });
     decisions.judge = async input => input.candidates.map(candidate => ({ partId: candidate.id, score: 4 }));
+    const revise = reasoning.reviseFocusedBid.bind(reasoning);
+    reasoning.reviseFocusedBid = async context => {
+      const response = await revise(context);
+      if (response.new_bid?.action) response.new_bid = { ...response.new_bid,
+        action: { ...response.new_bid.action, text: `${response.new_bid.action.text} from ${context.part.name}` } };
+      return response;
+    };
     const choose = decisions.choose.bind(decisions);
     decisions.choose = async context => {
       if (!context.selectedFocus) return choose(context);
@@ -330,4 +338,87 @@ test('behavioral Self can select another perspective instead of the owner of its
     assert.equal(record.focusAfter!.periodId, record.usedFocus!.periodId);
     assert.equal(reasoning.focused.length, 2); assert.equal(store.executions(agent.id).length, 0);
   } finally { store.close(); }
+});
+
+test('a later thought in one observation lineage uses the committed lens without another affect choice', { timeout: 20000 }, async () => {
+  const store = new SqliteStore(':memory:'); let unblock!: () => void; let started!: () => void; let committed!: () => void;
+  const slow = new Promise<void>(resolve => { unblock = resolve; });
+  const thinking = new Promise<void>(resolve => { started = resolve; });
+  const chosen = new Promise<void>(resolve => { committed = resolve; });
+  class SlowPart extends Reasoning {
+    override async constructed(input: ConstructedInput) {
+      if (input.task === 'part_cognition' && input.dispositions?.[0]?.id === 'slow') { started(); await slow; }
+      return super.constructed(input);
+    }
+  }
+  const decisions = new Decisions(); decisions.judge = async input => input.candidates.map(candidate => ({ partId: candidate.id, score: 4 }));
+  const app = new Application(store, { decisions, reasoning: new SlowPart(), embeddings: new MockEmbeddings() });
+  let pending: ReturnType<Application['message']> | undefined;
+  try {
+    const agent = app.createAgent();
+    for (const id of ['fast', 'slow']) store.save('disposition', { id, agentId: agent.id, version: 1, schemaVersion: 1, name: id,
+      concern: `Notice ${id}`, scope: id, cues: [id], prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null,
+      temporary: false, active: true }, 0, { origin: 'seed', reason: 'Explicit affect timing fixture', sourceIds: [] });
+    app.inspection.subscribe(event => { if (event.type === 'self.affect_committed') committed(); });
+    pending = app.message(agent.id, 'A relationship concern invites different perspectives.', 'observer', 'timing');
+    await thinking; await chosen;
+    assert.equal(decisions.inputs.length, 1);
+    unblock(); const result = await pending;
+    assert.equal(decisions.inputs.length, 1, 'Another completed thought is not a new affect boundary');
+    const commits = store.eventsByType(agent.id, ['self.affect_committed']).flatMap(event => event.type === 'self.affect_committed' ? [event.payload] : []);
+    assert.ok(commits.length >= 2);
+    assert.ok(commits.every(commit => commit.rootWorldId === result.cycle.worldId && commit.record.sequence === 1));
+    assert.equal(commits[0]!.record.focusAfter!.periodId, commits.at(-1)!.record.focusAfter!.periodId);
+    assert.ok(store.eventsByType(agent.id, ['self.arbitration_started']).some(event => event.type === 'self.arbitration_started'
+      && event.payload.selectedFocus?.periodId === commits[0]!.record.focusAfter!.periodId));
+  } finally { unblock(); await pending?.catch(() => {}); await app.close(); store.close(); }
+});
+
+test('late adapter completion cannot roll back a newer committed focus renewal', { timeout: 20000 }, async () => {
+  const store = new SqliteStore(':memory:'); let unblock!: () => void; let submitted!: () => void;
+  const wait = new Promise<void>(resolve => { unblock = resolve; }); const entered = new Promise<void>(resolve => { submitted = resolve; });
+  let calls = 0;
+  const executor: Executor = { async execute(input) {
+    if (++calls === 1) { submitted(); await wait; }
+    return { id: `affect-adapter-${input.cycleId}`, agentId: input.agentId, cycleId: input.cycleId,
+      action: input.bid.action, status: 'completed', facts: [] };
+  } };
+  const decisions = new Decisions(); const app = new Application(store, { decisions, reasoning: new Reasoning(), embeddings: new MockEmbeddings() }, executor);
+  let first: ReturnType<Application['message']> | undefined;
+  try {
+    const agent = app.createAgent(); const profile = store.executiveProfile(agent.id);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1 }, profile.revision);
+    first = app.message(agent.id, 'Choose a lens before the adapter settles.', 'observer', 'lens'); await entered;
+    decisions.affectMode = 'maintain';
+    const second = await app.message(agent.id, 'New experience while the adapter still waits.', 'observer', 'lens');
+    const before = currentAffect(store, second.cycle, second.cycle.worldId);
+    assert.equal(before.activeFocus!.expiresAfterSequence, 3);
+    unblock(); await first;
+    const after = currentAffect(store, second.cycle, second.cycle.worldId);
+    assert.equal(after.activeFocus!.periodId, before.activeFocus!.periodId);
+    assert.equal(after.activeFocus!.expiresAfterSequence, 3);
+  } finally { unblock(); await first?.catch(() => {}); await app.close(); store.close(); }
+});
+
+test('focused revisions obey the configured thought concurrency bound', async () => {
+  const store = new SqliteStore(':memory:'); const { app, reasoning, decisions } = application(store);
+  try {
+    const agent = app.createAgent(); app.updateAgentActivationSettings(agent.id, { maxConcurrentThoughts: 1 });
+    for (const name of ['Care for connection', 'Need for boundaries']) store.save('disposition', {
+      id: name, agentId: agent.id, schemaVersion: 1, version: 1, name, concern: name, cues: ['relationship'], scope: name,
+      prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true,
+    }, 0, { origin: 'seed', reason: 'Explicit resource-admission regression fixture', sourceIds: [] });
+    decisions.judge = async input => input.candidates.map(candidate => ({ partId: candidate.id, score: 4 }));
+    let inFlight = 0; let peak = 0;
+    const revise = reasoning.reviseFocusedBid.bind(reasoning);
+    reasoning.reviseFocusedBid = async context => {
+      const scope = context.part.instance!.dispositionBindings![0]!.dispositionId;
+      assert.equal(app.runtime.constructed.isProcessing({ agentId: agent.id, threadId: 'bounded-focus', dispositionId: scope }), true);
+      peak = Math.max(peak, ++inFlight);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      try { return await revise(context); } finally { inFlight--; }
+    };
+    await app.message(agent.id, 'A relationship concern needs attention.', 'host', 'bounded-focus');
+    assert.ok(reasoning.focused.length); assert.equal(peak, 1);
+  } finally { await app.close(); store.close(); }
 });

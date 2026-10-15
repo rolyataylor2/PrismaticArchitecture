@@ -1,3 +1,4 @@
+import { simulationSourceCycles } from './simulation-source-cycles.js';
 import { simulationEventScope } from './simulation-event-scope.js';
 import { researchMetricCatalog } from './simulation-metrics.js';
 import { createHash } from 'node:crypto';
@@ -53,7 +54,7 @@ export function simulationCitation(store: Store, run: SimulationRun, reference: 
   }
   if (keys[0] === 'events') {
     const eventId = keys[1];
-    const cycleIds = new Set(run.stages.flatMap(stage => stage.cycleId ? [stage.cycleId] : []));
+    const cycleIds = new Set(run.stages.flatMap(simulationSourceCycles));
     for (const event of store.events(run.agentId)) if (event.type === 'cycle.started' && event.payload.threadId === run.id) cycleIds.add(event.payload.id);
     for (const cycle of store.cycles(run.agentId)) if (cycle.threadId === run.id && cycle.startedAt >= run.createdAt && (!run.finishedAt || cycle.startedAt <= run.finishedAt)) cycleIds.add(cycle.id);
     root = store.events(run.agentId).find(event => event.id === eventId && (simulationEventScope(event) ? simulationEventScope(event)!.runId === run.id : event.cycleId ? cycleIds.has(event.cycleId)

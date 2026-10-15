@@ -12,6 +12,8 @@ export type PartContext = { world: WorldState; part: Part; memories: Memory[]; p
   dispositions?: import('./domain.js').Disposition[];
   availableContributors?: { partId: string; name: string }[];
   recentThoughts?: { cycleId: string; thought: string; interpretation: string }[] };
+/** Host admission boundary; undefined means no response was admitted or its owning version became stale. */
+export type PartInferenceRunner = <T>(context: PartContext, run: () => Promise<T>) => Promise<T | undefined>;
 export type PredictionContext = PartContext & { cognition: Cognition };
 export type PredictionEvidenceContext = PartContext & { prediction: Prediction; laterEvidence: Fact[] };
 export type HypothesisEvidenceContext = { world: WorldState; prediction: Prediction; laterEvidence: Fact[] };
@@ -30,7 +32,10 @@ export interface DecisionProvider {
   checkHypothesis?(context: HypothesisEvidenceContext): Promise<PredictionOutcome>;
   checkPrediction(context: PredictionEvidenceContext): Promise<PredictionOutcome>;
 }
+export type InferenceSource = { operationId: string; provider: string };
 export interface ReasoningProvider {
+  /** Host-only attribution; never model context or persistent psychology. */
+  sourceFor?(product: unknown): InferenceSource | undefined;
   affectInquiry?(context: import('./affect-domain.js').AffectSelectionContext): Promise<z.infer<typeof DeliberationSchema>>;
   reviseFocusedBid?(context: FocusedBidContext): Promise<z.infer<typeof DeliberationAnswerSchema>>;
   consolidateProcedures?(input: import('./procedure-consolidation.js').ProcedureConsolidationInput): Promise<unknown>;
@@ -67,6 +72,20 @@ export type EventPayloads = {
   'cognition.coverage': import('./cognition-coverage.js').CognitionCoverage;
   'provider.operation': import('./provider-operation.js').ProviderOperation;
   'provider.usage': { researchScope?: import('./provider-operation.js').ResearchStageReference; operationId?: string; cacheReported?: boolean; provider: string; task: string; inputTokens: number; cachedInputTokens: number; outputTokens: number; cacheKey: string | null };
+  'cognition.stream': { rootWorldId: string; threadId: string | null; passCount: number; passLimit: number | null; status: 'running' | 'paused' | 'settled' | 'superseded' | 'failed'; reason: string };
+  'cognition.job': { jobId: string; worldId: string; threadId: string | null; dispositionId: string;
+    status: 'queued' | 'started' | 'completed' | 'superseded' | 'deferred' | 'closed' | 'failed' };
+  'cognition.inquiry_deferred': { partId: string; worldId: string; reason: string };
+  'cognition.bid_source': { bidId: string; partId: string; inferenceSource: InferenceSource };
+  'cognition.source': { thoughtEventId: string; bidId: string | null; inferenceSource: InferenceSource };
+  'cognition.resources': { purpose?: 'part_cognition' | 'answer' | 'focused_bid_revision'; reason?: 'workload' | 'repeated_prediction_contradiction'; worldId: string | null; dispositionIds: string[]; model: string; assessment: import('./thought-resources.js').ThoughtResources };
+  'cognition.bid': import('./bid-pool.js').PendingBidRecord;
+  'self.commitment': import('./commitments.js').SelectedCommitment;
+  'self.affect_committed': { rootWorldId: string; offersConsidered: boolean; record: import('./affect-domain.js').AffectCycle };
+  'self.affect_prediction_origin': { predictionId: string; periodId: string; stage: 'part_cognition' | 'coverage'; sourceWorldId: string };
+  'execution.bid_rejected': { bidIds: string[]; reviewedWorldId: string; currentWorldId: string; reason: string };
+  'execution.applicability_checked': { worldId: string; bidId: string; provider: string;
+    conditions: { condition: string; score: number | null }[]; admitted: boolean };
   'simulation.control': { runId: string; action: 'pause_requested' | 'paused' | 'resumed'; completedStages: number; reason: string };
   'simulation.stage_started': { runId: string; stageId: string; stageIndex: number; name: string; phase: 'control' | 'training' | 'probe' };
   'simulation.stage_completed': { runId: string; stageId: string; stageIndex: number; startEventId: string };
@@ -75,7 +94,7 @@ export type EventPayloads = {
   'construction.eligibility': { worldId: string; threadId: string | null; inquiry: string | null; scopes: {
     dispositionId: string; name: string; version: number; temporary: boolean; threshold: number; eligible: boolean; reasons: string[] }[] };
   'construction.admission': { worldId: string; inquiry: string | null; scopes: { dispositionId: string; score: number | null;
-    threshold: number; status: 'admitted' | 'below_threshold' | 'budget_deferred' | 'already_participating' }[] };
+    threshold: number; status: 'admitted' | 'below_threshold' | 'budget_deferred' | 'already_participating' | 'busy' }[] };
   'construction.temporary_scope_budget': { limit: number; activeScopeIds: string[]; admittedScopeIds: string[]; deferredScopeIds: string[] };
   'construction.generated': { partId: string; result: z.infer<typeof import('./constructed-domain.js').PartGenerationSchema> };
   'construction.judgment_started': import('./constructed-domain.js').JudgmentInput;
@@ -107,7 +126,7 @@ export type EventPayloads = {
   'activation.part_activated': Activation;
   'activation.spike': Activation;
   'part.reasoning_started': { partId: string; provider: string };
-  'part.thought': { partId: string; partSnapshot: Part; predictionSnapshot: Prediction | null; output: Cognition; durationMs: number; recalledMemoryIds?: string[] };
+  'part.thought': { inferenceSource?: InferenceSource; partId: string; partSnapshot: Part; predictionSnapshot: Prediction | null; output: Cognition; durationMs: number; recalledMemoryIds?: string[] };
   'prediction.formation_checked': { partId: string; shouldPredict: boolean; provider: string };
   'prediction.outcome_checked': { partId: string | null; predictionId: string; outcome: PredictionOutcome; provider: string };
   'part.prediction_created': Prediction;
@@ -212,10 +231,10 @@ export interface Store {
   saveIdentityAuthoringSettings(agentId: string, settings: import('./domain.js').IdentityAuthoringSettings): void;
   primitiveSettings(agentId: string): PrimitiveSettings;
   savePrimitiveSettings(agentId: string, settings: PrimitiveSettings, expectedRevision: number): void;
-  agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
-  saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
-  agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null } | null;
-  saveAgentProviderSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null }): void;
+  agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
+  saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
+  agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null; thoughtRouting?: import('./thought-resources.js').ThoughtRoutingSettings | null } | null;
+  saveAgentProviderSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null; thoughtRouting?: import('./thought-resources.js').ThoughtRoutingSettings | null }): void;
   promptOverrides(input?: { scope?: 'global' | 'agent'; agentId?: string; task?: PromptTask }): PromptOverride[];
   savePromptOverride(input: PromptOverride): void;
   deletePromptOverride(scope: 'global' | 'agent', agentId: string | null, task: PromptTask): void;

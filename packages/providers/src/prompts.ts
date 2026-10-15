@@ -11,18 +11,20 @@ function loadFactoryPrompt(name: string): string {
   return readFileSync(new URL(`./prompt.${name}.md`, import.meta.url), 'utf8');
 }
 export const prompts = {
+  thought_resources: { version: 'thought-resources-v2', text: loadFactoryPrompt('thought_resources') },
+  bid_applicability: { version: 'bid-applicability-v1', text: loadFactoryPrompt('bid_applicability') },
   executive_skill_consolidation: { version: 'executive-skill-consolidation-v3', text: loadFactoryPrompt('executive_skill_consolidation') },
   simulation_evaluation: { version: 'simulation-evaluation-v4', text: loadFactoryPrompt('simulation_evaluation') },
-  hypothesis_outcome: { version: 'hypothesis-outcome-v2', text: loadFactoryPrompt('hypothesis_outcome') },
-  hypothesis_reflection: { version: 'hypothesis-reflection-v1', text: loadFactoryPrompt('hypothesis_reflection') },
+  hypothesis_outcome: { version: 'hypothesis-outcome-temporal-v3', text: loadFactoryPrompt('hypothesis_outcome') },
+  hypothesis_reflection: { version: 'hypothesis-reflection-temporal-v2', text: loadFactoryPrompt('hypothesis_reflection') },
   cognition_coverage: { version: 'cognition-coverage-adjustable-states-v3', text: loadFactoryPrompt('cognition_coverage') },
   memory_synthesis: { version: 'memory-synthesis-v2', text: loadFactoryPrompt('memory_synthesis') },
   memory_reinterpretation: { version: 'memory-reinterpretation-v1', text: loadFactoryPrompt('memory_reinterpretation') },
   experiential_formation: { version: 'experience-evidence-attachment-v3', text: loadFactoryPrompt('experiential_formation') },
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
-  disposition_activation: { version: 'disposition-activation-checkpoints-v9', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-selected-focus-v29', text: loadFactoryPrompt('part_cognition') },
+  disposition_activation: { version: 'disposition-activation-asynchronous-v10', text: loadFactoryPrompt('disposition_activation') },
+  part_cognition: { version: 'part-cognition-applicability-v31', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
@@ -34,24 +36,26 @@ export const prompts = {
   affect_selection: { version: 'affect-selection-v1', text: loadFactoryPrompt('affect_selection') },
   affect_inquiry: { version: 'affect-inquiry-v1', text: loadFactoryPrompt('affect_inquiry') },
   focused_bid_revision: { version: 'focused-bid-revision-v1', text: loadFactoryPrompt('focused_bid_revision') },
-  arbitration: { version: 'self-arbitration-selected-focus-v14', text: loadFactoryPrompt('arbitration') },
+  arbitration: { version: 'arbitration-commitments-v2', text: loadFactoryPrompt('arbitration') },
   cognition: { version: 'cognition-executive-opt-in-v3', text: loadFactoryPrompt('cognition') },
   prediction_gate: { version: 'prediction-gate-twig-v3', text: loadFactoryPrompt('prediction_gate') },
-  prediction_outcome: { version: 'prediction-outcome-branches-v2', text: loadFactoryPrompt('prediction_outcome') },
+  prediction_outcome: { version: 'prediction-outcome-temporal-v3', text: loadFactoryPrompt('prediction_outcome') },
   prediction: { version: 'prediction-twig-v5', text: loadFactoryPrompt('prediction') },
-  evaluation: { version: 'prediction-evaluation-shared-evidence-v12', text: loadFactoryPrompt('evaluation') },
-  answer: { version: 'part-deliberation-affect-offers-v28', text: loadFactoryPrompt('answer') },
-  deliberation: { version: 'self-deliberation-experienced-v9', text: loadFactoryPrompt('deliberation') },
+  evaluation: { version: 'prediction-evaluation-temporal-v13', text: loadFactoryPrompt('evaluation') },
+  answer: { version: 'answer-applicability-v25', text: loadFactoryPrompt('answer') },
+  deliberation: { version: 'deliberation-commitments-v1', text: loadFactoryPrompt('deliberation') },
   consolidation: { version: 'offline-consolidation-twig-v5', text: loadFactoryPrompt('consolidation') },
   reconsolidation: { version: 'memory-reconsolidation-twig-v3', text: loadFactoryPrompt('reconsolidation') },
   formation: { version: 'part-formation-twig-v3', text: loadFactoryPrompt('formation') },
   replay: { version: 'rare-ancestor-replay-twig-v3', text: loadFactoryPrompt('replay') },
 } as const;
 
-export const constructedPromptTasks = ["cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "memory_synthesis", "effortful_recall"] as const;
+export const constructedPromptTasks = ["thought_resources", "bid_applicability", "cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "memory_synthesis", "effortful_recall"] as const;
 
 export type PromptResolver = (agentId: string, task: PromptTask) => string | undefined;
 export const promptCatalog: { task: PromptTask; title: string; category: string; version: string; original: string }[] = [
+  { task: 'thought_resources', title: 'Cog · Thought resource assessment', category: 'Cog', version: prompts.thought_resources.version, original: prompts.thought_resources.text },
+  { task: 'bid_applicability', title: 'Exec · External proposal conditions', category: 'Exec', version: prompts.bid_applicability.version, original: prompts.bid_applicability.text },
   { task: 'simulation_evaluation', title: 'Researcher · Simulation evaluation', category: 'Researcher', version: prompts.simulation_evaluation.version, original: prompts.simulation_evaluation.text },
   { task: 'memory_accessibility', title: 'Mem · Memory accessibility', category: 'Mem', version: prompts.memory_accessibility.version, original: prompts.memory_accessibility.text },
   { task: 'disposition_activation', title: 'Cog · Disposition activation', category: 'Cog', version: prompts.disposition_activation.version, original: prompts.disposition_activation.text },
@@ -105,7 +109,7 @@ export function renderTaskPrompt(agentId: string, task: PromptTask, data: object
   }), primitives: ((data as { primitives?: Primitive[] }).primitives ?? []).map(effectivePrimitive) }
     : task === 'consolidation' ? { primitiveAppraisals: [], ...data } : data;
   const selfInput = data as { deliberation?: unknown[]; contributions?: { sourceKind?: string; bid: object | null }[]; contributionHistory?: { sourceKind?: string; bid: object | null }[]; inquiries?: object[] };
-  const legacySelf = ['arbitration', 'deliberation'].includes(task) ? { completedDeliberationRounds: 0, stanceHistory: [], ongoingActivity: null, selectedFocus: null, debate: selfInput.deliberation ?? [], ...compatible,
+  const legacySelf = ['arbitration', 'deliberation'].includes(task) ? { commitments: [], completedDeliberationRounds: 0, stanceHistory: [], ongoingActivity: null, selectedFocus: null, debate: selfInput.deliberation ?? [], ...compatible,
     inquiries: (selfInput.inquiries ?? []).map(inquiry => ({ why_deliberate: null, primary_c: null, secondary_c: null, missing_information: null, ...inquiry })),
     contributionHistory: (selfInput.contributionHistory ?? []).map(contribution => ({ affect: '', ...contribution, bid: contribution.bid ? { type: 'action', ...contribution.bid } : null })),
     contributions: (selfInput.contributions ?? []).map(contribution => ({ sourceKind: 'part', affect: '', ...contribution,
