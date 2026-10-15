@@ -593,6 +593,22 @@ function openCreateAgentModal(): void {
   document.body.append(modal); modal.showModal(); input.focus();
 }
 
+function agentAvatar(value: string, className: string): HTMLElement {
+  const container = node('span', '', className);
+  if (value.startsWith('data:image/')) {
+    const image = node('img'); image.src = value; image.alt = 'Agent avatar'; container.append(image);
+  } else container.textContent = value;
+  return container;
+}
+async function prepareAgentImage(source: string): Promise<string> {
+  const image = new Image(); image.src = source; await image.decode();
+  const canvas = document.createElement('canvas');
+  const scale = Math.min(1, 512 / Math.max(image.width, image.height));
+  canvas.width = Math.max(1, Math.round(image.width * scale)); canvas.height = Math.max(1, Math.round(image.height * scale));
+  canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/webp', 0.85);
+}
+
 function openEditAgentModal(agent: AvailableAgent): void {
   const modal = node('dialog', '', 'agent-edit-dialog');
   modal.append(node('h3', 'Edit Agent'));
@@ -601,19 +617,51 @@ function openEditAgentModal(agent: AvailableAgent): void {
   const name = node('input'); name.value = agent.name; name.required = true;
   name.setAttribute('aria-label', 'Agent name'); nameLabel.append(name);
   const avatarLabel = node('label', 'Avatar (emoji or initials)');
-  const avatar = node('input'); avatar.value = agent.avatar ?? '🧠'; avatar.required = true; avatar.maxLength = 16;
+  const avatar = node('input'); avatar.value = agent.avatar?.startsWith('data:image/') ? '' : agent.avatar ?? '🧠'; avatar.required = false; avatar.maxLength = 16;
   avatar.setAttribute('aria-label', 'Agent avatar'); avatarLabel.append(avatar);
-  const preview = node('div', avatar.value, 'agent-avatar-preview');
-  avatar.oninput = () => { preview.textContent = avatar.value; };
+  let selectedAvatar = agent.avatar ?? '🧠';
+  const preview = node('div', '', 'agent-avatar-preview');
+  const drawPreview = () => preview.replaceChildren(agentAvatar(selectedAvatar, 'agent-edit-avatar'));
+  drawPreview();
+  avatar.oninput = () => { selectedAvatar = avatar.value; drawPreview(); };
+  const uploadLabel = node('label', 'Upload image (PNG, JPEG or WebP, up to 10 MB)');
+  const upload = node('input'); upload.type = 'file'; upload.accept = 'image/png,image/jpeg,image/webp'; uploadLabel.append(upload);
+  let working = false;
+  const imageWork = async (work: () => Promise<string>) => {
+    working = true; save.disabled = true; generate.disabled = true; upload.disabled = true; error.textContent = '';
+    try { selectedAvatar = await work(); avatar.value = ''; drawPreview(); }
+    catch (err) { error.textContent = err instanceof Error ? err.message : String(err); }
+    finally { working = false; save.disabled = false; generate.disabled = false; upload.disabled = false; }
+  };
+  upload.onchange = () => {
+    const file = upload.files?.[0]; if (!file) return;
+    void imageWork(async () => {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error('Choose a PNG, JPEG or WebP image up to 10 MB.');
+      const url = URL.createObjectURL(file);
+      try { return await prepareAgentImage(url); } finally { URL.revokeObjectURL(url); }
+    });
+  };
+  const promptLabel = node('label', 'Describe an image');
+  const prompt = node('textarea'); prompt.maxLength = 2048; promptLabel.append(prompt);
+  const generate = button('Generate with FLUX.1 Schnell', () => imageWork(async () => {
+    if (!prompt.value.trim()) throw new Error('Describe the image to generate.');
+    error.textContent = 'Generating image…';
+    const result = await api<{ avatar: string }>(`agents/${agent.id}/generate-image`, 'POST', { prompt: prompt.value.trim() });
+    error.textContent = ''; return prepareAgentImage(result.avatar);
+  }));
+  generate.type = 'button';
   const save = node('button', 'Save changes'); save.type = 'submit';
   const error = node('p'); error.setAttribute('role', 'alert');
-  form.append(preview, nameLabel, avatarLabel, error, save);
+  const cancel = button('Cancel', () => modal.close(), true); cancel.type = 'button';
+  modal.addEventListener('close', () => modal.remove(), { once: true });
+  form.append(preview, nameLabel, avatarLabel, uploadLabel, promptLabel, generate, node('p', 'Generation uses the Cloudflare credentials in Agent Settings. Save changes to keep this image.', 'muted'), error, save, cancel);
   form.onsubmit = async event => {
     event.preventDefault();
-    if (!name.value.trim() || !avatar.value.trim()) { error.textContent = 'Enter a name and avatar.'; return; }
+    if (working) return;
+    if (!name.value.trim() || !selectedAvatar.trim()) { error.textContent = 'Enter a name and avatar.'; return; }
     save.disabled = true;
     try {
-      const updated = await api<Agent>(`agents/${agent.id}`, 'PATCH', { name: name.value.trim(), avatar: avatar.value.trim() });
+      const updated = await api<Agent>(`agents/${agent.id}`, 'PATCH', { name: name.value.trim(), avatar: selectedAvatar.trim() });
       Object.assign(agent, updated);
       if (state?.agent.id === agent.id) Object.assign(state.agent, updated);
       modal.close(); renderAgentControls(); render();
@@ -640,7 +688,7 @@ function openChangeAgentModal(): void {
       const text = node('span', '', 'agent-picker-text'); text.append(node('strong', agent.name));
       if (agent.databaseLabel) text.append(node('small', agent.databaseLabel));
       if (selected) text.append(node('small', '✓ Current Agent'));
-      item.append(node('span', agent.avatar ?? '🧠', 'agent-picker-avatar'), text);
+      item.append(agentAvatar(agent.avatar ?? '🧠', 'agent-picker-avatar'), text);
       const remove = memoryActionIcon(`Delete ${agent.name}`, 'trash', async () => {
         if (!window.confirm(`Permanently delete “${agent.name}” from ${agent.databaseLabel || 'Main'}? All of its saved data will be removed. This cannot be undone.`)) return;
         await api(`agents/${agent.id}`, 'DELETE', {}, agent.databaseId);
@@ -675,7 +723,7 @@ function renderAgentControls(): void {
   wrapper.onclick = event => event.stopPropagation();
   const square = button('', () => { agentDropdownOpen = false; activeTab = 'Perception'; renderAgentControls(); render(); });
   square.className = 'agent-square'; square.setAttribute('aria-label', `${agent.name} — open Perception`);
-  square.append(node('span', agent.avatar ?? '🧠', 'agent-square-avatar'), node('strong', agent.name, 'agent-square-name'));
+  square.append(agentAvatar(agent.avatar ?? '🧠', 'agent-square-avatar'), node('strong', agent.name, 'agent-square-name'));
   const pencil = button('', () => {
     agentDropdownOpen = !agentDropdownOpen; renderAgentControls();
     controls.querySelector<HTMLElement>(agentDropdownOpen ? '.agent-context-menu button' : '.agent-pencil-btn')?.focus();
@@ -3228,7 +3276,27 @@ function activationSettings(): void {
     }));
   }).catch(showError);
 }
+function imageSettings(): void {
+  const agentId = selectedAgent;
+  const panel = card('Agent image generation'); content.append(panel);
+  panel.append(node('p', 'Generate portraits with Cloudflare FLUX.1 Schnell from Edit Agent. Your API token needs Workers AI access and is encrypted on this machine.', 'muted'));
+  void api<{ accountId: string; hasApiKey: boolean }>(`agents/${agentId}/image-settings`).then(configuration => {
+    if (!panel.isConnected || selectedAgent !== agentId) return;
+    const account = field(panel, 'Cloudflare Account ID', configuration.accountId, false) as HTMLInputElement;
+    const key = field(panel, 'Cloudflare API token (leave blank to keep saved token)', '', false) as HTMLInputElement;
+    key.type = 'password'; key.autocomplete = 'new-password';
+    const status = node('p', configuration.hasApiKey ? 'Encrypted token saved.' : 'No token configured.', 'muted'); panel.append(status);
+    panel.append(button('Save Cloudflare settings', async () => {
+      await api(`agents/${agentId}/image-settings`, 'PATCH', { accountId: account.value.trim(), ...(key.value ? { apiKey: key.value.trim() } : {}) });
+      key.value = ''; status.textContent = 'Cloudflare settings saved.';
+    }), button('Clear Cloudflare token', async () => {
+      await api(`agents/${agentId}/image-settings`, 'PATCH', { accountId: account.value.trim(), clearApiKey: true });
+      key.value = ''; status.textContent = 'Token cleared.';
+    }, true));
+  }).catch(showError);
+}
 function modelSettings(): void {
+  imageSettings();
   const panel = card('Model inference for this Agent');
   panel.append(node('p', 'Choose the language model used for this Agent. Use the key for the selected provider. When changing providers, enter its key or clear the Agent key to use its server key. Keys are encrypted on this machine and never shown again.', 'muted'));
   content.append(panel);

@@ -141,3 +141,42 @@ test('provider changes require the correct credential and preserve routing after
     assert.throws(() => app.updateAgentInferenceSettings(agent.id, { model: 'gpt-4.1-mini' }), /Changing provider requires/);
   } finally { store.close(); rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('Cloudflare image credentials stay encrypted and generation returns an unsaved image draft', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'prism-images-'));
+  const store = new SqliteStore(join(directory, 'agents.sqlite'));
+  const originalFetch = globalThis.fetch;
+  try {
+    const vault = new SecretVault(join(directory, 'vault.key'));
+    const app = new Application(store, undefined, undefined, undefined, vault);
+    const agent = app.createAgent('Portrait');
+    const route = `/api/agents/${agent.id}`;
+    const token = 'cloudflare-test-secret-token';
+    const accountId = 'a'.repeat(32);
+    await assert.rejects(api(app, 'POST', `${route}/generate-image`, { prompt: 'Portrait' }), /Configure Cloudflare/);
+    const settings = await api(app, 'PATCH', `${route}/image-settings`, { accountId, apiKey: token });
+    assert.deepEqual(settings, { accountId, hasApiKey: true });
+    assert.equal(vault.decrypt(store.agentImageSettings(agent.id)!.encryptedApiKey!), token);
+    assert.equal(readFileSync(join(directory, 'agents.sqlite'), 'utf8').includes(token), false);
+    await api(app, 'PATCH', `${route}/image-settings`, { accountId });
+    globalThis.fetch = async (url, init) => {
+      assert.equal(String(url), `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`);
+      assert.equal((init!.headers as Record<string, string>).Authorization, `Bearer ${token}`);
+      assert.deepEqual(JSON.parse(init!.body as string), { prompt: 'Portrait', steps: 4 });
+      return Response.json({ success: true, result: { image: 'YWJj' } });
+    };
+    const draft = await api(app, 'POST', `${route}/generate-image`, { prompt: 'Portrait' }) as { avatar: string };
+    assert.equal(draft.avatar, 'data:image/jpeg;base64,YWJj');
+    assert.equal(store.get('agent', agent.id).avatar, undefined);
+    await api(app, 'PATCH', route, { name: agent.name, avatar: draft.avatar });
+    assert.equal(store.get('agent', agent.id).avatar, draft.avatar);
+    await assert.rejects(api(app, 'PATCH', route, { name: agent.name, avatar: 'data:image/svg+xml;base64,YWJj' }));
+    await assert.rejects(api(app, 'POST', `${route}/generate-image`, { prompt: 'x'.repeat(2049) }));
+    globalThis.fetch = async () => new Response('private upstream details', { status: 401 });
+    await assert.rejects(api(app, 'POST', `${route}/generate-image`, { prompt: 'Portrait' }), /HTTP 401/);
+    await api(app, 'PATCH', `${route}/image-settings`, { accountId, clearApiKey: true });
+    assert.deepEqual(await api(app, 'GET', `${route}/image-settings`), { accountId, hasApiKey: false });
+  } finally {
+    globalThis.fetch = originalFetch; store.close(); rmSync(directory, { recursive: true, force: true });
+  }
+});

@@ -103,7 +103,7 @@ export class SqliteStore implements Store {
       this.#db.prepare('DELETE FROM thread_part_stickiness WHERE part_id IN (SELECT id FROM entities WHERE agent_id = ?) OR cycle_id IN (SELECT id FROM cycles WHERE agent_id = ?)').run(agentId, agentId);
       this.#db.prepare('DELETE FROM versions WHERE (kind,id) IN (SELECT kind,id FROM entities WHERE agent_id = ?)').run(agentId);
       for (const table of ['worlds', 'events', 'executions', 'consolidations', 'experiments', 'cycle_threads',
-        'agent_provider_settings', 'agent_activation_settings', 'identity_authoring_settings',
+        'agent_image_settings', 'agent_provider_settings', 'agent_activation_settings', 'identity_authoring_settings',
         'primitive_settings_history', 'primitive_settings', 'mcp_permissions_history', 'mcp_permissions', 'executive_profile_history', 'executive_profiles', 'executive_skill_history', 'executive_skills', 'prompt_overrides', 'cycles', 'entities', 'deleted_agents']) {
         this.#db.prepare(`DELETE FROM ${table} WHERE agent_id = ?`).run(agentId);
       }
@@ -863,6 +863,14 @@ export class SqliteStore implements Store {
     this.transaction(() => this.#db.prepare(`INSERT INTO agent_activation_settings(agent_id,vector_search_enabled,reevaluate_after_deliberation,primitives_first,memory_search_enabled,memory_relevance_threshold,memory_recall_limit,continuous_settings) VALUES(?,?,?,?,?,?,?,?)
       ON CONFLICT(agent_id) DO UPDATE SET vector_search_enabled=excluded.vector_search_enabled, reevaluate_after_deliberation=excluded.reevaluate_after_deliberation, primitives_first=excluded.primitives_first, memory_search_enabled=excluded.memory_search_enabled, memory_relevance_threshold=excluded.memory_relevance_threshold, memory_recall_limit=excluded.memory_recall_limit, continuous_settings=excluded.continuous_settings`)
       .run(agentId, validated.vectorSearchEnabled ? 1 : 0, validated.reevaluateAfterDeliberation ? 1 : 0, validated.primitivesFirst ? 1 : 0, validated.memorySearchEnabled ? 1 : 0, validated.memoryRelevanceThreshold, validated.memoryRecallLimit, JSON.stringify({ includeProcessingDispositions: validated.includeProcessingDispositions, maxConcurrentThoughts: validated.maxConcurrentThoughts, maxQueuedThoughts: validated.maxQueuedThoughts, activationPassLimit: validated.activationPassLimit })));
+  }
+  agentImageSettings(agentId: string) {
+    this.get('agent', agentId);
+    return this.#db.prepare('SELECT account_id AS accountId, encrypted_api_key AS encryptedApiKey FROM agent_image_settings WHERE agent_id = ?').get(agentId) as { accountId: string; encryptedApiKey: string | null } | undefined;
+  }
+  saveAgentImageSettings(agentId: string, accountId: string, encryptedApiKey: string | null): void {
+    this.get('agent', agentId);
+    this.#db.prepare(`INSERT INTO agent_image_settings VALUES(?,?,?) ON CONFLICT(agent_id) DO UPDATE SET account_id=excluded.account_id, encrypted_api_key=excluded.encrypted_api_key`).run(agentId, accountId, encryptedApiKey);
   }
   agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null; thoughtRouting?: ThoughtRoutingSettings | null } | null {
     this.get('agent', agentId);

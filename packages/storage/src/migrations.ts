@@ -4,7 +4,7 @@ import { readIdentity, now } from '../../core/src/domain.js';
 export function migrate(db: DatabaseSync): void {
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;');
   const version = (db.prepare('PRAGMA user_version').get() as { user_version: number }).user_version;
-  if (version > 27) throw new Error(`Database schema ${version} is newer than this application`);
+  if (version > 28) throw new Error(`Database schema ${version} is newer than this application`);
   if (version < 1) db.exec(`BEGIN IMMEDIATE;
     CREATE TABLE entities (
       kind TEXT NOT NULL, id TEXT NOT NULL, agent_id TEXT NOT NULL,
@@ -289,5 +289,9 @@ export function migrate(db: DatabaseSync): void {
       ${columns.some(column => column.name === 'thought_routing') ? '' : 'ALTER TABLE agent_provider_settings ADD COLUMN thought_routing TEXT CHECK(thought_routing IS NULL OR json_valid(thought_routing));'}
       PRAGMA user_version = 27; COMMIT;`);
   }
+
+  if (version < 28) db.exec(`BEGIN IMMEDIATE;
+    CREATE TABLE IF NOT EXISTS agent_image_settings (agent_id TEXT PRIMARY KEY, account_id TEXT NOT NULL, encrypted_api_key TEXT);
+    PRAGMA user_version = 28; COMMIT;`);
 
 }

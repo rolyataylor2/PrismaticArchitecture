@@ -80,7 +80,7 @@ export function createResearchServer(app: Application, root = process.cwd(), dat
       const asset = assets[url.pathname];
       if (!asset || method !== 'GET') { json(response, 404, { error: 'Not found' }); return; }
       response.writeHead(200, { 'Content-Type': asset[1], 'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'" });
+        'Content-Security-Policy': "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'" });
       response.end(await readFile(resolve(root, asset[0])));
     } catch (error) {
       if (response.headersSent) { response.end(); return; }

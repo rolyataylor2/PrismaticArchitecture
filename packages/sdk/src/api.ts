@@ -1,3 +1,4 @@
+import { AgentAvatarSchema } from '../../core/src/domain.js';
 import { thoughtModelEvidence } from './thought-model-evidence.js';
 import { ThoughtRoutingSettingsSchema } from '../../core/src/thought-resources.js';
 import { dreamConsole } from './dream-console.js';
@@ -282,7 +283,7 @@ export async function api(app: Application, method: string, path: string, body: 
       }
     }
     if (method === 'PATCH' && !action) {
-      const input = z.strictObject({ name: Text, avatar: z.string().trim().min(1).max(16).optional() }).parse(body);
+      const input = z.strictObject({ name: Text, avatar: AgentAvatarSchema.optional() }).parse(body);
       return app.renameAgent(entityId, input.name, input.avatar);
     }
     if (action === 'primitives') {
@@ -349,6 +350,17 @@ export async function api(app: Application, method: string, path: string, body: 
       return app.resetPrompt(entityId, PromptTaskSchema.parse(subresource), input.scope);
     }
     if (method === 'POST' && action === 'prompts' && subresource === 'reset-all') return app.resetAllPrompts();
+    if (action === 'image-settings') {
+      if (method === 'GET') return app.agentImageSettings(entityId);
+      if (method === 'PATCH') return app.updateAgentImageSettings(entityId, z.strictObject({
+        accountId: z.string().regex(/^[a-fA-F0-9]{32}$/),
+        apiKey: z.string().min(16).max(512).regex(/^\S+$/).optional(), clearApiKey: z.boolean().optional(),
+      }).parse(body));
+    }
+    if (method === 'POST' && action === 'generate-image') {
+      const { prompt } = z.strictObject({ prompt: z.string().trim().min(1).max(2048) }).parse(body);
+      return app.generateAgentImage(entityId, prompt);
+    }
     if (method === 'PATCH' && action === 'settings') {
       const input = z.strictObject({ model: z.string().min(1).max(100),
         apiKey: z.string().min(16).max(512).refine(value => !/\s/.test(value), 'API key must not contain whitespace').optional(),

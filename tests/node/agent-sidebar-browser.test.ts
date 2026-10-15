@@ -31,6 +31,17 @@ test('sidebar square, profile persistence and Agent list work on desktop and mob
     assert.equal(store.get('agent', first.id).avatar, '🌿');
     await page.reload(); await square.filter({ hasText: '🌿' }).waitFor();
     await square.hover(); await page.getByRole('button', { name: 'Agent options', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit Agent', exact: true }).click();
+    const png = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32; canvas.getContext('2d')!.fillRect(0, 0, 32, 32); return canvas.toDataURL('image/png').split(',')[1]!; });
+    await page.locator('input[type=file]').setInputFiles({ name: 'portrait.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') });
+    await page.locator('.agent-edit-avatar img').waitFor();
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await square.locator('img').waitFor();
+    assert.match(store.get('agent', first.id).avatar!, /^data:image\/webp;base64,/);
+    await page.reload(); await square.locator('img').waitFor();
+    assert.equal(await square.locator('img').evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), true);
+
+    await square.hover(); await page.getByRole('button', { name: 'Agent options', exact: true }).click();
     await page.getByRole('button', { name: 'Change Agent', exact: true }).click();
     assert.equal(await page.locator('.agent-picker-item').count(), 2);
     assert.equal(await page.getByRole('list', { name: 'Available Agents' }).count(), 1);

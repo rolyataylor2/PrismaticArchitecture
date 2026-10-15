@@ -155,3 +155,5 @@ ADR 0167 adds Speaking and Tool execution permissions beneath the existing Execu
 Agent profiles optionally retain a short display avatar (emoji or initials). This researcher-facing profile metadata is distinct from cognitive Identity; existing records default to the browser's brain avatar.
 
 ADR [0168](../../docs/architecture/decisions/0168-retire-legacy-prediction-attention.md) removes the legacy prediction `attention` field and synthesized scopes. Temporary relevance is proposed only through `scaffolds`, persisted as versioned prediction-bound dispositions. Old-Agent migration is intentionally excluded.
+
+Administrative Agent avatars accept emoji/initials or bounded PNG/JPEG/WebP base64 data URIs. Profile images carry no cognitive meaning or authority.

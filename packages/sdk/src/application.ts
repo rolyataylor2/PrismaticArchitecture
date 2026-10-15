@@ -213,6 +213,28 @@ export class Application {
     this.store.saveAgentActivationSettings(agentId, { ...this.agentActivationSettings(agentId), ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)) });
     return this.agentActivationSettings(agentId);
   }
+  agentImageSettings(agentId: string) {
+    const saved = this.store.agentImageSettings(agentId);
+    return { accountId: saved?.accountId ?? '', hasApiKey: Boolean(saved?.encryptedApiKey) };
+  }
+  updateAgentImageSettings(agentId: string, input: { accountId: string; apiKey?: string | undefined; clearApiKey?: boolean | undefined }) {
+    if (input.apiKey && input.clearApiKey) throw new Error('Choose a replacement key or clear the key');
+    const saved = this.store.agentImageSettings(agentId);
+    this.store.saveAgentImageSettings(agentId, input.accountId, input.clearApiKey ? null : input.apiKey ? this.#vault.encrypt(input.apiKey) : saved?.encryptedApiKey ?? null);
+    return this.agentImageSettings(agentId);
+  }
+  async generateAgentImage(agentId: string, prompt: string) {
+    const saved = this.store.agentImageSettings(agentId);
+    if (!saved?.accountId || !saved.encryptedApiKey) throw new Error('Configure Cloudflare Account ID and API token in Agent Settings first');
+    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${saved.accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+      method: 'POST', headers: { Authorization: `Bearer ${this.#vault.decrypt(saved.encryptedApiKey)}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, steps: 4 }), signal: AbortSignal.timeout(120000),
+    });
+    if (!response.ok) throw new Error(`Cloudflare image generation failed (HTTP ${response.status})`);
+    const body = await response.json() as { success?: boolean; result?: { image?: string } };
+    if (body.success === false || !body.result?.image) throw new Error('Cloudflare returned no generated image');
+    return { avatar: `data:image/jpeg;base64,${body.result.image}` };
+  }
   agentInferenceSettings(agentId: string) {
     this.store.get('agent', agentId);
     const saved = this.store.agentProviderSettings(agentId);

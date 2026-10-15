@@ -134,3 +134,5 @@ Executive profiles default missing ADR 0167 module permissions to Speaking and T
 Completed speech execution feedback projects into Sensor audio with `You said: [rendered text]`, including legacy speech records. Projection preserves timestamp, cycle and execution references without changing archived executions or frozen snapshots.
 
 ADR 0168 removes legacy prediction attention from current domain schemas and activation. Preserved prediction versions project current schema fields on read without rewriting raw version bytes. Explicit researcher cleanup appends current versions; no automatic live-state migration or legacy activation path is provided.
+
+Schema 28 adds per-Agent Cloudflare image settings with encrypted credentials, separate from versioned Agent profile data. Agent deletion removes these settings. Saved raster avatars remain versioned profile fields.

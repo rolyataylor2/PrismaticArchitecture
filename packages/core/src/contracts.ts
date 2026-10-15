@@ -234,6 +234,8 @@ export interface Store {
   savePrimitiveSettings(agentId: string, settings: PrimitiveSettings, expectedRevision: number): void;
   agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
   saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
+  agentImageSettings(agentId: string): { accountId: string; encryptedApiKey: string | null } | undefined;
+  saveAgentImageSettings(agentId: string, accountId: string, encryptedApiKey: string | null): void;
   agentProviderSettings(agentId: string): { model: string; encryptedApiKey: string | null; thoughtRouting?: import('./thought-resources.js').ThoughtRoutingSettings | null } | null;
   saveAgentProviderSettings(agentId: string, settings: { model: string; encryptedApiKey: string | null; thoughtRouting?: import('./thought-resources.js').ThoughtRoutingSettings | null }): void;
   promptOverrides(input?: { scope?: 'global' | 'agent'; agentId?: string; task?: PromptTask }): PromptOverride[];
