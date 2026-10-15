@@ -63,6 +63,7 @@ export function createResearchServer(app: Application, root = process.cwd(), dat
         json(response, 200, await api(target, method, apiPath, method === 'GET' ? null : await readBody(request))); return;
       }
       const assets: Record<string, [string, string]> = {
+        '/perspective-integration-and-response.png': ['docs/perspective-integration-and-response.png', 'image/png'],
         '/': ['apps/web/index.html', 'text/html'], '/style.css': ['apps/web/style.css', 'text/css'],
         '/app.js': ['dist/apps/web/src/app.js', 'text/javascript'],
         '/executive.js': ['dist/apps/web/src/executive.js', 'text/javascript'],

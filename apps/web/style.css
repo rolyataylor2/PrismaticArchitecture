@@ -105,7 +105,8 @@ h3 { font-size: 17px; }
 p { line-height: 1.55; }
 .eyebrow { font-size: 10px; letter-spacing: 1.8px; font-weight: 700; color: #628172; }
 .shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100dvh; }
-.sidebar-brand { font-size: 12px; line-height: 1.6; letter-spacing: 1.2px; font-weight: 700; color: #254f3c; margin-bottom: 16px; }
+.sidebar-brand { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; line-height: 1; font-weight: 700; color: #254f3c; margin-bottom: 16px; }
+.sidebar-brand img { display: block; height: 2em; width: auto; flex-shrink: 0; }
 .shell > aside #agent-controls { margin-bottom: 24px; width: 100%; }
 .shell > aside .agent-selector-wrapper { width: 100%; min-width: 0; }
 .shell > aside .agent-dropdown-btn { flex: 1; min-width: 0; padding: 6px 8px; }
