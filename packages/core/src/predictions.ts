@@ -110,6 +110,20 @@ export class Predictions {
     return [...new Set([...recordedSources, ...prediction.capsule.sourceIds, world.id])]
       .filter(sourceId => snapshots.has(sourceId));
   }
+  /** Async inference applies only to the exact version it was given. Never rebase meaning. */
+  applyCurrent(prediction: Prediction, world: WorldState, update: PredictionUpdate, outcome?: 'correct' | 'incorrect'): Prediction | null {
+    return this.inspection.atomic(() => {
+      const current = this.store.get('prediction', prediction.id);
+      if (current.version !== prediction.version || current.status !== 'open') {
+        this.inspection.emit(world.agentId, world.cycleId, 'prediction.update_discarded', {
+          predictionId: prediction.id, expectedVersion: prediction.version, currentVersion: current.version,
+          worldId: world.id, operation: update.operation, reason: 'Prediction changed while inference was running; stale output discarded without rebasing',
+        });
+        return null;
+      }
+      return this.apply(prediction, world, update, outcome);
+    });
+  }
   apply(prediction: Prediction, world: WorldState, update: PredictionUpdate, outcome?: 'correct' | 'incorrect'): Prediction {
     const validated = PredictionUpdateSchema.parse(update);
     if (prediction.agentId !== world.agentId || prediction.status !== 'open') throw new Error('Prediction is not open for this Agent');

@@ -147,3 +147,5 @@ Terminology: [ADR 0161](../../docs/architecture/decisions/0161-temporary-predict
 Structural reconciliation logs individual citation, evidence and lifecycle policy rejections as `disposition.reconciliation_rejected` and skips those proposals. Other proposals and memory reinterpretation continue; malformed inference, stale versions and infrastructure failures remain fatal.
 
 Researcher external-fact replacements (ADR 0166) enter the ordinary runtime as a new immutable observation, including an empty set. They skip prior external fact carryover for that observation and record a boundary for later context assembly. Subjective context and in-flight snapshots remain unchanged.
+
+Async prediction updates, including gap reflection and coverage adjustments, commit only against their inference input version. Superseded output emits prediction.update_discarded and preserves the newer version without failing the cognitive cycle or rebasing old conclusions. Explicit synchronous edits retain ordinary optimistic conflict errors.

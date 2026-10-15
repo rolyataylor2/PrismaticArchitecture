@@ -333,3 +333,5 @@ The current Perception view includes an editable sensor draft, including audio s
 Perception displays sensor channels and General world facts as keyboard-accessible tabs for both current and historical snapshots. Current entries support staged add/edit/delete; Play delivers a new observation, preserving immutable history. Pending edits survive browsing history; stale submissions require an explicit reset to the latest snapshot.
 
 Decaying thoughts appear in a dedicated read-only WorldState tab for both current and past snapshots, retaining Part attribution, recorded age and Self-selection status.
+
+Perception playback exposes Single Cycle using the existing per-Agent activation-pass setting: checked saves one pass; unchecked saves unlimited passes. Play starts or resumes that allowance while admitted Part cognition, prediction evaluation and Self finish. It does not cancel in-flight cognition.

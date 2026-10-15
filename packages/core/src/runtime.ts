@@ -428,7 +428,7 @@ export class CognitiveRuntime {
             memory: null, mutation: null, reason: 'Gap hypothesis no longer relevant to its original context' }
             : { ...await this.constructed.infer('hypothesis_reflection', { agentId, world: factual,
                 hypothesis: prediction, laterEvidence, outcome }), revision: null, mutation: null };
-          this.predictions.apply(prediction, world, update, outcome === 'correct' || outcome === 'incorrect' ? outcome : undefined);
+          this.predictions.applyCurrent(prediction, world, update, outcome === 'correct' || outcome === 'incorrect' ? outcome : undefined);
           continue;
         }
         const part = parts.find(p => p.id === prediction.partId);
@@ -478,8 +478,7 @@ export class CognitiveRuntime {
             message: `Prediction evaluation failed; the cycle will continue without updating this prediction. ${message}` });
           continue;
         }
-        if (this.store.get('prediction', prediction.id).version !== prediction.version) continue;
-        this.predictions.apply(prediction, world, update, resolvedOutcome);
+        this.predictions.applyCurrent(prediction, world, update, resolvedOutcome);
       }
       } finally { releaseEvaluation(); }
       };
@@ -765,7 +764,7 @@ export class CognitiveRuntime {
           if (coverage.hypotheses.length > Math.min(capacity, coverageBudget.maxHypothesesPerCycle))
             throw new InfrastructureError('cognition_coverage', 'Hypothesis proposal exceeds the remaining investigation budget');
           this.inspection.atomic(() => {
-            for (const adjustment of adjustments) this.predictions.apply(predictions.find(prediction => prediction.id === adjustment.predictionId)!, world,
+            for (const adjustment of adjustments) this.predictions.applyCurrent(predictions.find(prediction => prediction.id === adjustment.predictionId)!, world,
               { operation: adjustment.operation, revision: adjustment.revision, reason: adjustment.reason, evaluation: null, memory: null, mutation: null });
             for (const hypothesis of coverage.hypotheses) {
             const formed = this.predictions.formGap(world, hypothesis.prediction, {
@@ -776,7 +775,7 @@ export class CognitiveRuntime {
             }
           });
         } else this.inspection.atomic(() => {
-          for (const adjustment of adjustments) this.predictions.apply(predictions.find(prediction => prediction.id === adjustment.predictionId)!, world,
+          for (const adjustment of adjustments) this.predictions.applyCurrent(predictions.find(prediction => prediction.id === adjustment.predictionId)!, world,
             { operation: adjustment.operation, revision: adjustment.revision, reason: adjustment.reason, evaluation: null, memory: null, mutation: null });
         });
       }

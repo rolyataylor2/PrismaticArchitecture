@@ -377,3 +377,43 @@ test('overlapping activation assessments recheck busy admission and preserve one
     assert.equal(instances[0]!.instance!.retirement, null);
   } finally { releaseScores.release(); releaseThought.release(); await Promise.allSettled(tasks); await app.close(); store.close(); }
 });
+
+// Deterministic race fixture: validates version ownership, not a psychological hypothesis.
+test('coverage discards a stale gap adjustment when outcome evaluation commits during inference', { timeout: 20000 }, async () => {
+  const store = new SqliteStore(':memory:');
+  const coverageStarted = gate(); const evaluationCommitted = gate();
+  class Decisions extends MockDecisions {
+    override async checkHypothesis(): Promise<'irrelevant'> { await coverageStarted.promise; return 'irrelevant'; }
+  }
+  class Reasoning extends MockReasoning {
+    override async constructed(input: ConstructedInput) {
+      if (input.task === 'cognition_coverage') {
+        const prediction = input.predictions?.find(prediction => prediction.gapOrigin && prediction.status === 'open');
+        if (prediction) {
+          coverageStarted.release(); await evaluationCommitted.promise;
+          return { operation: 'SUFFICIENT', reason: 'Explicit concurrent-update plumbing fixture',
+            adjustments: [{ predictionId: prediction.id, operation: 'abandon', revision: null, reason: 'Stale coverage proposal' }] };
+        }
+      }
+      return super.constructed(input);
+    }
+  }
+  const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
+  try {
+    const agent = app.createAgent();
+    const first = await app.message(agent.id, 'A first signal.', 'observer', 'race'); await app.runtime.idle(agent.id);
+    const hypothesis = app.runtime.predictions.formGap(store.world(first.cycle.worldId), {
+      expectation: 'A later signal may clarify the source.', confidence: 0.5, horizon: 'After another observation', evaluateAfterCycle: first.cycle.sequence + 1,
+      capsule: { interpretation: 'The source is unclear', details: ['First signal'], entities: ['source'], activation: 0, spike: 0, sourceIds: [first.cycle.worldId] },
+    }, { threadId: 'race', gap: 'Unknown signal source', consequentialValue: 'Clarify source', futureInference: {
+      prediction: 'Clarify expectation', retrieval: 'Recall evidence', causal: 'Distinguish sources', action: 'Seek evidence', compression: 'Preserve distinction' }, existingStructureInsufficient: 'Explicit fixture gap' });
+    app.inspection.subscribe(event => { if (event.type === 'prediction.evaluation' && event.payload.prediction.id === hypothesis.id) evaluationCommitted.release(); });
+    const second = await app.message(agent.id, 'A later signal.', 'observer', 'race'); await app.runtime.idle(agent.id);
+    assert.equal(second.cycle.status, 'completed');
+    assert.equal(store.get('prediction', hypothesis.id).status, 'invalidated');
+    assert.equal(store.get('prediction', hypothesis.id).version, 2);
+    const discarded = store.eventsByType(agent.id, ['prediction.update_discarded'], [second.cycle.id]);
+    assert.ok(discarded.some(event => event.type === 'prediction.update_discarded' && event.payload.predictionId === hypothesis.id && event.payload.expectedVersion === 1 && event.payload.currentVersion === 2));
+    assert.equal(store.eventsByType(agent.id, ['infrastructure.error'], [second.cycle.id]).length, 0);
+  } finally { coverageStarted.release(); evaluationCommitted.release(); await app.close(); store.close(); }
+});

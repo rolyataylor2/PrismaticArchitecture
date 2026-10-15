@@ -128,6 +128,7 @@ export type EventPayloads = {
   'part.reasoning_started': { partId: string; provider: string };
   'part.thought': { inferenceSource?: InferenceSource; partId: string; partSnapshot: Part; predictionSnapshot: Prediction | null; output: Cognition; durationMs: number; recalledMemoryIds?: string[] };
   'prediction.formation_checked': { partId: string; shouldPredict: boolean; provider: string };
+  'prediction.update_discarded': { predictionId: string; expectedVersion: number; currentVersion: number; worldId: string; operation: string; reason: string };
   'prediction.outcome_checked': { partId: string | null; predictionId: string; outcome: PredictionOutcome; provider: string };
   'part.prediction_created': Prediction;
   'part.prediction_revised': Prediction;

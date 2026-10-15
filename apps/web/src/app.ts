@@ -440,7 +440,7 @@ const fieldDescriptions: Record<string, string> = {
 let formDescriptionId = 0;
 function standardizeForms(): void {
   for (const label of document.querySelectorAll<HTMLLabelElement>('label:not(.form-setting)')) {
-    if (label.closest('.research-dashboard, .rd-dialog')) continue;
+    if (label.closest('.research-dashboard, .rd-dialog, .perception-transport')) continue;
     if (label.matches('.identity-wizard-question, .identity-version-option') || label.querySelector('input[type="radio"], input[data-filter-group]')) continue;
     const controls = Array.from(label.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'));
     if (!controls.length) continue;
@@ -1610,6 +1610,25 @@ function perceptionPage(): void {
   play.disabled = !current || perceptionControlPending || (!draft.dirty && (!streamStatus || streamStatus.status === 'running'));
   play.title = draft.dirty && current ? 'Finalize sensor observations and continue cognition' : !current ? 'Return to the current WorldState to start cognition' : !streamStatus ? 'No resumable cognition stream recorded for this snapshot' : streamStatus.status === 'running' ? 'Cognition is already running' : 'Resume cognition with the configured activation allowance';
   transport.append(play);
+  if (current) {
+    const singleCycleLabel = node('label', '', 'row perception-single-cycle');
+    const singleCycle = node('input'); singleCycle.type = 'checkbox'; singleCycle.disabled = true;
+    singleCycleLabel.append(singleCycle, document.createTextNode('Single Cycle'));
+    singleCycleLabel.title = 'Run one disposition activation pass and finish admitted cognition and Self evaluation, then pause. Uncheck to allow continued activation.';
+    transport.append(singleCycleLabel);
+    void api<{ activationPassLimit: number | null }>(`agents/${agentId}/activation-settings`).then(settings => {
+      if (!singleCycle.isConnected || agentId !== selectedAgent || databaseId !== selectedDatabase) return;
+      singleCycle.checked = settings.activationPassLimit === 1; singleCycle.disabled = perceptionControlPending;
+    }).catch(showError);
+    singleCycle.onchange = () => {
+      const activationPassLimit = singleCycle.checked ? 1 : null;
+      perceptionControlPending = true; render();
+      void api(`agents/${agentId}/activation-settings`, 'PATCH', { activationPassLimit }).catch(showError).finally(() => {
+        perceptionControlPending = false;
+        if (agentId === selectedAgent && databaseId === selectedDatabase) render();
+      });
+    };
+  }
   page.append(transport);
   page.append(node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
   perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current, snapshot?.payload.thoughtHistory ?? []);

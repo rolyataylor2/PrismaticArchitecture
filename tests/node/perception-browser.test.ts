@@ -59,6 +59,18 @@ test('Play resumes the current snapshot’s cognition stream through the normal 
   try {
     const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    const singleCycle = page.getByRole('checkbox', { name: 'Single Cycle', exact: true });
+    await singleCycle.waitFor();
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled);
+    assert.equal(await singleCycle.isChecked(), true);
+    const unlimitedSaved = page.waitForResponse(response => response.url().endsWith('/activation-settings') && response.request().method() === 'PATCH');
+    await singleCycle.uncheck(); await unlimitedSaved;
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled);
+    assert.equal(app.agentActivationSettings(agent.id).activationPassLimit, null);
+    const singleSaved = page.waitForResponse(response => response.url().endsWith('/activation-settings') && response.request().method() === 'PATCH');
+    await singleCycle.check(); await singleSaved;
+    await page.waitForFunction(() => !document.querySelector<HTMLInputElement>('input[type="checkbox"]')?.disabled);
+    assert.equal(app.agentActivationSettings(agent.id).activationPassLimit, 1);
     const play = page.getByRole('button', { name: 'Play cognition', exact: true });
     await play.waitFor();
     assert.equal(await play.isEnabled(), true);
@@ -69,7 +81,14 @@ test('Play resumes the current snapshot’s cognition stream through the normal 
     assert.equal(control.ok(), true);
     assert.deepEqual(control.request().postDataJSON(), { threadId: 'play-thread', directive: 'resume' });
     await app.runtime.idle(agent.id);
-    assert.ok(store.events(agent.id).filter(event => event.type === 'worldstate.frozen').length > before);
+    assert.equal(store.events(agent.id).filter(event => event.type === 'worldstate.frozen').length, before + 1);
+    assert.equal(app.runtime.streamStatus(agent.id, 'play-thread')?.status, 'paused');
+    const lastCycle = store.cycles(agent.id).at(-1)!;
+    assert.equal(lastCycle.status, 'completed');
+    assert.ok(store.eventsByType(agent.id, ['self.choice'], [lastCycle.id]).length > 0);
+    await page.screenshot({ path: '/tmp/prism-single-cycle-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-single-cycle-mobile.png', fullPage: true });
     await page.getByRole('status').filter({ hasText: 'Current' }).waitFor();
     await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Play cognition', exact: true }).isDisabled(), true);
