@@ -3364,7 +3364,8 @@ function modelSettings(): void {
   imageSettings();
   const panel = card('Model inference for this Agent');
   panel.append(node('p', 'Choose from models whose provider credentials are available above. Model choices use the matching saved key.', 'muted'));
-  content.append(panel);
+  const resources = card('Per-thought resources');
+  content.append(panel, resources);
   const agentId = selectedAgent;
   void Promise.all([api<{ model: string; thoughtRouting: { enabled: boolean; intuitiveModel: string; deliberativeModel: string; escalateAfterIncorrectPredictions?: number } | null; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string; provider?: string }[] }>(`agents/${agentId}/settings`), api<{ providers: { id: string }[] }>(`agents/${agentId}/providers`)]).then(([configuration, connections]) => {
     if (agentId !== selectedAgent) return;
@@ -3374,7 +3375,7 @@ function modelSettings(): void {
     const empty = new Option(availableProviders.size ? 'Choose an available model' : 'Add a generative provider above', ''); empty.disabled = true; select.append(empty);
     for (const item of configuration.availableModels) { const option = node('option', item.label); option.value = item.id; select.append(option); }
     select.value = configuration.model;
-    const modelLabel = node('label', 'Model'); modelLabel.append(select); panel.append(modelLabel, node('h3', 'Per-thought resources'));
+    const modelLabel = node('label', 'Model'); modelLabel.append(select); panel.append(modelLabel);
     const routingEnabled = node('input'); routingEnabled.type = 'checkbox'; routingEnabled.checked = configuration.thoughtRouting?.enabled ?? false;
     const routingLabel = node('label', 'Assess resources separately for each thought'); routingLabel.append(routingEnabled);
     const intuitive = node('select'); intuitive.setAttribute('aria-label', 'Intuitive thought model');
@@ -3403,15 +3404,15 @@ function modelSettings(): void {
     }
     const intuitiveLabel = node('label', 'Intuitive thought model'); intuitiveLabel.append(intuitive);
     const deliberativeLabel = node('label', 'Deliberative thought model'); deliberativeLabel.append(deliberative);
-    panel.append(routingLabel, node('p', 'Optional workload assessment adds an inference call. Complex or uncertain thoughts use the deliberative model, including urgent thoughts. Each model uses its provider’s saved key. These settings do not change disposition identity.', 'muted'), intuitiveLabel, deliberativeLabel);
-    const escalation = field(panel, 'Consecutive incorrect predictions before escalation', String(configuration.thoughtRouting?.escalateAfterIncorrectPredictions ?? 2), false) as HTMLInputElement;
+    resources.append(routingLabel, node('p', 'Optional workload assessment adds an inference call. Complex or uncertain thoughts use the deliberative model, including urgent thoughts. Each model uses its provider’s saved key. These settings do not change disposition identity.', 'muted'), intuitiveLabel, deliberativeLabel);
+    const escalation = field(resources, 'Consecutive incorrect predictions before escalation', String(configuration.thoughtRouting?.escalateAfterIncorrectPredictions ?? 2), false) as HTMLInputElement;
     escalation.type = 'number'; escalation.min = '1'; escalation.max = '10';
     const thoughtRouting = () => ({ enabled: routingEnabled.checked, intuitiveModel: intuitive.value, deliberativeModel: deliberative.value, escalateAfterIncorrectPredictions: Number(escalation.value) });
     const save = button('Save model settings', async () => {
       await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, thoughtRouting: thoughtRouting() });
       notice.textContent = 'Agent inference settings saved.'; render();
     });
-    const updateSave = () => { save.disabled = !select.value; }; select.addEventListener('change', updateSave); updateSave(); panel.append(save);
+    const updateSave = () => { save.disabled = !select.value; }; select.addEventListener('change', updateSave); updateSave(); resources.append(save);
   }).catch(showError);
   const evidence = card('Observed model evidence'); content.append(evidence);
   evidence.append(node('p', 'Loading recorded model operations…', 'muted'));
