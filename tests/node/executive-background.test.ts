@@ -118,7 +118,7 @@ test('a failed originating cycle cannot authorize a queued worker or fabricate c
 });
 
 
-test('disabling during background work blocks later submissions and disconnects feedback', async () => {
+for (const disableModule of [false, true]) test(`disabling ${disableModule ? 'Tool execution module' : 'Executive'} during background work blocks later submissions and disconnects feedback`, async () => {
   const { app, store, agent } = fixture(true);
   try {
     const first = await app.message(agent.id, 'Run slow fixture.', 'user', 'origin');
@@ -126,7 +126,7 @@ test('disabling during background work blocks later submissions and disconnects 
       event.type === 'execution.tool_trace' && event.payload.phase === 'submitted');
     await until(() => submitted().length === 1);
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: false, revision: profile.revision + 1 }, profile.revision);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: disableModule, modules: { ...profile.modules, tools: false }, revision: profile.revision + 1 }, profile.revision);
     await app.executiveWorkers.wait(agent.id, first.execution!.id);
     assert.equal(submitted().length, 1, 'An earlier captured contract cannot submit after disabling');
     assert.notEqual(store.executions(agent.id)[0]!.status, 'completed');

@@ -149,3 +149,5 @@ Structural reconciliation logs individual citation, evidence and lifecycle polic
 Researcher external-fact replacements (ADR 0166) enter the ordinary runtime as a new immutable observation, including an empty set. They skip prior external fact carryover for that observation and record a boundary for later context assembly. Subjective context and in-flight snapshots remain unchanged.
 
 Async prediction updates, including gap reflection and coverage adjustments, commit only against their inference input version. Superseded output emits prediction.update_discarded and preserves the newer version without failing the cognitive cycle or rebasing old conclusions. Explicit synchronous edits retain ordinary optimistic conflict errors.
+
+ADR 0167 adds Speaking and Tool execution permissions beneath the existing Executive master switch. Runtime checks the selected action module before contract creation and again before external handoff; disabled proposals remain recorded. Tool/skill/guidance context and checkpoint cognition require Tool execution. Legacy profiles retain both modules beneath the existing master switch; no new cognitive process is introduced.

@@ -23,6 +23,6 @@ export class ChatExecutor implements Executor {
     const executionId = id('execution');
     return ExecutionSchema.parse({ id: executionId, agentId, cycleId, action: bids[0]!.action, status: 'completed',
       speech: { bidIds: bids.map(bid => bid.id), text: output.text },
-      facts: [{ source: 'Agent', kind: 'says', text: output.text, referenceId: executionId, timestamp: now(), originCycleId: cycleId }] });
+      facts: [{ source: 'Sensor audio', kind: 'says', text: `You said: ${output.text}`, referenceId: executionId, timestamp: now(), originCycleId: cycleId }] });
   }
 }

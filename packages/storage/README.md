@@ -128,3 +128,7 @@ Inspection may persist explicit invoking research-stage metadata separately from
 ADR 0160 permits explicitly disposition-attributed partless synthesis memories alongside gap episodes. Storage validates same-Agent sleep/disposition lineage, immutable distinct source versions and preserved ancestry. Optional per-disposition recall exclusions use versioned JSON; no migration or global source archival is needed. Branching remaps these references with the existing identifier map.
 
 ADR 0166 replacement snapshots bound automatic thread-scoped external fact carryover: recentFacts excludes records before the latest replacement boundary. Historical rows and subjective memory remain intact.
+
+Executive profiles default missing ADR 0167 module permissions to Speaking and Tool execution enabled under the existing master switch. No schema migration or historical rewrite is needed. Automatic execution feedback respects each action module, and tool checkpoint/teaching feedback requires Tool execution.
+
+Completed speech execution feedback projects into Sensor audio with `You said: [rendered text]`, including legacy speech records. Projection preserves timestamp, cycle and execution references without changing archived executions or frozen snapshots.

@@ -332,3 +332,7 @@ Every item enters WorldState as an `observes` fact with source `Sensor <type>`, 
 ## Perception fact editing
 
 The perception tabs stage a complete external-fact set for the next observation. Play submits validated facts through ordinary message intake with an expected latest snapshot ID. Stale edits reject; recorded snapshots and subjective context are never rewritten. General world facts retain their external provenance. Empty fact sets are valid observations.
+
+ADR 0167 Executive modules gate operational discovery, skill-document intake, checkpoint feedback, procedural learning and per-call MCP submission independently of Speaking. Module permissions persist and copy with Executive profiles. Administrative inspection and grants remain available separately.
+
+Chat execution records completed realized speech as Sensor audio / says with `You said: [text]`. The exact unprefixed rendered words remain in execution.speech.text. Proposed or failed speech never supplies spoken feedback.

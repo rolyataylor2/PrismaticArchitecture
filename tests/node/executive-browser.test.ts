@@ -73,7 +73,18 @@ test('Executive panels persist operational configuration and discover/grant real
     assert.deepEqual(await page.locator('.executive-panel > h3').allTextContents(),
       ['Runtime', 'MCP Connections', 'Autonomy & Recovery', 'Environmental Sensitivity', 'Skills & Learning', 'Imports', 'Feedback & Diagnostics']);
     assert.equal(await page.getByLabel('Enable Executive', { exact: true }).isChecked(), false);
+    assert.equal(await page.getByLabel('Speaking', { exact: true }).isDisabled(), true);
+    assert.equal(await page.getByLabel('Tool execution', { exact: true }).isDisabled(), true);
     await page.getByLabel('Enable Executive', { exact: true }).check();
+    assert.equal(await page.getByLabel('Speaking', { exact: true }).isEnabled(), true);
+    await page.getByLabel('Speaking', { exact: true }).uncheck();
+    const masterBounds = await page.getByLabel('Enable Executive', { exact: true }).boundingBox();
+    const moduleBounds = await page.getByRole('group', { name: 'Modules', exact: true }).boundingBox();
+    assert.ok(masterBounds && moduleBounds && moduleBounds.y > masterBounds.y);
+    await page.screenshot({ path: '/tmp/prism-executive-modules-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-executive-modules-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByLabel('Execution mode', { exact: true }).selectOption('background');
     assert.equal(await page.getByRole('tabpanel').count(), 1, 'Only the selected section is visible');
     await page.getByRole('tab', { name: 'Autonomy & Recovery', exact: true }).click();
@@ -89,6 +100,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByRole('button', { name: 'Save Executive profile', exact: true }).click();
     await page.getByText('Saved profile revision 1', { exact: true }).waitFor();
     assert.equal(store.executiveProfile(agent.id).enabled, true);
+    assert.deepEqual(store.executiveProfile(agent.id).modules, { speaking: false, tools: true });
     assert.equal(store.executiveProfile(agent.id).executionMode, 'background');
     assert.equal(store.executiveProfile(agent.id).limits.maxSteps, 3);
     assert.equal(store.executiveProfile(agent.id).sensitivity.novelty.threshold, 0.6);

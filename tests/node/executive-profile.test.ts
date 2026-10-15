@@ -18,7 +18,7 @@ test('explicit profile copy preserves both histories and isolation, rejecting st
   try {
     const source = app.createAgent('Source'); const target = app.createAgent('Target');
     const identity = structuredClone(store.get('identity', target.id));
-    const configured = { ...defaultExecutiveProfile(), revision: 1, executionMode: 'background' as const };
+    const configured = { ...defaultExecutiveProfile(), revision: 1, modules: { speaking: true, tools: false }, executionMode: 'background' as const };
     store.saveExecutiveProfile(source.id, configured, 0);
     const path = `/api/agents/${target.id}/executive-profile/copy`;
     const input = { sourceAgentId: source.id, sourceRevision: 1, expectedRevision: 0, reason: 'Reuse explicit external settings' };

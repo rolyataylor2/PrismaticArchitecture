@@ -51,7 +51,7 @@ let perceptionSnapshotId: string | null = null;
 let perceptionControlPending = false;
 type PerceptionFact = import('../../../packages/core/src/domain.js').Fact;
 let perceptionChannel = 'audio';
-type SensorDraft = { baseId?: string | null | undefined; dirty?: boolean; items: { channel: string; text: string; fact?: PerceptionFact }[]; speaker: string; speech: string; raw: Record<string, string>; requestId: string };
+type SensorDraft = { baseId?: string | null | undefined; dirty?: boolean; items: { channel: string; text: string; fact?: PerceptionFact; spokenAfterSnapshot?: boolean }[]; speaker: string; speech: string; raw: Record<string, string>; requestId: string };
 const sensorDrafts = new Map<string, SensorDraft>();
 function sensorDraft(): SensorDraft {
   const key = `${selectedDatabase}:${selectedAgent}`;
@@ -374,6 +374,9 @@ function field(parent: HTMLElement, title: string, value: string, multiline = fa
   const label = node('label', title); const input = multiline ? node('textarea') : node('input'); input.value = value; label.append(input); parent.append(label); return input;
 }
 const fieldDescriptions: Record<string, string> = {
+  'Enable Executive': 'Allow enabled modules to enact Self-selected actions.',
+  'Speaking': 'Allow selected Say and Ask actions to produce text replies.',
+  'Tool execution': 'Run native MCP tool steps with verification, background jobs, skills and checkpoint support. Tool grants and their settings still apply.',
   'Evaluate activation of dispositions that are thinking': 'Include busy dispositions in scoring. Their latest measured activation changes; their running thought continues unchanged.',
   'Maximum concurrent thoughts': 'Limit running scope inference across this Agent. Each disposition can run only one job at a time.',
   'Maximum queued thoughts': 'Bound waiting inference jobs. New context replaces queued context only for the same disposition and kind of work.',
@@ -1534,7 +1537,7 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
       const remove = button('Delete entry', () => { draft.items.splice(draft.items.indexOf(item), 1); changed(); render(); }, true); remove.disabled = perceptionControlPending;
       entry.append(input, remove);
     } else entry.append(node('p', item.text));
-    if (item.fact) entry.append(node('p', `${item.fact.source} · ${item.fact.kind} · ${item.fact.timestamp ?? 'Time unknown'}`, 'muted'));
+    if (item.fact) entry.append(node('p', `${'spokenAfterSnapshot' in item && item.spokenAfterSnapshot ? 'Spoken after this snapshot · ' : ''}${item.fact.source} · ${item.fact.kind} · ${item.fact.timestamp ?? 'Time unknown'}`, 'muted'));
     panel.append(entry);
   }
   if (current) {
@@ -1583,6 +1586,19 @@ function perceptionPage(): void {
   if (draft.baseId === undefined || (!draft.dirty && draft.baseId !== (latest?.id ?? null))) {
     draft.baseId = latest?.id ?? null;
     draft.items = (latest?.facts ?? []).map(fact => ({ channel: fact.source.startsWith('Sensor ') ? fact.source.slice(7) : 'general', text: fact.text, fact }));
+  }
+  if (current && !draft.dirty && snapshot) {
+    const seen = new Set(draft.items.flatMap(item => item.fact?.referenceId ? [item.fact.referenceId] : []));
+    for (const event of events) {
+      if (event.sequence <= snapshot.sequence || event.type !== 'execution.status' || event.payload.status !== 'completed' || !event.payload.speech) continue;
+      const execution = event.payload;
+      if (execution.action.kind !== 'say' && execution.action.kind !== 'ask') continue;
+      const executionThread = state?.cycles.find(cycle => cycle.id === execution.cycleId)?.threadId ?? null;
+      if (executionThread !== threadId || seen.has(execution.id)) continue;
+      const fact: PerceptionFact = { source: 'Sensor audio', kind: 'says', text: `You said: ${execution.speech!.text}`,
+        referenceId: execution.id, originCycleId: execution.cycleId, timestamp: execution.facts[0]?.timestamp ?? event.at };
+      draft.items.push({ channel: 'audio', text: fact.text, fact, spokenAfterSnapshot: true }); seen.add(execution.id);
+    }
   }
   const streamEvent = events.findLast(event => event.type === 'cognition.stream' && event.payload.threadId === threadId);
   const streamStatus = streamEvent?.type === 'cognition.stream' ? streamEvent.payload : null;

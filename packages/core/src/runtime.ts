@@ -1,3 +1,4 @@
+import { executiveActionEnabled, executiveModuleEnabled } from './executive-profile.js';
 import { commitmentProposals, recentCommitments } from './commitments.js';
 import { BidPool, contributionScope, type PoolEntry } from './bid-pool.js';
 import { ordinaryDisposition } from './domain.js';
@@ -150,7 +151,7 @@ export class CognitiveRuntime {
     let stage = 'worldstate';
     try {
       this.inspection.emit(agentId, cycle.id, 'cycle.started', cycle);
-      const executiveEnabled = this.store.executiveProfile(agentId).enabled;
+      const executiveEnabled = executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools');
       const externalExecutionRequests = executiveEnabled ? currentExecutionRequests(this.store, agentId, threadId ?? null, this.options.maxGuidanceContexts ?? 20) : [];
       const externalSkills = executiveEnabled ? publicSkills(this.store, agentId, threadId ?? null, this.options.maxSkillContexts ?? 20) : [];
       const world = freeze(WorldStateSchema.parse({ id: cycle.worldId, agentId, cycleId: cycle.id,
@@ -506,7 +507,7 @@ export class CognitiveRuntime {
       contributions.splice(0, contributions.length, ...poolSnapshot.contributions);
       contexts.clear();
       for (const [partId, context] of poolSnapshot.contexts) contexts.set(partId, context);
-      if (this.store.executiveProfile(agentId).enabled) activity ??= this.store.executions(agentId).filter(execution => execution.status === 'running')
+      if (executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools')) activity ??= this.store.executions(agentId).filter(execution => execution.status === 'running')
         .map(execution => selectedActivity(this.store, agentId, execution.id, threadId ?? null)).find(value => value !== null) ?? undefined;
       stage = 'self';
       const currentStream = this.streams.get(this.streamKey(agentId, threadId ?? null));
@@ -619,6 +620,8 @@ export class CognitiveRuntime {
         this.store.saveCycle(cycle);
         for (let index = 0; this.store.executiveProfile(agentId).enabled && index < selected.length; index++) {
           const selectedBid = selected[index]!;
+          const allowed = () => executiveActionEnabled(this.store.executiveProfile(agentId), selectedBid.action.kind);
+          if (!allowed()) continue;
           const group = [selectedBid];
           if (this.executor.executeSay && (selectedBid.action.kind === 'say' || selectedBid.action.kind === 'ask')) {
             while (selected[index + 1]?.action.kind === 'say' || selected[index + 1]?.action.kind === 'ask') group.push(selected[++index]!);
@@ -631,7 +634,7 @@ export class CognitiveRuntime {
             for (const bid of group) pool.rejectSelection(bid.id, reason);
             return false;
           };
-          if (!applicable()) continue;
+          if (!allowed() || !applicable()) continue;
           let packagedSelection: ReturnType<typeof selectSkillMethod>; let packageRejection: string | undefined;
           if (this.loadSkillPackage) {
             try {
@@ -652,7 +655,7 @@ export class CognitiveRuntime {
             }
           }
           if (!this.store.executiveProfile(agentId).enabled) break;
-          if (!applicable()) continue;
+          if (!allowed() || !applicable()) continue;
           const conditionChecks = await this.constructed.checkBidConditions(factualWorld(decisionWorld), group);
           let supported = true;
           for (const check of conditionChecks) {
@@ -669,7 +672,7 @@ export class CognitiveRuntime {
             for (const bid of group) pool.rejectSelection(bid.id, reason);
             continue;
           }
-          if (!applicable()) continue;
+          if (!allowed() || !applicable()) continue;
           const contract = this.inspection.atomic(() => {
             let continuation; let guidanceRejection; let selectedSkill; let skillRejection; let remainderRejection; let remainder;
             if (selectedBid.action.kind === 'operate' && selectedBid.action.operation.remainderCorrection) {
@@ -696,9 +699,9 @@ export class CognitiveRuntime {
             return compiled;
           });
           if (!this.store.executiveProfile(agentId).enabled) break;
-          if (!applicable()) continue;
+          if (!allowed() || !applicable()) continue;
           handoffs.push(async () => {
-            if (!applicable()) return;
+            if (!allowed() || !applicable()) return;
           for (const bid of group) this.inspection.emit(agentId, cycle.id, 'execution.handoff', { bid });
           execution = ExecutionSchema.parse(await (this.executor.executeSay && (selectedBid.action.kind === 'say' || selectedBid.action.kind === 'ask')
             ? this.executor.executeSay({ agentId, cycleId: cycle.id, bids: group, contract })
@@ -819,8 +822,8 @@ export class CognitiveRuntime {
   }
   private async monitorObservation(agentId: string, executionId: string, facts: Fact[], checkpoint: 'tool_result' | 'environment',
     competence: ExecutiveCompetence, externalCapabilities?: ExternalCapabilities, consultationReason?: string) {
-    if (!this.store.executiveProfile(agentId).enabled) {
-      if (consultationReason !== undefined) throw new Error('Executive is disabled');
+    if (!executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools')) {
+      if (consultationReason !== undefined) throw new Error('Executive tool execution is disabled');
       return null;
     }
     const incoming = z.array(FactSchema).min(1).max(50).parse(facts);
@@ -874,7 +877,7 @@ export class CognitiveRuntime {
         ...evaluateExecutiveAttention({ settings: profile.attention, relevance, competence, evidenceKey, at: cycle.startedAt,
           ...(previous?.type === 'execution.attention' ? { previous: previous.payload } : {}) }) };
       this.inspection.emit(agentId, cycle.id, 'execution.attention', attention);
-      if (this.store.executiveProfile(agentId).enabled && (requestedReason || (profile.attention.reviewInterested && attention.state === 'interested')) && activity
+      if (executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools') && (requestedReason || (profile.attention.reviewInterested && attention.state === 'interested')) && activity
         && selectedActivity(this.store, agentId, executionId, origin.threadId ?? null)) {
         cycle = { ...cycle, kind: 'attention_review' };
         this.store.saveCycle(cycle);

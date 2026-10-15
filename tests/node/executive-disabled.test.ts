@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { Application } from '../../packages/sdk/src/application.js';
 import { SqliteStore } from '../../packages/storage/src/sqlite.js';
 import { ExecutiveProfileSchema, defaultExecutiveProfile } from '../../packages/core/src/executive-profile.js';
+import { MockReasoning, MockDecisions, MockEmbeddings } from '../../packages/providers/src/mock.js';
+import { PartGenerationSchema, type ConstructedInput } from '../../packages/core/src/constructed-domain.js';
+import { id, type Execution } from '../../packages/core/src/domain.js';
 import { api } from '../../packages/sdk/src/api.js';
 
 test('Executive defaults off, including legacy profiles, and cognition selects without Executive connections', async () => {
@@ -73,4 +76,60 @@ test('direct runtime callers cannot inject Executive context while disconnected'
         referenceId: null, originCycleId: checkpoint.id }] });
     assert.ok(!store.recentFacts(agent.id, null).some(fact => fact.text === 'CHECKPOINT_FEEDBACK'));
   } finally { await app.close(); store.close(); }
+});
+
+// Module permissions are external dispatch plumbing, not a cognition hypothesis.
+for (const speaking of [false, true]) for (const tools of [false, true]) {
+  test(`Executive modules dispatch independently (speaking ${speaking}, tools ${tools})`, async () => {
+    const store = new SqliteStore(':memory:');
+    let operational = false; const dispatched: string[] = [];
+    class Reasoning extends MockReasoning {
+      override async constructed(input: ConstructedInput) {
+        const output = await super.constructed(input);
+        if (input.task !== 'part_cognition' || !operational) return output;
+        const generated = PartGenerationSchema.parse(output);
+        generated.cognition.proposal = { action: { kind: 'operate', text: 'Explicit operational fixture', operation: {
+          successCriteria: 'Fixture completed', constraints: [], steps: [], verification: null,
+        } }, argument: 'Module dispatch plumbing', identityFit: [], executionOrder: [] };
+        return generated;
+      }
+    }
+    const execute = async (input: Parameters<import('../../packages/core/src/contracts.js').Executor['execute']>[0]): Promise<Execution> => {
+      dispatched.push(input.bid.action.kind);
+      return { id: id('execution'), agentId: input.agentId, cycleId: input.cycleId, action: input.bid.action, status: 'completed', facts: [] };
+    };
+    class Decisions extends MockDecisions {
+      override async choose(context: Parameters<MockDecisions['choose']>[0]) {
+        const bid = context.contributions.find(contribution => contribution.bid?.action)?.bid; assert.ok(bid);
+        return { choice: bid.id, selectedBidIds: [bid.id], explanation: 'Explicit module dispatch fixture', identityConflict: '' };
+      }
+    }
+    const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }, { execute });
+    try {
+      const agent = app.createAgent(); const profile = store.executiveProfile(agent.id);
+      store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking, tools }, revision: 1 }, 0);
+      if (!tools) {
+        store.executiveSkills = () => { throw new Error('Tools-disabled cognition must not load skills'); };
+        app.executiveConnections.agentCatalog = async () => { throw new Error('Tools-disabled cognition must not discover MCP tools'); };
+      }
+      const speech = await app.message(agent.id, 'Hello.', 'user', 'speech'); await app.runtime.idle(agent.id);
+      assert.equal(Boolean(speech.execution), speaking);
+      assert.ok(speech.cycle.selectedBidIds?.length);
+      operational = true;
+      const operation = await app.message(agent.id, 'Do the fixture operation.', 'user', 'operation'); await app.runtime.idle(agent.id);
+      assert.equal(Boolean(operation.execution), tools);
+      assert.equal(dispatched.includes('operate'), tools);
+      if (!tools) {
+        const world = store.world(operation.cycle.worldId);
+        assert.equal(world.externalCapabilities, undefined); assert.equal(world.externalSkills, undefined);
+        await assert.rejects(app.consultExecution(agent.id, 'missing', [{ source: 'Executive', kind: 'observes', text: 'checkpoint', referenceId: null, timestamp: null }], 'review'), /disabled/);
+      }
+      assert.equal(store.eventsByType(agent.id, ['infrastructure.error']).length, 0);
+    } finally { await app.close(); store.close(); }
+  });
+}
+
+test('legacy enabled Executive profiles preserve both module permissions', () => {
+  const { modules: _modules, ...legacy } = defaultExecutiveProfile();
+  assert.deepEqual(ExecutiveProfileSchema.parse({ ...legacy, enabled: true }).modules, { speaking: true, tools: true });
 });

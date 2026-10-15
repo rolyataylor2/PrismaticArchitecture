@@ -10,6 +10,7 @@ export const ExecutionLimitsSchema = z.strictObject({
 /** External configuration. Unimplemented adapters cannot be selected. */
 export const ExecutiveProfileSchema = z.strictObject({
   enabled: z.boolean().default(false),
+  modules: z.strictObject({ speaking: z.boolean().default(true), tools: z.boolean().default(true) }).default(() => ({ speaking: true, tools: true })),
   revision: z.number().int().nonnegative(), runtime: z.literal('native'),
   executionMode: z.enum(['synchronous', 'background']).default('synchronous'),
   learningMode: z.enum(['disabled', 'supervised', 'validated_automatic']),
@@ -25,4 +26,13 @@ export function defaultExecutiveProfile(): ExecutiveProfile {
     allowEquivalentMethods: true,
     limits: { maxSteps: 20, maxRetries: 2, maxParallelJobs: 1, maxDurationMs: 30000, maxGuidanceRequests: 2 },
     sensitivity: defaultExecutiveSensitivity() });
+}
+
+/** Permissions gate external dispatch; they never rewrite a selected cognitive proposal. */
+export function executiveModuleEnabled(profile: ExecutiveProfile, module: keyof ExecutiveProfile['modules']): boolean {
+  return profile.enabled && profile.modules[module];
+}
+export function executiveActionEnabled(profile: ExecutiveProfile, kind: 'say' | 'ask' | 'operate' | 'wait'): boolean {
+  return kind === 'say' || kind === 'ask' ? executiveModuleEnabled(profile, 'speaking')
+    : kind === 'operate' ? executiveModuleEnabled(profile, 'tools') : profile.enabled;
 }

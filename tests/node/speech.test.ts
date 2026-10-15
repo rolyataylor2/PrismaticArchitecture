@@ -63,11 +63,12 @@ test('consecutive selected Say commands become one voiced utterance with exact t
     assert.equal(result.execution!.speech!.text, 'Right. Here is what I mean.');
     assert.deepEqual(result.execution!.speech!.bidIds, result.cycle.selectedBidIds);
     assert.equal(result.execution!.action.text, contexts[0]!.commands[0]!.text);
-    assert.equal(result.execution!.facts[0]!.text, result.execution!.speech!.text);
+    assert.equal(result.execution!.facts[0]!.text, `You said: ${result.execution!.speech!.text}`);
+    assert.equal(result.execution!.facts[0]!.source, 'Sensor audio');
     const handoffs = store.events(agent.id).flatMap(e => e.type === 'execution.handoff' ? [e.payload.bid] : []);
     assert.equal(handoffs.length, 2);
     const next = await app.message(agent.id, 'Continue.');
-    assert.ok(store.world(next.cycle.worldId).facts.some(fact => fact.text === 'Right. Here is what I mean.' && fact.originCycleId === result.cycle.id));
+    assert.ok(store.world(next.cycle.worldId).facts.some(fact => fact.text === 'You said: Right. Here is what I mean.' && fact.source === 'Sensor audio' && fact.originCycleId === result.cycle.id));
   } finally { store.close(); }
 });
 
@@ -169,7 +170,7 @@ test('chat Executor rejects non-dialogue speech input before inference', async (
   } finally { store.close(); }
 });
 
-test('browser chat displays the realized utterance and Settings exposes the editable Speech prompt', async t => {
+test('cycle inspector displays the realized utterance and Settings exposes the editable Speech prompt', async t => {
   const { existsSync } = await import('node:fs');
   const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
   if (!existsSync(executable)) { t.skip('Chrome is unavailable'); return; }
@@ -183,8 +184,25 @@ test('browser chat displays the realized utterance and Settings exposes the edit
     const page = await browser.newPage(); const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as import('node:net').AddressInfo).port}`);
-    await page.locator('.chat-message.agent').getByText('All right. Let me put it my way.', { exact: true }).waitFor();
-    assert.equal(await page.locator('.chat-message.agent').count(), 1);
+    await page.getByRole('tab', { name: /^Audio/ }).click();
+    const spoken = page.getByRole('textbox', { name: 'Edit audio observation', exact: true });
+    await page.waitForFunction(() => [...document.querySelectorAll('textarea')].some(input => input.value === 'You said: All right. Let me put it my way.'));
+    assert.ok((await spoken.evaluateAll(inputs => inputs.map(input => (input as HTMLTextAreaElement).value))).includes('You said: All right. Let me put it my way.'));
+    await page.getByRole('tab', { name: /^General world facts/ }).click();
+    assert.ok((await page.getByRole('textbox', { name: 'Edit general observation', exact: true }).evaluateAll(inputs => inputs.map(input => (input as HTMLTextAreaElement).value))).every(text => !text.startsWith('You said:')));
+    const firstWorld = store.world(store.cycles(agent.id)[0]!.worldId); const frozen = JSON.stringify(firstWorld);
+    await app.message(agent.id, 'Continue the exchange.', 'user', store.cycles(agent.id)[0]!.threadId);
+    await page.getByText(/^Snapshot 2 ·/).waitFor();
+    await page.getByRole('tab', { name: /^Audio/ }).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('textarea')].filter(input => input.value === 'You said: All right. Let me put it my way.').length === 2);
+    await page.screenshot({ path: '/tmp/prism-spoken-audio-desktop.png', fullPage: true });
+    await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
+    assert.equal(await page.getByRole('tabpanel').getByText('You said: All right. Let me put it my way.', { exact: true }).count(), 0);
+    assert.equal(JSON.stringify(store.world(firstWorld.id)), frozen);
+    await page.getByRole('button', { name: 'Next WorldState', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect source cycle', exact: true }).click();
+    await page.getByRole('dialog').getByText('All right. Let me put it my way.', { exact: true }).first().waitFor();
+    await page.getByRole('button', { name: 'Close inspector', exact: true }).click();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('button', { name: 'Prompts', exact: true }).click();
     await page.getByRole('button', { name: /Select prompt/ }).click();

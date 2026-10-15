@@ -335,3 +335,7 @@ Perception displays sensor channels and General world facts as keyboard-accessib
 Decaying thoughts appear in a dedicated read-only WorldState tab for both current and past snapshots, retaining Part attribution, recorded age and Self-selection status.
 
 Perception playback exposes Single Cycle using the existing per-Agent activation-pass setting: checked saves one pass; unchecked saves unlimited passes. Play starts or resumes that allowance while admitted Part cognition, prediction evaluation and Self finish. It does not cancel in-flight cognition.
+
+Executive Runtime shows Speaking and Tool execution module switches directly below Enable Executive. The master switch disables both; saved module choices survive switching it off. Speaking realizes selected Say/Ask as text. Tool execution gates native/MCP operations and their tool/skill/checkpoint context. Skills, verification, background execution and monitoring retain their existing settings; audible playback and external-agent adapters remain unavailable.
+
+Completed realized replies appear in Audio as `You said: [text]`. The current view also shows same-thread completed speech recorded after the frozen snapshot, explicitly labeled; browsing past snapshots never adds later speech. Live speech entries do not trigger activation or dirty the researcher draft. Ordinary next-snapshot intake retains the audio feedback with its execution reference.
