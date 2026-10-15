@@ -1519,7 +1519,7 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
   const panel = node('div', '', 'sensor-channel'); panel.id = 'sensor-panel'; panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `sensor-tab-${perceptionChannel}`);
   if (perceptionChannel === '#thoughts') {
     panel.append(node('p', 'Attributed subjective thoughts carried into this snapshot.', 'muted'));
-    for (const thought of thoughts) {
+    for (const thought of thoughts.toReversed().sort((a, b) => a.age - b.age)) {
       const entry = node('article', '', 'perception-fact');
       entry.append(node('h4', thought.partName), node('p', thought.thought), node('p', `Age: ${thought.age} · ${thought.selectedBySelf ? 'Selected by Self' : 'Not selected by Self'}`, 'muted'));
       panel.append(entry);
