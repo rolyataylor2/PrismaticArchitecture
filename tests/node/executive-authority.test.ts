@@ -96,7 +96,7 @@ test('framework duration budgets abort submitted calls and cannot be reset by re
   } };
   app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() }, replacement);
   const agent = app.createAgent(); const profile = defaultExecutiveProfile(); profile.revision = 1; profile.limits.maxDurationMs = 200;
-  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true }, 0);
+  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true } }, 0);
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [slow, echo] }, 0);

@@ -73,7 +73,7 @@ async function fixture(mode: 'thoughts' | 'continue' | 'pause' | 'invalid_contin
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'hold' }] }, 0);
   const profile = defaultExecutiveProfile();
-  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
+  store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 4 },
     attention: { ...profile.attention, enabled: true, reviewInterested: true, awaitCheckpointReview } }, 0);
   return { app, store, agent, inputs, judgments, selves, forceTarget: (id: string) => { forcedTarget = id; },
     holdAssessment: () => {
@@ -89,7 +89,7 @@ test('explicit consultation reports activity ending during assessment without st
   let release: (() => void) | undefined;
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: profile.revision + 1,
       attention: { ...profile.attention, enabled: false } }, profile.revision);
     const first = await app.message(agent.id, 'Start the prescribed external procedure.', 'user', 'origin');
     const held = holdAssessment(); release = held.release;
@@ -120,7 +120,7 @@ test('explicit host consultation uses ordinary cognition with automatic monitori
   const { app, store, agent, inputs, selves } = await fixture('continue', false, 0);
   try {
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: profile.revision + 1,
       attention: { ...profile.attention, enabled: false, reviewInterested: false } }, profile.revision);
     const first = await app.message(agent.id, 'Start the prescribed external procedure.', 'user', 'origin');
     const original = structuredClone(store.world(first.cycle.worldId));

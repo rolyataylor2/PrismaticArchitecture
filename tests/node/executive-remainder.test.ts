@@ -75,7 +75,7 @@ for (const mode of ['correct', 'stale', 'permission_revoked', 'over_budget'] as 
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
     const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 3 },
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode: 'background', limits: { ...profile.limits, maxSteps: 3 },
       attention: { ...profile.attention, enabled: true, reviewInterested: true, awaitCheckpointReview: true } }, 0);
     const first = await app.message(agent.id, 'Run the prescribed fixture.', 'user', 'origin');
     const originalWorld = structuredClone(store.world(first.cycle.worldId));
@@ -159,7 +159,7 @@ for (const mode of ['correct', 'stale', 'permission_revoked', 'over_budget'] as 
     freshOperation = { ...member.procedure, steps: [], verification: null,
       skillInvocation: { skillId: approvedFamily.id, version: approvedFamily.version, branchId: approvedFamily.conditional!.branches[0]!.id } };
     const currentProfile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...currentProfile, enabled: true, revision: currentProfile.revision + 1, executionMode: 'synchronous',
+    store.saveExecutiveProfile(agent.id, { ...currentProfile, enabled: true, modules: { speaking: true, tools: true }, revision: currentProfile.revision + 1, executionMode: 'synchronous',
       attention: { ...currentProfile.attention, enabled: false } }, currentProfile.revision);
     const fresh = await app.message(agent.id, 'Use the approved exact whole procedure on a fresh task.', 'user', 'fresh-use');
     assert.equal(fresh.execution!.status, 'completed');

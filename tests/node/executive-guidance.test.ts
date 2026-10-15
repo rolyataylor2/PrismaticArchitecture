@@ -70,7 +70,7 @@ test('native guidance survives restart and reaches only later ordinary original-
     assert.equal(store.executions(agent.id).find(item => item.id === execution.id)!.status, 'needs_guidance');
     assert.equal(store.executiveSkills(agent.id).length, 0, 'A guidance request does not teach a procedure');
     const profile = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1,
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: profile.revision + 1,
       limits: { ...profile.limits, maxGuidanceRequests: 0 } }, profile.revision);
     missing = true;
     const exhausted = await app.message(agent.id, 'The request budget is disabled.', 'user', 'origin');

@@ -107,3 +107,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 [ADR 0164: Compact simulation evaluation evidence](0164-compact-simulation-evaluation-evidence.md) defines evaluator packet selection, deduplication and bounded criterion requests.
 
 [ADR 0165: Continuous asynchronous cognition](0165-continuous-asynchronous-cognition.md) defines the single-runtime cutover, busy-scope policy, activation allowances and remaining integration obligations.
+
+[ADR 0169: Speech-only Executive default](0169-speech-only-executive-default.md) enables Speaking in default profiles while requiring explicit Tool execution enablement.

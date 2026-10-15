@@ -340,3 +340,5 @@ Chat execution records completed realized speech as Sensor audio / says with `Yo
 The Agent PATCH endpoint accepts a name and optional short display avatar, persisted together as a versioned researcher profile edit. Name-only requests preserve the existing avatar.
 
 Agent profile image authoring is an administrative service, separate from cognition. `image-settings` GET/PATCH stores a per-Agent Cloudflare Account ID and vault-encrypted token, returning only credential presence. `generate-image` POST sends an explicit researcher prompt to FLUX.1 Schnell and returns an unsaved JPEG draft; only the ordinary profile PATCH commits it. Credentials are never included in Agent objects or model contexts.
+
+ADR 0169 changes the default Executive profile to enabled with Speaking on and Tool execution off. Existing saved choices and legacy profile parsing remain unchanged. Executive → Runtime exposes both module switches; tool use requires explicit enablement.

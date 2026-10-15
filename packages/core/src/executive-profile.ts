@@ -22,7 +22,7 @@ export const ExecutiveProfileSchema = z.strictObject({
 });
 export type ExecutiveProfile = z.infer<typeof ExecutiveProfileSchema>;
 export function defaultExecutiveProfile(): ExecutiveProfile {
-  return ExecutiveProfileSchema.parse({ revision: 0, runtime: 'native', learningMode: 'supervised',
+  return ExecutiveProfileSchema.parse({ enabled: true, modules: { speaking: true, tools: false }, revision: 0, runtime: 'native', learningMode: 'supervised',
     allowEquivalentMethods: true,
     limits: { maxSteps: 20, maxRetries: 2, maxParallelJobs: 1, maxDurationMs: 30000, maxGuidanceRequests: 2 },
     sensitivity: defaultExecutiveSensitivity() });

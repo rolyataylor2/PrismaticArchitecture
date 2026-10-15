@@ -50,3 +50,5 @@ MCP progress notifications are bounded attributed diagnostics under the original
 Official SDK tool-list notifications invalidate the host catalog immediately. Subsequent discovery and calls share a fresh schema lookup before validating arguments; refresh failure never substitutes stale definitions. Notifications only invalidate metadata, without executing a tool or extending current grants and selected authority. Changes arriving during discovery remain pending for subsequent refresh.
 
 ADR 0155 disables the Executive connection by default. Current per-Agent enablement gates every host tool submission even for an earlier contract. Already submitted results remain audit evidence; disabled feedback does not enter cognition.
+
+ADR 0169 changes the default Executive profile to enabled with Speaking on and Tool execution off. Existing saved choices and legacy profile parsing remain unchanged. Executive → Runtime exposes both module switches; tool use requires explicit enablement.

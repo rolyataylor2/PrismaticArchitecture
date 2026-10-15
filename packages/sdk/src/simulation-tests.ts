@@ -898,7 +898,7 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
         args: [fileURLToPath(new URL('../../simulation/fixtures/executive-attention.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 35000 }] }, registry.revision);
       app.store.saveMcpPermissions(run.agentId, { revision: 1, tools: ['read_tick', 'hold'].map(toolName => ({ serverId: sandboxId, toolName })) }, 0);
       const profile = app.store.executiveProfile(run.agentId);
-      app.store.saveExecutiveProfile(run.agentId, { ...profile, enabled: true, revision: profile.revision + 1, executionMode: 'background', learningMode: definition.procedureLearning ? 'supervised' : 'disabled',
+      app.store.saveExecutiveProfile(run.agentId, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: profile.revision + 1, executionMode: 'background', learningMode: definition.procedureLearning ? 'supervised' : 'disabled',
         ...(definition.skillReviewPolicy ? { skillReviewPolicy: definition.skillReviewPolicy } : {}),
         ...(definition.consolidationPolicy ? { consolidation: definition.consolidationPolicy } : {}),
         limits: { ...profile.limits, maxSteps: 4, maxDurationMs: 60000 },

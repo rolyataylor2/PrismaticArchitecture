@@ -124,7 +124,7 @@ test('automatic learning requires real successful evidence; failure and adapter 
     }) } : undefined;
     const { store, app, agent } = fixture(':memory:', kind === 'failure', executor, false);
     try {
-      const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, learningMode: 'validated_automatic' }, 0);
+      const profile = store.executiveProfile(agent.id); store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: 1, learningMode: 'validated_automatic' }, 0);
       const run = await app.message(agent.id, 'Run the selected fixture.', 'user', 'origin');
       const skill = app.executiveSkills.proposeSkill(agent.id, proposal(run.execution!.contractId!));
       const validated = app.executiveSkills.validate(agent.id, skill.id, 1, run.execution!.id);
@@ -135,7 +135,7 @@ test('automatic learning requires real successful evidence; failure and adapter 
         executionId: run.execution!.id, at: new Date().toISOString(), result: 'passed', traceRefs: ['forged_trace'], limitations: ['Explicit forgery fixture'],
       }] };
       assert.throws(() => store.saveExecutiveSkill(forged, 2), kind === 'success' ? /proposed procedure/ : /recorded tool evidence/);
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 2, learningMode: 'disabled' }, 1);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, modules: { speaking: true, tools: true }, revision: 2, learningMode: 'disabled' }, 1);
       assert.throws(() => app.executiveSkills.proposeSkill(agent.id, proposal(run.execution!.contractId!)), /disabled/);
     } finally { await app.close(); store.close(); }
   }

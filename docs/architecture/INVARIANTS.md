@@ -12,7 +12,7 @@ The Executive Layer is an adapter that assembles Self-selected actions into immu
 
 ## Executive connection (ADR 0155)
 
-The Executive is disabled by default, including existing profiles without an explicit enabled setting. When off, cognition records selections without execution, operational context, feedback or checkpoint review. Enable it explicitly in Executive → Runtime. See [ADR 0155](decisions/0155-executive-disconnected-by-default.md).
+Default Executive profiles enable Speaking and disable Tool execution. Saved choices remain authoritative; legacy serialized profiles retain their compatibility interpretation. The master switch still disables all execution; tools require their separate module permission. See [ADR 0169](decisions/0169-speech-only-executive-default.md) and [ADR 0167](decisions/0167-executive-module-permissions.md).
 
 ## Conditional procedural knowledge (ADR 0147)
 

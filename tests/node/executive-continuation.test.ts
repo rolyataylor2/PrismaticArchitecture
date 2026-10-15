@@ -54,7 +54,7 @@ test('ordinary Self-selected supplemental instructions resume native/background 
   for (const executionMode of ['synchronous', 'background'] as const) {
     const { store, app, agent, draft } = fixture(':memory:', false);
     try {
-      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, executionMode }, 0);
+      store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode }, 0);
       const first = await app.message(agent.id, 'Consider the fixture goal.', 'user', 'origin');
       const parent = await settled(app, first.execution!); assert.equal(parent.status, 'needs_guidance');
       const originalWorld = structuredClone(store.world(first.cycle.worldId));
@@ -139,7 +139,7 @@ test('guidance usage survives restart and profile increases; identical assertion
     assert.equal(repeated.execution!.status, 'blocked'); assert.ok(repeated.execution!.operational!.reason.includes('new recorded'));
     assert.equal(store.executions(first.agent.id).find(item => item.id === second.id)!.status, 'needs_guidance');
     await app.close(); store.close(); store = new SqliteStore(path); app = new Application(store, first.providers);
-    store.saveExecutiveProfile(first.agent.id, { ...store.executiveProfile(first.agent.id), enabled: true, revision: 2,
+    store.saveExecutiveProfile(first.agent.id, { ...store.executiveProfile(first.agent.id), enabled: true, modules: { speaking: true, tools: true }, revision: 2,
       limits: { ...store.executiveProfile(first.agent.id).limits, maxGuidanceRequests: 20 } }, 1);
     first.draft.operation.guidanceResponse!.newInformation = 'Second explicitly stated instruction after restart.';
     const exhausted = await app.message(first.agent.id, 'Continue within the original chain budget.', 'user', 'origin');

@@ -8,13 +8,14 @@ import { PartGenerationSchema, type ConstructedInput } from '../../packages/core
 import { id, type Execution } from '../../packages/core/src/domain.js';
 import { api } from '../../packages/sdk/src/api.js';
 
-test('Executive defaults off, including legacy profiles, and cognition selects without Executive connections', async () => {
+test('legacy profiles default off and explicit disablement selects without Executive connections', async () => {
   const { enabled: _enabled, ...legacy } = defaultExecutiveProfile();
   assert.equal(ExecutiveProfileSchema.parse(legacy).enabled, false);
   const store = new SqliteStore(':memory:'); const app = new Application(store);
   try {
     const agent = app.createAgent();
-    assert.equal(store.executiveProfile(agent.id).enabled, false);
+    assert.equal(store.executiveProfile(agent.id).enabled, true);
+    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: false, revision: 1 }, 0);
     store.saveMcpRegistry({ revision: 1, servers: [{ id: 'fixture', transport: 'stdio', command: process.execPath, args: [], timeoutMs: 1000, envSecretRefs: {} }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'fixture', toolName: 'must-not-discover' }] }, 0);
     store.executiveSkills = () => { throw new Error('Disabled cognition must not load skills'); };
@@ -63,6 +64,7 @@ test('direct runtime callers cannot inject Executive context while disconnected'
   const store = new SqliteStore(':memory:'); const app = new Application(store);
   try {
     const agent = app.createAgent();
+    store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: false, revision: 1 }, 0);
     const result = await app.runtime.run(agent.id, [{ source: 'user', kind: 'says', text: 'Hello.', timestamp: null, referenceId: null }], undefined,
       { status: 'available', permissionRevision: 0, tools: [] },
       [{ id: 'document', digest: '0'.repeat(64), name: 'fixture', description: 'External instructions', reviewRevision: 1, instructions: 'Do an operation.' }]);
@@ -132,4 +134,23 @@ for (const speaking of [false, true]) for (const tools of [false, true]) {
 test('legacy enabled Executive profiles preserve both module permissions', () => {
   const { modules: _modules, ...legacy } = defaultExecutiveProfile();
   assert.deepEqual(ExecutiveProfileSchema.parse({ ...legacy, enabled: true }).modules, { speaking: true, tools: true });
+});
+
+
+test('default Executive dispatches speech without discovering tools or injecting tool context', async () => {
+  const store = new SqliteStore(':memory:'); const app = new Application(store);
+  try {
+    const agent = app.createAgent();
+    assert.equal(store.executiveProfile(agent.id).enabled, true);
+    assert.deepEqual(store.executiveProfile(agent.id).modules, { speaking: true, tools: false });
+    app.executiveConnections.agentCatalog = async () => { throw new Error('Speech-only defaults must not discover tools'); };
+    store.executiveSkills = () => { throw new Error('Speech-only defaults must not load skills'); };
+    const result = await app.message(agent.id, 'Hello.');
+    assert.ok(result.execution);
+    assert.ok(['say', 'ask'].includes(result.execution.action.kind));
+    const world = store.world(result.cycle.worldId);
+    assert.equal(world.externalCapabilities, undefined); assert.equal(world.externalSkills, undefined);
+    assert.equal(world.externalSkillDocuments, undefined);
+    await assert.rejects(app.message(agent.id, 'Use a skill', 'user', undefined, ['missing']), /disabled/);
+  } finally { await app.close(); store.close(); }
 });

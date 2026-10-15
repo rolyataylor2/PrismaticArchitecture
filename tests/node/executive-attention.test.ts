@@ -100,7 +100,7 @@ test('real background results trigger nonblocking read-only checkpoints and exte
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 2000 }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);
     const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background', learningMode: 'disabled', attention: { ...profile.attention, enabled: true } }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode: 'background', learningMode: 'disabled', attention: { ...profile.attention, enabled: true } }, 0);
     const first = await app.message(agent.id, 'Run the fixture.', 'user', 'origin'); const executionId = first.execution!.id;
     const initial = structuredClone(store.world(first.cycle.worldId));
     const before = { generated, selected, parts: store.list('part', agent.id), memories: store.list('memory', agent.id), identity: store.get('identity', agent.id) };
@@ -134,7 +134,7 @@ test('real background results trigger nonblocking read-only checkpoints and exte
     assert.equal(gap.attention.state, 'interested'); assert.equal(gap.attention.relevance, 0); assert.equal(gap.attention.competent, false);
     await assert.rejects(api(app, 'POST', `/api/agents/${foreign.id}/executions/${executionId}/checkpoint`, { facts }), /attributed operational/);
     const current = store.executiveProfile(agent.id);
-    store.saveExecutiveProfile(agent.id, { ...current, enabled: true, revision: current.revision + 1, attention: { ...current.attention, enabled: false } }, current.revision);
+    store.saveExecutiveProfile(agent.id, { ...current, enabled: true, modules: { speaking: true, tools: true }, revision: current.revision + 1, attention: { ...current.attention, enabled: false } }, current.revision);
     const count = store.cycles(agent.id).length; assert.equal(await api(app, 'POST', route, { facts }), null);
     assert.equal(store.cycles(agent.id).length, count);
     assert.equal(store.eventsByType(agent.id, ['execution.tool_trace']).filter(event => event.type === 'execution.tool_trace' && event.payload.phase === 'submitted').length, 2);

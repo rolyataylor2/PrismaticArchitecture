@@ -67,17 +67,17 @@ test('Executive panels persist operational configuration and discover/grant real
     const page = await browser.newPage(); const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Executive', exact: true }).click();
     await page.getByRole('tab', { name: 'Feedback & Diagnostics', exact: true }).waitFor();
     assert.deepEqual(await page.locator('.executive-panel > h3').allTextContents(),
       ['Runtime', 'MCP Connections', 'Autonomy & Recovery', 'Environmental Sensitivity', 'Skills & Learning', 'Imports', 'Feedback & Diagnostics']);
-    assert.equal(await page.getByLabel('Enable Executive', { exact: true }).isChecked(), false);
-    assert.equal(await page.getByLabel('Speaking', { exact: true }).isDisabled(), true);
-    assert.equal(await page.getByLabel('Tool execution', { exact: true }).isDisabled(), true);
+    assert.equal(await page.getByLabel('Enable Executive', { exact: true }).isChecked(), true);
+    assert.equal(await page.getByLabel('Speaking', { exact: true }).isChecked(), true);
+    assert.equal(await page.getByLabel('Tool execution', { exact: true }).isChecked(), false);
     await page.getByLabel('Enable Executive', { exact: true }).check();
     assert.equal(await page.getByLabel('Speaking', { exact: true }).isEnabled(), true);
     await page.getByLabel('Speaking', { exact: true }).uncheck();
+    await page.getByLabel('Tool execution', { exact: true }).check();
     const masterBounds = await page.getByLabel('Enable Executive', { exact: true }).boundingBox();
     const moduleBounds = await page.getByRole('group', { name: 'Modules', exact: true }).boundingBox();
     assert.ok(masterBounds && moduleBounds && moduleBounds.y > masterBounds.y);
@@ -344,7 +344,6 @@ test('Executive panels persist operational configuration and discover/grant real
       await app.executiveWorkers.wait(agent.id, history.execution!.id);
     }
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Executive', exact: true }).click();
     await page.getByRole('tab', { name: 'Feedback & Diagnostics', exact: true }).click();
     await page.getByRole('button', { name: 'Refresh executions', exact: true }).click();
@@ -405,7 +404,6 @@ test('browser consultation preserves a draft through refresh and records attribu
   try {
     const page = await browser.newPage(); const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Executive', exact: true }).click();
     await page.getByRole('tab', { name: 'Feedback & Diagnostics', exact: true }).click();
     await page.getByRole('button', { name: 'Consult cognition', exact: true }).click();

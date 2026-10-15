@@ -376,3 +376,5 @@ When no saved selection or main-database Agent is available, startup clears stal
 Change Agent uses a vertical list with separate selection and trash buttons. Deletion confirms the named Agent and database, removes only that Agent, retains the list when deleting another Agent, and returns to creation after the last available local Agent is removed.
 
 Edit Agent also accepts PNG/JPEG/WebP uploads (up to 10 MB) or a text prompt for Cloudflare FLUX.1 Schnell. Images are resized locally to at most 512 pixels and stored as raster data URIs through the versioned profile API when Save changes is pressed. Cancel discards the draft. The sidebar and Agent picker display saved portraits. Settings → Models includes a per-Agent Cloudflare Account ID and encrypted API token; blank token preserves it and Clear removes it. Generation requires Workers AI access and does not use the language-model key.
+
+ADR 0169 changes the default Executive profile to enabled with Speaking on and Tool execution off. Existing saved choices and legacy profile parsing remain unchanged. Executive → Runtime exposes both module switches; tool use requires explicit enablement.

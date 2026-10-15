@@ -38,7 +38,7 @@ function fixture(slow = false) {
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'slow' }] }, 0);
-  store.saveExecutiveProfile(agent.id, { ...defaultExecutiveProfile(), enabled: true, revision: 1, executionMode: 'background' }, 0);
+  store.saveExecutiveProfile(agent.id, { ...defaultExecutiveProfile(), enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode: 'background' }, 0);
   return { app, store, agent, stopProposals: () => { operate = false; } };
 }
 

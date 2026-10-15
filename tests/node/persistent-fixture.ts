@@ -32,7 +32,7 @@ export class Application extends ResearchApplication {
   override createAgent(name = 'Demo Agent', architecture: 'constructed' | 'persistent' = 'persistent') {
     const agent = super.createAgent(name, architecture);
     const profile = this.store.executiveProfile(agent.id);
-    this.store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: profile.revision + 1 }, profile.revision);
+    this.store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: profile.revision + 1 }, profile.revision);
     if (architecture === 'persistent') this.store.saveAgentActivationSettings(agent.id, { vectorSearchEnabled: true, memoryRecallLimit: 12 });
     return agent;
   }
