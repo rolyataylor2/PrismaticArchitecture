@@ -2568,42 +2568,33 @@ function dispositionsPage(): void {
     const visible = browse.apply(state!.dispositions.filter(item => [item.name, item.concern, item.scope ?? '', ...item.cues, ...dispositionAssociations(item).map(associationLabel)].join(' ').toLowerCase().includes(query)));
     const temporary = visible.filter(item => item.temporary);
     const durable = visible.filter(item => !item.temporary);
-    for (const [title, description, dispositions] of [
-      ['Temporary Prediction-Bound Dispositions', 'Prediction-bound dispositions that help investigate unresolved hypotheses in later cycles.', temporary],
-      ['Persistent dispositions', 'Durable learned scopes that guide attention and the formation of Parts.', durable],
-    ] as const) {
-      const section = node('section', '', 'disposition-group');
-      section.setAttribute('aria-label', title);
-      section.append(node('h3', title), node('p', description, 'muted disposition-description'));
-      if (!dispositions.length) section.append(node('p', query || browse.active() ? 'No matching dispositions.' : 'No items yet.', 'muted'));
-      const rows = node('div', '', 'disposition-list');
-      section.append(rows); list.append(section);
-      for (const disposition of dispositions) {
-        const row = node('div', '', 'disposition-row');
-        row.classList.toggle('temporary', disposition.temporary);
-        const inspect = button('', () => { void showDisposition(disposition.id).catch(showError); }, true);
-        inspect.classList.add('disposition-summary'); inspect.setAttribute('aria-label', `Inspect ${disposition.name}`);
-        const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
-        icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
-        const text = node('span', '', 'disposition-text');
-        const concern = node('span', disposition.concern, 'disposition-concern');
-        concern.title = disposition.concern;
-        const name = node('span', disposition.name, 'disposition-name'); name.title = disposition.name;
-        text.append(name, concern);
-        inspect.append(icon, text);
-        const edit = memoryActionIcon(`Edit ${disposition.name}`, 'pencil', async () => { componentAuthoring('disposition', false, disposition); });
-        row.append(inspect, edit);
-        rows.append(row);
-      }
+    const rows = node('div', '', 'disposition-list'); rows.setAttribute('aria-label', 'Dispositions and temporary attention');
+    list.append(rows);
+    for (const disposition of [...durable, ...temporary]) {
+      const row = node('div', '', 'disposition-row');
+      row.classList.toggle('temporary', disposition.temporary);
+      row.dataset.kind = disposition.temporary ? 'temporary' : 'persistent';
+      let hash = 0; for (const character of disposition.id) hash = (Math.imul(hash, 31) + character.charCodeAt(0)) | 0;
+      const hue = (hash >>> 0) % 360;
+      row.style.setProperty('--disposition-border', `hsl(${hue} 25% 65% / ${disposition.temporary ? '.45' : '1'})`);
+      const inspect = button('', () => { void showDisposition(disposition.id).catch(showError); }, true);
+      inspect.classList.add('disposition-summary'); inspect.setAttribute('aria-label', `Inspect ${disposition.name}`);
+      const icon = node('span', '', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
+      icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>';
+      const text = node('span', '', 'disposition-text');
+      const concern = node('span', disposition.concern, 'disposition-concern');
+      concern.title = disposition.concern;
+      const name = node('span', disposition.name, 'disposition-name'); name.title = disposition.name;
+      text.append(name, concern, node('small', disposition.temporary ? 'Temporary Prediction-Bound Disposition' : 'Persistent disposition', 'disposition-kind'));
+      inspect.append(icon, text);
+      const edit = memoryActionIcon(`Edit ${disposition.name}`, 'pencil', async () => { componentAuthoring('disposition', false, disposition); });
+      row.append(inspect, edit);
+      rows.append(row);
     }
-    const attentionSection = node('section', '', 'disposition-group');
-    attentionSection.setAttribute('aria-label', 'Temporary attention');
-    attentionSection.append(node('h3', 'Temporary attention'), node('p', 'Evidence targets and cues attached to open predictions; only predictions with attention cues appear here.', 'muted disposition-description'));
-    const attentionList = node('div', '', 'disposition-list');
     const attentionPredictions = state!.predictions.filter(prediction => prediction.status === 'open' && prediction.attention?.length);
     const matches = attentionPredictions.filter(prediction => [prediction.expectation, ...prediction.attention!.flatMap(item => [item.target, ...item.cues])].join(' ').toLowerCase().includes(query));
     for (const prediction of matches) {
-      const row = node('div', '', 'disposition-row temporary');
+      const row = node('div', '', 'disposition-row attention'); row.dataset.kind = 'attention';
       const inspect = button('', () => inspectorPopup('Temporary attention', [
         inspectorSection('Source prediction', [prediction.expectation]),
         ...prediction.attention!.map(item => inspectorSection(item.target, item.cues)),
@@ -2614,11 +2605,12 @@ function dispositionsPage(): void {
       inspect.setAttribute('aria-label', `Inspect temporary attention: ${prediction.expectation}`);
       const expectation = node('span', prediction.expectation, 'disposition-concern'); expectation.title = prediction.expectation;
       const targets = node('span', prediction.attention!.map(item => item.target).join(' · '), 'disposition-cues'); targets.title = targets.textContent ?? '';
-      inspect.append(expectation, node('span', '›', 'muted'), targets);
-      row.append(inspect); attentionList.append(row);
+      const text = node('span', '', 'disposition-text');
+      text.append(expectation, targets, node('small', 'Temporary attention', 'disposition-kind'));
+      inspect.append(text);
+      row.append(inspect); rows.append(row);
     }
-    if (!matches.length) attentionList.append(node('p', query ? 'No matching temporary attention.' : 'No open predictions with attention cues.', 'muted'));
-    attentionSection.append(attentionList); list.append(attentionSection);
+    if (!visible.length && !matches.length) list.append(node('p', query || browse.active() ? 'No matching dispositions or temporary attention.' : 'No dispositions or temporary attention yet.', 'muted'));
   };
   const browse = componentBrowse<AgentSnapshot['dispositions'][number]>([
     { key: 'name', label: 'Name', value: item => item.name },

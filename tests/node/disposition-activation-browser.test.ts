@@ -18,8 +18,14 @@ test('activation history renders exact source judgments, filters threads and ope
   { origin: 'researcher_edit', reason: 'Explicit chart rendering starting condition', sourceIds: [] });
   await app.message(agent.id, 'A bird chirps.', 'observer', 'forest');
   await app.message(agent.id, 'A bird chirps nearby.', 'observer', 'garden');
-  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity' }, 0,
+  store.save('disposition', { ...store.get('disposition', 'birds'), id: 'quiet', name: 'Quiet Curiosity', temporary: true }, 0,
     { origin: 'researcher_edit', reason: 'Empty chart condition without fabricated measurements', sourceIds: [] });
+  store.save('prediction', { id: 'attention-display', agentId: agent.id, partId: store.list('part', agent.id)[0]!.id,
+    version: 1, schemaVersion: 1, expectation: 'A bird may return',
+    capsule: { interpretation: 'A bird was heard.', details: [], entities: [], activation: 2, spike: 0, sourceIds: [] },
+    confidence: .5, horizon: 'Later', evaluateAfterCycle: null, createdCycle: store.cycles(agent.id)[0]!.id,
+    status: 'open', memoryId: null, evaluation: null, attention: [{ target: 'Returning birds', cues: ['More birdsong'] }] }, 0,
+    { origin: 'researcher_edit', reason: 'Explicit temporary attention display fixture', sourceIds: [] });
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
   try {
@@ -27,6 +33,19 @@ test('activation history renders exact source judgments, filters threads and ope
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect Quiet Curiosity', exact: true }).waitFor();
+    const rows = page.locator('.disposition-list > .disposition-row');
+    const kinds = await rows.evaluateAll(elements => elements.map(element => (element as HTMLElement).dataset.kind));
+    assert.deepEqual(kinds, ['persistent', 'temporary', 'attention']);
+    assert.equal(await rows.nth(0).evaluate(element => getComputedStyle(element).borderTopStyle), 'solid');
+    assert.equal(await rows.nth(1).evaluate(element => getComputedStyle(element).borderTopStyle), 'dashed');
+    assert.match(await rows.nth(1).evaluate(element => getComputedStyle(element).borderTopColor), /0\.45/);
+    assert.equal(await rows.nth(2).evaluate(element => getComputedStyle(element).borderTopStyle), 'none');
+    await page.screenshot({ path: '/tmp/prism-dispositions-unified-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.screenshot({ path: '/tmp/prism-dispositions-unified-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('button', { name: 'Inspect Delight In Birds', exact: true }).click();
     const chart = page.getByRole('region', { name: 'Historical disposition activation' });
     await chart.getByRole('heading', { name: 'Activation history' }).waitFor();

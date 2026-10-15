@@ -356,10 +356,12 @@ Sidebar navigation places icon-only Sleep and Dreams controls beneath the Agent 
 
 ## Disposition directory
 
-Dispositions use a responsive grid of compact icon tiles showing each name and concern. Tiles open the disposition view in the combined Part history inspector; separate edit controls, search, filtering and temporary/durable grouping remain available. Long descriptions are limited to three lines with the full concern available on hover and in the inspector.
+Dispositions use a responsive grid of compact icon tiles showing each name and concern. Tiles open the disposition view in the combined Part history inspector; separate edit controls, search, filtering and temporary/durable filtering remain available. Long descriptions are limited to three lines with the full concern available on hover and in the inspector.
 
 The Part inspector timeline begins with a disposition icon for each recorded source binding. Selecting it displays the shared disposition inspector information in the adjacent pane, including activation evidence and preserved versions; selecting a Part version returns to its perspective. Embedded disposition inspection is read-only; editing remains in Dispositions. Identity fallback and unbound historical Parts explicitly show that no disposition is recorded. Detached responses cannot replace a subsequently selected perspective.
 
 Embedded disposition inspection opens on the current disposition version and displays one version at a time. Top-right previous/next controls browse preserved versions, label Current versus Historical, and disable at the ends of the recorded history. Activation statistics and charts retain their lifetime evidence scope.
 
 Disposition directory tiles navigate to Part History with the disposition selected. The inspector uses the latest non-retired bound Part when available, otherwise the latest retired instance; dispositions without a bound Part retain the same disposition information and version navigation with an explicit empty Perspective History. There is no separate standalone disposition inspector. Directory pencil controls retain disposition editing.
+
+The disposition directory uses one continuous tile grid: persistent dispositions first with solid color borders, temporary prediction-bound dispositions next with translucent dashed borders, and temporary attention last without borders. Stable ID-derived colors distinguish records without implying psychological meaning. Each tile retains a textual type label; search and within-type sorting remain available.

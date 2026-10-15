@@ -1192,12 +1192,11 @@ dialog.app-dialog .popup-header-icon[aria-label^="Delete"]:hover { background: #
 dialog.app-dialog .popup-header-icon:disabled { opacity: .45; cursor: default; }
 dialog.app-dialog > .modal-header > :first-child { min-width: 0; }
 
-.disposition-group { margin-bottom: 24px; }
-.disposition-group > h3 { margin: 0 0 6px; }
-.disposition-description { margin: 0 0 12px; font-size: .9em; }
 .disposition-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; min-width: 0; }
-.disposition-row { position: relative; min-width: 0; display: flex; border: 1px solid var(--border, #ddd); border-radius: 8px; }
+.disposition-row { position: relative; min-width: 0; display: flex; border: 2px solid var(--disposition-border, #a6b69e); border-radius: 8px; }
 .disposition-row.temporary { border-style: dashed; }
+.disposition-row.attention { border: 0; }
+.disposition-kind { color: #788578; font-size: 10px; }
 .disposition-summary { display: flex; align-items: flex-start; gap: 12px; min-width: 0; width: 100%; padding: 16px 38px 16px 14px; text-align: left; border: 0; border-radius: inherit; background: transparent; color: inherit; }
 .disposition-summary:hover { background: #f1f4ef; }
 .disposition-summary:focus-visible { outline: 2px solid #667d60; outline-offset: 2px; }

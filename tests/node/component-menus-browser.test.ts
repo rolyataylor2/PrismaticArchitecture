@@ -100,10 +100,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('searchbox', { name: 'Search dispositions' }).fill('no match');
-    for (const name of ['Temporary Prediction-Bound Dispositions', 'Persistent dispositions']) {
-      await page.getByRole('region', { name, exact: true }).getByText('No matching dispositions.', { exact: true }).waitFor();
-    }
-    await page.getByRole('region', { name: 'Temporary attention', exact: true }).getByText('No matching temporary attention.', { exact: true }).waitFor();
+    await page.getByText('No matching dispositions or temporary attention.', { exact: true }).waitFor();
     await navigate('Part History');
     assert.equal(await page.getByRole('button', { name: 'Generate Parts', exact: true }).count(), 0);
     await page.getByRole('button', { name: 'Sort', exact: true }).click();
