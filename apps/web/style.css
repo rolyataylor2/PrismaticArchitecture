@@ -1562,3 +1562,7 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
   .component-view .executive-component-header { grid-template-rows: auto minmax(0, 1fr) auto; }
   .executive-component-header .component-header-description { grid-column: 1; grid-row: 2; }
 }
+
+.settings-title { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
+.settings-save-slot { min-height: 36px; }
+.settings-save { display: inline-flex; align-items: center; justify-content: center; padding: 8px; }

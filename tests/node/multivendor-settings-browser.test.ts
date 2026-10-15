@@ -42,7 +42,7 @@ test('model dropdowns follow added provider keys and retain direct, OpenRouter a
     assert.equal(await page.getByLabel('Image generator', { exact: true }).locator('option[value="gemini"]').count(), 0);
     for (const selected of ['gemini:gemini-2.5-flash-lite', 'qwen:qwen-flash', 'openrouter:google/custom-flash-lite']) {
       await model.selectOption(selected);
-      await page.getByRole('button', { name: 'Save model settings', exact: true }).click();
+      await page.getByRole('button', { name: 'Save settings', exact: true }).click();
       await page.getByText('Agent inference settings saved.', { exact: true }).waitFor();
       assert.equal(store.agentProviderSettings(agent.id)!.model, selected);
       await model.locator(`option[value="${selected}"]`).waitFor({ state: 'attached' });
@@ -50,7 +50,7 @@ test('model dropdowns follow added provider keys and retain direct, OpenRouter a
     await page.getByRole('checkbox', { name: 'Assess resources separately for each thought' }).check();
     await page.getByLabel('Intuitive thought model', { exact: true }).selectOption('gemini:gemini-2.5-flash-lite');
     await page.getByLabel('Deliberative thought model', { exact: true }).selectOption('qwen:qwen-flash');
-    await page.getByRole('button', { name: 'Save model settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.getByText('Agent inference settings saved.', { exact: true }).waitFor();
     assert.equal(store.agentProviderSettings(agent.id)!.thoughtRouting!.deliberativeModel, 'qwen:qwen-flash');
     await page.reload();

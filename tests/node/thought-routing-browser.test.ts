@@ -32,7 +32,7 @@ test('thought routing settings save explicit models and show measured evidence o
     await page.getByLabel('Intuitive thought model', { exact: true }).selectOption('gpt-4.1-nano');
     await page.getByLabel('Deliberative thought model', { exact: true }).selectOption('gpt-4.1-mini');
     await page.getByLabel('Consecutive incorrect predictions before escalation').fill('3');
-    await page.getByRole('button', { name: 'Save model settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.getByText('Agent inference settings saved.', { exact: true }).waitFor();
     assert.deepEqual(store.agentProviderSettings(agent.id)!.thoughtRouting, { enabled: true, intuitiveModel: 'gpt-4.1-nano', deliberativeModel: 'gpt-4.1-mini', escalateAfterIncorrectPredictions: 3 });
     await page.getByRole('columnheader', { name: 'Actual provider / model', exact: true }).waitFor();

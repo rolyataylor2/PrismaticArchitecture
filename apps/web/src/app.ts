@@ -3202,6 +3202,15 @@ function deleteAgentSettings(): void {
   });
   panel.append(remove); content.append(panel);
 }
+function settingsSaveControl(control: HTMLElement): void {
+  const slot = content.querySelector('.settings-save-slot');
+  if (!slot) return;
+  const save = control instanceof HTMLButtonElement ? control : control.querySelector('button')!;
+  save.classList.add('secondary', 'settings-save');
+  save.setAttribute('aria-label', 'Save settings'); save.title = 'Save settings';
+  save.innerHTML = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8V3"/></svg>';
+  slot.replaceChildren(control);
+}
 function settings(): void {
   const sections = ['Model & key', 'Prompts', 'Activation', 'Delete Agent'] as const;
   const tabs = node('div', '', 'settings-tabs');
@@ -3224,7 +3233,13 @@ function settings(): void {
   header.querySelector('.component-header-actions')?.remove();
   header.querySelector('.component-header-tools')?.remove();
   header.classList.add('settings-header');
+  const title = node('div', '', 'settings-title');
+  const slot = node('div', '', 'settings-save-slot');
+  title.append(header.querySelector('h2')!, slot); header.prepend(title);
   header.append(tabs);
+  const pendingSave = button('Save settings', () => {}); pendingSave.disabled = true;
+  settingsSaveControl(pendingSave);
+  if (settingsSection === 'Prompts') pendingSave.style.visibility = 'hidden';
   if (settingsSection === 'Delete Agent') deleteAgentSettings();
   else if (settingsSection === 'Prompts') promptSettings();
   else if (settingsSection === 'Activation') activationSettings();
@@ -3286,7 +3301,7 @@ function activationSettings(): void {
       button('Pause further activation', async () => { await api(`agents/${agentId}/cognition-control`, 'POST', { threadId: streamThread, directive: 'pause' }); await loadStream(); }, true),
       button('Resume activation', async () => { await api(`agents/${agentId}/cognition-control`, 'POST', { threadId: streamThread, directive: 'resume' }); await loadStream(); }, true));
     void loadStream().catch(showError);
-    panel.append(button('Save activation settings', async () => {
+    settingsSaveControl(button('Save activation settings', async () => {
       await api(`agents/${agentId}/activation-settings`, 'PATCH', { memoryRelevanceThreshold: Number(threshold.value), memoryRecallLimit: limit.value === '' ? null : Number(limit.value), includeProcessingDispositions: processing.checked, maxConcurrentThoughts: Number(concurrency.value), maxQueuedThoughts: Number(queue.value), activationPassLimit: passes.value === '' ? null : Number(passes.value) });
       notice.textContent = 'Activation settings saved.';
     }));
@@ -3384,7 +3399,7 @@ function modelSettings(): void {
   content.append(panel, resources);
   const agentId = selectedAgent;
   void Promise.all([api<{ model: string; thoughtRouting: { enabled: boolean; intuitiveModel: string; deliberativeModel: string; escalateAfterIncorrectPredictions?: number } | null; hasAgentKey: boolean; hasUsableKey: boolean; hasServerKey: boolean; availableModels: { id: string; label: string; provider?: string }[] }>(`agents/${agentId}/settings`), api<{ providers: { id: string }[] }>(`agents/${agentId}/providers`)]).then(([configuration, connections]) => {
-    if (agentId !== selectedAgent) return;
+    if (!panel.isConnected || agentId !== selectedAgent) return;
     const availableProviders = new Set(connections.providers.map(provider => provider.id));
     configuration.availableModels = configuration.availableModels.filter(model => availableProviders.has(model.provider ?? (model.id.includes(':') ? model.id.split(':')[0]! : model.id === 'grok-4.3' ? 'xai' : 'openai')));
     const select = node('select'); select.setAttribute('aria-label', 'Model for this Agent');
@@ -3428,7 +3443,7 @@ function modelSettings(): void {
       await api(`agents/${agentId}/settings`, 'PATCH', { model: select.value, thoughtRouting: thoughtRouting() });
       notice.textContent = 'Agent inference settings saved.'; render();
     });
-    const updateSave = () => { save.disabled = !select.value; }; select.addEventListener('change', updateSave); updateSave(); resources.append(save);
+    const updateSave = () => { save.disabled = !select.value; }; select.addEventListener('change', updateSave); updateSave(); settingsSaveControl(save);
   }).catch(showError);
   const evidence = card('Observed model evidence'); content.append(evidence);
   evidence.append(node('p', 'Loading recorded model operations…', 'muted'));

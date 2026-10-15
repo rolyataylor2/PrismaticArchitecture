@@ -83,7 +83,7 @@ test('production activation settings expose busy policy, limits and live pause/r
     assert.equal(await page.getByLabel('Activation passes per observation before pause (blank for unlimited)', { exact: true }).inputValue(), '1');
     await busy.check(); await page.getByLabel('Maximum concurrent thoughts', { exact: true }).fill('2');
     await page.getByLabel('Maximum queued thoughts', { exact: true }).fill('9');
-    await page.getByRole('button', { name: 'Save activation settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.getByText('Activation settings saved.', { exact: true }).waitFor();
     assert.equal(app.agentActivationSettings(agent.id).includeProcessingDispositions, true);
     assert.equal(app.agentActivationSettings(agent.id).maxConcurrentThoughts, 2);

@@ -37,7 +37,14 @@ test('Settings Activation exposes only constructed-loop controls and preserves s
     for (let index = 0; index < 15; index++) await threshold.press('ArrowRight');
     assert.equal(await threshold.inputValue(), '0.75');
     await page.getByLabel('Maximum accessible memories (blank for unlimited)').fill('');
-    await page.getByRole('button', { name: 'Save activation settings', exact: true }).click();
+    const save = page.locator('.settings-header').getByRole('button', { name: 'Save settings', exact: true });
+    assert.equal(await save.innerText(), '');
+    assert.equal(await save.locator('svg').count(), 1);
+    const titleBounds = await page.locator('.settings-header h2').boundingBox();
+    const saveBounds = await save.boundingBox();
+    assert.ok(titleBounds && saveBounds && saveBounds.y >= titleBounds.y + titleBounds.height);
+    assert.equal(await page.locator('#settings-panel').getByRole('button', { name: 'Save settings', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.getByText('Activation settings saved.', { exact: true }).waitFor();
     assert.equal(app.agentActivationSettings(agent.id).memoryRelevanceThreshold, 0.75);
     assert.equal(app.agentActivationSettings(agent.id).memoryRecallLimit, null);
@@ -46,7 +53,7 @@ test('Settings Activation exposes only constructed-loop controls and preserves s
     await page.getByLabel('Memory relevance threshold (0–1)').waitFor();
     assert.equal(await page.getByLabel('Memory relevance threshold (0–1)').inputValue(), '0.75');
     assert.equal(await page.getByLabel('Maximum accessible memories (blank for unlimited)').inputValue(), '');
-    await page.getByRole('button', { name: 'Save activation settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.getByText('Activation settings saved.', { exact: true }).waitFor();
     assert.equal(app.agentActivationSettings(agent.id).vectorSearchEnabled, true);
     await page.screenshot({ path: '/tmp/prism-settings-tabs-desktop.png', fullPage: true });
