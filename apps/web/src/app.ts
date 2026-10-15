@@ -2463,8 +2463,7 @@ async function openDispositionInfo(disposition: Pick<AgentSnapshot['dispositions
   const panel = node('section', '', 'disposition-inspector part-description'); panel.setAttribute('aria-label', 'Disposition inspector');
   const header = node('div', '', 'disposition-inspector-header');
   if (!target) header.append(button('← Back to dispositions', () => render(), true));
-  header.append(node('h2', record.disposition.name));
-  if (target) header.append(node('p', 'Disposition · current definition and preserved history', 'muted'));
+  const title = node('h2', record.disposition.name); header.append(title);
   const edit = memoryActionIcon('Edit disposition', 'pencil', async () => { componentAuthoring('disposition', false, record.disposition); });
   const remove = memoryActionIcon('Delete disposition', 'trash', async () => {
     await api(`dispositions/${disposition.id}`, 'DELETE', { expectedVersion: record.disposition.version });
@@ -2473,10 +2472,16 @@ async function openDispositionInfo(disposition: Pick<AgentSnapshot['dispositions
   if (!target) header.append(edit, remove);
   const body = node('div', '', 'disposition-inspector-body'); body.append(node('p', `Recorded activation cycles: ${record.statistics.activatedCycles} · Associated predictions: ${record.statistics.associatedPredictions} · Correct: ${record.statistics.correct} · Incorrect: ${record.statistics.incorrect} · Incomplete: ${record.statistics.incomplete} · Irrelevant: ${record.statistics.irrelevant}`), node('h3', 'Version timeline'));
   body.insertBefore(dispositionActivationChart(record.activationHistory, cycleId => showCycleInspector(cycleId, agentId)), body.lastChild);
-  for (const version of record.versions.slice().sort((a, b) => b.state.version - a.state.version)) {
-    const item = version.state; const entry = node('details'); entry.setAttribute('name', `disposition-${item.id}`);
-    entry.open = item.version === record.disposition.version;
-    entry.append(node('summary', `Version ${item.version} · ${readableDate(version.at)}${entry.open ? ' · Current' : ''}`),
+  const versions = record.versions.slice().sort((a, b) => b.state.version - a.state.version);
+  const versionEntries: HTMLElement[] = [];
+  for (const version of versions) {
+    const item = version.state;
+    const entry = target ? node('section') : node('details');
+    if (entry instanceof HTMLDetailsElement) {
+      entry.setAttribute('name', `disposition-${item.id}`);
+      entry.open = item.version === record.disposition.version;
+    }
+    entry.append(node(target ? 'p' : 'summary', `Version ${item.version} · ${readableDate(version.at)}${item.version === record.disposition.version ? ' · Current' : ' · Historical'}`),
       node('p', `${version.change.origin.replaceAll('_', ' ')} · ${version.change.reason}`, 'muted'),
       node('h3', item.name), node('p', item.concern), inspectorSection('Cues', item.cues),
       inspectorSection('Scope', [item.scope ?? 'Broad direct cue']),
@@ -2520,7 +2525,29 @@ async function openDispositionInfo(disposition: Pick<AgentSnapshot['dispositions
       await api(`dispositions/${disposition.id}/restore`, 'POST', { expectedVersion: record.disposition.version, version: item.version });
       if (selectedAgent === agentId && selectedDatabase === databaseId) { await refresh(); render(); const current = state!.dispositions.find(value => value.id === disposition.id); if (current) await openDispositionInfo(current); }
     }));
-    body.append(entry);
+    versionEntries.push(entry); body.append(entry);
+  }
+  if (target) {
+    body.querySelector(':scope > h3')?.remove();
+    const navigation = node('nav', '', 'disposition-version-navigation');
+    navigation.setAttribute('aria-label', 'Disposition versions');
+    const status = node('span', '', 'disposition-version-status'); status.setAttribute('aria-live', 'polite');
+    let selected = Math.max(0, versions.findIndex(version => version.state.version === record.disposition.version));
+    const showVersion = (): void => {
+      versionEntries.forEach((entry, index) => { entry.hidden = index !== selected; });
+      const version = versions[selected]?.state;
+      title.textContent = version?.name ?? record.disposition.name;
+      status.textContent = version ? `Disposition v${version.version} · ${version.version === record.disposition.version ? 'Current' : 'Historical'}` : 'No recorded versions';
+      previous.disabled = selected >= versions.length - 1;
+      next.disabled = selected === 0;
+    };
+    const previous = node('button', '←', 'secondary'); previous.type = 'button';
+    previous.onclick = () => { if (selected < versions.length - 1) { selected++; showVersion(); } };
+    previous.setAttribute('aria-label', 'Previous disposition version'); previous.title = 'Previous disposition version';
+    const next = node('button', '→', 'secondary'); next.type = 'button';
+    next.onclick = () => { if (selected > 0) { selected--; showVersion(); } };
+    next.setAttribute('aria-label', 'Next disposition version'); next.title = 'Next disposition version';
+    navigation.append(previous, status, next); header.append(navigation); showVersion();
   }
   panel.append(header, body); (target ?? content).replaceChildren(panel);
 }

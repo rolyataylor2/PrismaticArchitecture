@@ -1525,3 +1525,6 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .part-disposition-button small { overflow-wrap: anywhere; }
 .part-disposition-button[aria-pressed="true"] .disposition-icon { background: #dce7d5; color: #294b3a; }
 .part-disposition-empty { font-size: 11px; }
+.disposition-version-navigation { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; max-width: 100%; }
+.disposition-version-navigation button { padding: 6px 10px; }
+.disposition-version-status { font-size: 12px; color: #68766d; text-align: center; }

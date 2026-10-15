@@ -80,3 +80,5 @@ Use the research-direction sidebar as the sole experiment selector. On experimen
 Dream run progress and controls appear at the top of Overview only. Criterion recurrence (What recurs, what wavers?) belongs to Conclusions, using the shared recurrence projection. Cognition across experience appears first in Execution with the same selected-run cohort, metrics and stage drill-downs.
 
 The Part inspector includes source-disposition icons above its version timeline. Selecting an icon shows the disposition's current definition, activation evidence, development and preserved version history in the same detail pane. Part version selection restores perspective inspection. Disposition and Part versions remain distinct; missing bindings are explicit, embedded disposition information is read-only, and late responses cannot replace a newer selection.
+
+Embedded disposition inspection opens on the current disposition version and displays one version at a time. Top-right previous/next controls browse preserved versions, label Current versus Historical, and disable at the ends of the recorded history. Activation statistics and charts retain their lifetime evidence scope.

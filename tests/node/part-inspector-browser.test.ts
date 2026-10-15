@@ -17,6 +17,9 @@ test('Part inspector selects history and opens styled and raw information', { sk
     name: 'Being Heard', concern: 'Notice opportunities to be understood.', cues: ['Someone listens'], scope: 'Conversation',
     prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0,
     { origin: 'researcher_edit', reason: 'Explicit source binding for inspector verification', sourceIds: [] });
+  store.save('disposition', { ...store.get('disposition', 'inspector_disposition'), version: 2,
+    concern: 'Notice current opportunities to be understood.' }, 1,
+    { origin: 'researcher_edit', reason: 'Updated concern for version navigation', sourceIds: [] });
   const formationCycle = store.startCycle(agent.id); store.saveCycle({ ...formationCycle, status: 'completed' });
   app.runtime.mutations.patch(original.id, original.version, { instance: { createdCycle: formationCycle.id, threadId: null,
     interpretation: 'I want to be understood.', evidenceMemoryIds: [], counterevidenceMemoryIds: [],
@@ -44,6 +47,7 @@ test('Part inspector selects history and opens styled and raw information', { sk
   try {
     const page = await browser.newPage(); const errors: string[] = []; page.on('pageerror', cause => errors.push(cause.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('button', { name: 'Memories', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Memories', exact: true }).count(), 1);
     await page.getByRole('button', { name: 'Part History', exact: true }).click();
     const card = page.getByRole('button', { name: `Inspect ${original.name}`, exact: true });
@@ -74,7 +78,18 @@ test('Part inspector selects history and opens styled and raw information', { sk
     await disposition.click();
     const dispositionPanel = page.getByRole('region', { name: 'Disposition inspector', exact: true });
     await dispositionPanel.getByRole('heading', { name: 'Being Heard', exact: true, level: 2 }).waitFor();
+    assert.match(await dispositionPanel.innerText(), /Notice current opportunities to be understood/);
+    const previousDisposition = dispositionPanel.getByRole('button', { name: 'Previous disposition version', exact: true });
+    const nextDisposition = dispositionPanel.getByRole('button', { name: 'Next disposition version', exact: true });
+    assert.equal(await nextDisposition.isDisabled(), true);
+    await previousDisposition.click();
     assert.match(await dispositionPanel.innerText(), /Notice opportunities to be understood/);
+    assert.doesNotMatch(await dispositionPanel.innerText(), /Notice current opportunities/);
+    assert.match(await dispositionPanel.innerText(), /Disposition v1 · Historical/);
+    assert.equal(await previousDisposition.isDisabled(), true);
+    await nextDisposition.click();
+    assert.match(await dispositionPanel.innerText(), /Disposition v2 · Current/);
+    assert.match(await dispositionPanel.innerText(), /Notice current opportunities/);
     assert.match(await dispositionPanel.innerText(), /No recorded activation assessments/);
     assert.equal(await disposition.getAttribute('aria-pressed'), 'true');
     assert.equal(await page.getByRole('button', { name: 'Current version 2', exact: true }).getAttribute('aria-pressed'), 'false');
