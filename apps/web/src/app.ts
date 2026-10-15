@@ -1516,7 +1516,16 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
     };
     tabs.append(tab);
   }
-  editor.append(tabs);
+  const toolbar = node('div', '', 'perception-channel-toolbar');
+  toolbar.append(tabs);
+  if (current) {
+    const reset = memoryActionIcon('Reset edits to latest WorldState', 'trash', async () => {
+      if (!window.confirm('Discard staged entry edits and reset to the latest recorded WorldState?')) return;
+      draft.baseId = undefined; draft.dirty = false; render();
+    });
+    reset.disabled = perceptionControlPending; toolbar.append(reset);
+  }
+  editor.append(toolbar);
   const panel = node('div', '', 'sensor-channel'); panel.id = 'sensor-panel'; panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `sensor-tab-${perceptionChannel}`);
   if (perceptionChannel === '#thoughts') {
     panel.append(node('p', 'Attributed subjective thoughts carried into this snapshot.', 'muted'));
@@ -1580,7 +1589,6 @@ function perceptionEditor(page: HTMLElement, draft: SensorDraft, facts: Percepti
     const addEntry = button('Add entry', () => { const value = draft.raw[perceptionChannel] ?? ''; if (value.trim()) { draft.raw[perceptionChannel] = ''; add(value); } }, true);
     input.disabled = perceptionControlPending; addEntry.disabled = perceptionControlPending; raw.append(input, addEntry); panel.append(raw);
     panel.append(node('p', draft.dirty ? 'Unsaved changes · Press Play to submit a new WorldState.' : 'Edit entries and press Play to submit a new WorldState.', 'muted'));
-    const reset = button('Reset edits to latest WorldState', () => { draft.baseId = undefined; draft.dirty = false; render(); }, true); reset.disabled = perceptionControlPending; panel.append(reset);
   }
   editor.append(panel); page.append(editor);
 }

@@ -336,6 +336,8 @@ Perception displays sensor channels and General world facts as keyboard-accessib
 
 Current sensor entries display as text, matching historical entries, with right-aligned pencil and delete icons. The pencil opens an inline editor; Done returns to the text display. Edits remain staged until Play.
 
+A trash icon to the right of the current WorldState channel tabs resets staged entry edits to the latest recorded snapshot after confirmation. Cancel preserves edits; historical snapshots have no reset control.
+
 Decaying thoughts appear in a dedicated read-only WorldState tab for both current and past snapshots, retaining Part attribution, recorded age and Self-selection status.
 
 Perception playback exposes Single Cycle using the existing per-Agent activation-pass setting: checked saves one pass; unchecked saves unlimited passes. Play starts or resumes that allowance while admitted Part cognition, prediction evaluation and Self finish. It does not cancel in-flight cognition.

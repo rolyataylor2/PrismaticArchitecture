@@ -1483,7 +1483,9 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .sensor-channel textarea { min-height: 64px; flex: 1 1 240px; min-width: 0; }
 .sensor-channel input { min-width: 0; flex: 1 1 160px; }
 .sensor-channel input[aria-label="Speaker"] { flex: 0 1 160px; }
-.perception-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid #d8dfd4; padding-bottom: 10px; }
+.perception-channel-toolbar { display: flex; align-items: flex-start; gap: 12px; border-bottom: 1px solid #d8dfd4; padding-bottom: 10px; }
+.perception-channel-toolbar > button { flex-shrink: 0; margin-left: auto; }
+.perception-tabs { display: flex; flex: 1; min-width: 0; flex-wrap: wrap; gap: 6px; }
 .perception-tabs [aria-selected="true"] { background: #dce9dd; color: #173d2b; border-color: #8ba494; }
 .sensor-channel { padding: 18px 0; min-width: 0; }
 .sensor-channel .perception-fact textarea { display: block; width: 100%; min-height: 75px; margin-bottom: 8px; }

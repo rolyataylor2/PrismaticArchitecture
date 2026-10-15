@@ -157,6 +157,17 @@ test('sensor draft finalizes speech and raw channels only on Play and preserves 
     await page.locator('.perception-fact').filter({ hasText: 'Rain begins' }).first().waitFor();
     assert.equal(await page.locator('.perception-fact-content > p').first().textContent(), 'Rain begins');
     assert.equal(JSON.stringify(store.events(agent.id).find(event => event.id === first.id)), original);
+    await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Discard these staged edits');
+    await page.locator('.sensor-channel').getByRole('button', { name: 'Add entry', exact: true }).click();
+    const reset = page.locator('.perception-channel-toolbar').getByRole('button', { name: 'Reset edits to latest WorldState', exact: true });
+    page.once('dialog', dialog => { assert.equal(dialog.type(), 'confirm'); void dialog.dismiss(); });
+    await reset.click();
+    assert.equal(await page.locator('.perception-fact').filter({ hasText: 'Discard these staged edits' }).count(), 1);
+    page.once('dialog', dialog => { void dialog.accept(); });
+    await reset.click();
+    assert.equal(await page.locator('.perception-fact').filter({ hasText: 'Discard these staged edits' }).count(), 0);
+    assert.equal(await page.locator('.perception-fact-content > p').first().textContent(), 'Rain begins');
+    assert.equal(JSON.stringify(store.events(agent.id).find(event => event.id === first.id)), original);
     await page.screenshot({ path: '/tmp/prism-sensor-editor-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: '/tmp/prism-sensor-editor-mobile.png', fullPage: true });
@@ -165,6 +176,7 @@ test('sensor draft finalizes speech and raw channels only on Play and preserves 
     assert.equal(await page.locator('.sensor-editor textarea').count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Edit entry', exact: true }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Delete entry', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Reset edits to latest WorldState', exact: true }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Play cognition', exact: true }).isDisabled(), true);
   } finally { await browser.close(); await app.close(); server.close(); store.close(); }
 });
