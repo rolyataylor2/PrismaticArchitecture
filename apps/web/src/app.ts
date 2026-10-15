@@ -43,6 +43,8 @@ let events: CognitiveEvent[] = [];
 let stream: EventSource | null = null;
 let frozenCycle = '';
 let brainSeekSequence: number | null = null;
+let perceptionSnapshotId: string | null = null;
+let perceptionControlPending = false;
 let pendingMessage = false;
 let submittedChat: { agentId: string; databaseId: string; threadId: string; text: string; source: string; cycleId?: string; error?: string } | null = null;
 let threadLoading = false;
@@ -461,7 +463,7 @@ async function refresh(): Promise<void> {
 }
 async function selectAgent(agentId: string, databaseId = selectedDatabase): Promise<void> {
   selectedDatabase = databaseId; localStorage.setItem('prism-database', databaseId);
-  selectedAgent = agentId; activeSessionId = null; brainSeekSequence = null; localStorage.setItem('prism-agent', agentId); frozenCycle = ''; events = [];
+  selectedAgent = agentId; perceptionSnapshotId = null; activeSessionId = null; brainSeekSequence = null; localStorage.setItem('prism-agent', agentId); frozenCycle = ''; events = [];
   threadSelectionRevision++; threadLoading = false;
   renderAgentControls();
   stream?.close(); state = null; content.replaceChildren(node('h2', 'Loading Agent…')); await refresh();
@@ -1439,14 +1441,51 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
 }
 
 function perceptionPage(): void {
-  const snapshot = events.findLast((event): event is Extract<CognitiveEvent, { type: 'worldstate.frozen' }> => event.type === 'worldstate.frozen');
+  const snapshots = events.filter((event): event is Extract<CognitiveEvent, { type: 'worldstate.frozen' }> => event.type === 'worldstate.frozen').sort((a, b) => a.sequence - b.sequence);
+  const selectedIndex = perceptionSnapshotId === null ? snapshots.length - 1 : snapshots.findIndex(event => event.payload.id === perceptionSnapshotId);
+  const index = selectedIndex < 0 ? snapshots.length - 1 : selectedIndex;
+  const snapshot = snapshots[index];
+  const current = index === snapshots.length - 1;
   const page = node('section', '', 'perception-page');
-  page.append(node('h2', 'Current WorldState'), node('p', 'The latest immutable snapshot available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
+  page.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'), node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
   if (!snapshot) {
     page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted'));
     content.append(page);
     return;
   }
+  const transport = node('div', '', 'row perception-transport');
+  transport.setAttribute('role', 'group'); transport.setAttribute('aria-label', 'WorldState playback');
+  const seek = (target: number) => {
+    perceptionSnapshotId = target === snapshots.length - 1 ? null : snapshots[target]!.payload.id;
+    render();
+  };
+  const rewind = button('⏪ Rewind', () => seek(index - 1), true);
+  rewind.setAttribute('aria-label', 'Previous WorldState'); rewind.disabled = index <= 0;
+  const forward = button('Fast forward ⏩', () => seek(index + 1), true);
+  forward.setAttribute('aria-label', 'Next WorldState'); forward.disabled = current;
+  const position = node('span', `${index + 1} / ${snapshots.length} · ${current ? 'Current' : 'Historical'}`, 'muted');
+  position.setAttribute('role', 'status');
+  transport.append(rewind, position, forward);
+  const agentId = selectedAgent; const databaseId = selectedDatabase;
+  const threadId = state?.cycles.find(cycle => cycle.id === snapshot.payload.cycleId)?.threadId ?? null;
+  const streamEvent = events.findLast(event => event.type === 'cognition.stream' && event.payload.threadId === threadId);
+  const streamStatus = streamEvent?.type === 'cognition.stream' ? streamEvent.payload : null;
+  const play = button(perceptionControlPending ? 'Starting…' : '▶ Play', async () => {
+    if (perceptionControlPending || !current || events.findLast(event => event.type === 'worldstate.frozen')?.id !== snapshot.id) return;
+    perceptionControlPending = true; render();
+    try {
+      await api(`agents/${agentId}/cognition-control`, 'POST', { threadId, directive: 'resume' });
+    } finally {
+      perceptionControlPending = false;
+      if (agentId === selectedAgent && databaseId === selectedDatabase) render();
+    }
+  });
+  play.setAttribute('aria-label', 'Play cognition');
+  play.disabled = !current || !streamStatus || streamStatus.status === 'running' || perceptionControlPending;
+  play.title = !current ? 'Return to the current WorldState to start cognition' : !streamStatus ? 'No resumable cognition stream recorded for this snapshot' : streamStatus.status === 'running' ? 'Cognition is already running' : 'Resume cognition with the configured activation allowance';
+  transport.append(play);
+  page.append(transport);
+  if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
   const world = snapshot.payload;
   page.append(node('p', `Snapshot ${world.sequence} · ${world.capturedAt}`, 'muted'));
   const actions = node('div', '', 'row');
