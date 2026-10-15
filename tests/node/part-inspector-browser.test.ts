@@ -63,7 +63,7 @@ test('Part inspector selects history and opens styled and raw information', { sk
     await card.click();
     await page.getByRole('navigation', { name: 'Part version timeline' }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Back to Parts', exact: true }).count(), 0);
-    assert.equal(await page.getByRole('heading', { name: 'Part history', exact: true }).count(), 1);
+    assert.equal(await page.getByRole('heading', { name: 'Perspective History', exact: true }).count(), 1);
     assert.equal(await page.locator('.part-inspector-name').getByRole('button', { name: 'Edit perspective', exact: true }).count(), 1);
     await page.evaluate(() => window.scrollTo(0, 600));
     assert.ok((await page.locator('aside').boundingBox())!.y >= 0);

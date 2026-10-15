@@ -2310,7 +2310,6 @@ async function showPart(partId: string): Promise<void> {
   const { part } = info;
   const layout = node('div', '', 'part-inspector');
   const timeline = node('nav', '', 'part-version-timeline'); timeline.setAttribute('aria-label', 'Part version timeline');
-  timeline.append(node('h3', 'Part history'));
   const right = node('div', '', 'part-inspector-main');
   const description = node('article', '', 'part-description');
   const versions = info.versions.slice().sort((a, b) => b.state.version - a.state.version);
@@ -2406,6 +2405,7 @@ async function showPart(partId: string): Promise<void> {
     dispositionButtons.push(control); timeline.append(control);
   }
   if (!dispositionIds.length) timeline.append(node('p', part.name === 'self' ? 'Identity fallback · no disposition' : 'No recorded disposition', 'muted part-disposition-empty'));
+  timeline.append(node('h3', 'Perspective History'));
   for (const { perspective, record } of entries) {
     const current = perspective.version === part.version;
     const star = button('', () => select(perspective, record), true); star.className = `part-version-star${current ? ' current' : ''}`;
