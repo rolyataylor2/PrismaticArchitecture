@@ -18,7 +18,15 @@ test('Settings Activation exposes only constructed-loop controls and preserves s
     const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Activation', exact: true }).click();
+    assert.equal(await page.locator('aside').getByRole('button', { name: 'Settings', exact: true }).count(), 1);
+    assert.equal(await page.locator('aside').getByRole('button', { name: 'Toggle Settings', exact: true }).count(), 0);
+    assert.equal(await page.locator('aside').getByText('Model & key', { exact: true }).count(), 0);
+    assert.equal(await page.getByRole('tablist', { name: 'Settings', exact: true }).getByRole('tab').count(), 4);
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).focus();
+    await page.keyboard.press('End');
+    await page.getByRole('tabpanel', { name: 'Delete Agent', exact: true }).waitFor();
+    await page.keyboard.press('ArrowLeft');
+    await page.getByRole('tabpanel', { name: 'Activation', exact: true }).waitFor();
     assert.equal(await page.getByRole('checkbox', { name: 'Use vector search before Jev' }).count(), 0);
     assert.equal(await page.getByRole('combobox', { name: 'Cognitive architecture' }).count(), 0);
     assert.equal(await page.getByRole('checkbox', { name: 'Re-evaluate activations after DELIBERATE' }).count(), 0);
@@ -33,13 +41,17 @@ test('Settings Activation exposes only constructed-loop controls and preserves s
     await page.getByText('Activation settings saved.', { exact: true }).waitFor();
     assert.equal(app.agentActivationSettings(agent.id).memoryRelevanceThreshold, 0.75);
     assert.equal(app.agentActivationSettings(agent.id).memoryRecallLimit, null);
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
-    await page.getByRole('button', { name: 'Activation', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Activation', exact: true }).click();
     await page.getByLabel('Memory relevance threshold (0–1)').waitFor();
     assert.equal(await page.getByLabel('Memory relevance threshold (0–1)').inputValue(), '0.75');
     assert.equal(await page.getByLabel('Maximum accessible memories (blank for unlimited)').inputValue(), '');
     await page.getByRole('button', { name: 'Save activation settings', exact: true }).click();
     await page.getByText('Activation settings saved.', { exact: true }).waitFor();
     assert.equal(app.agentActivationSettings(agent.id).vectorSearchEnabled, true);
+    await page.screenshot({ path: '/tmp/prism-settings-tabs-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: '/tmp/prism-settings-tabs-mobile.png', fullPage: true });
   } finally { await browser.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

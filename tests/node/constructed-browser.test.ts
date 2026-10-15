@@ -116,7 +116,7 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     });
     assert.equal(store.get('part', original.id).lifecycle, 'archived');
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Prompts', exact: true }).click();
+    await page.getByRole('tab', { name: 'Prompts', exact: true }).click();
     await page.locator('.component-header .prompt-selector > button').click();
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     await page.getByRole('region', { name: 'Cog · Part formation → reflection → cognition', exact: true }).waitFor();

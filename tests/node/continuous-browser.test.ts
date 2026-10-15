@@ -76,7 +76,7 @@ test('production activation settings expose busy policy, limits and live pause/r
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     await page.waitForFunction(async id => (await (await fetch(`/api/agents/${id}`)).json()).cycles.some((cycle: {status: string}) => cycle.status === 'completed'), agent.id);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Activation', exact: true }).click();
+    await page.getByRole('tab', { name: 'Activation', exact: true }).click();
     const busy = page.getByRole('checkbox', { name: 'Evaluate activation of dispositions that are thinking' });
     assert.equal(await busy.isChecked(), false);
     assert.equal(await page.getByLabel('Maximum concurrent thoughts', { exact: true }).inputValue(), '4');

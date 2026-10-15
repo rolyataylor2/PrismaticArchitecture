@@ -220,7 +220,7 @@ All menu headers use the same measured height at a given panel width, reserving 
 
 Smart creation controls for Identity, Memories and Predictions use grayscale brain icons with tooltips and accessible action labels.
 
-Settings pages use their own header titles and introductions: Model & key, Prompts, Activation and Delete Agent. The Settings label is the sidebar group name.
+The sidebar has a single Settings link. Settings opens one page with Model & key, Prompts, Activation and Delete Agent tabs, preserving the selected tab when returning. Tabs support arrow keys, Home and End. Each tab retains its introduction and controls; Per-thought resources remains a separate card within Model & key.
 
 Prompts places the active prompt dropdown, save/reset/preview actions, Information, Data Available, Output Format and Original built-in prompt controls in one bar spanning the header’s second row. Provider/source metadata remains with the editor. Switching prompts swaps the header bar while preserving unsaved editor drafts.
 

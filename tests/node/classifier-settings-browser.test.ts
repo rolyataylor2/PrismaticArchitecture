@@ -24,7 +24,7 @@ test('Classifier settings save an independent JEV model and private key and rese
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
     const providers = page.getByRole('list', { name: 'Available model providers', exact: true });
     const addKey = page.getByLabel('New provider API key', { exact: true });
     assert.equal(await addKey.getAttribute('type'), 'password');
@@ -38,7 +38,7 @@ test('Classifier settings save an independent JEV model and private key and rese
       assert.equal(await addKey.inputValue(), '');
     }
     assert.equal(store.agentProviderConnections(agent.id).length, 3);
-    assert.equal(await page.locator('#content > .card').first().locator('h3').textContent(), 'Model providers');
+    assert.equal(await page.locator('#settings-panel > .card').first().locator('h3').textContent(), 'Model providers');
     assert.equal(await page.locator('input[type=password]').count(), 1, 'Only the provider list edits keys');
     assert.equal(await page.getByLabel('Classifier model', { exact: true }).inputValue(), 'jev-latest');
     assert.equal(await page.getByLabel('Image generator', { exact: true }).inputValue(), 'cloudflare');
@@ -47,7 +47,7 @@ test('Classifier settings save an independent JEV model and private key and rese
     assert.equal(app.providers.decisions.labelForAgent!(agent.id), 'jev/jev-latest');
     await page.reload();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
     assert.equal(await page.getByLabel('Classifier model', { exact: true }).inputValue(), 'jev-latest');
     await page.screenshot({ path: '/tmp/prism-classifier-settings.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });

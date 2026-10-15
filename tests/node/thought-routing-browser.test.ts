@@ -23,7 +23,7 @@ test('thought routing settings save explicit models and show measured evidence o
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
     await page.getByLabel('Provider to add', { exact: true }).selectOption('openai');
     await page.getByLabel('New provider API key', { exact: true }).fill('sk-routing-browser-fixture-never-real');
     await page.locator('.provider-add-row').getByRole('button').click();

@@ -19,7 +19,7 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     await page.getByRole('textbox', { name: 'New Prismatic Agent name' }).fill('Twig Agent');
     await page.getByRole('button', { name: 'Create Prismatic Agent', exact: true }).click();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Prompts', exact: true }).click();
+    await page.getByRole('tab', { name: 'Prompts', exact: true }).click();
     await page.getByRole('button', { name: /Select prompt/ }).click();
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Cog · Part formation → reflection → cognition', exact: true });
@@ -36,10 +36,10 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     const bounds = await editor.evaluate(editor => {
       const rect = editor.getBoundingClientRect();
       const main = document.querySelector('main')!.getBoundingClientRect();
-      const header = document.querySelector('.component-header')!.getBoundingClientRect();
-      return { top: rect.top, headerBottom: header.bottom, bottom: rect.bottom, mainBottom: main.bottom, width: rect.width, mainWidth: main.width };
+      const settingsPanel = document.querySelector('#settings-panel')!.getBoundingClientRect();
+      return { top: rect.top, panelTop: settingsPanel.top, bottom: rect.bottom, mainBottom: main.bottom, width: rect.width, mainWidth: main.width };
     });
-    assert.equal(bounds.top, bounds.headerBottom); assert.equal(bounds.bottom, bounds.mainBottom); assert.equal(bounds.width, bounds.mainWidth);
+    assert.equal(bounds.top, bounds.panelTop); assert.equal(bounds.bottom, bounds.mainBottom); assert.equal(bounds.width, bounds.mainWidth);
     const draft = '# Draft\n{% if part.name %}Missing end tag';
     await editor.fill(draft);
     await page.getByRole('button', { name: /Select prompt/ }).click();
@@ -104,7 +104,7 @@ test('Preview opens the rendered unsaved draft with saved WorldState data', { sk
   try {
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Prompts', exact: true }).click();
+    await page.getByRole('tab', { name: 'Prompts', exact: true }).click();
     await page.getByRole('button', { name: /Select prompt/ }).click();
     await page.getByRole('menuitemradio', { name: 'Cog · Part formation → reflection → cognition', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Cog · Part formation → reflection → cognition', exact: true });

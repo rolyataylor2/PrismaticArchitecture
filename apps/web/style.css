@@ -1544,3 +1544,9 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .provider-add-row.cloudflare-selected { grid-template-columns: minmax(100px, 1fr) minmax(150px, 1.3fr) minmax(140px, 1.3fr) auto; }
 .provider-connection-row > div { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 800px) { .provider-add-row.cloudflare-selected { grid-template-columns: minmax(0, 1fr); } }
+
+/* Settings shares one page and keeps section navigation in the content area. */
+.settings-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; flex-shrink: 0; border-bottom: 1px solid #aabcae; margin-bottom: 16px; }
+.settings-tabs [aria-selected="true"] { background: #244f3c; color: #fff; border-color: #244f3c; }
+.settings-panel { min-width: 0; }
+.prompts-view .settings-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }

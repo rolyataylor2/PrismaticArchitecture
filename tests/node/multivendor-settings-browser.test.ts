@@ -25,7 +25,7 @@ test('model dropdowns follow added provider keys and retain direct, OpenRouter a
     ] }));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
     const model = page.getByLabel('Model for this Agent', { exact: true });
     if (!process.env.GEMINI_API_KEY) assert.equal(await model.locator('option[value^="gemini:"]').count(), 0);
     for (const provider of ['gemini', 'qwen', 'openrouter']) {
@@ -55,7 +55,7 @@ test('model dropdowns follow added provider keys and retain direct, OpenRouter a
     assert.equal(store.agentProviderSettings(agent.id)!.thoughtRouting!.deliberativeModel, 'qwen:qwen-flash');
     await page.reload();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Model & key', exact: true }).click();
+    await page.getByRole('tab', { name: 'Model & key', exact: true }).click();
     await model.locator('option[value="openrouter:google/custom-flash-lite"]').waitFor({ state: 'attached' });
     assert.equal(await model.inputValue(), 'openrouter:google/custom-flash-lite');
     assert.equal(await page.getByLabel('Intuitive thought model', { exact: true }).inputValue(), 'gemini:gemini-2.5-flash-lite');

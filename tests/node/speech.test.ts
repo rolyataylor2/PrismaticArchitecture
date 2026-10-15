@@ -204,7 +204,7 @@ test('cycle inspector displays the realized utterance and Settings exposes the e
     await page.getByRole('dialog').getByText('All right. Let me put it my way.', { exact: true }).first().waitFor();
     await page.getByRole('button', { name: 'Close inspector', exact: true }).click();
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Prompts', exact: true }).click();
+    await page.getByRole('tab', { name: 'Prompts', exact: true }).click();
     await page.getByRole('button', { name: /Select prompt/ }).click();
     await page.getByRole('menuitemradio', { name: 'Exec · Speech', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Exec · Speech', exact: true });

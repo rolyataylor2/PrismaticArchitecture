@@ -68,7 +68,6 @@ let threadSelectionRevision = 0;
 
 const expandedSections = {
   chat: true,
-  settings: false,
 };
 let sessions: ChatSession[] = [];
 let activeSessionId: string | null = null;
@@ -828,37 +827,10 @@ function renderNavigation(): void {
     nav.append(item);
   }
 
-  // 3. Settings Section (collapsible, expands to Model & key and Prompts)
-  const settingsSectionEl = node('div', '', 'nav-section');
-  const settingsHeader = node('div', '', 'nav-header');
-  const settingsToggle = node('button', expandedSections.settings ? '▾' : '▸', 'nav-toggle');
-  settingsToggle.setAttribute('aria-label', 'Toggle Settings');
-  settingsToggle.setAttribute('aria-expanded', String(expandedSections.settings));
-  settingsToggle.onclick = (e) => { e.stopPropagation(); expandedSections.settings = !expandedSections.settings; render(); };
-  const settingsTitle = button('Settings', () => {
-    expandedSections.settings = !expandedSections.settings;
-    render();
-  });
-  settingsTitle.className = 'nav-title';
-  settingsTitle.setAttribute('aria-expanded', String(expandedSections.settings));
-  settingsHeader.append(settingsToggle, settingsTitle);
-  settingsSectionEl.append(settingsHeader);
-
-  if (expandedSections.settings) {
-    const settingsChildren = node('div', '', 'nav-children');
-    for (const tab of ['Model & key', 'Prompts', 'Activation', 'Delete Agent'] as const) {
-      const isTabActive = (activeTab === 'Settings' && settingsSection === tab);
-      const item = button(tab, () => {
-        activeTab = 'Settings';
-        settingsSection = tab;
-        render();
-      });
-      item.className = 'nav-item' + (isTabActive ? ' selected' : '');
-      settingsChildren.append(item);
-    }
-    settingsSectionEl.append(settingsChildren);
-  }
-  nav.append(settingsSectionEl);
+  const settingsLink = button('Settings', () => { activeTab = 'Settings'; render(); });
+  settingsLink.className = 'nav-item' + (activeTab === 'Settings' ? ' selected' : '');
+  if (activeTab === 'Settings') settingsLink.setAttribute('aria-current', 'page');
+  nav.append(settingsLink);
 
 
 }
@@ -1097,7 +1069,7 @@ function render(): void {
   document.body.classList.toggle('activation-settings-view', activeTab === 'Activation' || (activeTab === 'Settings' && settingsSection === 'Activation'));
   document.body.classList.toggle('model-settings-view', activeTab === 'Model & key' || (activeTab === 'Settings' && settingsSection === 'Model & key'));
   const pageKey = activeTab === 'Settings' ? settingsSection : activeTab;
-  const displayTitle = ({ Perception: 'Perception', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
+  const displayTitle = activeTab === 'Settings' ? 'Settings' : ({ Perception: 'Perception', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
   const descriptions: Record<string, string> = {
     Primitives: 'Primitives are basic appraisals and action tendencies representing the Agent’s immediate reactions, such as curiosity, pleasure or aversion. Their trigger instructions describe when they would respond, but the current online architecture does not activate them; they remain available for researcher configuration.',
     Identity: 'Identity is the Agent’s persistent self-definition: its sense of who it is and how it wants to relate to the world. Self consults its self-definition traits when choosing among Part proposals; autobiographical traits preserve background without directly guiding that choice.',
@@ -3215,11 +3187,35 @@ function deleteAgentSettings(): void {
   panel.append(remove); content.append(panel);
 }
 function settings(): void {
-  if (settingsSection === 'Delete Agent') { deleteAgentSettings(); return; }
-  if (settingsSection === 'Prompts') { promptSettings(); return; }
-  if (settingsSection === 'Activation') { activationSettings(); return; }
-  modelSettings();
+  const sections = ['Model & key', 'Prompts', 'Activation', 'Delete Agent'] as const;
+  const tabs = node('div', '', 'settings-tabs');
+  tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Settings');
+  for (const [index, section] of sections.entries()) {
+    const select = () => { activeTab = 'Settings'; settingsSection = section; render(); };
+    const tab = button(section, select, true);
+    tab.id = `settings-tab-${index}`; tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', String(settingsSection === section));
+    tab.setAttribute('aria-controls', 'settings-panel'); tab.tabIndex = settingsSection === section ? 0 : -1;
+    tab.onkeydown = event => {
+      const next = event.key === 'ArrowRight' ? (index + 1) % sections.length : event.key === 'ArrowLeft' ? (index + sections.length - 1) % sections.length : event.key === 'Home' ? 0 : event.key === 'End' ? sections.length - 1 : null;
+      if (next === null) return;
+      event.preventDefault(); settingsSection = sections[next]!; activeTab = 'Settings'; render();
+      document.getElementById(`settings-tab-${next}`)?.focus();
+    };
+    tabs.append(tab);
+  }
+  content.append(tabs);
+  if (settingsSection === 'Delete Agent') deleteAgentSettings();
+  else if (settingsSection === 'Prompts') promptSettings();
+  else if (settingsSection === 'Activation') activationSettings();
+  else modelSettings();
+  const panel = node('div', '', 'settings-panel'); panel.id = 'settings-panel';
+  panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `settings-tab-${sections.indexOf(settingsSection)}`);
+  panel.tabIndex = 0;
+  while (tabs.nextSibling) panel.append(tabs.nextSibling);
+  content.append(panel);
 }
+
 function activationSettings(): void {
   const agentId = selectedAgent;
   const panel = card('Part activation');
