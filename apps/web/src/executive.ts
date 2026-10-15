@@ -41,13 +41,18 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
   let [profile, registry, grants] = await Promise.all([
     api<ExecutiveProfile>(`${path}/executive-profile`), api<RegistryStatus>('mcp-servers'), api<McpPermissions>(`${path}/mcp-permissions`),
   ]);
+  if (!page.isConnected) return;
   const toolbar = el('div'); toolbar.className = 'executive-actions';
   const heading = root.querySelector('h2');
+  const componentHeader = heading?.closest('.component-header');
+  heading?.closest('.executive-header')?.replaceWith(heading);
+  componentHeader?.querySelector('.executive-tabs')?.remove();
   const header = el('div'); header.className = 'executive-header';
+  const titleRow = el('div'); titleRow.className = 'executive-heading';
   if (heading) {
     heading.closest('.component-header')?.classList.add('executive-component-header');
-    heading.replaceWith(header); header.append(heading, toolbar);
-  } else { header.append(el('h2', 'Executive'), toolbar); page.append(header); }
+    heading.replaceWith(header); titleRow.append(heading); header.append(titleRow, toolbar);
+  } else { titleRow.append(el('h2', 'Executive')); header.append(titleRow, toolbar); page.append(header); }
   const runtime = panel(page, 'Runtime');
   runtime.append(el('p', 'Native is the available runtime. OpenClaw and custom adapters are not yet available.'));
   const enabled = input(runtime, 'Enable Executive', '', 'checkbox'); enabled.checked = profile.enabled; enabled.parentElement!.classList.add('executive-master-switch');
@@ -304,8 +309,8 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
     await refreshImports();
   }, fail);
   action(imports, 'Refresh imported proposals', refreshImports, fail); await refreshImports();
-  const saved = el('p', `Profile revision ${profile.revision}`); toolbar.append(saved);
-  action(toolbar, 'Save Executive profile', async () => {
+  const saved = el('span', `v${profile.revision}`); saved.className = 'executive-version muted'; saved.setAttribute('role', 'status'); titleRow.append(saved);
+  const saveProfile = action(toolbar, 'Save Executive profile', async () => {
     const sensitivity = structuredClone(profile.sensitivity);
     for (const { signal, controls } of settings) for (const key of ['threshold', 'minThreshold', 'maxThreshold', 'cooldownMs'] as const) sensitivity[signal][key] = Number(controls[key]!.value);
     sensitivity.consequentialRiskMultiplier = Number(multiplier.value);
@@ -316,8 +321,12 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
       limits: Object.fromEntries(Object.entries(limits).map(([key, control]) => [key, Number(control.value)])), sensitivity,
       attention: { enabled: monitor.checked, reviewInterested: review.checked, awaitCheckpointReview: awaitReview.checked, ...Object.fromEntries(Object.entries(attentionFields).map(([key, control]) => [key, Number(control.value)])),
         checkpoints: checkpoints.filter(item => item.control.checked).map(item => item.kind) } });
-    saved.textContent = `Saved profile revision ${profile.revision}`;
+    saved.textContent = `v${profile.revision}`;
   }, fail);
+
+  saveProfile.className = 'secondary executive-save';
+  saveProfile.setAttribute('aria-label', 'Save Executive profile'); saveProfile.title = 'Save Executive profile';
+  saveProfile.innerHTML = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8V3"/></svg>';
 
   const connections = panel(page, 'MCP Connections');
   page.insertBefore(connections, recovery);
@@ -380,9 +389,9 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
 
   const diagnostics = panel(page, 'Feedback & Diagnostics');
   const sections = [runtime, connections, recovery, sensitivity, learning, importsPanel, diagnostics];
-  const tabs = el('div'); tabs.className = 'executive-tabs'; tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Executive sections');
+  const tabs = el('div'); tabs.className = 'executive-tabs settings-tabs'; tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Executive sections');
   const buttons = sections.map((section, index) => {
-    const tab = el('button', section.querySelector('h3')!.textContent!); tab.type = 'button'; tab.setAttribute('role', 'tab');
+    const tab = el('button', section.querySelector('h3')!.textContent!); tab.type = 'button'; tab.className = 'secondary'; tab.setAttribute('role', 'tab');
     tab.id = `executive-${agentId}-${index}-tab`; section.id = `executive-${agentId}-${index}-panel`;
     tab.setAttribute('aria-controls', section.id); section.setAttribute('role', 'tabpanel'); section.setAttribute('aria-labelledby', tab.id);
     tabs.append(tab); return tab;
@@ -400,7 +409,8 @@ export async function executivePage(root: HTMLElement, agentId: string, api: Api
       if (next !== null) { event.preventDefault(); selectTab(next, true); }
     };
   });
-  page.prepend(tabs); selectTab(0);
+  if (componentHeader) componentHeader.append(tabs); else page.prepend(tabs);
+  selectTab(0);
   const records = el('div'); diagnostics.append(records);
   const historyCount = el('p'); diagnostics.append(historyCount);
   let visibleExecutions = 20;

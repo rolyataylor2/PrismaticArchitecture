@@ -1198,8 +1198,6 @@ dialog.app-dialog > .modal-header > :first-child { min-width: 0; }
 .executive-page { display: grid; gap: 1rem; }
 .executive-panel { display: grid; gap: .75rem; }
 .executive-panel[hidden] { display: none; }
-.executive-tabs { display: flex; flex-wrap: wrap; gap: .4rem; border-bottom: 1px solid var(--border, #444); padding-bottom: .6rem; }
-.executive-tabs [aria-selected="true"] { font-weight: 700; border-bottom: 3px solid currentColor; }
 .executive-actions { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .executive-panel label { display: grid; gap: .35rem; }
 .executive-panel label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: .6rem; }
@@ -1223,12 +1221,15 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .skill-development-timeline { padding-left: 24px; }
 .skill-development-timeline li { padding: 6px 0 14px; }
 
-.executive-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.executive-header h2 { margin: 0; }
+.executive-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.executive-heading { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.executive-version { font-size: 12px; font-weight: 400; white-space: nowrap; }
+.executive-save { display: inline-flex; align-items: center; justify-content: center; padding: 8px; }
+.executive-header h2 { margin: 0; align-self: flex-start; }
 
-.executive-component-header .executive-header { grid-column: 1 / -1; }
-.component-view .executive-component-header { height: auto; grid-template-rows: auto auto; }
-.executive-component-header .component-header-description { grid-column: 1 / -1; }
+.executive-component-header .executive-header { grid-column: 1; grid-row: 1; align-self: start; min-width: 0; }
+.component-view .executive-component-header { height: auto; grid-template-rows: minmax(0, 1fr) auto; }
+.executive-component-header .component-header-description { grid-column: 2; grid-row: 1; }
 .executive-component-header > .component-header-actions:empty, .executive-component-header > .component-header-tools:empty { display: none; }
 
 /* Researcher affect history */
@@ -1556,3 +1557,8 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 .component-view .settings-header { grid-template-rows: minmax(0, 1fr) auto; }
 .settings-header h2 { align-self: start; }
 @media (max-width: 650px) { .component-view .settings-header { grid-template-rows: auto minmax(0, 1fr) auto; } .settings-tabs { grid-row: 3; } }
+
+@media (max-width: 650px) {
+  .component-view .executive-component-header { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .executive-component-header .component-header-description { grid-column: 1; grid-row: 2; }
+}

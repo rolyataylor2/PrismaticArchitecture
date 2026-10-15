@@ -81,6 +81,28 @@ test('Executive panels persist operational configuration and discover/grant real
     const masterBounds = await page.getByLabel('Enable Executive', { exact: true }).boundingBox();
     const moduleBounds = await page.getByRole('group', { name: 'Modules', exact: true }).boundingBox();
     assert.ok(masterBounds && moduleBounds && moduleBounds.y > masterBounds.y);
+    const executiveHeader = page.locator('.executive-component-header');
+    await executiveHeader.getByRole('tablist', { name: 'Executive sections' }).waitFor();
+    assert.equal(await executiveHeader.getByRole('tablist', { name: 'Executive sections' }).count(), 1);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const positions: string[] = [];
+      const tabs = executiveHeader.getByRole('tab');
+      for (let index = 0; index < await tabs.count(); index++) {
+        await tabs.nth(index).click();
+        positions.push(await executiveHeader.evaluate(header => {
+          const bounds = header.getBoundingClientRect();
+          return JSON.stringify([bounds.height, header.querySelector('h2')!.getBoundingClientRect().top - bounds.top, header.querySelector('[role=tablist]')!.getBoundingClientRect().top - bounds.top]);
+        }));
+      }
+      assert.equal(new Set(positions).size, 1, `Executive header stays aligned at ${width}px`);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await tabs.first().focus(); await page.keyboard.press('End');
+      assert.equal(await tabs.last().getAttribute('aria-selected'), 'true');
+      await page.keyboard.press('Home');
+      assert.equal(await tabs.first().getAttribute('aria-selected'), 'true');
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.screenshot({ path: '/tmp/prism-executive-modules-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: '/tmp/prism-executive-modules-mobile.png', fullPage: true });
@@ -98,7 +120,7 @@ test('Executive panels persist operational configuration and discover/grant real
     await page.getByLabel('Skill consolidation mode', { exact: true }).selectOption('after_repeated_success');
     await page.getByLabel('Verified successes before repeated consolidation', { exact: true }).fill('3');
     await page.getByRole('button', { name: 'Save Executive profile', exact: true }).click();
-    await page.getByText('Saved profile revision 1', { exact: true }).waitFor();
+    await page.getByText('v1', { exact: true }).waitFor();
     assert.equal(store.executiveProfile(agent.id).enabled, true);
     assert.deepEqual(store.executiveProfile(agent.id).modules, { speaking: false, tools: true });
     assert.equal(store.executiveProfile(agent.id).executionMode, 'background');
@@ -143,7 +165,11 @@ test('Executive panels persist operational configuration and discover/grant real
     const header = page.locator('.executive-header');
     assert.equal(await header.getByRole('heading', { name: 'Executive', exact: true }).count(), 1);
     assert.equal(await header.getByRole('button', { name: 'Save Executive profile', exact: true }).count(), 1);
-    assert.equal(await header.getByText('Saved profile revision 1', { exact: true }).count(), 1);
+    assert.equal(await header.getByText('v1', { exact: true }).count(), 1);
+    assert.equal(await header.locator('.executive-heading .executive-version').innerText(), 'v1');
+    const saveIcon = header.getByRole('button', { name: 'Save Executive profile', exact: true });
+    assert.equal(await saveIcon.innerText(), '');
+    assert.equal(await saveIcon.locator('svg').count(), 1);
 
     await page.getByRole('button', { name: 'Discover tools', exact: true }).click();
     await page.getByText('Connection status: connected', { exact: true }).waitFor();

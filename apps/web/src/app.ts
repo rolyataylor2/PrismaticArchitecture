@@ -1093,6 +1093,7 @@ function render(): void {
     Predictions: 'Predictions are a Part’s assessable expectations about what is happening or what may happen next. Each Part can hold one open prediction; later evidence is checked against it to support learning and memory, preserving the Part’s interpretation of the outcome.',
     Network: 'Analytics is a researcher view of the relationships, lineage and provenance connecting the Agent’s Parts. It makes their development and associations visible without giving those connections decision authority or access to another Part’s private memories.',
     History: 'Logs are the recorded events and changes produced as the Agent thinks and develops. They let researchers inspect how the system behaved, while remaining separate from subjective memories and unavailable to Self as an authoritative account of its past.',
+    Executive: 'Configure how the Agent carries out selected actions, connects to tools and reports outcomes. Self chooses; external systems execute within the configured permissions and budgets.',
     Settings: 'Configure the models and inference instructions used by the Agent. These researcher controls support cognition without becoming part of the Agent’s psychological state.',
     'Model & key': 'Configure model providers and external inference access for the Agent’s cognitive processes.',
     Prompts: 'Inspect and edit inference instructions for the Agent’s cognitive processes. Runtime boundaries still determine each process’s access and authority.',
