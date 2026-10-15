@@ -170,6 +170,10 @@ test('Executive panels persist operational configuration and discover/grant real
     const saveIcon = header.getByRole('button', { name: 'Save Executive profile', exact: true });
     assert.equal(await saveIcon.innerText(), '');
     assert.equal(await saveIcon.locator('svg').count(), 1);
+    const titleBounds = await header.locator('.executive-heading').boundingBox();
+    const saveBounds = await saveIcon.boundingBox();
+    assert.ok(titleBounds && saveBounds && saveBounds.y >= titleBounds.y + titleBounds.height, 'Save sits below the Executive title');
+    assert.equal(saveBounds!.x, titleBounds!.x, 'Save aligns with the title’s left edge');
 
     await page.getByRole('button', { name: 'Discover tools', exact: true }).click();
     await page.getByText('Connection status: connected', { exact: true }).waitFor();
