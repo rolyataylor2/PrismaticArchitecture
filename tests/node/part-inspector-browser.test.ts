@@ -13,7 +13,14 @@ const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Co
 test('Part inspector selects history and opens styled and raw information', { skip: !existsSync(executable) }, async () => {
   const store = new SqliteStore(':memory:'); const app = new Application(store);
   const agent = app.createAgent('Part inspector'); const original = store.list('part', agent.id)[0]!;
-  app.runtime.mutations.patch(original.id, original.version, { mission: 'My newer mission', beliefs: ['I deserve to be heard.'], emotionalCharge: 'Tentative trust', temporary: true }, { origin: 'researcher_edit', reason: 'Inspector fixture', sourceIds: [] });
+  store.save('disposition', { id: 'inspector_disposition', agentId: agent.id, version: 1, schemaVersion: 1,
+    name: 'Being Heard', concern: 'Notice opportunities to be understood.', cues: ['Someone listens'], scope: 'Conversation',
+    prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0,
+    { origin: 'researcher_edit', reason: 'Explicit source binding for inspector verification', sourceIds: [] });
+  const formationCycle = store.startCycle(agent.id); store.saveCycle({ ...formationCycle, status: 'completed' });
+  app.runtime.mutations.patch(original.id, original.version, { instance: { createdCycle: formationCycle.id, threadId: null,
+    interpretation: 'I want to be understood.', evidenceMemoryIds: [], counterevidenceMemoryIds: [],
+    dispositionBindings: [{ dispositionId: 'inspector_disposition', entityId: 'conversation' }], retirement: null }, mission: 'My newer mission', beliefs: ['I deserve to be heard.'], emotionalCharge: 'Tentative trust', temporary: true }, { origin: 'researcher_edit', reason: 'Inspector fixture', sourceIds: [] });
   const capsule = { interpretation: 'I expect a response.', details: ['I asked a question.'], entities: ['Someone'], activation: 2, spike: 1, sourceIds: [] };
   const change = { origin: 'researcher_edit' as const, reason: 'Inspector fixture', sourceIds: [] };
   for (const [index, assessment] of ['confirmed', 'contradicted', 'ambiguous', null].entries()) {
@@ -37,7 +44,6 @@ test('Part inspector selects history and opens styled and raw information', { sk
   try {
     const page = await browser.newPage(); const errors: string[] = []; page.on('pageerror', cause => errors.push(cause.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Memories', exact: true }).count(), 1);
     await page.getByRole('button', { name: 'Part History', exact: true }).click();
     const card = page.getByRole('button', { name: `Inspect ${original.name}`, exact: true });
@@ -48,7 +54,6 @@ test('Part inspector selects history and opens styled and raw information', { sk
     const archivedPart = store.list('part', agent.id)[1]!;
     app.runtime.mutations.patch(archivedPart.id, archivedPart.version, { lifecycle: 'archived', emotionalCharge: 'Tentative trust' }, change);
     await page.reload();
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Part History', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: `Inspect ${archivedPart.name}`, exact: true }).evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(236, 238, 237)');
     await card.click();
@@ -65,7 +70,23 @@ test('Part inspector selects history and opens styled and raw information', { sk
     assert.match(await page.locator('.part-description').innerText(), /Retrieval keys · vector search only/);
     for (const key of original.retrievalKeys ?? []) assert.ok((await page.locator('.part-description').innerText()).includes(key));
     assert.equal(await page.locator('.part-beliefs li').innerText(), '✓\nI deserve to be heard.');
+    const disposition = page.getByRole('button', { name: 'Inspect disposition: Being Heard', exact: true });
+    await disposition.click();
+    const dispositionPanel = page.getByRole('region', { name: 'Disposition inspector', exact: true });
+    await dispositionPanel.getByRole('heading', { name: 'Being Heard', exact: true, level: 2 }).waitFor();
+    assert.match(await dispositionPanel.innerText(), /Notice opportunities to be understood/);
+    assert.match(await dispositionPanel.innerText(), /No recorded activation assessments/);
+    assert.equal(await disposition.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.getByRole('button', { name: 'Current version 2', exact: true }).getAttribute('aria-pressed'), 'false');
+    assert.equal(await dispositionPanel.getByRole('button', { name: 'Edit disposition', exact: true }).count(), 0);
+    await page.screenshot({ path: '/tmp/prism-part-disposition-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.screenshot({ path: '/tmp/prism-part-disposition-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.getByRole('button', { name: 'Historical version 1', exact: true }).click();
+    assert.equal(await disposition.getAttribute('aria-pressed'), 'false');
+    assert.equal(await dispositionPanel.count(), 0);
     assert.match(await page.locator('.part-description').innerText(), new RegExp(original.mission.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.equal(await page.getByRole('button', { name: 'Historical version 1', exact: true }).getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('.part-record-container:visible').count(), 0);

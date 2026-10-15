@@ -26,7 +26,6 @@ test('activation history renders exact source judgments, filters threads and ope
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
-    await page.getByRole('button', { name: 'Agent Components', exact: true }).click();
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Delight In Birds', exact: true }).click();
     const chart = page.getByRole('region', { name: 'Historical disposition activation' });

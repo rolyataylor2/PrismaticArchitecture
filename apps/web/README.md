@@ -357,3 +357,5 @@ Sidebar navigation places icon-only Sleep and Dreams controls beneath the Agent 
 ## Disposition directory
 
 Dispositions use a responsive grid of compact icon tiles showing each name and concern. Tiles open the existing inspector; separate edit controls, search, filtering and temporary/durable grouping remain available. Long descriptions are limited to three lines with the full concern available on hover and in the inspector.
+
+The Part inspector timeline begins with a disposition icon for each recorded source binding. Selecting it displays the shared disposition inspector information in the adjacent pane, including activation evidence and preserved versions; selecting a Part version returns to its perspective. Embedded disposition inspection is read-only; editing remains in Dispositions. Identity fallback and unbound historical Parts explicitly show that no disposition is recorded. Detached responses cannot replace a subsequently selected perspective.
