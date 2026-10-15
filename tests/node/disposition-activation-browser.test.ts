@@ -28,6 +28,8 @@ test('activation history renders exact source judgments, filters threads and ope
     { origin: 'researcher_edit', reason: 'Empty chart condition without fabricated measurements', sourceIds: [] });
   store.save('disposition', { ...store.get('disposition', 'quiet'), id: 'returning-birds', name: 'Returning birds' }, 0,
     { origin: 'researcher_edit', reason: 'Second disposition with the same source prediction', sourceIds: [] });
+  store.save('disposition', { ...store.get('disposition', 'quiet'), id: 'expired-birds', name: 'Expired bird concern', active: false }, 0,
+    { origin: 'researcher_edit', reason: 'Ended temporary disposition visibility fixture', sourceIds: [] });
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
   try {
@@ -36,6 +38,17 @@ test('activation history renders exact source judgments, filters threads and ope
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Quiet Curiosity', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Inspect Expired bird concern', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'Filter', exact: true }).click();
+    const filterMenu = page.getByRole('dialog', { name: 'Filter', exact: true });
+    const showExpired = filterMenu.getByRole('checkbox', { name: 'Show expired dispositions' });
+    assert.equal(await showExpired.isChecked(), false);
+    await showExpired.check();
+    await page.getByRole('button', { name: 'Inspect Expired bird concern', exact: true }).waitFor();
+    await filterMenu.getByRole('button', { name: 'Reset filters', exact: true }).click();
+    assert.equal(await showExpired.isChecked(), false);
+    assert.equal(await page.getByRole('button', { name: 'Inspect Expired bird concern', exact: true }).count(), 0);
+    await page.keyboard.press('Escape');
     const rows = page.locator('.disposition-list > [data-kind]:not([data-kind="self"])');
     const kinds = await rows.evaluateAll(elements => elements.map(element => (element as HTMLElement).dataset.kind));
     assert.deepEqual(kinds, ['persistent', 'prediction', 'attention']);

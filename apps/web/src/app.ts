@@ -880,7 +880,7 @@ function resetMenuButton(label: string, action: () => unknown, host?: HTMLElemen
   panel.append(button(label, () => { panel.hidePopover(); return action(); }, true));
   return contextMenuButton('Reset options', panel, '↺', host);
 }
-type BrowseField<T> = { key: string; label: string; value: (item: T) => string | number; options?: [string, string][] };
+type BrowseField<T> = { key: string; label: string; value: (item: T) => string | number; options?: [string, string][]; checkbox?: boolean };
 const componentBrowsePreferences = new Map<string, { sort: string; direction: string; filters: Record<string, string> }>();
 function componentBrowse<T>(fields: BrowseField<T>[], redraw: () => void) {
   const preferenceKey = `${selectedAgent}:${activeTab}`;
@@ -892,12 +892,19 @@ function componentBrowse<T>(fields: BrowseField<T>[], redraw: () => void) {
     select.value = value; select.onchange = () => { change(select.value); redraw(); }; wrapper.append(select); return wrapper;
   };
   const sortPanel = node('div');
-  sortPanel.append(selectControl('Sort by', [['', 'Default order'], ...fields.map(field => [field.key, field.label] as [string, string])], prefs.sort, value => { prefs.sort = value; }),
+  sortPanel.append(selectControl('Sort by', [['', 'Default order'], ...fields.filter(field => !field.checkbox).map(field => [field.key, field.label] as [string, string])], prefs.sort, value => { prefs.sort = value; }),
     selectControl('Direction', [['asc', 'Ascending'], ['desc', 'Descending']], prefs.direction, value => { prefs.direction = value; }));
   const filterPanel = node('div');
-  const filterFields = fields.filter(field => field.options);
-  for (const field of filterFields) filterPanel.append(selectControl(field.label, [['', 'All'], ...field.options!], prefs.filters[field.key] ?? '', value => { prefs.filters[field.key] = value; }));
-  filterPanel.append(button('Reset filters', () => { prefs.filters = {}; filterPanel.querySelectorAll('select').forEach(select => { select.value = ''; }); redraw(); }, true));
+  const filterFields = fields.filter(field => field.options || field.checkbox);
+  for (const field of filterFields) {
+    if (field.checkbox) {
+      const wrapper = node('label', field.label); const checkbox = node('input'); checkbox.type = 'checkbox';
+      checkbox.checked = prefs.filters[field.key] === 'true';
+      checkbox.onchange = () => { prefs.filters[field.key] = checkbox.checked ? 'true' : ''; redraw(); };
+      wrapper.prepend(checkbox); filterPanel.append(wrapper);
+    } else filterPanel.append(selectControl(field.label, [['', 'All'], ...field.options!], prefs.filters[field.key] ?? '', value => { prefs.filters[field.key] = value; }));
+  }
+  filterPanel.append(button('Reset filters', () => { prefs.filters = {}; filterPanel.querySelectorAll('select').forEach(select => { select.value = ''; }); filterPanel.querySelectorAll<HTMLInputElement>('input[type=checkbox]').forEach(input => { input.checked = false; }); redraw(); }, true));
   const filterButton = contextMenuButton('Filter', filterPanel);
   const sortButton = contextMenuButton('Sort', sortPanel);
   const updateLabel = (): void => { filterButton.textContent = Object.values(prefs.filters).some(Boolean) ? 'Filter · Active' : 'Filter'; };
@@ -907,7 +914,7 @@ function componentBrowse<T>(fields: BrowseField<T>[], redraw: () => void) {
     active: () => Boolean(prefs.sort || Object.values(prefs.filters).some(Boolean)),
     apply: (items: T[]): T[] => {
       updateLabel();
-      const result = items.filter(item => filterFields.every(field => !prefs.filters[field.key] || String(field.value(item)) === prefs.filters[field.key]));
+      const result = items.filter(item => filterFields.every(field => field.checkbox ? prefs.filters[field.key] === 'true' || !field.value(item) : !prefs.filters[field.key] || String(field.value(item)) === prefs.filters[field.key]));
       const sort = fields.find(field => field.key === prefs.sort);
       if (sort) result.sort((a, b) => { const first = sort.value(a); const second = sort.value(b); return (typeof first === 'number' && typeof second === 'number' ? first - second : String(first).localeCompare(String(second))) * (prefs.direction === 'desc' ? -1 : 1); });
       return result;
@@ -2570,6 +2577,7 @@ function dispositionsPage(): void {
     if (!visible.length && !fallbackParts.length && !matches.length) list.append(node('p', query || browse.active() ? 'No matching dispositions or temporary attention.' : 'No dispositions or temporary attention yet.', 'muted'));
   };
   const browse = componentBrowse<AgentSnapshot['dispositions'][number]>([
+    { key: 'expired', label: 'Show expired dispositions', checkbox: true, value: item => Number(item.temporary && (!item.active || Boolean(item.scaffold?.endedCycle))) },
     { key: 'name', label: 'Name', value: item => item.name },
     { key: 'threshold', label: 'Activation threshold', value: item => item.threshold },
     { key: 'status', label: 'Status', value: item => item.active ? 'active' : 'inactive', options: [['active', 'Active'], ['inactive', 'Inactive']] },
