@@ -73,3 +73,59 @@ test('Play resumes the current snapshot’s cognition stream through the normal 
     assert.equal(await page.getByRole('button', { name: 'Play cognition', exact: true }).isDisabled(), true);
   } finally { await browser.close(); await app.close(); server.close(); store.close(); }
 });
+
+test('sensor draft finalizes speech and raw channels only on Play and preserves past snapshots', { skip: !existsSync(executable), timeout: 60000 }, async () => {
+  const store = new SqliteStore(':memory:'); const app = new ContinuousApplication(store); const agent = app.createAgent('Sensor editor');
+  const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const browser = await chromium.launch({ executablePath: executable, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('textbox', { name: 'Speaker', exact: true }).fill('Taylor');
+    await page.getByRole('textbox', { name: 'Audio chat', exact: true }).fill('Hello');
+    await page.getByRole('button', { name: 'Add chat', exact: true }).click();
+    assert.equal(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).inputValue(), 'Taylor Says "Hello"');
+    await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Bird is chirping');
+    await page.locator('.sensor-channel').filter({ has: page.locator('summary', { hasText: /^Audio$/ }) }).getByRole('button', { name: 'Add data', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).nth(1).fill('Bird is chirping nearby');
+    await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).nth(1).fill('Bird is chirping');
+    await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Discard this observation');
+    await page.locator('.sensor-channel').filter({ has: page.locator('summary', { hasText: /^Audio$/ }) }).getByRole('button', { name: 'Add data', exact: true }).click();
+    await page.locator('.sensor-channel').filter({ has: page.locator('summary', { hasText: /^Audio$/ }) }).getByRole('button', { name: 'Remove', exact: true }).last().click();
+    await page.locator('.sensor-channel > summary').filter({ hasText: /^Visual$/ }).click();
+    await page.getByRole('textbox', { name: 'Raw visual data', exact: true }).fill('A sign reads "Welcome" beside C:\\garden');
+    await page.locator('.sensor-channel').filter({ has: page.locator('summary', { hasText: /^Visual$/ }) }).getByRole('button', { name: 'Add data', exact: true }).click();
+    assert.equal(store.cycles(agent.id).length, 0);
+    // Failed finalization must retain staged input for correction or retry.
+    await page.route('**/message', route => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Temporary intake failure' }) }), { times: 1 });
+    const failed = page.waitForResponse(response => response.url().endsWith('/message'));
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).click(); await failed;
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).waitFor();
+    await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('[aria-label="Play cognition"]')?.disabled === false);
+    assert.equal(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).count(), 2);
+    assert.equal(store.cycles(agent.id).length, 0);
+    const submitted = page.waitForResponse(response => response.url().endsWith('/message'));
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).click(); assert.equal((await submitted).ok(), true);
+    await app.runtime.idle(agent.id);
+    await page.locator('.perception-fact').filter({ hasText: 'Taylor Says "Hello"' }).first().waitFor();
+    const first = store.events(agent.id).find(event => event.type === 'worldstate.frozen');
+    assert.ok(first?.type === 'worldstate.frozen');
+    const original = JSON.stringify(first);
+    assert.ok(first.payload.facts.some(fact => fact.source === 'Sensor audio' && fact.text === 'Bird is chirping'));
+    assert.ok(first.payload.facts.some(fact => fact.source === 'Sensor visual' && fact.text === 'A sign reads "Welcome" beside C:\\garden'));
+    assert.equal(await page.getByRole('textbox', { name: 'Edit audio observation', exact: true }).count(), 0);
+    await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Rain begins');
+    await page.locator('.sensor-channel').filter({ has: page.locator('summary', { hasText: /^Audio$/ }) }).getByRole('button', { name: 'Add data', exact: true }).click();
+    const next = page.waitForResponse(response => response.url().endsWith('/message'));
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).click(); await next; await app.runtime.idle(agent.id);
+    await page.locator('.perception-fact').filter({ hasText: 'Rain begins' }).first().waitFor();
+    assert.equal(JSON.stringify(store.events(agent.id).find(event => event.id === first.id)), original);
+    await page.screenshot({ path: '/tmp/prism-sensor-editor-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-sensor-editor-mobile.png', fullPage: true });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
+    assert.equal(await page.locator('.sensor-editor').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Play cognition', exact: true }).isDisabled(), true);
+  } finally { await browser.close(); await app.close(); server.close(); store.close(); }
+});

@@ -45,6 +45,15 @@ let frozenCycle = '';
 let brainSeekSequence: number | null = null;
 let perceptionSnapshotId: string | null = null;
 let perceptionControlPending = false;
+type SensorDraft = { items: { channel: string; text: string }[]; speaker: string; speech: string; raw: Record<string, string>; requestId: string };
+const sensorDrafts = new Map<string, SensorDraft>();
+function sensorDraft(): SensorDraft {
+  const key = `${selectedDatabase}:${selectedAgent}`;
+  let draft = sensorDrafts.get(key);
+  if (!draft) { draft = { items: [], speaker: 'Taylor', speech: '', raw: {}, requestId: crypto.randomUUID() }; sensorDrafts.set(key, draft); }
+  return draft;
+}
+
 let pendingMessage = false;
 let submittedChat: { agentId: string; databaseId: string; threadId: string; text: string; source: string; cycleId?: string; error?: string } | null = null;
 let threadLoading = false;
@@ -1440,6 +1449,47 @@ async function sendMessage(text: string, skillDocumentIds: string[] = []): Promi
   if (sendError) showError(sendError);
 }
 
+function perceptionEditor(page: HTMLElement, draft: SensorDraft): void {
+  const editor = node('section', '', 'sensor-editor');
+  editor.append(node('h3', 'Sensor channels'), node('p', 'Add or edit observations, then press Play to finalize them and continue cognition. Recorded snapshots stay immutable.', 'muted'));
+  const add = (channel: string, text: string) => {
+    if (!text.trim() || perceptionControlPending) return;
+    draft.items.push({ channel, text: text.trim() }); draft.requestId = crypto.randomUUID(); render();
+  };
+  for (const channel of ['audio', 'visual', 'tactile', 'olfactory', 'gustatory']) {
+    const section = node('details', '', 'sensor-channel'); section.open = channel === 'audio';
+    section.append(node('summary', `${channel[0]!.toUpperCase()}${channel.slice(1)}`));
+    for (const item of draft.items.filter(item => item.channel === channel)) {
+      const row = node('div', '', 'row');
+      const input = node('textarea'); input.value = item.text; input.setAttribute('aria-label', `Edit ${channel} observation`);
+      input.disabled = perceptionControlPending;
+      input.oninput = () => { item.text = input.value; draft.requestId = crypto.randomUUID(); };
+      const remove = button('Remove', () => { draft.items.splice(draft.items.indexOf(item), 1); draft.requestId = crypto.randomUUID(); render(); }, true);
+      remove.disabled = perceptionControlPending; row.append(input, remove); section.append(row);
+    }
+    if (channel === 'audio') {
+      const chat = node('div', '', 'row');
+      const speaker = node('input'); speaker.value = draft.speaker; speaker.setAttribute('aria-label', 'Speaker'); speaker.placeholder = 'Speaker';
+      speaker.oninput = () => { draft.speaker = speaker.value; };
+      const speech = node('input'); speech.value = draft.speech; speech.setAttribute('aria-label', 'Audio chat'); speech.placeholder = 'Add speech…';
+      speech.oninput = () => { draft.speech = speech.value; };
+      const addSpeech = () => { if (!draft.speaker.trim() || !draft.speech.trim()) return; const text = `${draft.speaker.trim()} Says "${draft.speech.trim()}"`; draft.speech = ''; add('audio', text); };
+      speech.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); addSpeech(); } };
+      const addChat = button('Add chat', addSpeech, true);
+      for (const control of [speaker, speech, addChat]) control.disabled = perceptionControlPending;
+      chat.append(speaker, speech, addChat); section.append(chat);
+    }
+    const raw = node('div', '', 'row');
+    const input = node('textarea'); input.value = draft.raw[channel] ?? ''; input.setAttribute('aria-label', `Raw ${channel} data`); input.placeholder = channel === 'audio' ? 'Bird is chirping' : `Add raw ${channel} data…`;
+    input.oninput = () => { draft.raw[channel] = input.value; };
+    const addRaw = button('Add data', () => { const value = draft.raw[channel] ?? ''; if (value.trim()) { draft.raw[channel] = ''; add(channel, value); } }, true);
+    input.disabled = perceptionControlPending; addRaw.disabled = perceptionControlPending;
+    raw.append(input, addRaw); section.append(raw); editor.append(section);
+  }
+  editor.append(node('p', `${draft.items.length} pending observations · Add chat or data before pressing Play.`, 'muted'));
+  page.append(editor);
+}
+
 function perceptionPage(): void {
   const snapshots = events.filter((event): event is Extract<CognitiveEvent, { type: 'worldstate.frozen' }> => event.type === 'worldstate.frozen').sort((a, b) => a.sequence - b.sequence);
   const selectedIndex = perceptionSnapshotId === null ? snapshots.length - 1 : snapshots.findIndex(event => event.payload.id === perceptionSnapshotId);
@@ -1448,11 +1498,6 @@ function perceptionPage(): void {
   const current = index === snapshots.length - 1;
   const page = node('section', '', 'perception-page');
   page.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'), node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
-  if (!snapshot) {
-    page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted'));
-    content.append(page);
-    return;
-  }
   const transport = node('div', '', 'row perception-transport');
   transport.setAttribute('role', 'group'); transport.setAttribute('aria-label', 'WorldState playback');
   const seek = (target: number) => {
@@ -1463,29 +1508,44 @@ function perceptionPage(): void {
   rewind.setAttribute('aria-label', 'Previous WorldState'); rewind.disabled = index <= 0;
   const forward = button('Fast forward ⏩', () => seek(index + 1), true);
   forward.setAttribute('aria-label', 'Next WorldState'); forward.disabled = current;
-  const position = node('span', `${index + 1} / ${snapshots.length} · ${current ? 'Current' : 'Historical'}`, 'muted');
+  const position = node('span', `${Math.max(0, index + 1)} / ${snapshots.length} · ${current ? 'Current' : 'Historical'}`, 'muted');
   position.setAttribute('role', 'status');
   transport.append(rewind, position, forward);
   const agentId = selectedAgent; const databaseId = selectedDatabase;
-  const threadId = state?.cycles.find(cycle => cycle.id === snapshot.payload.cycleId)?.threadId ?? null;
+  const threadId = state?.cycles.find(cycle => cycle.id === snapshot?.payload.cycleId)?.threadId ?? null;
+  const draft = sensorDraft();
   const streamEvent = events.findLast(event => event.type === 'cognition.stream' && event.payload.threadId === threadId);
   const streamStatus = streamEvent?.type === 'cognition.stream' ? streamEvent.payload : null;
   const play = button(perceptionControlPending ? 'Starting…' : '▶ Play', async () => {
-    if (perceptionControlPending || !current || events.findLast(event => event.type === 'worldstate.frozen')?.id !== snapshot.id) return;
+    if (perceptionControlPending || !current || events.findLast(event => event.type === 'worldstate.frozen')?.id !== snapshot?.id) return;
+    if (draft.items.some(item => !item.text.trim())) { showError(new Error('Sensor observations cannot be empty. Remove empty items before playing.')); return; }
     perceptionControlPending = true; render();
     try {
-      await api(`agents/${agentId}/cognition-control`, 'POST', { threadId, directive: 'resume' });
+      if (draft.items.length) {
+        const text = draft.items.map(item => `/sensor ${item.channel} "${item.text.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(' ');
+        await api(`agents/${agentId}/message`, 'POST', { text, threadId: threadId ?? `thread_${crypto.randomUUID()}`, clientMessageId: draft.requestId });
+        draft.items = []; draft.requestId = crypto.randomUUID();
+        if (agentId === selectedAgent && databaseId === selectedDatabase) {
+          await refresh();
+          const recorded = await api<CognitiveEvent[]>(`agents/${agentId}/events`);
+          if (agentId === selectedAgent && databaseId === selectedDatabase) events = recorded;
+        }
+      } else await api(`agents/${agentId}/cognition-control`, 'POST', { threadId, directive: 'resume' });
     } finally {
       perceptionControlPending = false;
       if (agentId === selectedAgent && databaseId === selectedDatabase) render();
     }
   });
   play.setAttribute('aria-label', 'Play cognition');
-  play.disabled = !current || !streamStatus || streamStatus.status === 'running' || perceptionControlPending;
-  play.title = !current ? 'Return to the current WorldState to start cognition' : !streamStatus ? 'No resumable cognition stream recorded for this snapshot' : streamStatus.status === 'running' ? 'Cognition is already running' : 'Resume cognition with the configured activation allowance';
+  play.disabled = !current || perceptionControlPending || (!draft.items.length && (!streamStatus || streamStatus.status === 'running'));
+  play.title = draft.items.length && current ? 'Finalize sensor observations and continue cognition' : !current ? 'Return to the current WorldState to start cognition' : !streamStatus ? 'No resumable cognition stream recorded for this snapshot' : streamStatus.status === 'running' ? 'Cognition is already running' : 'Resume cognition with the configured activation allowance';
   transport.append(play);
   page.append(transport);
+  if (current) perceptionEditor(page, draft);
   if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
+  if (!snapshot) {
+    page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted')); content.append(page); return;
+  }
   const world = snapshot.payload;
   page.append(node('p', `Snapshot ${world.sequence} · ${world.capturedAt}`, 'muted'));
   const actions = node('div', '', 'row');
@@ -1500,10 +1560,19 @@ function perceptionPage(): void {
   page.append(actions);
   const observations = node('section', '', 'perception-observations');
   observations.append(node('h3', 'External observations'));
+  const channels = new Map<string, typeof world.facts>();
   for (const fact of world.facts) {
+    const label = fact.source.startsWith('Sensor ') ? fact.source.slice(7) : 'Other context';
+    if (!channels.has(label)) channels.set(label, []);
+    channels.get(label)!.push(fact);
+  }
+  for (const [channel, facts] of channels) {
+    observations.append(node('h4', channel));
+    for (const fact of facts) {
     const entry = node('article', '', 'perception-fact');
     entry.append(node('p', fact.text), node('p', `${fact.source} · ${fact.kind} · ${fact.timestamp ?? 'Time unknown'}`, 'muted'));
     observations.append(entry);
+    }
   }
   if (!world.facts.length) observations.append(node('p', 'This snapshot contains no external observations.', 'muted'));
   page.append(observations);
