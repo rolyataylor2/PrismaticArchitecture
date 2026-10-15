@@ -1553,6 +1553,6 @@ dialog.app-dialog.skill-inspector { width: min(1040px, calc(100vw - 32px)); }
 
 .prompt-settings-toolbar { flex-shrink: 0; min-width: 0; padding: 12px 28px; background: #f8faf6; border-bottom: 1px solid #d8dfd4; }
 
-.component-view .settings-header { grid-template-rows: auto auto; }
+.component-view .settings-header { grid-template-rows: minmax(0, 1fr) auto; }
 .settings-header h2 { align-self: start; }
-@media (max-width: 650px) { .component-view .settings-header { grid-template-rows: auto auto auto; } .settings-tabs { grid-row: 3; } }
+@media (max-width: 650px) { .component-view .settings-header { grid-template-rows: auto minmax(0, 1fr) auto; } .settings-tabs { grid-row: 3; } }

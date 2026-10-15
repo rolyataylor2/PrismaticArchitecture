@@ -27,11 +27,14 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
       await page.setViewportSize({ width, height: 900 });
       const heights: number[] = [];
       const titlePositions: number[] = [];
+      const tabPositions: number[] = [];
       for (const name of ['Model & key', 'Activation', 'Delete Agent', 'Prompts']) {
         await page.getByRole('tab', { name, exact: true }).click();
         heights.push(await page.locator('.settings-header').evaluate(header => header.getBoundingClientRect().height));
         titlePositions.push(await page.locator('.settings-header').evaluate(header => header.querySelector('h2')!.getBoundingClientRect().top - header.getBoundingClientRect().top));
+        tabPositions.push(await page.locator('.settings-header').evaluate(header => header.querySelector('.settings-tabs')!.getBoundingClientRect().top - header.getBoundingClientRect().top));
       }
+      assert.equal(new Set(tabPositions).size, 1, `Settings tabs stay aligned at ${width}px`);
       assert.equal(new Set(titlePositions).size, 1, `Settings title stays aligned at ${width}px`);
       assert.equal(new Set(heights).size, 1, `Settings header height stays consistent at ${width}px`);
     }
