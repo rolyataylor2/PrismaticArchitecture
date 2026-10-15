@@ -20,7 +20,7 @@ import { NativeExecutiveExecutor } from '../../executive/src/native-executor.js'
 import { BackgroundExecutiveExecutor } from '../../executive/src/background-executor.js';
 import { validateExecutionUpdate } from '../../core/src/execution-lifecycle.js';
 import type { ExternalCapabilities } from '../../core/src/mcp-configuration.js';
-import { ExecutionSchema, freeze, id, now, type Change, type Execution, type Fact } from '../../core/src/domain.js';
+import { FactSchema, ExecutionSchema, freeze, id, now, type Change, type Execution, type Fact } from '../../core/src/domain.js';
 import { ConflictError } from '../../core/src/contracts.js';
 import type { DecisionProvider, EmbeddingProvider, Executor, ReasoningProvider, Store } from '../../core/src/contracts.js';
 import { CognitiveRuntime, defaultRuntimeOptions, type RuntimeOptions } from '../../core/src/runtime.js';
@@ -317,10 +317,10 @@ export class Application {
     return this.#coordinate(agentId, () => this.procedureConsolidation.run(agentId));
   }
   protected messageFacts(text: string, source: string): Fact[] { return sensorFacts(text, source); }
-  async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = [], clientMessageId?: string) {
+  async message(agentId: string, text: string, source = 'user', threadId?: string, skillDocumentIds: string[] = [], clientMessageId?: string, observation?: { facts: Fact[]; expectedSnapshotId: string | null }) {
     const activeDream = this.store.experiments().find(run => run.kind === 'simulation_test' && (run.status === 'running' || run.status === 'paused') && run.agentId === agentId && run.dream);
     if (activeDream && (threadId !== activeDream.id || researchStageContext.getStore()?.runId !== activeDream.id)) throw new ConflictError('Agent is experiencing a dream; wait for it to finish');
-    const facts = this.messageFacts(text, source);
+    const facts = observation ? z.array(FactSchema).max(1000).parse(observation.facts) : this.messageFacts(text, source);
     return this.#coordinate(agentId, async () => {
       if (skillDocumentIds.length > 10 || new Set(skillDocumentIds).size !== skillDocumentIds.length) throw new Error('Request at most ten distinct skill documents');
       if (skillDocumentIds.length && !this.store.executiveProfile(agentId).enabled) throw new Error('Executive is disabled');
@@ -330,7 +330,12 @@ export class Application {
         return { id: proposal.id, digest: proposal.digest, name: proposal.name, description: proposal.package.frontmatter.description,
           reviewRevision: review.revision, instructions: proposal.package.instructions };
       }));
-      return this.runtime.run(agentId, facts, threadId, await this.#capabilities(agentId), documents, clientMessageId);
+      const capabilities = await this.#capabilities(agentId);
+      if (observation) {
+        const latest = this.store.events(agentId).findLast(event => event.type === 'worldstate.frozen');
+        if ((latest?.type === 'worldstate.frozen' ? latest.payload.id : null) !== observation.expectedSnapshotId) throw new ConflictError('WorldState changed; reset edits to the latest snapshot before submitting');
+      }
+      return this.runtime.run(agentId, facts, threadId, capabilities, documents, clientMessageId, Boolean(observation));
     }, true);
   }
   async observeExecution(agentId: string, executionId: string, facts: Fact[], checkpoint: 'tool_result' | 'environment' = 'environment',

@@ -193,6 +193,7 @@ export const ExperiencedStateSchema = z.strictObject({
 export const WorldStateSchema = z.strictObject({
   id: Id, agentId: Id, cycleId: Id, sequence: z.number().int().positive(), capturedAt: Text,
   facts: z.array(FactSchema),
+  replacesExternalFacts: z.boolean().optional(),
   externalCapabilities: ExternalCapabilitiesSchema.optional(),
   externalExecutionRequests: z.array(ExternalExecutionRequestSchema).max(100).optional(),
   externalSkills: z.array(PublicExecutiveSkillSchema).max(100).optional(),

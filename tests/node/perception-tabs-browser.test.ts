@@ -1,0 +1,63 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { once } from 'node:events';
+import type { AddressInfo } from 'node:net';
+import { chromium } from '@playwright/test';
+import { SqliteStore } from '../../packages/storage/src/sqlite.js';
+import { Application as ContinuousApplication } from '../../packages/sdk/src/application.js';
+import { createResearchServer } from '../../apps/server/src/server.js';
+
+const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+test('WorldState tabs edit external entries through new immutable observations', { skip: !existsSync(executable), timeout: 60000 }, async () => {
+  const store = new SqliteStore(':memory:'); const app = new ContinuousApplication(store); const agent = app.createAgent('Tabbed perception');
+  const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const browser = await chromium.launch({ executablePath: executable, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('textbox', { name: 'Raw audio data', exact: true }).fill('Bird sings');
+    await page.getByRole('button', { name: 'Add entry', exact: true }).click();
+    await page.getByRole('tab', { name: /^General world facts/ }).click();
+    await page.getByRole('textbox', { name: 'Raw general data', exact: true }).fill('It is morning');
+    await page.getByRole('button', { name: 'Add entry', exact: true }).click();
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).click();
+    await page.getByText(/^Snapshot 1 ·/).waitFor(); await app.runtime.idle(agent.id);
+    const original = store.events(agent.id).find(event => event.type === 'worldstate.frozen'); assert.ok(original);
+    const saved = JSON.stringify(original);
+    await page.getByRole('textbox', { name: 'Edit general observation', exact: true }).fill('It is afternoon');
+    await page.getByRole('tab', { name: /^Audio/ }).click();
+    await page.getByRole('button', { name: 'Delete entry', exact: true }).click();
+    await page.getByRole('tab', { name: /^Visual/ }).click();
+    await page.getByRole('textbox', { name: 'Raw visual data', exact: true }).fill('A blue sky');
+    await page.getByRole('button', { name: 'Add entry', exact: true }).click();
+    await page.getByRole('button', { name: 'Play cognition', exact: true }).click();
+    await page.getByText(/^Snapshot 2 ·/).waitFor(); await app.runtime.idle(agent.id);
+    const latest = store.events(agent.id).findLast(event => event.type === 'worldstate.frozen');
+    assert.ok(latest?.type === 'worldstate.frozen');
+    assert.deepEqual(latest.payload.facts.map(fact => fact.text), ['It is afternoon', 'A blue sky']);
+    assert.equal(JSON.stringify(store.events(agent.id).find(event => event.id === original.id)), saved);
+    await page.screenshot({ path: '/tmp/prism-tabs-desktop.png', fullPage: true });
+    await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
+    await page.getByRole('tab', { name: /^Audio/ }).click(); await page.getByText('Bird sings', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Delete entry', exact: true }).count(), 0);
+    await page.getByRole('tab', { name: /^General world facts/ }).click(); await page.getByText('It is morning', { exact: true }).waitFor();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: '/tmp/prism-tabs-mobile.png', fullPage: true });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.getByRole('button', { name: 'Next WorldState', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Edit general observation', exact: true }).fill('Stale edit');
+    await app.message(agent.id, 'New observation'); await app.runtime.idle(agent.id);
+    await assert.rejects(app.message(agent.id, '', 'researcher', undefined, [], undefined, { facts: [], expectedSnapshotId: latest.payload.id }), /WorldState changed/);
+    // Replacement boundaries must also govern later ordinary fact carryover.
+    assert.ok(!store.recentFacts(agent.id, null, store.cycle(latest.cycleId!).threadId!).some(fact => fact.text === 'Bird sings' || fact.text === 'It is morning'));
+    const newest = store.events(agent.id).findLast(event => event.type === 'worldstate.frozen'); assert.ok(newest?.type === 'worldstate.frozen');
+    const threadId = store.cycle(newest.cycleId!).threadId!;
+    await app.message(agent.id, '', 'researcher', threadId, [], undefined, { facts: [], expectedSnapshotId: newest.payload.id }); await app.runtime.idle(agent.id);
+    const empty = store.events(agent.id).findLast(event => event.type === 'worldstate.frozen'); assert.ok(empty?.type === 'worldstate.frozen');
+    assert.equal(empty.payload.facts.length, 0);
+    await app.message(agent.id, 'Fresh fact after clearing', 'user', threadId); await app.runtime.idle(agent.id);
+    const afterClear = store.events(agent.id).findLast(event => event.type === 'worldstate.frozen'); assert.ok(afterClear?.type === 'worldstate.frozen');
+    assert.ok(afterClear.payload.facts.every(fact => !['Bird sings', 'It is morning', 'It is afternoon', 'A blue sky'].includes(fact.text)));
+  } finally { await browser.close(); await app.close(); server.close(); store.close(); }
+});

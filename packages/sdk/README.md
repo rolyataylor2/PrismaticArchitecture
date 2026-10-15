@@ -328,3 +328,7 @@ Simulation assessment v4 sends exact compact evaluation packets: deduplicated re
 `Application.message` and the message API accept `/sensor <type> <data>`, with multiple blocks per submission. Double-quoted items become separate facts; unquoted data becomes one item up to the next block. For example: `/sensor audio "James says: Hello" "Bird chirps" /sensor visual "A desk with a mug"`. Inside quotes, `\"` and `\\` preserve literal quotes and backslashes. Sensor names are open-ended words (letters, digits, underscores or hyphens). Malformed commands reject before cognition.
 
 Every item enters WorldState as an `observes` fact with source `Sensor <type>`, without semantic filtering, selection or inference. Plain messages become audio observations containing `Someone says: <text>`; an explicit source replaces `Someone`. The browser's existing `--name` option sets that speaker. All items share one cycle and ordinary thread history. These are supplied sensor reports, including possible sensor inferences, rather than runtime-certified truth. Cognitive interpretation and relevance belong to dispositions/Parts; Self remains world-blind. Existing stored facts remain unchanged.
+
+## Perception fact editing
+
+The perception tabs stage a complete external-fact set for the next observation. Play submits validated facts through ordinary message intake with an expected latest snapshot ID. Stale edits reject; recorded snapshots and subjective context are never rewritten. General world facts retain their external provenance. Empty fact sets are valid observations.

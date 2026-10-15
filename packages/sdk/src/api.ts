@@ -370,6 +370,10 @@ export async function api(app: Application, method: string, path: string, body: 
       if (subresource === 'generate') return generateIdentity(app, entityId, body);
     }
     if (method === 'GET' && action === 'identity-history') return app.store.versions('identity', entityId);
+    if (method === 'POST' && action === 'worldstate-observation') {
+      const input = z.strictObject({ facts: z.array(FactSchema).max(1000), expectedSnapshotId: z.string().nullable(), threadId: z.string().min(1).max(200).optional(), clientMessageId: z.string().min(1).max(200) }).parse(body);
+      return app.message(entityId, 'Edited external observations', 'researcher', input.threadId, [], input.clientMessageId, input);
+    }
     if (method === 'POST' && action === 'message') {
       const input = z.strictObject({ text: Text, source: Text.optional(), threadId: z.string().min(1).max(200).optional(),
         skillDocumentIds: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(10).optional(), clientMessageId: z.string().min(1).max(200).optional() }).parse(body);

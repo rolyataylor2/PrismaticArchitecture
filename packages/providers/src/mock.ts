@@ -53,7 +53,7 @@ export class MockDecisions implements DecisionProvider {
   }
   async shouldPredict(context: Parameters<DecisionProvider['shouldPredict']>[0]) {
     return !context.prediction && (Boolean(context.part.instance) || ['Social Caution', 'My Fear Of Rejection'].includes(context.part.name))
-      && /vulnerab|uncertain|afraid|personal|joke|reject/i.test(context.world.facts.at(-1)!.text);
+      && /vulnerab|uncertain|afraid|personal|joke|reject/i.test(context.world.facts.at(-1)?.text ?? '');
   }
   async checkPrediction(context: Parameters<DecisionProvider['checkPrediction']>[0]): ReturnType<DecisionProvider['checkPrediction']> {
     const text = context.laterEvidence.at(-1)?.text ?? '';
@@ -221,7 +221,7 @@ export class MockReasoning implements ReasoningProvider {
       recentThoughts: [],
       dispositions: input.dispositions ?? [], availableContributors: (input.workingParts ?? []).map(part => ({ partId: part.id, name: part.name })),
     });
-    const current = world.facts.filter(fact => fact.originCycleId === world.cycleId).map(fact => fact.text).join(' ') || world.facts.at(-1)!.text;
+    const current = world.facts.filter(fact => fact.originCycleId === world.cycleId).map(fact => fact.text).join(' ') || world.facts.at(-1)?.text || 'No current observation';
     return { formation: construction,
       memoryReflection: { content: `I experienced ${current}. ${construction.interpretation}. I remain uncertain about what this means.`,
         context: [current], interpretation: construction.interpretation, affect: construction.affect, perceivedDetails: [current] },
@@ -238,7 +238,7 @@ export class MockReasoning implements ReasoningProvider {
       thought: `I ${part.strategies[0]?.replace(/^I /, '') ?? 'want to understand what this means for my concern'}`,
       evidenceSummary: [part.beliefs[0] ?? part.mission], proposal: proposal(context),
       ...(part.instance ? { beliefs: part.beliefs, affect: part.emotionalCharge ?? '', localGoal: part.stickiness.concern || null,
-        prediction: context.prediction || !/uncertain|personal|question/i.test(context.world.facts.at(-1)!.text) ? null : {
+        prediction: context.prediction || !/uncertain|personal|question/i.test(context.world.facts.at(-1)?.text ?? '') ? null : {
           expectation: 'I expect a response that will help clarify my concern.', confidence: 0.6,
           capsule: { interpretation: part.instance.interpretation, details: [context.world.facts.at(-1)!.text.slice(0, 240)],
             entities: [context.world.facts.at(-1)!.source], activation: context.activation.score, spike: context.activation.delta, sourceIds: [context.world.id] },

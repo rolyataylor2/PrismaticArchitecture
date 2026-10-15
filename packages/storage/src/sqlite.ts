@@ -591,7 +591,11 @@ export class SqliteStore implements Store {
             text: `The host did not submit the selected recommendation. Admission report: ${event.payload.reason}`,
             timestamp: event.at, originCycleId: event.cycleId, referenceId: event.id }] }];
       });
-    const facts = [...worlds, ...executions, ...teaching, ...rejections].sort((a, b) => a.cycle - b.cycle || a.phase - b.phase || a.at.localeCompare(b.at) || a.order - b.order).flatMap(record => record.facts);
+    // A researcher replacement changes future context, never the historical rows.
+    const boundaryParameters = threadId ? [agentId, agentId, threadId] : [agentId, agentId];
+    const boundary = this.#db.prepare(`SELECT MAX(c.sequence) AS sequence FROM worlds w JOIN cycles c ON c.id = json_extract(w.body,'$.cycleId') WHERE w.agent_id = ? AND c.id ${cycleFilter} AND json_extract(w.body,'$.replacesExternalFacts') = 1`).get(...boundaryParameters)?.sequence;
+    const cutoff = typeof boundary === 'number' ? boundary : 0;
+    const facts = [...worlds, ...executions, ...teaching, ...rejections].filter(record => record.cycle >= cutoff).sort((a, b) => a.cycle - b.cycle || a.phase - b.phase || a.at.localeCompare(b.at) || a.order - b.order).flatMap(record => record.facts);
     const factual = facts.filter(fact => !isLegacyCapabilityFact(fact));
     return limit === null ? factual : factual.slice(-limit);
   }

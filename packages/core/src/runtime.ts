@@ -136,14 +136,14 @@ export class CognitiveRuntime {
     });
   }
   async run(agentId: string, facts: Fact[], threadId?: string, externalCapabilities?: ExternalCapabilities,
-    externalSkillDocuments?: WorldState['externalSkillDocuments'], clientMessageId?: string): Promise<{ cycle: Cycle; execution: Execution | null; executions: Execution[] }> {
+    externalSkillDocuments?: WorldState['externalSkillDocuments'], clientMessageId?: string, replaceExternalFacts = false): Promise<{ cycle: Cycle; execution: Execution | null; executions: Execution[] }> {
     if (this.closing) throw new Error('Cognitive runtime is closing');
-    z.array(FactSchema).min(1).max(50).parse(facts);
-    return this.track(agentId, this.runObservation(agentId, facts, threadId, externalCapabilities, externalSkillDocuments, undefined, clientMessageId));
+    z.array(FactSchema).min(replaceExternalFacts ? 0 : 1).max(replaceExternalFacts ? 1000 : 50).parse(facts);
+    return this.track(agentId, this.runObservation(agentId, facts, threadId, externalCapabilities, externalSkillDocuments, undefined, clientMessageId, replaceExternalFacts));
   }
   private async runObservation(agentId: string, facts: Fact[], threadId?: string, externalCapabilities?: ExternalCapabilities,
-    externalSkillDocuments?: WorldState['externalSkillDocuments'], continuation?: AttentionStream, clientMessageId?: string): Promise<{ cycle: Cycle; execution: Execution | null; executions: Execution[] }> {
-    const incoming = z.array(FactSchema).max(50).parse(facts);
+    externalSkillDocuments?: WorldState['externalSkillDocuments'], continuation?: AttentionStream, clientMessageId?: string, replaceExternalFacts = false): Promise<{ cycle: Cycle; execution: Execution | null; executions: Execution[] }> {
+    const incoming = z.array(FactSchema).max(replaceExternalFacts ? 1000 : 50).parse(facts);
     const correlation = clientMessageId === undefined ? undefined : z.string().min(1).max(200).parse(clientMessageId);
     let cycle = this.store.startCycle(agentId, threadId);
     if (correlation) { cycle = { ...cycle, clientMessageId: correlation }; this.store.saveCycle(cycle); }
@@ -154,7 +154,8 @@ export class CognitiveRuntime {
       const externalExecutionRequests = executiveEnabled ? currentExecutionRequests(this.store, agentId, threadId ?? null, this.options.maxGuidanceContexts ?? 20) : [];
       const externalSkills = executiveEnabled ? publicSkills(this.store, agentId, threadId ?? null, this.options.maxSkillContexts ?? 20) : [];
       const world = freeze(WorldStateSchema.parse({ id: cycle.worldId, agentId, cycleId: cycle.id,
-        sequence: cycle.sequence, capturedAt: cycle.startedAt, facts: [...this.store.recentFacts(agentId, this.options.recentFactLimit, threadId), ...incoming.map(fact => ({ ...fact, timestamp: fact.timestamp ?? cycle.startedAt, originCycleId: cycle.id }))],
+        sequence: cycle.sequence, capturedAt: cycle.startedAt, ...(replaceExternalFacts ? { replacesExternalFacts: true } : {}),
+        facts: [...(replaceExternalFacts ? [] : this.store.recentFacts(agentId, this.options.recentFactLimit, threadId)), ...incoming.map(fact => ({ ...fact, timestamp: fact.timestamp ?? cycle.startedAt, originCycleId: cycle.id }))],
         ...(executiveEnabled && externalCapabilities ? { externalCapabilities } : {}),
         ...(externalExecutionRequests.length ? { externalExecutionRequests } : {}),
         ...(externalSkills.length ? { externalSkills } : {}),
