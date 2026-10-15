@@ -1193,7 +1193,7 @@ dialog.app-dialog .popup-header-icon:disabled { opacity: .45; cursor: default; }
 dialog.app-dialog > .modal-header > :first-child { min-width: 0; }
 
 .disposition-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; min-width: 0; }
-.disposition-row { position: relative; min-width: 0; display: flex; border: 2px solid var(--disposition-border, #a6b69e); border-radius: 8px; }
+.disposition-row { position: relative; min-width: 0; display: flex; border: 4px solid var(--disposition-border, #a6b69e); border-radius: 8px; }
 .disposition-row.temporary { border-style: dashed; }
 .disposition-row.attention { border: 0; }
 .disposition-kind { color: #788578; font-size: 10px; }
