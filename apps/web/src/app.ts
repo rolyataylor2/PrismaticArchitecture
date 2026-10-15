@@ -1674,14 +1674,13 @@ function perceptionPage(): void {
     };
   }
   page.append(transport);
-  page.append(node('p', 'Browse recorded immutable snapshots available to the Agent. Subjective context is shown separately from external observations. Self does not receive WorldState.', 'muted'));
+  if (snapshot) page.append(node('p', `Snapshot ${snapshot.payload.sequence} · ${snapshot.payload.capturedAt}`, 'muted'));
   perceptionEditor(page, draft, snapshot?.payload.facts ?? [], current, snapshot?.payload.thoughtHistory ?? []);
   if (current) page.append(node('p', streamStatus ? `Cognition: ${streamStatus.status} · ${streamStatus.reason}` : 'No resumable cognition stream recorded for this snapshot.', 'muted'));
   if (!snapshot) {
     page.append(node('p', 'No WorldState has been recorded for this Agent yet.', 'muted')); content.append(page); return;
   }
   const world = snapshot.payload;
-  page.append(node('p', `Snapshot ${world.sequence} · ${world.capturedAt}`, 'muted'));
   const actions = node('div', '', 'perception-heading-actions');
   const iconButton = (label: string, paths: string, action: () => void) => {
     const control = button('', action, true); control.type = 'button';
