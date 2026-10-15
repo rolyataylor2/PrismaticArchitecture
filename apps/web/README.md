@@ -351,3 +351,5 @@ Executive Runtime shows Speaking and Tool execution module switches directly bel
 Completed realized replies appear in Audio as `You said: [text]`. The current view also shows same-thread completed speech recorded after the frozen snapshot, explicitly labeled; browsing past snapshots never adds later speech. Live speech entries do not trigger activation or dirty the researcher draft. Ordinary next-snapshot intake retains the audio feedback with its execution reference.
 
 The sidebar shows the current Agent as a full-width square linking to Perception. Hover or keyboard focus reveals its options pencil. Edit Agent opens a name and emoji/initials avatar dialog; changes persist as a versioned researcher profile edit. Change Agent opens a grid of all catalog Agents, including database labels, with the current selection marked.
+
+Sidebar navigation places icon-only Sleep and Dreams controls beneath the Agent square, followed by Primitives, Identity, Dispositions, Memories, Part History, Predictions, Analytics, Affect Analysis, Logs and Executive. Settings remains the final collapsible group. The Agent square opens Perception.

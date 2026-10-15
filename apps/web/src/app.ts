@@ -68,9 +68,7 @@ let threadSelectionRevision = 0;
 
 const expandedSections = {
   chat: true,
-  brain: false,
   settings: false,
-  operations: true,
 };
 let sessions: ChatSession[] = [];
 let activeSessionId: string | null = null;
@@ -726,44 +724,35 @@ function renderNavigation(): void {
   const nav = document.querySelector('#navigation')!;
   nav.replaceChildren();
 
-  const perception = button('Perception', () => { activeTab = 'Perception'; render(); });
-  perception.className = 'nav-item' + (activeTab === 'Perception' ? ' selected' : '');
-  if (activeTab === 'Perception') perception.setAttribute('aria-current', 'page');
-  nav.append(perception);
-
-  // 2. Agent Components (collapsible menu only)
-  const brainSection = node('div', '', 'nav-section');
-  const brainHeader = node('div', '', 'nav-header');
-  const brainToggle = node('button', expandedSections.brain ? '▾' : '▸', 'nav-toggle');
-  brainToggle.setAttribute('aria-label', 'Toggle Agent Components');
-  brainToggle.setAttribute('aria-expanded', String(expandedSections.brain));
-  brainToggle.onclick = (e) => { e.stopPropagation(); expandedSections.brain = !expandedSections.brain; render(); };
-  const brainTitle = button('Agent Components', () => {
-    expandedSections.brain = !expandedSections.brain;
-    render();
-  });
-  brainTitle.className = 'nav-title';
-  brainTitle.setAttribute('aria-expanded', String(expandedSections.brain));
-  brainHeader.append(brainToggle, brainTitle);
-  brainSection.append(brainHeader);
-
-  if (expandedSections.brain) {
-    const brainChildren = node('div', '', 'nav-children');
-    const brainTabs: [string, string][] = [
-      ['Primitives', 'Primitives'], ['Identity', 'Identity'],
-      ['Dispositions', 'Dispositions'], ['Memories', 'Memories'],
-      ['Parts', 'Part History'], ['Predictions', 'Predictions'],
-      ['Network', 'Analytics'], ['Affect', 'Affect Analysis'], ['History', 'Logs'],
-      ['Executive', 'Executive'],
-    ];
-    for (const [tab, label] of brainTabs) {
-      const item = button(label, () => { activeTab = tab; render(); });
-      item.className = 'nav-item' + (tab === activeTab ? ' selected' : '');
-      brainChildren.append(item);
-    }
-    brainSection.append(brainChildren);
+  const operations = node('div', '', 'nav-operations');
+  const operationIcons: [string, string][] = [
+    ['Sleep', '<path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/>'],
+    ['Dreams', '<path d="M7 18a4 4 0 0 1-1-7.9A6 6 0 0 1 17.8 8a5 5 0 0 1 .2 10Z"/><path d="M8 21h.01M4 23h.01"/>'],
+  ];
+  for (const [tab, icon] of operationIcons) {
+    const item = button('', () => { activeTab = tab; render(); });
+    item.className = 'nav-operation' + (activeTab === tab ? ' selected' : '');
+    item.title = tab;
+    item.setAttribute('aria-label', tab);
+    if (activeTab === tab) item.setAttribute('aria-current', 'page');
+    item.innerHTML = `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>`;
+    operations.append(item);
   }
-  nav.append(brainSection);
+  nav.append(operations);
+
+  const tabs: [string, string][] = [
+    ['Primitives', 'Primitives'], ['Identity', 'Identity'],
+    ['Dispositions', 'Dispositions'], ['Memories', 'Memories'],
+    ['Parts', 'Part History'], ['Predictions', 'Predictions'],
+    ['Network', 'Analytics'], ['Affect', 'Affect Analysis'], ['History', 'Logs'],
+    ['Executive', 'Executive'],
+  ];
+  for (const [tab, label] of tabs) {
+    const item = button(label, () => { activeTab = tab; render(); });
+    item.className = 'nav-item' + (activeTab === tab ? ' selected' : '');
+    if (activeTab === tab) item.setAttribute('aria-current', 'page');
+    nav.append(item);
+  }
 
   // 3. Settings Section (collapsible, expands to Model & key and Prompts)
   const settingsSectionEl = node('div', '', 'nav-section');
@@ -797,24 +786,7 @@ function renderNavigation(): void {
   }
   nav.append(settingsSectionEl);
 
-  // Offline operations and external simulation share one navigation group.
-  const section = node('div', '', 'nav-section');
-  const header = node('div', '', 'nav-header');
-  const toggle = button(expandedSections.operations ? '▾' : '▸', () => { expandedSections.operations = !expandedSections.operations; render(); });
-  toggle.className = 'nav-toggle'; toggle.setAttribute('aria-label', 'Toggle Agent Operations');
-  toggle.setAttribute('aria-expanded', String(expandedSections.operations));
-  const title = button('Agent Operations', () => { expandedSections.operations = !expandedSections.operations; render(); });
-  title.className = 'nav-title'; title.setAttribute('aria-expanded', String(expandedSections.operations));
-  header.append(toggle, title); section.append(header);
-  if (expandedSections.operations) {
-    const children = node('div', '', 'nav-children');
-    for (const tab of ['Sleep', 'Dreams']) {
-      const item = button(tab, () => { activeTab = tab; render(); });
-      item.className = 'nav-item' + (activeTab === tab ? ' selected' : ''); children.append(item);
-    }
-    section.append(children);
-  }
-  nav.append(section);
+
 }
 
 function threadViewButton(view: 'Brain' | 'Perception'): HTMLButtonElement {

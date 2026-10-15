@@ -120,6 +120,9 @@ aside { position: sticky; top: 0; align-self: start; max-height: 100dvh; overflo
 nav { display: flex; flex-direction: column; gap: 4px; }
 nav button { text-align: left; background: transparent; color: #456055; border: 0; }
 nav button.selected { background: #dce8da; color: #183f2d; font-weight: 600; }
+.nav-operations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.nav-operations .nav-operation { display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px; border-radius: 6px; cursor: pointer; }
+.nav-operation:hover { background: #e8eee6; color: #183f2d; }
 .nav-section { display: flex; flex-direction: column; margin-bottom: 6px; }
 .nav-header { display: flex; align-items: center; gap: 2px; }
 .nav-toggle {
