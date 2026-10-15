@@ -34,7 +34,7 @@ test('activation history renders exact source judgments, filters threads and ope
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect Quiet Curiosity', exact: true }).waitFor();
-    const rows = page.locator('.disposition-list > .disposition-row');
+    const rows = page.locator('.disposition-list > .disposition-row:not([data-kind="self"])');
     const kinds = await rows.evaluateAll(elements => elements.map(element => (element as HTMLElement).dataset.kind));
     assert.deepEqual(kinds, ['persistent', 'temporary', 'attention']);
     assert.equal(await rows.nth(0).evaluate(element => getComputedStyle(element).borderTopStyle), 'solid');

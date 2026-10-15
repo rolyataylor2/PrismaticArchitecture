@@ -875,25 +875,6 @@ body.chat-view { height: 100dvh; display: flex; flex-direction: column; overflow
   .chat-input-dock { padding: 12px; gap: 8px; }
 }
 
-/* Part cards: charge colors identify free-form text; archived Parts remain grey. */
-.parts-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 16px; padding-top: 24px; }
-.part-list-item { --part-card-background: #fbfcf9; --part-card-border: #d8dfd4; position: relative; display: flex; flex-direction: column; align-items: stretch; min-width: 0; min-height: 190px; margin-top: 24px; background: var(--part-card-background); border: 1px solid var(--part-card-border); color: #304b3d; border-radius: 14px; padding: 22px 18px 32px; text-align: left; transition: box-shadow .15s, transform .15s; }
-.part-list-item:hover { filter: none; box-shadow: 0 6px 18px #203d2c18; transform: translateY(-2px); }
-.part-list-item:focus-visible { outline: 2px solid #557c58; outline-offset: 4px; }
-.part-list-item.temporary { border-style: dashed; border-width: 2px; }
-.part-list-item[data-lifecycle="archived"] { background: #eceeed; border-color: #c7ceca; color: #68736e; }
-.part-list-name { display: block; font-size: 14px; font-weight: 700; letter-spacing: .8px; overflow-wrap: anywhere; }
-.part-list-mission { display: block; margin-top: 10px; color: #62756a; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
-.part-list-version { position: absolute; right: 14px; bottom: 12px; font-size: 10px; color: #9aa69f; }
-.part-list-emotion { position: absolute; left: 16px; bottom: 10px; font-size: 20px; line-height: 24px; }
-.part-list-item { padding-bottom: 44px; }
-.part-list-thought { display: block; position: relative; margin: -48px -4px 24px; padding: 12px 14px; background: #fff; border: 1px solid var(--part-card-border); border-radius: 24px; color: #617268; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
-.part-list-thought-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.part-list-thought::before, .part-list-thought::after { content: ''; position: absolute; background: #fff; border: 1px solid var(--part-card-border); border-radius: 50%; }
-.part-list-thought::before { width: 10px; height: 10px; bottom: -12px; left: 22px; }
-.part-list-thought::after { width: 5px; height: 5px; bottom: -21px; left: 32px; }
-@media (max-width: 1100px) { .parts-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .parts-list { grid-template-columns: minmax(0, 1fr); } }
 
 
 /* Prompt editing workspace */

@@ -42,6 +42,8 @@ test('Part inspector selects history and opens styled and raw information', { sk
     partId: original.id, partSnapshot: store.get('part', original.id), predictionSnapshot: null,
     output: { interpretation: 'My perspective', thought: `Recorded thought ${index}`, evidenceSummary: ['My evidence'], proposal: null }, durationMs: 12,
   });
+  store.save('part', { ...store.get('part', original.id), id: 'fallback-self', name: 'self', version: 1,
+    instance: { ...store.get('part', original.id).instance!, dispositionBindings: [] } }, 0, change);
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
   try {
@@ -49,18 +51,10 @@ test('Part inspector selects history and opens styled and raw information', { sk
     await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
     await page.getByRole('button', { name: 'Memories', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Memories', exact: true }).count(), 1);
-    await page.getByRole('button', { name: 'Part History', exact: true }).click();
-    const card = page.getByRole('button', { name: `Inspect ${original.name}`, exact: true });
-    assert.equal(await page.locator('.part-list-inspect').count(), 0);
-    assert.equal(await card.evaluate(element => getComputedStyle(element).borderTopStyle), 'dashed');
-    assert.match(await card.locator('.part-list-thought').innerText(), /Expectation 3/);
-    assert.equal(await page.locator('.parts-list').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 4);
-    const archivedPart = store.list('part', agent.id)[1]!;
-    app.runtime.mutations.patch(archivedPart.id, archivedPart.version, { lifecycle: 'archived', emotionalCharge: 'Tentative trust' }, change);
-    await page.reload();
-    await page.getByRole('button', { name: 'Part History', exact: true }).click();
-    assert.equal(await page.getByRole('button', { name: `Inspect ${archivedPart.name}`, exact: true }).evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(236, 238, 237)');
-    await card.click();
+    assert.equal(await page.getByRole('button', { name: 'Part History', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect Being Heard', exact: true }).click();
+    await page.getByRole('button', { name: 'Current version 2', exact: true }).click();
     await page.getByRole('navigation', { name: 'Part version timeline' }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Back to Parts', exact: true }).count(), 0);
     assert.equal(await page.getByRole('heading', { name: 'Perspective History', exact: true }).count(), 1);
@@ -199,6 +193,12 @@ test('Part inspector selects history and opens styled and raw information', { sk
     await page.getByRole('button', { name: 'Current version 2', exact: true }).click();
     assert.match(await page.locator('.part-description').innerText(), /My newer mission/);
     await page.screenshot({ path: '/tmp/prism-disposition-linked-part-mobile.png', fullPage: true });
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect self perspective: fallback-self', exact: true }).click();
+    await page.getByText('Identity fallback · no disposition', { exact: true }).waitFor();
+    assert.match(await page.locator('.part-description').innerText(), /My newer mission/);
+    assert.equal(await page.locator('.part-disposition-button').count(), 0);
+    await page.screenshot({ path: '/tmp/prism-self-perspective-mobile.png', fullPage: true });
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
 });

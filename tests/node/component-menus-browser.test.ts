@@ -48,11 +48,6 @@ test('component menus create reviewed records and filter/sort lists through floa
     await page.locator('dialog.app-dialog').waitFor();
     await page.mouse.click(2, 2);
     await page.locator('dialog.app-dialog').waitFor({ state: 'detached' });
-    await navigate('Part History');
-    await page.getByRole('button', { name: 'Create Part', exact: true }).click();
-    await page.getByRole('dialog', { name: 'Create a Part', exact: true }).waitFor();
-    await page.keyboard.press('Escape');
-    await page.locator('dialog.app-dialog').waitFor({ state: 'detached' });
     await navigate('Primitives');
     const dimensions = await page.locator('.component-header').evaluate(header => {
       const main = document.querySelector('main')!.getBoundingClientRect();
@@ -64,7 +59,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     assert.equal(dimensions.width, dimensions.mainWidth); assert.equal(dimensions.left, dimensions.mainLeft);
     assert.equal(dimensions.controlsTop, dimensions.actionsTop);
     const headerHeight = await page.locator('.component-header').evaluate(header => header.getBoundingClientRect().height);
-    for (const menu of ['Identity', 'Dispositions', 'Memories', 'Part History', 'Predictions', 'Analytics', 'Logs']) {
+    for (const menu of ['Identity', 'Dispositions', 'Memories', 'Predictions', 'Analytics', 'Logs']) {
       await navigate(menu);
       assert.equal(await page.locator('.component-header').evaluate(header => header.getBoundingClientRect().height), headerHeight);
     }
@@ -88,6 +83,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     await disposition.waitFor({ state: 'hidden' }); assert.equal(store.list('disposition', agent.id).length, 1);
     assert.ok(await page.locator('.disposition-list').last().evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length) > 1);
     assert.equal(await page.locator('.disposition-icon svg').count(), 1);
+    assert.equal(await page.locator('.disposition-row[data-kind="self"]').count(), 0);
     await page.getByRole('button', { name: 'Inspect Welcomed curiosity', exact: true }).click();
     await page.getByRole('region', { name: 'Disposition inspector' }).waitFor();
     await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
@@ -101,13 +97,7 @@ test('component menus create reviewed records and filter/sort lists through floa
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.getByRole('searchbox', { name: 'Search dispositions' }).fill('no match');
     await page.getByText('No matching dispositions or temporary attention.', { exact: true }).waitFor();
-    await navigate('Part History');
-    assert.equal(await page.getByRole('button', { name: 'Generate Parts', exact: true }).count(), 0);
-    await page.getByRole('button', { name: 'Sort', exact: true }).click();
-    await page.getByRole('dialog', { name: 'Sort', exact: true }).getByLabel('Sort by', { exact: true }).selectOption('name');
-    await page.keyboard.press('Escape');
-    const names = await page.locator('.part-list-name').allTextContents();
-    assert.ok(names.length > 0); assert.deepEqual(names, names.slice().sort((a, b) => a.localeCompare(b)));
+    assert.equal(await page.getByRole('button', { name: 'Part History', exact: true }).count(), 0);
     for (const kind of ['memory', 'prediction'] as const) {
       await navigate(kind === 'memory' ? 'Memories' : 'Predictions');
       const smartCreate = page.getByRole('button', { name: `Smart create ${kind}`, exact: true });

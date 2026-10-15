@@ -51,10 +51,8 @@ test('constructed browser retains retired Parts, exposes evidence/history and co
     const original = store.get('part', active.id);
     await page.reload();
     await page.getByRole('textbox', { name: 'Message', exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Part History', exact: true }).click();
-    assert.equal(await page.locator('.part-list-item').count(), 1);
-    assert.ok((await page.locator('.part-list-item').innerText()).includes('Retired'));
-    await page.getByRole('button', { name: `Inspect ${original.name}`, exact: true }).click();
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: `Inspect self perspective: ${original.id}`, exact: true }).click();
     await page.getByText('Retired instance', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Reactivate', exact: true }).count(), 0);
     await page.getByRole('button', { name: 'Raw Part inspector data', exact: true }).click();

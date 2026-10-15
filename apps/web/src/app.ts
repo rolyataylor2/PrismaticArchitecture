@@ -743,7 +743,7 @@ function renderNavigation(): void {
   const tabs: [string, string][] = [
     ['Primitives', 'Primitives'], ['Identity', 'Identity'],
     ['Dispositions', 'Dispositions'], ['Memories', 'Memories'],
-    ['Parts', 'Part History'], ['Predictions', 'Predictions'],
+    ['Predictions', 'Predictions'],
     ['Network', 'Analytics'], ['Affect', 'Affect Analysis'], ['History', 'Logs'],
     ['Executive', 'Executive'],
   ];
@@ -815,7 +815,7 @@ function sizeComponentHeaders(): void {
   if (!current || !document.body.classList.contains('component-view') || document.body.classList.contains('simulation-dashboard-view')) return;
   let largest = 0;
   for (const [title, description] of Object.entries(componentHeaderDescriptions)) {
-    const probe = componentHeader(({ Perception: 'Perception', Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
+    const probe = componentHeader(({ Perception: 'Perception', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[title] ?? title, description);
     Object.assign(probe.style, { position: 'fixed', visibility: 'hidden', pointerEvents: 'none', width: `${current.getBoundingClientRect().width}px`, height: 'auto', minHeight: '0', margin: '0', top: '0', left: '0', gridTemplateRows: 'auto auto' });
     const actions = probe.querySelector('.component-header-actions')!;
     actions.append(node('button', '+', 'secondary'), node('button', '🧠', 'secondary'), node('button', '↺', 'secondary'));
@@ -1016,13 +1016,12 @@ function render(): void {
   document.body.classList.toggle('activation-settings-view', activeTab === 'Activation' || (activeTab === 'Settings' && settingsSection === 'Activation'));
   document.body.classList.toggle('model-settings-view', activeTab === 'Model & key' || (activeTab === 'Settings' && settingsSection === 'Model & key'));
   const pageKey = activeTab === 'Settings' ? settingsSection : activeTab;
-  const displayTitle = ({ Perception: 'Perception', Parts: 'Part History', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
+  const displayTitle = ({ Perception: 'Perception', Network: 'Analytics', History: 'Logs', Affect: 'Affect Analysis' } as Record<string, string>)[pageKey] ?? pageKey;
   const descriptions: Record<string, string> = {
     Primitives: 'Primitives are basic appraisals and action tendencies representing the Agent’s immediate reactions, such as curiosity, pleasure or aversion. Their trigger instructions describe when they would respond, but the current online architecture does not activate them; they remain available for researcher configuration.',
     Identity: 'Identity is the Agent’s persistent self-definition: its sense of who it is and how it wants to relate to the world. Self consults its self-definition traits when choosing among Part proposals; autobiographical traits preserve background without directly guiding that choice.',
     Dispositions: 'Dispositions are learned sensitivities representing what has become worth noticing to the Agent. They activate when current context matches their cues within eligible scopes, guiding memory recall and the formation of perspectives concerned with that situation.',
     Memories: 'Memories are subjective interpretations of psychologically meaningful experience, representing how the Agent has understood its past. Relevant memories are recalled into Part cognition to inform present interpretation; their meaning can develop while earlier versions remain preserved.',
-    Parts: 'Parts are bounded, motivated perspectives representing different concerns and interpretations within the Agent. They form from activated disposition scopes and recalled memories, then think, predict and propose actions independently. Part History preserves their continuity and development after participation ends.',
     Predictions: 'Predictions are a Part’s assessable expectations about what is happening or what may happen next. Each Part can hold one open prediction; later evidence is checked against it to support learning and memory, preserving the Part’s interpretation of the outcome.',
     Network: 'Analytics is a researcher view of the relationships, lineage and provenance connecting the Agent’s Parts. It makes their development and associations visible without giving those connections decision authority or access to another Part’s private memories.',
     History: 'Logs are the recorded events and changes produced as the Agent thinks and develops. They let researchers inspect how the system behaved, while remaining separate from subjective memories and unavailable to Self as an authoritative account of its past.',
@@ -1061,7 +1060,6 @@ function render(): void {
     Interaction: perceptionPage,
     Brain: brain,
     'Brain Monitor': brain,
-    Parts: parts,
     Primitives: primitives,
     Dispositions: dispositionsPage,
     Predictions: predictionsPage,
@@ -1912,78 +1910,6 @@ function partEditor(part?: Part): void {
   }), button('Cancel', () => dialog.close(), true));
   dialog.append(header, form); document.body.append(dialog); dialog.showModal(); name.focus();
 }
-function emotionalChargeEmoji(charge: string | null): string {
-  if (!charge?.trim()) return '😐';
-  // Display hints only: preserve the Part's free-form emotional language and state.
-  const hints: [RegExp, string][] = [
-    [/\b(anger|angry|rage|furious|irritated|resentment|resentful|frustration|frustrated)\b/i, '😠'],
-    [/\b(fear|fearful|afraid|scared|anxiety|anxious|worry|worried|dread|panic)\b/i, '😨'],
-    [/\b(sad|sadness|grief|grieving|sorrow|lonely|loneliness|hurt|heartbreak)\b/i, '😢'],
-    [/\b(shame|ashamed|guilt|guilty|embarrassed|embarrassment)\b/i, '😳'],
-    [/\b(disgust|disgusted|revulsion)\b/i, '🤢'],
-    [/\b(envy|envious|jealous|jealousy)\b/i, '😒'],
-    [/\b(love|loving|affection|affectionate|care|caring|compassion|tenderness)\b/i, '🥰'],
-    [/\b(joy|joyful|happy|happiness|delight|delighted|excitement|excited)\b/i, '😄'],
-    [/\b(pride|proud|confidence|confident|determination|determined)\b/i, '😎'],
-    [/\b(curiosity|curious|interest|interested|wonder)\b/i, '🧐'],
-    [/\b(trust|trusting|hope|hopeful|optimism|optimistic)\b/i, '🙂'],
-    [/\b(calm|peace|peaceful|relief|relieved|content|contentment|serenity)\b/i, '😌'],
-    [/\b(surprise|surprised|shock|shocked)\b/i, '😮'],
-    [/\b(ambivalence|ambivalent|conflict|conflicted|uncertain|uncertainty|confused|confusion)\b/i, '😕'],
-    [/\b(tired|exhausted|exhaustion|fatigue|weary)\b/i, '😴'],
-  ];
-  return hints.find(([pattern]) => pattern.test(charge))?.[1] ?? '💭';
-}
-function parts(): void {
-  const toolbar = node('div', '', 'identity-toolbar');
-  const search = node('input'); search.type = 'search'; search.placeholder = 'Search names, missions or lifecycle'; search.setAttribute('aria-label', 'Filter Parts');
-  toolbar.append(search);
-  componentCreationControls(plusButton('Create Part', () => partEditor()));
-  const list = node('div', '', 'parts-list'); const draw = (): void => {
-    list.replaceChildren();
-    const query = search.value.trim().toLowerCase();
-    const visible = browse.apply(state!.parts.filter(p => `${p.name} ${p.mission} ${p.lifecycle} ${p.instance?.retirement ? 'retired' : p.instance ? 'working' : ''}`.toLowerCase().includes(query)));
-    if (!query && !browse.active()) visible.sort((a, b) =>
-      (b.instance ? recordDate(b.instance.createdCycle) ?? '' : '').localeCompare(a.instance ? recordDate(a.instance.createdCycle) ?? '' : ''));
-    for (const part of visible) {
-      const item = button('', () => showPart(part.id), true);
-      item.className = 'part-list-item'; item.setAttribute('aria-label', `Inspect ${part.name}`);
-      item.dataset.lifecycle = part.lifecycle; item.classList.toggle('temporary', part.temporary);
-      // Emotional charge is free-form Part-owned language. Color identifies its text, without classifying its meaning.
-      const charge = part.emotionalCharge?.trim().toLocaleLowerCase();
-      if (charge) {
-        let hash = 0; for (const character of charge) hash = (Math.imul(hash, 31) + character.charCodeAt(0)) | 0;
-        const hue = (hash >>> 0) % 360;
-        item.style.setProperty('--part-card-background', `hsl(${hue} 45% 93%)`);
-        item.style.setProperty('--part-card-border', `hsl(${hue} 25% 77%)`);
-      }
-      item.title = `${part.emotionalCharge || 'No emotional charge recorded'} · ${part.lifecycle}${part.temporary ? ' · Temporary Part' : ''}`;
-      const prediction = state!.predictions.find(prediction => prediction.partId === part.id && prediction.status === 'open');
-      if (prediction) {
-        const bubble = node('span', '', 'part-list-thought');
-        bubble.append(node('span', prediction.expectation, 'part-list-thought-text'));
-        bubble.title = `Active prediction: ${prediction.expectation}`; bubble.setAttribute('aria-label', bubble.title);
-        item.append(bubble);
-      }
-      const emotion = node('span', emotionalChargeEmoji(part.emotionalCharge), 'part-list-emotion');
-      emotion.title = part.emotionalCharge || 'No emotional charge recorded';
-      emotion.setAttribute('role', 'img'); emotion.setAttribute('aria-label', emotion.title);
-      item.append(node('span', part.name.toUpperCase(), 'part-list-name'), node('span', part.mission, 'part-list-mission'), emotion, node('span', `${part.instance ? part.instance.retirement ? 'Retired · ' : 'Working · ' : ''}v${part.version}`, 'part-list-version'));
-      list.append(item);
-    }
-  };
-  const browse = componentBrowse<Part>([
-    { key: 'name', label: 'Name', value: item => item.name },
-    { key: 'date', label: 'Created', value: item => recordDate(item.instance?.createdCycle ?? '') ?? '' },
-    { key: 'lifecycle', label: 'Lifecycle', value: item => item.instance?.retirement ? 'retired' : item.instance ? 'working' : item.lifecycle, options: ['working', 'retired', 'active', 'dormant', 'archived'].map(value => [value, value]) },
-    { key: 'type', label: 'Part type', value: item => item.instance ? 'constructed' : 'manual', options: [['constructed', 'Constructed'], ['manual', 'Persistent / researcher']] },
-  ], draw);
-  toolbar.append(...browse.controls);
-  search.oninput = draw; draw();
-  content.append(node('p', 'Parts form from experience and recalled memories. Working instances may span turns; retired instances stay here for inspection. Similar later experiences create new instances.', 'muted'));
-  componentSearchControls(toolbar); content.append(list);
-}
-
 function inspectorSection(title: string, values: string[], checkmarks = false): HTMLElement {
   const section = node('section', '', 'part-detail-section'); section.append(node('h3', title));
   if (!values.length) section.append(node('p', 'None recorded', 'muted'));
@@ -2267,7 +2193,7 @@ async function openMemoryInfo(memory: Memory): Promise<void> {
           patch: { gist: gist.value, content: contentInput.value, context: lines(contextInput.value) } });
         dialog.close(); await refresh();
         for (const view of memorySearchViews.values()) if (view.results?.some(result => result.memory.id === memory.id)) { view.results = null; view.message = 'Memory updated. Search again to refresh results.'; }
-        if (activeTab === 'Memories' || activeTab === 'Parts') render();
+        if (activeTab === 'Memories' || activeTab === 'Dispositions') render();
         await openMemoryInfo(memory);
       } catch (cause) { showError(cause); }
     });
@@ -2279,7 +2205,7 @@ async function openMemoryInfo(memory: Memory): Promise<void> {
   const remove = memoryActionIcon('Delete memory', 'trash', async () => {
     await api(`memories/${memory.id}`, 'DELETE', { expectedVersion: record.memory.version });
     dialog.close(); invalidateMemoryResults(memory.id); await refresh();
-    if (activeTab === 'Memories' || activeTab === 'Parts') render();
+    if (activeTab === 'Memories' || activeTab === 'Dispositions') render();
     notice.textContent = 'Memory deleted.';
   });
   edit.disabled = remove.disabled = Boolean(record.memory.deleted);
@@ -2321,7 +2247,7 @@ async function showDisposition(dispositionId: string): Promise<void> {
   const associated = state!.parts.filter(part => part.instance?.dispositionBindings?.some(binding => binding.dispositionId === dispositionId))
     .sort((a, b) => Number(Boolean(a.instance?.retirement)) - Number(Boolean(b.instance?.retirement)) ||
       (recordDate(b.instance!.createdCycle) ?? '').localeCompare(recordDate(a.instance!.createdCycle) ?? ''));
-  activeTab = 'Parts'; render();
+  activeTab = 'Dispositions'; render();
   if (associated[0]) { await showPart(associated[0].id, dispositionId); return; }
   const layout = node('div', '', 'part-inspector');
   const timeline = node('nav', '', 'part-version-timeline'); timeline.setAttribute('aria-label', 'Part version timeline');
@@ -2591,6 +2517,18 @@ function dispositionsPage(): void {
       row.append(inspect, edit);
       rows.append(row);
     }
+    const fallbackParts = state!.parts.filter(part => part.name === 'self' && !part.instance?.dispositionBindings?.length &&
+      [part.name, part.mission, part.instance?.interpretation ?? ''].join(' ').toLowerCase().includes(query));
+    for (const part of fallbackParts) {
+      const row = node('div', '', 'disposition-row'); row.dataset.kind = 'self';
+      const inspect = button('', () => showPart(part.id), true);
+      inspect.classList.add('disposition-summary'); inspect.setAttribute('aria-label', `Inspect self perspective: ${part.id}`);
+      const icon = node('span', '◉', 'disposition-icon'); icon.setAttribute('aria-hidden', 'true');
+      const text = node('span', '', 'disposition-text');
+      text.append(node('span', 'self', 'disposition-name'), node('span', part.mission, 'disposition-concern'),
+        node('small', `Identity fallback · ${readableDate(recordDate(part.instance?.createdCycle ?? ''))}`, 'disposition-kind'));
+      inspect.append(icon, text); row.append(inspect); rows.append(row);
+    }
     const attentionPredictions = state!.predictions.filter(prediction => prediction.status === 'open' && prediction.attention?.length);
     const matches = attentionPredictions.filter(prediction => [prediction.expectation, ...prediction.attention!.flatMap(item => [item.target, ...item.cues])].join(' ').toLowerCase().includes(query));
     for (const prediction of matches) {
@@ -2610,7 +2548,7 @@ function dispositionsPage(): void {
       inspect.append(text);
       row.append(inspect); rows.append(row);
     }
-    if (!visible.length && !matches.length) list.append(node('p', query || browse.active() ? 'No matching dispositions or temporary attention.' : 'No dispositions or temporary attention yet.', 'muted'));
+    if (!visible.length && !fallbackParts.length && !matches.length) list.append(node('p', query || browse.active() ? 'No matching dispositions or temporary attention.' : 'No dispositions or temporary attention yet.', 'muted'));
   };
   const browse = componentBrowse<AgentSnapshot['dispositions'][number]>([
     { key: 'name', label: 'Name', value: item => item.name },
@@ -3576,7 +3514,7 @@ function simulationTestPage(): void {
     dialog.append(button('Close', () => dialog.close(), true)); dialog.addEventListener('close', () => dialog.remove(), { once: true }); document.body.append(dialog); dialog.showModal();
   };
   const dashboard = simulationDashboard(content, { context: `${selectedDatabase}:${sourceAgentId}`, api, cycle: showCycleInspector, fail: showError, launch, refresh: load,
-    agent: async id => { selectedAgent = id; activeTab = 'Parts'; await agents(); } });
+    agent: async id => { selectedAgent = id; activeTab = 'Dispositions'; await agents(); } });
   void load().catch(showError);
 }
 
