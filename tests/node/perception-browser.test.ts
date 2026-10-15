@@ -27,6 +27,7 @@ test('Perception displays latest Agent snapshot and updates without a chat inter
     await page.locator('.perception-fact').filter({ hasText: 'A red bicycle is beside the door.' }).first().waitFor();
     await page.getByRole('button', { name: 'Previous WorldState', exact: true }).click();
     await page.getByRole('heading', { name: 'Past WorldState', exact: true }).waitFor();
+    assert.deepEqual(await page.locator('.perception-heading-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))), ['Inspect full WorldState', 'View Brain timeline', 'Inspect source cycle']);
     assert.equal(await page.getByRole('button', { name: 'Previous WorldState', exact: true }).isDisabled(), true);
     assert.equal(await page.getByRole('button', { name: 'Play cognition', exact: true }).isDisabled(), true);
     assert.equal(await page.locator('.perception-fact').filter({ hasText: 'A red bicycle' }).count(), 0);
@@ -43,6 +44,13 @@ test('Perception displays latest Agent snapshot and updates without a chat inter
     await page.getByRole('button', { name: 'Inspect full WorldState', exact: true }).click();
     await page.getByRole('dialog').waitFor();
     await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Inspect source cycle', exact: true }).click();
+    await page.getByRole('dialog').waitFor();
+    await page.getByRole('button', { name: 'Close inspector', exact: true }).click();
+    await page.getByRole('button', { name: 'View Brain timeline', exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('.perception-page'));
+    await page.getByRole('button', { name: 'Perception', exact: true }).click();
+    await page.getByRole('heading', { name: 'Current WorldState', exact: true }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: '/tmp/prism-perception-mobile.png', fullPage: true });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));

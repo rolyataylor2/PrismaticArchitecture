@@ -1604,7 +1604,9 @@ function perceptionPage(): void {
   forward.setAttribute('aria-label', 'Next WorldState'); forward.disabled = current;
   const position = node('span', `${Math.max(0, index + 1)} / ${snapshots.length} · ${current ? 'Current' : 'Historical'}`, 'muted');
   position.setAttribute('role', 'status');
-  transport.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'), rewind, position, forward);
+  const heading = node('div', '', 'perception-heading');
+  heading.append(node('h2', current ? 'Current WorldState' : 'Past WorldState'));
+  transport.append(heading, rewind, position, forward);
   const agentId = selectedAgent; const databaseId = selectedDatabase;
   const threadId = state?.cycles.find(cycle => cycle.id === snapshot?.payload.cycleId)?.threadId ?? null;
   const draft = sensorDraft();
@@ -1680,16 +1682,22 @@ function perceptionPage(): void {
   }
   const world = snapshot.payload;
   page.append(node('p', `Snapshot ${world.sequence} · ${world.capturedAt}`, 'muted'));
-  const actions = node('div', '', 'row');
-  actions.append(button('Inspect full WorldState', () => openWorldStateInfo(world), true), button('View Brain timeline', () => {
+  const actions = node('div', '', 'perception-heading-actions');
+  const iconButton = (label: string, paths: string, action: () => void) => {
+    const control = button('', action, true); control.type = 'button';
+    control.title = label; control.setAttribute('aria-label', label);
+    control.innerHTML = `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+    return control;
+  };
+  actions.append(iconButton('Inspect full WorldState', '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>', () => openWorldStateInfo(world)), iconButton('View Brain timeline', '<path d="M12 18V5a3 3 0 0 0-5.8-1A4 4 0 0 0 3 10a4 4 0 0 0 .5 7A4 4 0 0 0 12 18ZM12 5a3 3 0 0 1 5.8-1A4 4 0 0 1 21 10a4 4 0 0 1-.5 7A4 4 0 0 1 12 18M7 4v3M17 4v3M3 10h3l2 2M21 10h-3l-2 2M3.5 17H7l1-2M20.5 17H17l-1-2"/>', () => {
     activeSessionId = state?.cycles.find(cycle => cycle.id === world.cycleId)?.threadId ?? null;
     brainSeekSequence = null; activeTab = 'Brain'; render();
-  }, true));
+  }));
   if (snapshot.cycleId) {
     const cycleId = snapshot.cycleId;
-    actions.append(button('Inspect source cycle', () => showCycleInspector(cycleId), true));
+    actions.append(iconButton('Inspect source cycle', '<path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7M12 7v5l3 2"/>', () => showCycleInspector(cycleId)));
   }
-  page.append(actions);
+  heading.append(actions);
   const context = node('section');
   context.append(node('h3', 'Subjective context'));
   if (world.experienced) {
