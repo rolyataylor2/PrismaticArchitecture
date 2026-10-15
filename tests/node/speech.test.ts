@@ -209,11 +209,11 @@ test('cycle inspector displays the realized utterance and Settings exposes the e
     await page.getByRole('menuitemradio', { name: 'Exec · Speech', exact: true }).click();
     const panel = page.getByRole('region', { name: 'Exec · Speech', exact: true });
     await panel.getByRole('textbox', { name: 'Prompt text' }).fill('Voice: {{ speechTraits[0].answer }}. Say: {{ commands[0].text }}');
-    await page.locator('.component-header').getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.locator('.prompt-settings-toolbar').getByRole('button', { name: 'Preview', exact: true }).click();
     const preview = page.getByRole('dialog', { name: 'Compiled prompt preview', exact: true });
     await preview.waitFor(); assert.match(await preview.locator('pre').innerText(), /Voice: Clipped, wry phrasing\.\. Say: Intent from/);
     await preview.getByRole('button', { name: 'Close', exact: true }).click();
-    await page.locator('.component-header').getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.settings-save-slot').getByRole('button', { name: 'Save settings', exact: true }).click();
     await page.locator('.component-header').getByRole('menuitem', { name: 'To Agent', exact: true }).click();
     await page.getByText('Exec · Speech saved for this Agent.', { exact: true }).waitFor();
     assert.equal(store.promptOverrides({ scope: 'agent', agentId: agent.id, task: 'speech' }).length, 1);

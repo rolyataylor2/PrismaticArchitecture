@@ -3239,7 +3239,6 @@ function settings(): void {
   header.append(tabs);
   const pendingSave = button('Save settings', () => {}); pendingSave.disabled = true;
   settingsSaveControl(pendingSave);
-  if (settingsSection === 'Prompts') pendingSave.style.visibility = 'hidden';
   if (settingsSection === 'Delete Agent') deleteAgentSettings();
   else if (settingsSection === 'Prompts') promptSettings();
   else if (settingsSection === 'Activation') activationSettings();
@@ -3532,10 +3531,12 @@ function promptSettings(): void {
     if (!rows.some(row => row.task === selectedPromptTask)) selectedPromptTask = rows[0]?.task ?? '';
     const panels = new Map<string, HTMLElement>();
     const toolbars = new Map<string, HTMLElement>();
+    const saves = new Map<string, HTMLElement>();
     const select = (task: string) => {
       selectedPromptTask = task;
       for (const [name, panel] of panels) panel.hidden = name !== task;
       headerControls.replaceChildren(toolbars.get(task)!);
+      settingsSaveControl(saves.get(task)!);
     };
     for (const row of rows) {
       const panel = node('section', '', 'prompt-panel'); panel.id = `prompt-panel-${row.task}`;
@@ -3573,7 +3574,7 @@ function promptSettings(): void {
         }
         notice.textContent = `${row.title} saved ${scope === 'agent' ? 'for this Agent' : 'as the global default'}.`; render();
       };
-      toolbar.append(promptActionMenu('Save', [
+      saves.set(row.task, promptActionMenu('Save', [
         { label: 'To Agent', action: () => save('agent') },
         { label: 'Globally', action: () => save('global') },
       ]));

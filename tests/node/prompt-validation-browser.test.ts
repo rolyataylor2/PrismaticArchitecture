@@ -44,7 +44,7 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     assert.equal(await headerToolbar.count(), 1);
     const labels = await headerToolbar.locator('.prompt-toolbar-right > button').allTextContents();
     assert.deepEqual(labels, ['data', 'output', 'preview', 'view default', '(?)']);
-    assert.deepEqual(await headerToolbar.locator(':scope > *').evaluateAll(children => children.slice(0, 6).map(child => child.className)), ['prompt-provider', 'prompt-action-menu prompt-selector', 'prompt-action-menu', 'prompt-action-menu', 'prompt-source muted', 'prompt-scope muted']);
+    assert.deepEqual(await headerToolbar.locator(':scope > *').evaluateAll(children => children.slice(0, 5).map(child => child.className)), ['prompt-provider', 'prompt-action-menu prompt-selector', 'prompt-action-menu', 'prompt-source muted', 'prompt-scope muted']);
     const widths = await headerToolbar.evaluate(toolbar => ({ dropdown: toolbar.querySelector('.prompt-selector')!.getBoundingClientRect().width, call: toolbar.querySelector('.prompt-provider')!.getBoundingClientRect().width }));
     assert.equal(widths.dropdown, 300); assert.equal(widths.call, 132);
     assert.equal(await headerToolbar.locator('.prompt-source').innerText(), 'Orig');
@@ -82,8 +82,8 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     assert.deepEqual(await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem').allTextContents(), ['Reset Agent to defaults', 'Reset Global prompts to defaults', 'Reset Every prompt to defaults']);
     await page.keyboard.press('Escape');
     for (const label of ['To Agent', 'Globally']) {
-      await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
-      await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem', { name: label, exact: true }).click();
+      await page.locator('.settings-save-slot').getByRole('button', { name: 'Save settings', exact: true }).click();
+      await page.locator('.settings-save-slot').getByRole('menuitem', { name: label, exact: true }).click();
       await page.locator('.error-toast').last().getByRole('alert').waitFor();
       assert.match(await page.locator('.error-toast').last().getByRole('alert').innerText(), /Prompt not saved\. Invalid Twig prompt template:.*end tag/s);
       assert.equal(await editor.inputValue(), draft);
@@ -101,8 +101,8 @@ test('prompt editor keeps invalid Twig drafts and displays errors before any ove
     const corrected = '# Draft\n{% if part.name %}Hello {{ part.name }}{% endif %}';
     await editor.fill(corrected);
     assert.equal(await editor.getAttribute('aria-invalid'), null);
-    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('button', { name: 'Save', exact: true }).click();
-    await page.locator('.prompt-settings-toolbar .prompt-toolbar').getByRole('menuitem', { name: 'To Agent', exact: true }).click();
+    await page.locator('.settings-save-slot').getByRole('button', { name: 'Save settings', exact: true }).click();
+    await page.locator('.settings-save-slot').getByRole('menuitem', { name: 'To Agent', exact: true }).click();
     await page.getByText('Cog · Part formation → reflection → cognition saved for this Agent.', { exact: true }).waitFor();
     assert.equal(store.promptOverrides().length, 1);
     assert.equal(store.promptOverrides()[0]!.text, corrected);
