@@ -369,6 +369,10 @@ Do not convert Jev probabilities directly into emotional intensity, Part strengt
 
 When architecture, an ADR, or an inference task's responsibilities or access boundaries change, review the corresponding factory prompts shown under Agent Settings → Prompts as part of the same work. Update affected prompt text and task descriptions so editable prompts continue to reflect the current architecture and preserve its boundaries. If an inference task is added, removed, or split, keep the task catalog, provider routing, and Settings → Prompts listing in sync. Do not change unrelated prompts, and do not treat editable prompt text as a substitute for runtime enforcement or architectural documentation.
 
+## Settings cards for psychological calibration
+
+When implementing a new system or mechanism intended to emulate the human psyche, expose numerical parameters that may require calibration through settings cards as part of the same work. Extend an existing card when appropriate; otherwise, add a new card. Explain each parameter's purpose and behavioral effect, provide defaults and valid ranges, and ensure changes affect runtime behavior. Treat defaults as experimental values that can be adjusted to better reflect human psychology. Preserve the documented architectural boundaries; configurability does not authorize reducing psychological meaning to numeric weights.
+
 ## Dynamic Part state
 
 Parts are language-first living perspectives. Do not reduce them to collections of numeric weights.
