@@ -68,7 +68,7 @@ async function fixture(mode: 'thoughts' | 'continue' | 'pause' | 'invalid_contin
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   const agent = app.createAgent();
   await api(app, 'POST', `/api/agents/${agent.id}/dispositions`, { name: 'Fixture concern', concern: 'Notice fixture results', cues: ['transport fixture'],
-    scope: 'fixture', threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
+    scope: 'fixture', longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false });
   store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
     args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 5000 }] }, 0);
   store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }, { serverId: 'local', toolName: 'hold' }] }, 0);

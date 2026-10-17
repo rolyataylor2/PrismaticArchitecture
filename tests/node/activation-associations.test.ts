@@ -15,7 +15,8 @@ test('association authoring validates references and retains history, including 
   const store = new SqliteStore(':memory:');
   try {
     const app = new Application(store); const agent = app.createAgent(); const other = app.createAgent();
-    const create = (owner: string) => api(app, 'POST', `/api/agents/${owner}/dispositions`, draft) as Promise<Disposition>;
+    const { threshold: _legacyThreshold, ...authoringDraft } = draft;
+    const create = (owner: string) => api(app, 'POST', `/api/agents/${owner}/dispositions`, authoringDraft) as Promise<Disposition>;
     const source = await create(agent.id); const target = await create(agent.id); const foreign = await create(other.id);
     const route = `/api/dispositions/${target.id}`;
     const links: ActivationAssociation[] = [{ kind: 'keyword', keyword: 'welcome', effect: 'contribute' },

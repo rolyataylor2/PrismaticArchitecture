@@ -213,7 +213,7 @@ function episode(store: Store, contract: ExecutionContract, at: string, relation
       const context = candidate?.context as { disposition?: import('../../core/src/domain.js').Disposition; activationPhase?: string } | undefined;
       const disposition = context?.disposition; if (!disposition) return [];
       return [{ dispositionId: disposition.id, name: disposition.name, version: disposition.version, concern: disposition.concern,
-        cues: disposition.cues, phase: context?.activationPhase ?? 'final', score: score.score, threshold: disposition.threshold }];
+        cues: disposition.cues, phase: context?.activationPhase ?? 'final', score: score.score, threshold: event.payload.thresholds?.[disposition.id] ?? disposition.threshold }];
     }));
   const sourceOutcomes = executions.filter(execution => execution.contractId === contract.id);
   const applicationEvidence = relationship === 'application' && contract.selectedSkill ? sourceOutcomes.map(execution => {

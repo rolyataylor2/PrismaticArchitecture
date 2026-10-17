@@ -23,7 +23,7 @@ export const prompts = {
   experiential_formation: { version: 'experience-evidence-attachment-v3', text: loadFactoryPrompt('experiential_formation') },
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
-  disposition_activation: { version: 'disposition-activation-asynchronous-v10', text: loadFactoryPrompt('disposition_activation') },
+  disposition_activation: { version: 'disposition-activation-relevance-only-v11', text: loadFactoryPrompt('disposition_activation') },
   part_cognition: { version: 'part-cognition-prediction-bound-v32', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },

@@ -67,6 +67,7 @@ export interface Executor {
 }
 
 export type EventPayloads = {
+  'disposition.interest_updated': { dispositionId: string; previousVersion: number; version: number; selectionIds: string[]; at: string; longTermInterest: number; shortTermInterest: number; threshold: number };
   'executive.skill_package_copied': { sourceAgentId: string; skillId: string; version: number; packageDigest: string; proposalId: string; reason: string };
   'executive.profile_copied': { sourceAgentId: string; sourceRevision: number; targetRevision: number; reason: string };
   'execution.procedure_review': { contractId: string; skillId: string; sourceVersion: number; resultVersion: number; decision: 'approval' | 'rejection'; reason: string; packageDigest: string }; 
@@ -101,7 +102,7 @@ export type EventPayloads = {
   'construction.judgment_started': import('./constructed-domain.js').JudgmentInput;
   'runtime.validation': { inputEventId: string; task: string; contract: string; status: 'accepted' | 'rejected';
     issues: { path: string; code: string }[]; result: unknown };
-  'construction.judgment': { input: import('./constructed-domain.js').JudgmentInput; scores: ActivationScore[] };
+  'construction.judgment': { input: import('./constructed-domain.js').JudgmentInput; scores: ActivationScore[]; thresholds?: Record<string, number> };
   'execution.attention': import('./executive-attention.js').ExecutiveAttentionRecord;
   'execution.remainder_handoff_failed': { contractId: string; stage: 'consume' | 'cancel' | 'wait' | 'ready'; consumed: boolean; reason: string };
   'execution.remainder_ready': { contractId: string; parentExecutionId: string };
@@ -233,8 +234,8 @@ export interface Store {
   saveIdentityAuthoringSettings(agentId: string, settings: import('./domain.js').IdentityAuthoringSettings): void;
   primitiveSettings(agentId: string): PrimitiveSettings;
   savePrimitiveSettings(agentId: string, settings: PrimitiveSettings, expectedRevision: number): void;
-  agentActivationSettings(agentId: string): { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
-  saveAgentActivationSettings(agentId: string, settings: { vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
+  agentActivationSettings(agentId: string): { dispositionInterests?: import('./disposition-interest.js').DispositionInterestSettings; vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean };
+  saveAgentActivationSettings(agentId: string, settings: { dispositionInterests?: import('./disposition-interest.js').DispositionInterestSettings; vectorSearchEnabled: boolean; memorySearchEnabled?: boolean; memoryRelevanceThreshold?: number; memoryRecallLimit?: number | null; includeProcessingDispositions?: boolean; maxConcurrentThoughts?: number; maxQueuedThoughts?: number; activationPassLimit?: number | null; primitivesFirst?: boolean; reevaluateAfterDeliberation?: boolean }): void;
   agentProviderConnections(agentId: string): { provider: string; encryptedApiKey: string; baseUrl?: string | null }[];
   saveAgentProviderConnection(agentId: string, provider: string, encryptedApiKey: string, baseUrl?: string | null): void;
   deleteAgentProviderConnection(agentId: string, provider: string): void;

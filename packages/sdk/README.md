@@ -1,3 +1,7 @@
+## Disposition interest controls
+
+ADR 0173 exposes per-Agent interest weights, selection gains and half-lives through activation settings. Researcher disposition creation/edits accept interests and reject direct threshold writes. Snapshots project thresholds on the experience clock; prior versions remain preserved.
+
 ## Continuous cognition (ADR 0165)
 
 See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.

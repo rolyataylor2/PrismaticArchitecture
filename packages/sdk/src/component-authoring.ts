@@ -1,3 +1,4 @@
+import { interestDisposition, interestTime, LongTermInterestSchema, ShortTermInterestSchema } from '../../core/src/disposition-interest.js';
 import { ComponentDraftSchema } from '../../providers/src/component-authoring.js';
 import { z } from 'zod';
 import { DispositionDraftSchema, DispositionSchema, MemorySchema, PredictionSchema, Text, Id, id } from '../../core/src/domain.js';
@@ -17,10 +18,11 @@ export function createComponent(app: Application, agentId: string, kind: 'dispos
     const metadata = { origin: 'researcher_edit' as const, reason: `Researcher created ${kind}`, sourceIds: [] as string[] };
     const version = { id: id(kind), agentId, version: 1, schemaVersion: 1 as const };
     if (kind === 'disposition') {
-      const input = DispositionDraftSchema.parse(body);
+      const input = DispositionDraftSchema.omit({ threshold: true }).extend({ longTermInterest: LongTermInterestSchema.default(0), shortTermInterest: ShortTermInterestSchema.default(0) }).parse(body);
       for (const parent of input.prerequisites) if (app.store.get('disposition', parent).agentId !== agentId) throw new Error('Disposition prerequisite belongs to another Agent');
       if (input.memoryIds.length || input.sourcePredictionId || input.temporary) throw new Error('Manual dispositions cannot invent learning evidence or prediction attention');
-      const result = DispositionSchema.parse({ ...input, ...version, active: true });
+      const at = interestTime(app.store, agentId);
+      const result = interestDisposition(DispositionSchema.parse({ ...input, ...version, threshold: 2, interestUpdatedAt: at, active: true }), at, app.agentActivationSettings(agentId).dispositionInterests);
       app.store.save('disposition', result, 0, metadata); return result;
     }
     const common = { partId: Id, createdCycle: Id, context: z.array(Text).max(kind === 'prediction' ? 12 : 30) };

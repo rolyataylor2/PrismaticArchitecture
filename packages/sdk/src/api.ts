@@ -1,3 +1,4 @@
+import { interestDisposition, interestTime, DispositionInterestSettingsSchema, DispositionInterestSettingsPatchSchema, dispositionInterest } from '../../core/src/disposition-interest.js';
 import { openRouterModels } from './openrouter-models.js';
 import { AgentAvatarSchema } from '../../core/src/domain.js';
 import { thoughtModelEvidence } from './thought-model-evidence.js';
@@ -39,8 +40,10 @@ import { FactSchema } from '../../core/src/domain.js';
 import { ExecutiveCheckpointKindSchema, ExecutiveCompetenceSchema } from '../../core/src/executive-attention.js';
 
 export function snapshot(app: Application, agentId: string, threadId?: string) {
+  const at = interestTime(app.store, agentId);
   return { agent: app.store.get('agent', agentId), identity: app.store.get('identity', agentId), parts: app.store.list('part', agentId).map(part => app.store.partForThread(part.id, threadId)),
-    dispositions: app.store.list('disposition', agentId),
+    dispositions: app.store.list('disposition', agentId).map(disposition => interestDisposition(disposition, at, app.agentActivationSettings(agentId).dispositionInterests)),
+    activationSettings: app.agentActivationSettings(agentId),
     memories: app.store.list('memory', agentId), predictions: app.store.list('prediction', agentId), cycles: app.store.cycles(agentId),
     inferenceSettings: app.agentInferenceSettings(agentId), identityAuthoringSettings: app.store.identityAuthoringSettings(agentId),
     executions: app.store.executions(agentId), consolidations: app.store.consolidations(agentId) };
@@ -98,7 +101,7 @@ export async function api(app: Application, method: string, path: string, body: 
       if (method === 'POST' && subresource === 'candidates') return saveSimulationCandidates(app.store, entityId);
     }
     if (method === 'POST' && entityId && (action === 'rerun' || action === 'fork')) {
-      const settings = z.strictObject({ vectorSearchEnabled: z.boolean().optional(), memorySearchEnabled: z.boolean().optional(),
+      const settings = z.strictObject({ dispositionInterests: DispositionInterestSettingsSchema.optional(), vectorSearchEnabled: z.boolean().optional(), memorySearchEnabled: z.boolean().optional(),
         includeProcessingDispositions: z.boolean().optional(), maxConcurrentThoughts: z.number().int().min(1).max(64).optional(),
         maxQueuedThoughts: z.number().int().min(0).max(10000).optional(), activationPassLimit: z.number().int().min(1).max(10000).nullable().optional(),
         memoryRelevanceThreshold: z.number().min(0).max(1).optional(), memoryRecallLimit: z.number().int().min(1).max(10000).nullable().optional(),
@@ -332,7 +335,7 @@ export async function api(app: Application, method: string, path: string, body: 
     if (method === 'GET' && action === 'activation-settings') return app.agentActivationSettings(entityId);
     if (method === 'PATCH' && action === 'activation-settings') {
       const supplied = z.record(z.string(), z.unknown()).parse(body);
-      const validated = AgentActivationSettingsSchema.partial().parse(supplied);
+      const validated = AgentActivationSettingsSchema.partial().extend({ dispositionInterests: DispositionInterestSettingsPatchSchema.optional() }).parse(supplied);
       return app.updateAgentActivationSettings(entityId, Object.fromEntries(Object.entries(validated).filter(([key]) => Object.hasOwn(supplied, key))));
     }
     if (method === 'GET' && action === 'thought-model-evidence') return thoughtModelEvidence(app.store, entityId);
@@ -506,7 +509,7 @@ export async function api(app: Application, method: string, path: string, body: 
     const current = app.store.get('disposition', entityId);
     if (method === 'GET') {
       const activationHistory = dispositionActivationHistory(app.store, entityId);
-      return { disposition: current, versions: app.store.versions('disposition', entityId), statistics: dispositionStatistics(app.store, entityId),
+      return { disposition: interestDisposition(current, interestTime(app.store, current.agentId), app.agentActivationSettings(current.agentId).dispositionInterests), versions: app.store.versions('disposition', entityId), statistics: dispositionStatistics(app.store, entityId),
         activationHistory, currentActivation: currentDispositionActivation(activationHistory) };
     }
     if (current.deleted) throw new Error('Disposition has been deleted');
@@ -522,13 +525,18 @@ export async function api(app: Application, method: string, path: string, body: 
     }
     if (method === 'PATCH') {
       const input = z.strictObject({ expectedVersion: z.number().int().positive(),
-        patch: DispositionSchema.pick({ name: true, concern: true, cues: true, scope: true, prerequisites: true, activationAssociations: true, threshold: true, active: true }).partial() }).parse(body);
+        patch: DispositionSchema.pick({ name: true, concern: true, cues: true, scope: true, prerequisites: true, activationAssociations: true, longTermInterest: true, shortTermInterest: true, active: true }).partial() }).parse(body);
       for (const parent of input.patch.prerequisites ?? []) {
         if (parent === entityId || app.store.get('disposition', parent).agentId !== current.agentId) throw new Error('Invalid disposition prerequisite');
       }
-      const next = DispositionSchema.parse({ ...current, ...input.patch, version: input.expectedVersion + 1, ...(current.development ? { development: { ...current.development, previousVersion: input.expectedVersion } } : {}) });
-      app.store.save('disposition', next, input.expectedVersion, { origin: 'researcher_edit', reason: 'Researcher edited disposition', sourceIds: [] });
-      return next;
+      const experienceAt = interestTime(app.store, current.agentId);
+      const at = current.interestUpdatedAt && current.interestUpdatedAt > experienceAt ? current.interestUpdatedAt : experienceAt;
+      const settings = DispositionInterestSettingsSchema.parse(app.agentActivationSettings(current.agentId).dispositionInterests ?? {});
+      const interestsEdited = input.patch.longTermInterest !== undefined || input.patch.shortTermInterest !== undefined;
+      const next = DispositionSchema.parse({ ...current, ...(interestsEdited ? { ...dispositionInterest(current, at, settings), interestUpdatedAt: at } : {}), ...input.patch, version: input.expectedVersion + 1, ...(current.development ? { development: { ...current.development, previousVersion: input.expectedVersion } } : {}) });
+      const derived = interestDisposition(next, at, settings);
+      app.store.save('disposition', derived, input.expectedVersion, { origin: 'researcher_edit', reason: 'Researcher edited disposition', sourceIds: [] });
+      return derived;
     }
   }
   if (resource === 'predictions' && method === 'GET') return { prediction: app.store.get('prediction', entityId), versions: app.store.versions('prediction', entityId) };

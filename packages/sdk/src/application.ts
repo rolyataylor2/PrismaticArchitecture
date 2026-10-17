@@ -1,3 +1,4 @@
+import { interestDisposition, interestTime, defaultInterestSettings } from '../../core/src/disposition-interest.js';
 import { generativeModels, modelProvider, vendorModel } from '../../core/src/generative-models.js';
 import { generativeProvider } from '../../providers/src/generative.js';
 import { validateQwenBaseUrl } from '../../providers/src/compatible-chat.js';
@@ -205,8 +206,21 @@ export class Application {
   }
 
   agentActivationSettings(agentId: string) { return this.store.agentActivationSettings(agentId); }
-  updateAgentActivationSettings(agentId: string, settings: { includeProcessingDispositions?: boolean | undefined; maxConcurrentThoughts?: number | undefined; maxQueuedThoughts?: number | undefined; activationPassLimit?: number | null | undefined; memorySearchEnabled?: boolean | undefined; memoryRelevanceThreshold?: number | undefined; memoryRecallLimit?: number | null | undefined; vectorSearchEnabled?: boolean | undefined; primitivesFirst?: boolean | undefined; reevaluateAfterDeliberation?: boolean | undefined }) {
-    this.store.saveAgentActivationSettings(agentId, { ...this.agentActivationSettings(agentId), ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)) });
+  updateAgentActivationSettings(agentId: string, settings: { dispositionInterests?: Partial<import('../../core/src/disposition-interest.js').DispositionInterestSettings> | undefined; includeProcessingDispositions?: boolean | undefined; maxConcurrentThoughts?: number | undefined; maxQueuedThoughts?: number | undefined; activationPassLimit?: number | null | undefined; memorySearchEnabled?: boolean | undefined; memoryRelevanceThreshold?: number | undefined; memoryRecallLimit?: number | null | undefined; vectorSearchEnabled?: boolean | undefined; primitivesFirst?: boolean | undefined; reevaluateAfterDeliberation?: boolean | undefined }) {
+    this.store.transaction(() => {
+      const previous = this.agentActivationSettings(agentId);
+      const next = { ...previous, ...Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined)),
+        ...(settings.dispositionInterests ? { dispositionInterests: { ...defaultInterestSettings, ...previous.dispositionInterests, ...settings.dispositionInterests } } : {}) };
+      // Materialize under old rates; invalid settings roll back this entire transaction.
+      const at = interestTime(this.store, agentId);
+      if (settings.dispositionInterests) for (const disposition of this.store.list('disposition', agentId)) {
+        if (!disposition.interestUpdatedAt || disposition.interestUpdatedAt >= at) continue;
+        this.store.save('disposition', { ...interestDisposition(disposition, at, previous.dispositionInterests), version: disposition.version + 1,
+          ...(disposition.development ? { development: { ...disposition.development, previousVersion: disposition.version } } : {}) }, disposition.version,
+          { origin: 'researcher_edit', reason: 'Materialize interest decay before changing its settings', sourceIds: [] });
+      }
+      this.store.saveAgentActivationSettings(agentId, next);
+    });
     return this.agentActivationSettings(agentId);
   }
   providerConnections(agentId: string) { return providerConnections(this.store, agentId); }

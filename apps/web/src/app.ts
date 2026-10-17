@@ -403,7 +403,15 @@ const fieldDescriptions: Record<string, string> = {
   'Aspects': 'One aspect per line describing what this primitive registers.',
   'Primitive family': 'Group this primitive as appraisal or action tendency.',
   'Surfacing threshold': 'The minimum score required to surface this primitive.',
-  'Activation threshold': 'The minimum score required for activation.',
+  'Long-term interest weight': 'How much enduring interest can lower the activation threshold.',
+  'Short-term interest weight': 'How much current engagement or satiation changes the threshold.',
+  'Long-term gain per selection': 'A small increase for each new Self selection of an owning proposal.',
+  'Short-term gain per selection': 'The immediate interest increase when an owning proposal is selected.',
+  'Long-term half-life': 'Elapsed experience minutes for enduring interest to halve. Default: 30 days.',
+  'Short-term half-life': 'Elapsed experience minutes for engagement or satiation to halve. Default: 30 minutes.',
+  'Long-term interest': 'Enduring sensitivity from 0 to 1. Neutral is 0.',
+  'Short-term interest': 'Current engagement from −1 (satiated) to 1 (engaged). Neutral is 0.',
+  'Activation threshold': 'Derived from long-term and short-term interests. The minimum score required for activation.',
   'Activation instructions': 'Instructions for evaluating this primitive’s relevance.',
   'Thought production prompt': 'Instructions for generating this primitive’s thought.',
   'Allow this primitive to produce bids': 'Enable action proposals and customize their instructions.',
@@ -1028,7 +1036,16 @@ function componentAuthoring(kind: 'disposition' | 'memory' | 'prediction', smart
       associationFields.push({ effect, keywords, dispositions });
     }
     form.append(node('p', 'Associations influence activation once after direct scoring. They are soft cues; opposing influences can coexist.', 'muted'));
-    const threshold = addField('threshold', 'Activation threshold (0–4)', '2') as HTMLInputElement; threshold.min = '0'; threshold.max = '4'; threshold.step = '0.1'; threshold.type = 'range';
+    const long = addField('longTermInterest', 'Long-term interest (0–1)', String(existing?.longTermInterest ?? 0)) as HTMLInputElement;
+    const short = addField('shortTermInterest', 'Short-term interest (−1–1)', String(existing?.shortTermInterest ?? 0)) as HTMLInputElement;
+    for (const input of [long, short]) { input.type = 'range'; input.min = input === long ? '0' : '-1'; input.max = '1'; input.step = '0.01'; }
+    const preview = node('output'); preview.setAttribute('aria-label', 'Derived activation threshold');
+    const updateThreshold = () => {
+      const weights = state!.activationSettings.dispositionInterests ?? { longTermWeight: 0.45, shortTermWeight: 0.35 };
+      preview.textContent = `Derived activation threshold: ${Math.min(2.35, Math.max(1.4, 2 - weights.longTermWeight * Number(long.value) - weights.shortTermWeight * Number(short.value))).toFixed(3)} / 4`;
+    };
+    long.addEventListener('input', updateThreshold); short.addEventListener('input', updateThreshold); updateThreshold();
+    form.append(preview, node('p', 'Interests determine the threshold automatically. Negative short-term interest represents temporary satiation; both interests drift toward neutral on the experience clock.', 'muted'));
   }
   if (kind === 'prediction') {
     addField('horizon', 'Horizon'); const confidence = addField('confidence', 'Confidence (0–1)', '0.5') as HTMLInputElement; confidence.min = '0'; confidence.max = '1'; confidence.step = '0.01'; confidence.type = 'range';
@@ -1048,8 +1065,7 @@ function componentAuthoring(kind: 'disposition' | 'memory' | 'prediction', smart
   }
   if (existing) {
     text.value = existing.name; summary!.value = existing.concern; context.value = existing.cues.join('\n');
-    scope!.value = existing.scope ?? ''; fields.threshold!.value = String(existing.threshold);
-    fields.threshold!.dispatchEvent(new Event('input'));
+    scope!.value = existing.scope ?? '';
     for (const controls of associationFields) {
       const associations = dispositionAssociations(existing).filter(association => association.effect === controls.effect);
       controls.keywords.value = associations.flatMap(association => association.kind === 'keyword' ? [association.keyword] : []).join('\n');
@@ -1064,7 +1080,7 @@ function componentAuthoring(kind: 'disposition' | 'memory' | 'prediction', smart
       ? { name: text.value, concern: summary!.value, cues: lines(context.value), scope: scope!.value.trim() || null, prerequisites: [], activationAssociations: associationFields.flatMap(controls => [
           ...lines(controls.keywords.value).map(keyword => ({ kind: 'keyword', keyword, effect: controls.effect })),
           ...[...controls.dispositions.selectedOptions].map(option => option.value).filter(Boolean).map(dispositionId => ({ kind: 'disposition', dispositionId, effect: controls.effect })),
-        ]), threshold: Number(fields.threshold!.value), memoryIds: [], sourcePredictionId: null, temporary: false }
+        ]), longTermInterest: Number(fields.longTermInterest!.value), shortTermInterest: Number(fields.shortTermInterest!.value), memoryIds: [], sourcePredictionId: null, temporary: false }
       : { partId: part!.value, createdCycle: cycle!.value, context: lines(context.value), ...(kind === 'memory' ? { content: text.value, gist: summary!.value } : { expectation: text.value, horizon: fields.horizon!.value, confidence: Number(fields.confidence!.value) }) };
     const { memoryIds: _memories, sourcePredictionId: _prediction, temporary: _temporary, ...patch } = payload as Record<string, unknown>;
     void api(existing ? `dispositions/${existing.id}` : `agents/${agentId}/${kind === 'memory' ? 'memories' : kind === 'prediction' ? 'predictions' : 'dispositions'}`, existing ? 'PATCH' : 'POST', existing ? { expectedVersion: existing.version, patch } : payload).then(async () => { dialog.close(); if (selectedAgent === agentId) { await refresh(); render(); } }).catch(cause => { showError(cause); }).finally(() => { save.disabled = false; });
@@ -2487,7 +2503,8 @@ async function renderDispositionInfo(dispositionId: string, target: HTMLElement)
   const versions = record.versions.slice().sort((a, b) => b.state.version - a.state.version);
   const versionEntries: HTMLElement[] = [];
   for (const version of versions) {
-    const item = version.state;
+    const item = version.state.version === record.disposition.version ? record.disposition : version.state;
+    const thresholdKind = item.version === record.disposition.version ? 'derived' : item.interestUpdatedAt ? 'recorded' : 'legacy recorded';
     const entry = node('section');
     entry.append(node('p', `Version ${item.version} · ${readableDate(version.at)}${item.version === record.disposition.version ? ' · Current' : ' · Historical'}`),
       node('p', `${version.change.origin.replaceAll('_', ' ')} · ${version.change.reason}`, 'muted'),
@@ -2495,7 +2512,7 @@ async function renderDispositionInfo(dispositionId: string, target: HTMLElement)
       inspectorSection('Scope', [item.scope ?? 'Broad direct cue']),
       inspectorSection('Activation associations', dispositionAssociations(item).map(associationLabel)),
       inspectorSection('Memory evidence', item.memoryIds.map(id => state!.memories.find(memory => memory.id === id)?.gist ?? id)),
-      node('p', `Activation threshold: ${item.threshold} · ${item.active ? 'Active' : 'Inactive'} · ${item.temporary ? 'Temporary' : 'Durable'}`), details('Disposition record', version));
+      node('p', `Activation threshold: ${item.threshold.toFixed(3)} (${thresholdKind}) · Long-term interest: ${(item.longTermInterest ?? 0).toFixed(3)} · Short-term interest: ${(item.shortTermInterest ?? 0).toFixed(3)} · ${item.active ? 'Active' : 'Inactive'} · ${item.temporary ? 'Temporary' : 'Durable'}`), details('Disposition record', version));
     if (item.scaffold) entry.append(inspectorSection('Temporary Prediction-Bound Disposition', [
       `Hypothesis: ${item.sourcePredictionId} · version ${item.scaffold.hypothesisVersion}`,
       `Origin: ${item.scaffold.createdCycle} · thread ${item.scaffold.threadId ?? 'unthreaded'}`,
@@ -3255,8 +3272,25 @@ function activationSettings(): void {
   const panel = card('Part activation');
   panel.append(node('p', 'JEV scores dispositions and memory relevance. Code assembles independent scopes; Parts form and think in parallel. Primitives are configured separately and do not participate in cognition.', 'muted'));
   content.append(panel);
-  void api<{ includeProcessingDispositions: boolean; maxConcurrentThoughts: number; maxQueuedThoughts: number; activationPassLimit: number | null; memorySearchEnabled: boolean; memoryRelevanceThreshold: number; memoryRecallLimit: number | null; vectorSearchEnabled: boolean; reevaluateAfterDeliberation: boolean; primitivesFirst: boolean }>(`agents/${agentId}/activation-settings`).then(configuration => {
+  void api<{ dispositionInterests: import('../../../packages/core/src/disposition-interest.js').DispositionInterestSettings; includeProcessingDispositions: boolean; maxConcurrentThoughts: number; maxQueuedThoughts: number; activationPassLimit: number | null; memorySearchEnabled: boolean; memoryRelevanceThreshold: number; memoryRecallLimit: number | null; vectorSearchEnabled: boolean; reevaluateAfterDeliberation: boolean; primitivesFirst: boolean }>(`agents/${agentId}/activation-settings`).then(configuration => {
     if (agentId !== selectedAgent || settingsSection !== 'Activation' || !panel.isConnected) return;
+    const interests = card('Disposition interests'); panel.after(interests);
+    interests.append(node('p', 'Self selections gently strengthen their owning dispositions. Activation alone does not. Interests and thresholds stay hidden from Self and the activation scorer.', 'muted'),
+      node('p', 'Threshold = clamp(2 − long-term weight × long-term interest − short-term weight × short-term interest, 1.4, 2.35). Half-lives use elapsed experience time, not activation passes.', 'muted'));
+    const interestControls = {} as Record<keyof typeof configuration.dispositionInterests, HTMLInputElement>;
+    const interestFields: [keyof typeof configuration.dispositionInterests, string, number, number, string][] = [
+      ['longTermWeight', 'Long-term interest weight', 0, 1, '0.01'],
+      ['shortTermWeight', 'Short-term interest weight', 0, 1, '0.01'],
+      ['longTermSelectionGain', 'Long-term gain per selection', 0, 0.1, '0.001'],
+      ['shortTermSelectionGain', 'Short-term gain per selection', 0, 0.5, '0.01'],
+      ['longTermHalfLifeMinutes', 'Long-term half-life (minutes)', 1, 5256000, '1'],
+      ['shortTermHalfLifeMinutes', 'Short-term half-life (minutes)', 1, 5256000, '1'],
+    ];
+    for (const [key, label, min, max, step] of interestFields) {
+      const input = field(interests, label, String(configuration.dispositionInterests[key])) as HTMLInputElement;
+      input.type = 'number'; input.min = String(min); input.max = String(max); input.step = step; input.required = true; interestControls[key] = input;
+    }
+    interests.append(node('p', 'Edit each disposition’s interests in Dispositions. Negative short-term interest can model satiation. Prediction accuracy and repeated thinking do not automatically count as value or lack of progress.', 'muted'));
     const thresholdLabel = node('label', 'Memory relevance threshold (0–1) ');
     const threshold = node('input'); threshold.type = 'range'; threshold.min = '0'; threshold.max = '1'; threshold.step = '0.05'; threshold.value = String(configuration.memoryRelevanceThreshold);
     thresholdLabel.append(threshold);
@@ -3301,7 +3335,9 @@ function activationSettings(): void {
       button('Resume activation', async () => { await api(`agents/${agentId}/cognition-control`, 'POST', { threadId: streamThread, directive: 'resume' }); await loadStream(); }, true));
     void loadStream().catch(showError);
     settingsSaveControl(button('Save activation settings', async () => {
-      await api(`agents/${agentId}/activation-settings`, 'PATCH', { memoryRelevanceThreshold: Number(threshold.value), memoryRecallLimit: limit.value === '' ? null : Number(limit.value), includeProcessingDispositions: processing.checked, maxConcurrentThoughts: Number(concurrency.value), maxQueuedThoughts: Number(queue.value), activationPassLimit: passes.value === '' ? null : Number(passes.value) });
+      for (const input of [...Object.values(interestControls), limit, concurrency, queue, passes]) if (!input.reportValidity()) return;
+      const saved = await api<AgentSnapshot['activationSettings']>(`agents/${agentId}/activation-settings`, 'PATCH', { dispositionInterests: Object.fromEntries(Object.entries(interestControls).map(([key, input]) => [key, Number(input.value)])), memoryRelevanceThreshold: Number(threshold.value), memoryRecallLimit: limit.value === '' ? null : Number(limit.value), includeProcessingDispositions: processing.checked, maxConcurrentThoughts: Number(concurrency.value), maxQueuedThoughts: Number(queue.value), activationPassLimit: passes.value === '' ? null : Number(passes.value) });
+      if (selectedAgent === agentId && state) state.activationSettings = saved;
       notice.textContent = 'Activation settings saved.';
     }));
   }).catch(showError);

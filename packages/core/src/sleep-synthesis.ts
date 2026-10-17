@@ -17,7 +17,7 @@ export function captureSynthesisScopes(store: Store, agentId: string, cycleIds: 
     for (const score of event.payload.scores) {
       const context = event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as
         { activationPhase?: string; disposition?: Disposition } | undefined;
-      if (!context?.disposition || context.activationPhase === 'baseline' || score.score < context.disposition.threshold) continue;
+      if (!context?.disposition || context.activationPhase === 'baseline' || score.score < (event.payload.thresholds?.[score.partId] ?? context.disposition.threshold)) continue;
       const selected = scopes.get(score.partId) ?? new Set<string>(); selected.add(event.cycleId); scopes.set(score.partId, selected);
     }
   }

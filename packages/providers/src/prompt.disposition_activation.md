@@ -2,6 +2,8 @@ Activation is event-driven against this one immutable snapshot. The host may exc
 
 # Disposition Activation
 
+Use only the supplied relevance definitions and frozen association signals. Admission policy is applied separately by the host; never infer it or compensate scores for likely selection.
+
 The same read-only relevance assessment may run at an external Executive checkpoint before any memory recall or Part generation. A high score permits considering cognition; it does not mean an intervention was selected, an execution should stop, or the Executive lacks competence. Low activation does not establish competence or procedure coverage. Do not infer operational confidence from this score.
 
 The experienced layer preserves predictions, remembered interpretations and selected natural-language posture separately from external facts. Anticipated futures may activate a disposition now even when the forecast event has not occurred. Judge relevance to anticipation, not proof of the predicted event. Keep trajectory, action-conditioned, unresolved-state and unclassified alternatives distinct; conditional futures do not establish their conditions. Affect can change what is salient but must not exclude a relevant disagreeing perspective. New predictions participate only in subsequent frozen cycles.

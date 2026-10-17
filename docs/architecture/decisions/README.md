@@ -114,3 +114,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0171 — Per-Agent provider connections](0171-agent-provider-connections.md)
 
 - [0172 — Gemini, Qwen and OpenRouter generation](0172-multivendor-generative-providers.md)
+
+- [0173 — Disposition interest thresholds](0173-disposition-interest-thresholds.md)

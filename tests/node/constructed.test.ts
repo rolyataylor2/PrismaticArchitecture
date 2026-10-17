@@ -162,10 +162,13 @@ test('situational scopes overlap and sleep selects chronological psychological t
     }
   }
   try {
-    const app = new Application(store, providers(new Reasoning())); const agent = app.createAgent();
+    class ScopeDecisions extends MockDecisions {
+      override async judge(input: JudgmentInput) { return input.task === 'disposition_activation' ? input.candidates.map(candidate => ({ partId: candidate.id, score: 4 })) : super.judge(input); }
+    }
+    const app = new Application(store, providers(new Reasoning(), new ScopeDecisions())); const agent = app.createAgent();
     for (const [id, scope] of [['painting', 'paint + surface + intention'], ['deadline', 'task + approaching rain']] as const) {
       store.save('disposition', { id, agentId: agent.id, version: 1, schemaVersion: 1, name: id,
-        concern: 'Attend to the ongoing situation', cues: [scope], scope, prerequisites: [], threshold: 0,
+        concern: 'Attend to the ongoing situation', cues: [scope], scope, prerequisites: [], threshold: 2,
         memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0,
       { origin: 'seed', reason: 'General attention fixture', sourceIds: [] });
     }
@@ -203,15 +206,19 @@ test('scope continuity survives restart and a retired instance cannot rejoin cog
   const directory = mkdtempSync(join(tmpdir(), 'onto-assembled-')); const path = join(directory, 'state.sqlite');
   let store = new SqliteStore(path);
   try {
-    let app = new Application(store); const agent = app.createAgent('Assembled');
+    const decisions = new class extends MockDecisions {
+      override async judge(input: JudgmentInput) { return input.task === 'disposition_activation' ? input.candidates.map(candidate => ({ partId: candidate.id, score: 2 })) : super.judge(input); }
+    }();
+    let app = new Application(store, providers(new MockReasoning(), decisions)); const agent = app.createAgent('Assembled');
     await app.message(agent.id, 'Hello.', 'friend', 'a');
     const original = store.list('part', agent.id)[0]!;
     assert.equal(original.name, 'self'); assert.equal(original.instance!.retirement, null);
-    store.close(); store = new SqliteStore(path); app = new Application(store);
+    store.close(); store = new SqliteStore(path); app = new Application(store, providers(new MockReasoning(), decisions));
     await app.message(agent.id, 'Hello again.', 'friend', 'a');
     assert.equal(store.list('part', agent.id).length, 1);
     assert.ok(store.get('part', original.id).version > original.version);
-    store.save('disposition', { id: 'dog', agentId: agent.id, version: 1, schemaVersion: 1, name: 'Dog', concern: 'Dogs matter', cues: ['dog'], scope: 'dog', prerequisites: [], threshold: 0, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0, { origin: 'seed', reason: 'Scope fixture', sourceIds: [] });
+    // Scope continuity uses explicit relevant-score plumbing, without a manual threshold bypass.
+    store.save('disposition', { id: 'dog', agentId: agent.id, version: 1, schemaVersion: 1, name: 'Dog', concern: 'Dogs matter', cues: ['dog'], scope: 'dog', prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0, { origin: 'seed', reason: 'Scope fixture', sourceIds: [] });
     await app.message(agent.id, 'A dog appears.', 'friend', 'a');
     const retired = store.get('part', original.id);
     assert.ok(retired.instance!.retirement);

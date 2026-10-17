@@ -1,3 +1,7 @@
+## Interest-derived attention (ADR 0173)
+
+[ADR 0173](decisions/0173-disposition-interest-thresholds.md) derives disposition activation thresholds from bounded long/short-term interests. Self selections reinforce; elapsed experience time decays. Self and environmental relevance scoring remain blind to these traces and policy. No additional scoring pass or Identity-affinity inference is added.
+
 ## Continuous cognition revision (ADR 0165)
 
 [ADR 0165](decisions/0165-continuous-asynchronous-cognition.md) supersedes the online whole-batch completion barrier. Observation intake and bounded scoped reasoning overlap; validated scopes commit independently and Self decisions serialize per Agent. Each reasoning job retains its own immutable snapshot; jobs from different observations need not share a snapshot. Busy dispositions are excluded from activation by default; optional rescoring changes relevance telemetry without interrupting or duplicating thought. A one-pass activation allowance pauses the same runtime, rather than selecting a legacy synchronous mode. The [implementation audit](../development/CONTINUOUS_COGNITION_AUDIT.md) distinguishes verified behavior from remaining target work, including bid-pool applicability, commitment mediation and adaptive routing. Historical synchronous sequencing below is superseded where it conflicts with ADR 0165.

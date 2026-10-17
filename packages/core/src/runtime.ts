@@ -1,3 +1,4 @@
+import { reinforceDispositionInterests } from './disposition-interest.js';
 import { executiveActionEnabled, executiveModuleEnabled } from './executive-profile.js';
 import { commitmentProposals, recentCommitments } from './commitments.js';
 import { BidPool, contributionScope, type PoolEntry } from './bid-pool.js';
@@ -736,6 +737,10 @@ export class CognitiveRuntime {
                 ? [{ predictionId: prediction.id, periodId: event.payload.periodId, stage: event.payload.stage }] : [])),
             selectedBidIds: navigation ? [navigation.id] : selected?.map(bid => bid.id) ?? [], navigationStateId: navigation?.stateId ?? null }) });
       }
+      reinforceDispositionInterests(this.store, this.inspection, decisionWorld, [
+        ...(navigation ? [navigation] : selected ?? []),
+        ...affectDecisions.flatMap(decision => decision.selection.mode === 'select' ? decision.resultingFocus?.proposals ?? [] : []),
+      ]);
       releaseDecision?.(); releaseDecision = undefined;
       for (const handoff of handoffs) await handoff();
       stage = 'cognition_coverage';

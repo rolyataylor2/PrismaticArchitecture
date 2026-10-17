@@ -31,13 +31,13 @@ class Fixture extends MockReasoning {
 }
 class Decisions extends MockDecisions {
   inputs: JudgmentInput[] = [];
-  override async judge(input: JudgmentInput) { this.inputs.push(input); return super.judge(input); }
+  override async judge(input: JudgmentInput) { this.inputs.push(input); return input.task === 'disposition_activation' ? input.candidates.map(candidate => ({ partId: candidate.id, score: 4 })) : super.judge(input); }
 }
 async function setup() {
   const store = new SqliteStore(':memory:'); const reasoning = new Fixture(); const decisions = new Decisions();
   const app = new Application(store, { reasoning, decisions, embeddings: new MockEmbeddings() }); const agent = app.createAgent('Synthesis fixture');
   for (const scope of ['cold', 'advice']) store.save('disposition', { id: scope, agentId: agent.id, version: 1, schemaVersion: 1,
-    name: scope, concern: 'Notice relevant experiences', cues: ['cold car advice'], scope, prerequisites: [], threshold: 0,
+    name: scope, concern: 'Notice relevant experiences', cues: ['cold car advice'], scope, prerequisites: [], threshold: 2,
     memoryIds: [], sourcePredictionId: null, temporary: false, active: true }, 0, { origin: 'seed', reason: 'Boundary fixture', sourceIds: [] });
   await app.message(agent.id, 'Opening the doors did not help the car start.', 'observer', 'car');
   await app.message(agent.id, 'Bill suggested a cold battery; research confirmed battery heaters exist.', 'observer', 'car');
@@ -189,7 +189,7 @@ test('scope review follows independent activation rather than requiring Part adm
   const { store, app, agent } = await setup();
   try {
     const base = store.get('disposition', 'cold');
-    const disposition = { ...base, id: 'authored-deferred-scope', name: 'Deferred scope fixture', threshold: 2,
+    const disposition = { ...base, version: 1, id: 'authored-deferred-scope', name: 'Deferred scope fixture', threshold: 2,
       memoryIds: store.list('memory', agent.id).slice(0, 2).map(memory => memory.id) };
     store.save('disposition', disposition, 0, { origin: 'seed', reason: 'Activation/admission boundary fixture', sourceIds: [] });
     const cycle = store.cycles(agent.id)[0]!;

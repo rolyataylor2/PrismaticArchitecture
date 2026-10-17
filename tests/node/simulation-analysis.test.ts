@@ -28,7 +28,10 @@ test('run analytics preserves rounds and version changes, isolates recorded evid
     const report = analyzeSimulation(store, run);
     assert.equal(report.stages.length, 4); assert.equal(report.summary.controls, 1);
     assert.equal(report.stages[0]!.changes.dispositions.length, run.stages[0]!.dispositions.length);
-    assert.equal(report.stages[1]!.changes.dispositions.length, 0, 'unchanged snapshots do not count as new development');
+    const selectedInterestIds = new Set(store.eventsByType(run.agentId, ['disposition.interest_updated'], [run.stages[1]!.cycleId!])
+      .flatMap(event => event.type === 'disposition.interest_updated' ? [event.payload.dispositionId] : []));
+    assert.deepEqual(report.stages[1]!.changes.dispositions.map(change => change.id).sort(), [...selectedInterestIds].sort(),
+      'Only real selection-driven interest versions count as changes; unchanged snapshots add none');
     for (const row of report.activation) for (const cell of row.cells) {
       assert.equal(cell.rounds.length, run.stages[cell.stageIndex]!.activations.filter(item => item.dispositionId === row.dispositionId).length);
     }

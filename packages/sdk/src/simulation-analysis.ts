@@ -75,7 +75,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
           return { eventId: event.id, dispositionId: candidate.id, name: context.disposition?.name ?? 'Historical scope',
             phase: context.activationPhase ?? 'unreported', score, directScore: context.baselineActivation ?? null,
             scoreDifference: score !== null && context.baselineActivation !== undefined ? score - context.baselineActivation : null,
-            threshold: context.disposition?.threshold ?? null, associationSignals: context.associationSignals ?? [], inquiry: context.inquiry ?? null };
+            threshold: event.payload.thresholds?.[candidate.id] ?? context.disposition?.threshold ?? null, associationSignals: context.associationSignals ?? [], inquiry: context.inquiry ?? null };
         }) : []),
       decisions: trace.flatMap(event => event.type === 'self.choice' ? [{ eventId: event.id, at: event.at, choice: event.payload }] : []),
       bids: trace.flatMap(event => event.type === 'part.bid_created' ? [{ eventId: event.id, bid: event.payload }] : []),
@@ -107,7 +107,7 @@ export function analyzeSimulation(store: Store, run: SimulationRun) {
     cells: run.stages.map((stage, index) => ({ stageIndex: index,
       // Retain every evaluation round; a later score must not erase an earlier one.
       rounds: stage.activations.filter(item => item.dispositionId === dispositionId).map(item => ({ ...item,
-        threshold: stage.dispositions.find(disposition => disposition.id === dispositionId)?.threshold ?? null })),
+        threshold: item.threshold ?? stage.dispositions.find(disposition => disposition.id === dispositionId)?.threshold ?? null })),
       evaluated: stage.activations.some(item => item.dispositionId === dispositionId) })),
   }));
   const coactivation = new Map<string, { left: string; right: string; stages: number[] }>();

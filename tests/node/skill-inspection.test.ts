@@ -47,7 +47,7 @@ test('read-only skill inspection reconstructs actual thoughts, activation, sourc
   const agent = app.createAgent(); const foreign = app.createAgent();
   try {
     await api(app, 'POST', `/api/agents/${agent.id}/dispositions`, { name: 'Fixture concern', concern: 'Researcher-authored inspection fixture scope',
-      cues: ['inspection fixture'], scope: 'fixture', threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
+      cues: ['inspection fixture'], scope: 'fixture', longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false });
     store.saveExecutiveProfile(agent.id, { ...store.executiveProfile(agent.id), enabled: true, revision: 1, learningMode: 'validated_automatic' }, 0);
     store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], timeoutMs: 5000, envSecretRefs: {} }] }, 0);

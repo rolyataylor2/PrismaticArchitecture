@@ -1,3 +1,4 @@
+import { interestSimulations } from './interest-simulations.js';
 import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
 import { continuousSimulations } from './continuous-simulations.js';
 import { dreamState, type DreamState } from './dream-state.js';
@@ -28,6 +29,7 @@ const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepar
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
   ...continuousSimulations,
+  ...interestSimulations,
   ...([false, true] as const).map(includeProcessing => ({
     id: `continuous-attention-${includeProcessing ? 'rescore' : 'exclude'}-busy`,
     title: `Overlapping experiences · ${includeProcessing ? 'rescore' : 'exclude'} thinking dispositions`,
@@ -502,7 +504,7 @@ export type SimulationStage = { attentionWindow?: AttentionWindowEvidence; resou
   predictionChecks?: { predictionId: string; outcome: import('../../core/src/domain.js').PredictionOutcome }[];
   inquiries?: { partId: string; question: string }[];
   recruitedScopes?: string[];
-  activations: { dispositionId: string; name: string; baselineScore?: number; score: number; active: boolean }[];
+  activations: { dispositionId: string; name: string; baselineScore?: number; threshold?: number; score: number; active: boolean }[];
   thoughts: { partId: string; name: string; dispositionIds: string[]; thought: string; interpretation?: string; evidenceSummary?: string[]; proposal: Proposal | null }[];
   recalls: { partId: string | null; dispositionIds: string[]; memoryIds: string[] }[];
   selfChoices?: import('../../core/src/contracts.js').EventPayloads['self.choice'][];
@@ -1064,8 +1066,8 @@ async function executeSimulation(app: Application, definition: SimulationTestDef
             activations: events.flatMap(event => event.type === 'construction.judgment' && event.payload.input.task === 'disposition_activation'
               ? event.payload.scores.filter(score => (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { activationPhase?: string })?.activationPhase !== 'baseline').map(score => {
                 const disposition = (event.payload.input.candidates.find(candidate => candidate.id === score.partId)!.context as { disposition: Disposition }).disposition;
-                return { dispositionId: disposition.id, name: disposition.name,
-                  baselineScore: (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { baselineActivation?: number }).baselineActivation ?? score.score, score: score.score, active: score.score >= disposition.threshold };
+                return { dispositionId: disposition.id, name: disposition.name, threshold: event.payload.thresholds?.[score.partId] ?? disposition.threshold,
+                  baselineScore: (event.payload.input.candidates.find(candidate => candidate.id === score.partId)?.context as { baselineActivation?: number }).baselineActivation ?? score.score, score: score.score, active: score.score >= (event.payload.thresholds?.[score.partId] ?? disposition.threshold) };
               }) : []),
             thoughts: events.flatMap(event => event.type === 'part.thought' ? [{ partId: event.payload.partId, name: event.payload.partSnapshot.name,
               dispositionIds: event.payload.partSnapshot.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? [],

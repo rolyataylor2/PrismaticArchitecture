@@ -48,7 +48,7 @@ test('ordinary activation can assess without psychology writes and reuse only it
   try {
     const agent = app.createAgent();
     await api(app, 'POST', `/api/agents/${agent.id}/dispositions`, { name: 'Fixture scope', concern: 'Notice the explicitly authored fixture situation',
-      cues: ['fixture situation'], scope: 'fixture', threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
+      cues: ['fixture situation'], scope: 'fixture', longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false });
     const cycle = store.startCycle(agent.id, 'origin');
     const world = freeze(WorldStateSchema.parse({ id: cycle.worldId, agentId: agent.id, cycleId: cycle.id, sequence: cycle.sequence,
       capturedAt: cycle.startedAt, facts: [{ source: 'Fixture', kind: 'observes', text: 'Fixture situation', referenceId: null }] }));
@@ -95,7 +95,7 @@ test('real background results trigger nonblocking read-only checkpoints and exte
     const agent = app.createAgent(); const foreign = app.createAgent();
     enableExecutive(app, foreign.id);
     await api(app, 'POST', `/api/agents/${agent.id}/dispositions`, { name: 'Transport fixture attention', concern: 'Notice the transport fixture',
-      cues: ['echo fixture'], scope: 'echo', threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
+      cues: ['echo fixture'], scope: 'echo', longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false });
     store.saveMcpRegistry({ revision: 1, servers: [{ id: 'local', transport: 'stdio', command: process.execPath,
       args: [fileURLToPath(new URL('../fixtures/executive-mcp-server.mjs', import.meta.url))], envSecretRefs: {}, timeoutMs: 2000 }] }, 0);
     store.saveMcpPermissions(agent.id, { revision: 1, tools: [{ serverId: 'local', toolName: 'echo' }] }, 0);

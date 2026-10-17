@@ -35,7 +35,7 @@ export function dispositionActivationHistory(store: Store, dispositionId: string
       samples.push({ eventId: event.id, cycleId: world.cycleId, worldId: world.id,
         sequence: world.sequence, capturedAt: world.capturedAt, recordedAt: event.at,
         threadId: cycles.get(world.cycleId)?.threadId ?? null, dispositionVersion: context.disposition.version,
-        threshold: context.disposition.threshold, score: score.score,
+        threshold: event.payload.thresholds?.[dispositionId] ?? context.disposition.threshold, score: score.score,
         phase: context.activationPhase === 'associated' ? 'associated' : context.activationPhase === 'baseline' ? 'baseline' : 'direct',
         reasons: [] });
     }

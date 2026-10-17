@@ -9,7 +9,7 @@ export function dispositionStatistics(store: Store, dispositionId: string) {
     const candidate = event.payload.input.candidates.find(candidate => candidate.id === dispositionId);
     const score = event.payload.scores.find(score => score.partId === dispositionId);
     if ((candidate?.context as { activationPhase?: string })?.activationPhase === 'baseline') continue;
-    if (candidate && score && score.score >= (candidate.context as { disposition: { threshold: number } }).disposition.threshold)
+    if (candidate && score && score.score >= (event.payload.thresholds?.[dispositionId] ?? (candidate.context as { disposition: { threshold: number } }).disposition.threshold))
       activations.add(event.payload.input.world.cycleId);
   }
   const predictionIds = new Set(disposition.development?.evidence.flatMap(evidence => evidence.predictionId ? [evidence.predictionId] : []) ?? []);

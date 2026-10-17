@@ -1,0 +1,58 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { once } from 'node:events';
+import type { AddressInfo } from 'node:net';
+import { chromium } from '@playwright/test';
+import { SqliteStore } from '../../packages/storage/src/sqlite.js';
+import { Application } from '../../packages/sdk/src/application.js';
+import { createResearchServer } from '../../apps/server/src/server.js';
+
+const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+test('interest settings and disposition editors save on desktop and fit mobile', { skip: !existsSync(executable), timeout: 60000 }, async () => {
+  const store = new SqliteStore(':memory:'); const app = new Application(store); const agent = app.createAgent('Interest controls');
+  const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const browser = await chromium.launch({ executablePath: executable, headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }); const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'Activation', exact: true }).click();
+    await page.getByRole('heading', { name: 'Disposition interests', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('Long-term interest weight', { exact: true }).inputValue(), '0.45');
+    await page.getByLabel('Long-term interest weight', { exact: true }).fill('0.4');
+    await page.getByLabel('Short-term half-life (minutes)', { exact: true }).fill('20');
+    await page.getByRole('button', { name: 'Save settings', exact: true }).click();
+    await page.getByText('Activation settings saved.', { exact: true }).waitFor();
+    assert.equal(app.agentActivationSettings(agent.id).dispositionInterests!.longTermWeight, 0.4);
+    assert.equal(app.agentActivationSettings(agent.id).dispositionInterests!.shortTermHalfLifeMinutes, 20);
+    await page.screenshot({ path: 'work/interest-settings-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: 'work/interest-settings-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole('button', { name: 'Dispositions', exact: true }).click();
+    await page.getByRole('button', { name: 'Create disposition', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Create disposition', exact: true });
+    await dialog.getByLabel('Name', { exact: true }).fill('Botanical Curiosity');
+    await dialog.getByLabel('Concern', { exact: true }).fill('Notice plant details');
+    await dialog.getByLabel('Cues (one per line)', { exact: true }).fill('plant');
+    assert.equal(await dialog.getByLabel('Activation threshold (0–4)', { exact: true }).count(), 0);
+    const long = dialog.getByRole('slider', { name: 'Long-term interest (0–1)' });
+    await long.fill('0.7');
+    await dialog.getByRole('slider', { name: 'Short-term interest (−1–1)' }).fill('0.5');
+    assert.match(await dialog.getByLabel('Derived activation threshold').innerText(), /1\.545/);
+    await page.screenshot({ path: 'work/interest-editor-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth));
+    await dialog.getByLabel('Derived activation threshold').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: 'work/interest-editor-mobile.png', fullPage: true });
+    await dialog.getByRole('button', { name: 'Create disposition', exact: true }).click();
+    await dialog.waitFor({ state: 'hidden' });
+    const disposition = store.list('disposition', agent.id)[0]!;
+    assert.equal(disposition.longTermInterest, 0.7); assert.equal(disposition.shortTermInterest, 0.5);
+    assert.ok(Math.abs(disposition.threshold - 1.545) < 1e-10);
+    assert.deepEqual(errors, []);
+  } finally { await browser.close(); await app.runtime.close(); await new Promise<void>(resolve => server.close(() => resolve())); store.close(); }
+});

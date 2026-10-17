@@ -1,3 +1,7 @@
+## Disposition interest thresholds
+
+ADR 0173 derives thresholds from bounded long/short-term interests. Actual Self proposal selections reinforce once; activation and thought frequency do not. Elapsed WorldState time drives decay. Relevance-only scorer inputs exclude policy; recorded judgments retain thresholds separately.
+
 ## Continuous cognition (ADR 0165)
 
 See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.

@@ -33,7 +33,7 @@ test('researcher creation validates ownership, provenance, evidence and open-pre
     await api(app, 'POST', `${base}/predictions`, prediction);
     await assert.rejects(api(app, 'POST', `${base}/predictions`, prediction), /already has an open prediction/);
     assert.equal(store.list('prediction', agent.id).length, 1);
-    const disposition = { name: 'Welcomed curiosity', concern: 'I want to explore safely', cues: ['An invitation'], scope: null, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false };
+    const disposition = { name: 'Welcomed curiosity', concern: 'I want to explore safely', cues: ['An invitation'], scope: null, prerequisites: [], longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false };
     await api(app, 'POST', `${base}/dispositions`, disposition);
     assert.equal(store.list('disposition', agent.id).length, 1);
     const original = store.list('disposition', agent.id)[0]!;

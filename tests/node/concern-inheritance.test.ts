@@ -80,7 +80,7 @@ test('offline concern inheritance requires recorded origin and later cognition a
     let app = new Application(store, providers);
     const agent = app.createAgent();
     const efficiency = createComponent(app, agent.id, 'disposition', { name: 'Efficiency', concern: 'I want responsive tools',
-      cues: ['computer performance'], scope: 'computer performance', prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false });
+      cues: ['computer performance'], scope: 'computer performance', prerequisites: [], longTermInterest: 0, shortTermInterest: 0, memoryIds: [], sourcePredictionId: null, temporary: false });
     originatingDispositionId = efficiency.id;
     await app.message(agent.id, 'The computer is slow during indexing.', 'observer', 'performance');
     const prediction = store.list('prediction', agent.id)[0]!;

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+import { DispositionInterestSettingsSchema, LongTermInterestSchema, ShortTermInterestSchema } from './disposition-interest.js';
 import { SynthesisPolicySchema } from './sleep-policy.js';
 import { OperationSchema } from './operation.js';
 import { SelectedActivitySchema } from './execution-review.js';
@@ -15,7 +16,7 @@ export const Text = z.string().trim().min(1).max(16000);
 export const Id = z.string().min(1).max(200);
 export const Origin = z.enum(['seed', 'organic_cognition', 'prediction_evaluation', 'consolidation', 'researcher_edit', 'migration']);
 export type Origin = z.infer<typeof Origin>;
-export const AgentActivationSettingsSchema = z.strictObject({ vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false), includeProcessingDispositions: z.boolean().default(false), maxConcurrentThoughts: z.number().int().min(1).max(64).default(4), maxQueuedThoughts: z.number().int().min(0).max(10000).default(100), activationPassLimit: z.number().int().min(1).max(10000).nullable().default(1) });
+export const AgentActivationSettingsSchema = z.strictObject({ dispositionInterests: DispositionInterestSettingsSchema.default(DispositionInterestSettingsSchema.parse({})), vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false), includeProcessingDispositions: z.boolean().default(false), maxConcurrentThoughts: z.number().int().min(1).max(64).default(4), maxQueuedThoughts: z.number().int().min(0).max(10000).default(100), activationPassLimit: z.number().int().min(1).max(10000).nullable().default(1) });
 export type AgentActivationSettings = z.infer<typeof AgentActivationSettingsSchema>;
 export const PromptTaskSchema = z.enum(['thought_resources', 'bid_applicability', 'executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
 export type PromptTask = z.infer<typeof PromptTaskSchema>;
@@ -354,7 +355,7 @@ export const DispositionDevelopmentSchema = z.strictObject({
   createdAt: z.iso.datetime(),
 });
 // Optional metadata preserves legacy records without fabricating developmental evidence.
-export const DispositionSchema = DispositionDraftSchema.extend({ ...Version, suppressedMemoryIds: z.array(Id).optional(), active: z.boolean(), deleted: z.boolean().optional(),
+export const DispositionSchema = DispositionDraftSchema.extend({ ...Version, longTermInterest: LongTermInterestSchema.optional(), shortTermInterest: ShortTermInterestSchema.optional(), interestUpdatedAt: z.iso.datetime().optional(), suppressedMemoryIds: z.array(Id).optional(), active: z.boolean(), deleted: z.boolean().optional(),
   scaffold: z.strictObject({ createdCycle: Id, threadId: Id.nullable(),
     hypothesisVersion: z.number().int().positive(), relevance: RelevanceScaffoldDraftSchema,
     endedCycle: Id.nullable(), endReason: Text.nullable() }).optional(),
@@ -377,7 +378,7 @@ export function freeze<T>(value: T): T {
 
 /** Learned psychology is ordinary context; its audit citations are not. */
 export function ordinaryDisposition(disposition: Disposition): Disposition {
-  const { suppressedMemoryIds: _retrievalExclusions, ...ordinary } = disposition;
+  const { suppressedMemoryIds: _retrievalExclusions, longTermInterest: _long, shortTermInterest: _short, interestUpdatedAt: _clock, ...ordinary } = disposition;
   if (!disposition.development?.concernInheritance) return ordinary;
   const { concernInheritance: _audit, ...development } = disposition.development;
   return { ...ordinary, development };

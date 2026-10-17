@@ -1,3 +1,7 @@
+## Disposition interest persistence
+
+ADR 0173 stores optional interest traces in existing versioned disposition JSON and per-Agent settings in the continuous_settings JSON column. Legacy traces are neutral and missing settings use defaults. No destructive migration or separate interests table is needed.
+
 ## Continuous cognition (ADR 0165)
 
 See [ADR 0165](../../docs/architecture/decisions/0165-continuous-asynchronous-cognition.md) and the [current audit](../../docs/development/CONTINUOUS_COGNITION_AUDIT.md). The runtime now admits overlapping observations, commits bounded independent scope jobs as they complete and serializes Self decisions. Per-Agent activation settings persist busy-scope rescoring, thought concurrency/queue bounds and per-observation activation-pass allowances. One-pass pause and explicit resume use the same runtime. Historical descriptions of a global batch barrier below no longer describe ordinary execution. Activation history is a researcher-only projection; it grants no cognitive authority.

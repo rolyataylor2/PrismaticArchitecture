@@ -1,3 +1,4 @@
+import { activationDisposition, interestDisposition, DispositionInterestSettingsSchema } from './disposition-interest.js';
 import { ThoughtJobs, type ThoughtScope, type ThoughtJob } from './thought-jobs.js';
 import { z } from 'zod';
 import { SynthesisPolicySchema } from './sleep-policy.js';
@@ -137,9 +138,10 @@ export class ConstructedCognition {
   }
   private async judge(input: JudgmentInput) {
     if (!input.candidates.length) return [];
+    const thresholds = input.task === 'disposition_activation' ? Object.fromEntries(input.candidates.map(candidate => [candidate.id, (candidate.context as { disposition: Disposition }).disposition.threshold])) : undefined;
     input = { ...input, candidates: input.candidates.map(candidate => {
       const context = candidate.context as { disposition?: Disposition };
-      return context.disposition ? { ...candidate, context: { ...context, disposition: ordinaryDisposition(context.disposition) } } : candidate;
+      return context.disposition ? { ...candidate, context: { ...context, disposition: input.task === 'disposition_activation' ? activationDisposition(context.disposition) : ordinaryDisposition(context.disposition) } } : candidate;
     }) };
     if (!this.decisions.judge) throw new InfrastructureError(input.task, 'Decision provider does not support constructed judgments');
     const judgeBatch = async (candidates: JudgmentInput['candidates']): Promise<z.infer<typeof ActivationScoreSchema>[]> => {
@@ -171,7 +173,7 @@ export class ConstructedCognition {
       }
       this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
         contract: 'ActivationScoreSchema[] + independent candidate coverage', status: 'accepted', result, issues: [] });
-      this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment', { input: batch, scores: result });
+      this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment', { input: batch, scores: result, ...(thresholds ? { thresholds } : {}) });
       return result;
     };
     const scores: z.infer<typeof ActivationScoreSchema>[] = [];
@@ -192,8 +194,10 @@ export class ConstructedCognition {
     freeze(world);
     const agentId = world.agentId;
     const openPredictions = this.store.list('prediction', agentId).filter(prediction => prediction.status === 'open');
-    const durable = this.store.list('disposition', agentId).filter(disposition => disposition.active && !disposition.temporary);
-    const temporary = this.store.list('disposition', agentId).filter(disposition => disposition.temporary && disposition.active
+    const interestSettings = DispositionInterestSettingsSchema.parse(this.store.agentActivationSettings(agentId).dispositionInterests ?? {});
+    const definitions = this.store.list('disposition', agentId).map(disposition => interestDisposition(disposition, world.capturedAt, interestSettings));
+    const durable = definitions.filter(disposition => disposition.active && !disposition.temporary);
+    const temporary = definitions.filter(disposition => disposition.temporary && disposition.active
       && disposition.scaffold && disposition.scaffold.createdCycle !== world.cycleId
       && disposition.scaffold.threadId === (threadId ?? null)
       && openPredictions.some(prediction => prediction.id === disposition.sourcePredictionId));
@@ -201,7 +205,7 @@ export class ConstructedCognition {
     const busy = (dispositionId: string) => this.isProcessing({ agentId, threadId: threadId ?? null, dispositionId });
     const eligible = [...durable, ...temporary].filter(disposition => includeProcessing || !busy(disposition.id));
     const eligibleIds = new Set(eligible.map(disposition => disposition.id));
-    const persisted = this.store.list('disposition', agentId);
+    const persisted = definitions;
     const eligibility = persisted.map(disposition => {
       const available = eligibleIds.has(disposition.id);
       const reasons = available ? [disposition.temporary ? 'open prior-cycle investigation in this thread' : 'live durable scope'] : [
@@ -446,7 +450,7 @@ export class ConstructedCognition {
               && direct.payload.input.task === 'disposition_activation'
               && direct.payload.input.candidates.some(candidate => candidate.id === score.partId && (candidate.context as { activationPhase?: string }).activationPhase === 'baseline')
               ? direct.payload.scores.filter(baseline => baseline.partId === score.partId).map(baseline => baseline.score) : []).at(0) ?? score.score,
-            score: score.score, active: score.score >= disposition.threshold };
+            score: score.score, active: score.score >= (event.payload.thresholds?.[score.partId] ?? disposition.threshold) };
         });
       }),
       thoughts: events.flatMap(event => event.cycleId === cycle.id && event.type === 'part.thought'
