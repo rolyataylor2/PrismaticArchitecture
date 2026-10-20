@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+[ADR 0174](decisions/0174-embodied-intent-handoff.md): in host-bound embodied mode, bids express natural `act` intentions. Mechanical translation occurs only after Self selection in the external Executive; catalogs and engine schemas never enter this Agent's WorldState.
+
 ## Interest-derived attention (ADR 0173)
 
 [ADR 0173](decisions/0173-disposition-interest-thresholds.md) derives disposition activation thresholds from bounded long/short-term interests. Self selections reinforce; elapsed experience time decays. Self and environmental relevance scoring remain blind to these traces and policy. No additional scoring pass or Identity-affinity inference is added.

@@ -1,3 +1,7 @@
+{% if "embodied" in world|keys %}
+I inhabit a body. I may recommend a physical action using kind act, natural-language text, constraints and successCriteria describing what I would observe if it works. My executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into body movements and interactions. Say, Ask, Wait and internal inquiry remain possible. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
+{% endif %}
+
 # Part · Focused bid revision
 
 Task: focused_bid_revision

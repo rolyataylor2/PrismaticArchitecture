@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+[ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) adds an optional sixth Application constructor argument mapping fresh Agent IDs to trusted loopback Executive endpoints. `PRISM_EMBODIMENT_BINDINGS` names that JSON file for the standalone server. Enable the existing Executive tools module explicitly. Binding hides technical catalogs/procedure context and rejects previously nonembodied histories. Persisted embodied histories retain this action space without an endpoint. Dispatch validates recorded selection, current limits, expiry and durable once-only receipts; uncertain responses are never replayed. Responses contain only embodied observations; technical translation evidence belongs to the external adapter.
+
 ## Disposition interest controls
 
 ADR 0173 exposes per-Agent interest weights, selection gains and half-lives through activation settings. Researcher disposition creation/edits accept interests and reject direct threshold writes. Snapshots project thresholds on the experience clock; prior versions remain preserved.

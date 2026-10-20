@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+Host-bound embodied cognition receives no mechanical catalog, operational skill bindings or technical trace. It proposes natural intentions; Self selects; an external Executive translates under captured intent, constraints, order and budgets. This does not relax exact-tool authority for other Agents. See [ADR 0174](decisions/0174-embodied-intent-handoff.md).
+
 ## Interest-derived attention (ADR 0173)
 
 [ADR 0173](decisions/0173-disposition-interest-thresholds.md) derives disposition activation thresholds from bounded long/short-term interests. Self selections reinforce; elapsed experience time decays. Self and environmental relevance scoring remain blind to these traces and policy. No additional scoring pass or Identity-affinity inference is added.

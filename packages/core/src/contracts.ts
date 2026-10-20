@@ -67,6 +67,7 @@ export interface Executor {
 }
 
 export type EventPayloads = {
+  'execution.intent_dispatch': { contractId: string; phase: 'submitted' | 'returned' | 'uncertain'; executionId: string };
   'disposition.interest_updated': { dispositionId: string; previousVersion: number; version: number; selectionIds: string[]; at: string; longTermInterest: number; shortTermInterest: number; threshold: number };
   'executive.skill_package_copied': { sourceAgentId: string; skillId: string; version: number; packageDigest: string; proposalId: string; reason: string };
   'executive.profile_copied': { sourceAgentId: string; sourceRevision: number; targetRevision: number; reason: string };

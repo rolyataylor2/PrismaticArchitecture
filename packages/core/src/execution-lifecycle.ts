@@ -22,6 +22,6 @@ export function validateExecutionUpdate(previous: Execution, next: Execution): v
     if (!updated || updated.attempts < old.attempts || old.traceRefs.some((trace, index) => updated.traceRefs[index] !== trace))
       throw new Error('Execution report cannot discard operational attempts or trace lineage');
   }
-  if (next.action.kind === 'operate' && next.status === 'completed' && next.operational?.verified !== true)
+  if ((next.action.kind === 'operate' || next.action.kind === 'act') && next.status === 'completed' && next.operational?.verified !== true)
     throw new Error('Operational completion requires recorded verification');
 }

@@ -2,6 +2,7 @@ import { DeliberationAnswerSchema, ProposalSchema, freeze, id, type Bid, type Co
 import type { SelectedAffect } from './affect-domain.js';
 import { InfrastructureError, type PartContext, type ReasoningProvider, type PartInferenceRunner } from './contracts.js';
 import type { Inspection } from './inspection.js';
+import { validateActionSpace } from './embodied-action.js';
 
 /** Independent owning-Part revisions; validate the entire batch before publishing replacements. */
 export async function reviseFocusedContributions(input: {
@@ -29,6 +30,7 @@ export async function reviseFocusedContributions(input: {
     const product = input.runPartInference ? await input.runPartInference(own, run) : await run();
     if (!product) return null;
     const { response, source } = product;
+    validateActionSpace(world, response.new_bid);
     if (response.new_bid?.type === 'deliberate') input.validateTargets(response.new_bid.target_parts);
     const navigationId = response.new_bid?.type === 'navigate' ? response.new_bid.stateId : null;
     if (navigationId && !world.experienced?.stanceHistory?.some(stance => stance.id === navigationId))

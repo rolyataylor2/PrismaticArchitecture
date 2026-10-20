@@ -1,5 +1,6 @@
 import { freeze, now, type Bid, type Contribution } from './domain.js';
 import type { PartContext } from './contracts.js';
+import { validateActionSpace } from './embodied-action.js';
 
 export type PendingBidStatus = 'available' | 'needs_review' | 'superseded' | 'withdrawn' | 'selected' | 'expired' | 'rejected';
 export type PendingBidRecord = {
@@ -50,12 +51,14 @@ export class BidPool {
   values(): PoolEntry[] { return [...this.entries.values()]; }
   get(scopeId: string): PoolEntry | undefined { return this.entries.get(scopeId); }
   reviewed(entry: PoolEntry, context: PartContext, contribution: Contribution): void {
+    validateActionSpace(context.world, contribution.bid);
     entry.context = context; entry.contribution = freeze(contribution);
     if (entry.record && contribution.bid) this.transition(entry, 'available', 'Owning Part retained its recommendation after later experience', context.world.id);
     else this.revision++;
   }
 
   publish(context: PartContext, contribution: Contribution, sourceJobId: string | null, activationEventId: string | null): void {
+    validateActionSpace(context.world, contribution.bid);
     const scopeId = contributionScope(context);
     const prior = this.entries.get(scopeId);
     // A late job cannot replace a contribution grounded in newer experience.
@@ -90,6 +93,7 @@ export class BidPool {
   }
 
   restore(context: PartContext, record: PendingBidRecord): void {
+    validateActionSpace(context.world, record.bid);
     const expressed = record.expressed ?? { partId: context.part.id, name: context.part.name,
       thought: record.bid.argument, interpretation: record.bid.argument, evidenceSummary: [], prediction: null };
     const restored: PoolEntry = { context, contribution: freeze({ ...expressed, bid: record.bid }), record };

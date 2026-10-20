@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+[ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) adds host-bound embodied WorldState and natural `act` proposals. Runtime rejects mechanical proposals and revisions in this action space. Selected contracts delegate bounded external realization without framework MCP tool authority; general `operate` contracts remain exact.
+
 ## Disposition interest thresholds
 
 ADR 0173 derives thresholds from bounded long/short-term interests. Actual Self proposal selections reinforce once; activation and thought frequency do not. Elapsed WorldState time drives decay. Relevance-only scorer inputs exclude policy; recorded judgments retain thresholds separately.

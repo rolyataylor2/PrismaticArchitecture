@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { existsSync, readdirSync, realpathSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, readFileSync } from 'node:fs';
 import { SqliteStore } from '../../../packages/storage/src/sqlite.js';
 import { Application } from '../../../packages/sdk/src/application.js';
 import { configuredProviders } from '../../../packages/providers/src/config.js';
@@ -11,7 +11,9 @@ loadLocalEnvironment();
 const primaryPath = resolve(projectEnvironmentValue('DB') ?? 'workspace/agents/local.sqlite');
 const store = new SqliteStore(primaryPath);
 const providers = configuredProviders(process.env, undefined, promptResolver(store));
-const app = new Application(store, providers);
+const bindingPath = projectEnvironmentValue('EMBODIMENT_BINDINGS');
+const embodimentBindings: Record<string, string> = bindingPath ? JSON.parse(readFileSync(resolve(bindingPath), 'utf8')) : {};
+const app = new Application(store, providers, undefined, undefined, undefined, embodimentBindings);
 const researchRoot = resolve(projectEnvironmentValue('RESEARCH_ROOT') ?? 'workspace/gauntlet');
 const databases: ResearchDatabase[] = [];
 const openedPaths = new Set([realpathSync(primaryPath)]);

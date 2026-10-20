@@ -9,6 +9,7 @@ import type { SelectedActivity } from './execution-review.js';
 import { AffectChoiceSchema, type AffectDecision, type AffectFeedback, type SelectedAffect } from './affect-domain.js';
 import { activeAffect, affectSelectionContext, decideAffect } from './affect.js';
 import { reviseFocusedContributions } from './focused-revision.js';
+import { validateActionSpace } from './embodied-action.js';
 
 export async function select(input: {
   commitments?: import('./commitments.js').SelectedCommitment[]; decisionCycleId?: string; world: WorldState; identity: Identity; contributions: Contribution[]; contexts: Map<string, PartContext>;
@@ -41,6 +42,7 @@ export async function select(input: {
     })) throw new InfrastructureError('self', 'Inquiry refers to unavailable or duplicate contributors');
   };
   for (let round = 0; round <= input.maxDeliberationRounds; round++) {
+    for (const contribution of contributions) validateActionSpace(world, contribution.bid);
     let affectInquiry: import('./domain.js').Deliberation | undefined;
     if (affectPending && input.affect) {
       const options = input.affect;
@@ -177,6 +179,7 @@ export async function select(input: {
         const answered = input.runPartInference ? await input.runPartInference(original, run) : await run();
         if (!answered) continue;
         const { part } = answered; response = answered.response; responseSource = answered.source;
+        validateActionSpace(world, response.new_bid);
         if (response.new_bid?.type === 'deliberate') validateTargets(response.new_bid.target_parts);
         if (response.affectProposals !== undefined) {
           if (response.affectProposals.some(proposal => proposal.supportingPredictionIds.some(predictionId => predictionId !== part.prediction?.id)))

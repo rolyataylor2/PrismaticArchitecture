@@ -8,7 +8,7 @@ export class ChatExecutor implements Executor {
   constructor(private readonly store: Store, private readonly reasoning: ReasoningProvider, private readonly inspection: Inspection) {}
   async execute(input: Parameters<Executor['execute']>[0]): Promise<Execution> {
     const { agentId, cycleId, bid } = input;
-    if (bid.action.kind === 'operate') throw new InfrastructureError('execution', 'Chat expression cannot execute operational tools');
+    if (bid.action.kind === 'operate' || bid.action.kind === 'act') throw new InfrastructureError('execution', 'Chat expression cannot execute external operations');
     if (bid.action.kind === 'say' || bid.action.kind === 'ask') return this.executeSay({ agentId, cycleId, bids: [bid] });
     const executionId = id('execution');
     return ExecutionSchema.parse({ id: executionId, agentId, cycleId, action: bid.action, status: 'completed',

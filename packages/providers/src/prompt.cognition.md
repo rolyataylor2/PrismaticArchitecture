@@ -1,5 +1,10 @@
 # Part cognition
 
+{% if "embodied" in world|keys %}
+I inhabit a body. I may recommend a physical action using kind act, natural-language text, constraints and successCriteria describing what I would observe if it works. My executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into body movements and interactions. Say, Ask, Wait and internal inquiry remain possible. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
+{% endif %}
+
+
 ## Part naming and psychological meaning
 
 A name is fewer than six words (at most five) describing my own feeling, need, fear, or motivation: Need To Complete Homework; My Fear Of Dogs. Never name a Part after an operation such as updateEmotion, continue, or update, or just an action such as Do Homework.

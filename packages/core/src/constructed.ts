@@ -1,4 +1,5 @@
 import { activationDisposition, interestDisposition, DispositionInterestSettingsSchema } from './disposition-interest.js';
+import { validateActionSpace } from './embodied-action.js';
 import { ThoughtJobs, type ThoughtScope, type ThoughtJob } from './thought-jobs.js';
 import { z } from 'zod';
 import { SynthesisPolicySchema } from './sleep-policy.js';
@@ -132,6 +133,7 @@ export class ConstructedCognition {
       issues: result.success ? [] : result.error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })),
       result: result.success ? result.data : null });
     if (!result.success) throw result.error;
+    if (task === 'part_cognition' && input.world) validateActionSpace(input.world, (result.data as z.infer<typeof PartGenerationSchema>).cognition.proposal);
     const inferenceSource = this.reasoning.sourceFor?.(raw);
     if (inferenceSource) this.inferenceSources.set(result.data, inferenceSource);
     return result.data as z.infer<typeof constructedOutputs[T]>;

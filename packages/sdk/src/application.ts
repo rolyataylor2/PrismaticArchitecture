@@ -17,6 +17,7 @@ import { AgentSkillPackages } from './agent-skill-packages.js';
 import { AgentSkillImports } from './agent-skill-imports.js';
 import { resolve } from 'node:path';
 import { ChatExecutor } from './chat-executor.js';
+import { EmbodiedExecutive } from './embodied-executive.js';
 import { ExecutiveConnections } from './executive-connections.js';
 import { ExecutiveSkills } from './executive-skills.js';
 import { ExecutiveTeaching } from './executive-teaching.js';
@@ -61,13 +62,14 @@ export class Application {
   readonly runtimeConfiguration: RuntimeOptions;
   readonly #vault: SecretVault;
   readonly executiveWorkers: BackgroundExecutiveExecutor;
+  readonly embodiedExecutives: EmbodiedExecutive;
   readonly #inference = new Map<string, Promise<void>>();
   readonly #checkpointReviews = new Map<string, { traceId: string; done: Promise<void> }>();
   #closing = false;
   constructor(readonly store: Store, providers: { decisions: DecisionProvider; reasoning: ReasoningProvider; embeddings: EmbeddingProvider } = {
     decisions: new MockDecisions(), reasoning: new MockReasoning(), embeddings: new MockEmbeddings(),
   }, executor?: Executor, options: RuntimeOptions = defaultRuntimeOptions,
-  vault = new SecretVault()) {
+  vault = new SecretVault(), embodimentBindings: Record<string, string> = {}) {
     this.runtimeConfiguration = freeze(structuredClone(options));
     this.#vault = vault;
     this.executiveConnections = new ExecutiveConnections(store, trace => {
@@ -174,8 +176,9 @@ export class Application {
     });
     this.remainderHandoff = new SelectedRemainderHandoff(store, this.inspection, this.executiveWorkers);
     this.executiveControl = new SelectedExecutionControl(store, this.inspection, this.executiveWorkers);
+    this.embodiedExecutives = new EmbodiedExecutive(store, executor ?? this.executiveWorkers, embodimentBindings);
     this.runtime = new CognitiveRuntime(store, this.providers.decisions, this.providers.reasoning, providers.embeddings,
-      new TeachingExecutiveExecutor(executor ?? this.executiveWorkers, execution => { if (executiveModuleEnabled(store.executiveProfile(execution.agentId), 'tools')) this.executiveTeaching.record(execution); this.#scheduleProcedures(execution); }), this.inspection, options,
+      new TeachingExecutiveExecutor(this.embodiedExecutives, execution => { if (executiveModuleEnabled(store.executiveProfile(execution.agentId), 'tools')) this.executiveTeaching.record(execution); this.#scheduleProcedures(execution); }), this.inspection, options,
       async (agentId, skillId, version) => {
         await this.agentSkillPackages.flush(agentId);
         const loaded = await this.agentSkillPackages.resolveMethod(agentId, skillId, version);
@@ -186,7 +189,7 @@ export class Application {
         return RemainderAuthoritySchema.parse({ parentExecutionId: prepared.parentExecutionId, parentContractId: prepared.parentContractId,
           checkpointTraceId: prepared.checkpointTraceId, completedSteps: prepared.completedSteps, completedTraceRefs: prepared.completedTraceRefs,
           deadlineAt: prepared.deadlineAt, limits: prepared.limits });
-      });
+      }, agentId => this.embodiedExecutives.isEmbodied(agentId));
     this.consolidation = new Consolidation(store, this.providers.reasoning, this.runtime.mutations, this.inspection, this.runtime.constructed);
     recoverInterruptedDreams(store, (cycleId, reason) => this.recoverCycle(cycleId, reason), (agentId, runId, reason) => this.recoverConsolidation(agentId, runId, reason));
   }
@@ -355,6 +358,7 @@ export class Application {
     return updated;
   }
   async #capabilities(agentId: string) {
+    if (this.embodiedExecutives.isEmbodied(agentId)) return undefined;
     if (!executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools')) return undefined;
     let capabilities: ExternalCapabilities | undefined;
     const permissions = this.store.mcpPermissions(agentId);
@@ -395,6 +399,7 @@ export class Application {
     const facts = observation ? z.array(FactSchema).max(1000).parse(observation.facts) : this.messageFacts(text, source);
     return this.#coordinate(agentId, async () => {
       if (skillDocumentIds.length > 10 || new Set(skillDocumentIds).size !== skillDocumentIds.length) throw new Error('Request at most ten distinct skill documents');
+      if (skillDocumentIds.length && this.embodiedExecutives.isEmbodied(agentId)) throw new Error('Embodied cognition does not receive technical procedure documents');
       if (skillDocumentIds.length && !executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools')) throw new Error('Executive tool execution is disabled');
       const documents = await Promise.all(skillDocumentIds.map(async proposalId => {
         const proposal = await this.agentSkillImports.load(agentId, proposalId); const review = proposal.reviews.at(-1);
@@ -464,6 +469,7 @@ export class Application {
   }
   async close(): Promise<void> {
     this.#closing = true;
+    this.embodiedExecutives.close();
     try { await this.executiveWorkers.close(); }
     finally {
       try { await Promise.allSettled(this.#inference.values()); await this.runtime.close(); }

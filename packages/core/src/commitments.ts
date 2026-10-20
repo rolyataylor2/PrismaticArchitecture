@@ -14,8 +14,8 @@ export type SelectedCommitment = z.infer<typeof SelectedCommitmentSchema>;
 export function commitmentProposals(bids: ActionBid[]): SelectedCommitment['proposals'] {
   return bids.map(bid => ({ bidId: bid.id, partId: bid.partId, kind: bid.action.kind, text: bid.action.text,
     argument: bid.argument, executionOrder: [...bid.executionOrder], validWhile: [...(bid.validWhile ?? [])],
-    constraints: bid.action.kind === 'operate' ? [...bid.action.operation.constraints] : [],
-    successCriteria: bid.action.kind === 'operate' ? bid.action.operation.successCriteria : null }));
+    constraints: bid.action.kind === 'act' ? [...bid.action.constraints] : bid.action.kind === 'operate' ? [...bid.action.operation.constraints] : [],
+    successCriteria: bid.action.kind === 'act' ? bid.action.successCriteria : bid.action.kind === 'operate' ? bid.action.operation.successCriteria : null }));
 }
 
 export function recentCommitments(store: Store, agentId: string, threadId: string | null, limit = 12): SelectedCommitment[] {

@@ -32,7 +32,7 @@ export function defaultExecutiveProfile(): ExecutiveProfile {
 export function executiveModuleEnabled(profile: ExecutiveProfile, module: keyof ExecutiveProfile['modules']): boolean {
   return profile.enabled && profile.modules[module];
 }
-export function executiveActionEnabled(profile: ExecutiveProfile, kind: 'say' | 'ask' | 'operate' | 'wait'): boolean {
+export function executiveActionEnabled(profile: ExecutiveProfile, kind: 'say' | 'ask' | 'operate' | 'wait' | 'act'): boolean {
   return kind === 'say' || kind === 'ask' ? executiveModuleEnabled(profile, 'speaking')
-    : kind === 'operate' ? executiveModuleEnabled(profile, 'tools') : profile.enabled;
+    : kind === 'operate' || kind === 'act' ? executiveModuleEnabled(profile, 'tools') : profile.enabled;
 }

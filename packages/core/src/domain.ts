@@ -134,7 +134,7 @@ export const PredictionDraftSchema = z.strictObject({
   horizon: Text, evaluateAfterCycle: z.number().int().nonnegative().nullable(),
   kind: z.enum(['trajectory', 'action_conditioned', 'state_hypothesis']).optional(),
   conditions: z.array(Text).max(12).optional(),
-  conditionedAction: z.strictObject({ kind: z.enum(['say', 'ask', 'wait', 'operate']), text: Text }).nullable().optional(),
+  conditionedAction: z.strictObject({ kind: z.enum(['say', 'ask', 'wait', 'operate', 'act']), text: Text }).nullable().optional(),
 });
 export const PredictionOutcomeSchema = z.enum(['correct', 'incorrect', 'incomplete', 'irrelevant']);
 export type PredictionOutcome = z.infer<typeof PredictionOutcomeSchema>;
@@ -182,7 +182,7 @@ export type StanceRecord = z.infer<typeof StanceRecordSchema>;
 export const ProspectiveEntrySchema = z.strictObject({ predictionId: Id, version: z.number().int().positive(),
   partId: Id.nullable(), createdCycle: Id, kind: z.enum(['trajectory', 'action_conditioned', 'state_hypothesis', 'unclassified']),
   expectation: Text, confidence: z.number().min(0).max(1), horizon: Text,
-  conditions: z.array(Text), conditionedAction: z.strictObject({ kind: z.enum(['say', 'ask', 'wait', 'operate']), text: Text }).nullable(),
+  conditions: z.array(Text), conditionedAction: z.strictObject({ kind: z.enum(['say', 'ask', 'wait', 'operate', 'act']), text: Text }).nullable(),
   capsule: CapsuleSchema });
 export type ProspectiveEntry = z.infer<typeof ProspectiveEntrySchema>;
 export const ExperiencedStateSchema = z.strictObject({
@@ -197,6 +197,7 @@ export const WorldStateSchema = z.strictObject({
   id: Id, agentId: Id, cycleId: Id, sequence: z.number().int().positive(), capturedAt: Text,
   facts: z.array(FactSchema),
   replacesExternalFacts: z.boolean().optional(),
+  embodied: z.literal(true).optional(),
   externalCapabilities: ExternalCapabilitiesSchema.optional(),
   externalExecutionRequests: z.array(ExternalExecutionRequestSchema).max(100).optional(),
   externalSkills: z.array(PublicExecutiveSkillSchema).max(100).optional(),
@@ -212,6 +213,7 @@ export type WorldState = z.infer<typeof WorldStateSchema>;
 export const ActionSchema = z.union([
   z.strictObject({ kind: z.enum(['say', 'ask', 'wait']), text: Text }),
   z.strictObject({ kind: z.literal('operate'), text: Text, operation: OperationSchema }),
+  z.strictObject({ kind: z.literal('act'), text: Text, successCriteria: Text, constraints: z.array(Text).max(30) }),
 ]);
 export type Action = z.infer<typeof ActionSchema>;
 export const ActionProposalSchema = z.strictObject({
@@ -298,6 +300,8 @@ export const ExecutionSchema = z.strictObject({
     reason: Text, traceRefs: z.array(Id).max(1000), diagnostics: ExecutiveDiagnosticsSchema.optional() }).optional(),
   speech: z.strictObject({ bidIds: z.array(Id).min(1), text: Text }).optional(),
 }).superRefine((execution, context) => {
+  if (execution.action.kind === 'act' && execution.status === 'completed' && execution.operational?.verified !== true)
+    context.addIssue({ code: 'custom', message: 'Embodied action completion requires external observable verification' });
   if (execution.guidance && !['needs_guidance', 'blocked', 'continued'].includes(execution.status))
     context.addIssue({ code: 'custom', message: 'Guidance records must remain paused or explicitly blocked' });
   if ((execution.status === 'continued') !== Boolean(execution.continuedByContractId) || (execution.status === 'continued' && (execution.action.kind !== 'operate' || !execution.contractId)))

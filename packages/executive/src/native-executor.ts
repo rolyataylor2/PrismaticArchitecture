@@ -29,6 +29,9 @@ export class NativeExecutiveExecutor implements Executor {
     return this.executeControlled(input);
   }
   async executeControlled(input: Parameters<Executor['execute']>[0], control?: { executionId: string; signal: AbortSignal; checkpoint?: (completedSteps: number | null) => void }, readyRemainder = false): Promise<Execution> {
+    if (input.bid.action.kind === 'act') return { id: id('execution'), agentId: input.agentId, cycleId: input.cycleId,
+      action: input.bid.action, status: 'blocked', facts: [],
+      operational: { attempts: 0, verified: false, reason: 'No external embodiment Executive is configured', traceRefs: [] } };
     if (input.bid.action.kind !== 'operate') return this.chat.execute(input);
     const { agentId, cycleId, bid } = input;
     const action = bid.action;

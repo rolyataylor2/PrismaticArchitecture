@@ -108,7 +108,8 @@ export class CognitiveRuntime {
     private readonly reasoning: ReasoningProvider, _embeddings: EmbeddingProvider, private readonly executor: Executor,
     readonly inspection: Inspection, private readonly options = defaultRuntimeOptions,
     private readonly loadSkillPackage?: (agentId: string, skillId: string, version: number) => Promise<{ skill: ExecutiveSkill; digest: string }>,
-    private readonly checkRemainder?: (input: { agentId: string; threadId: string | null; cycleId: string; bid: ActionBid }) => RemainderAuthority | undefined) {
+    private readonly checkRemainder?: (input: { agentId: string; threadId: string | null; cycleId: string; bid: ActionBid }) => RemainderAuthority | undefined,
+    private readonly embodied: (agentId: string) => boolean = () => false) {
     z.number().int().min(0).max(50).nullable().parse(options.recentFactLimit);
     if (options.thoughtDecay) {
       z.number().positive().max(1).parse(options.thoughtDecay.ordinary);
@@ -152,11 +153,13 @@ export class CognitiveRuntime {
     let stage = 'worldstate';
     try {
       this.inspection.emit(agentId, cycle.id, 'cycle.started', cycle);
-      const executiveEnabled = executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools');
+      const embodied = this.embodied(agentId);
+      const executiveEnabled = !embodied && executiveModuleEnabled(this.store.executiveProfile(agentId), 'tools');
       const externalExecutionRequests = executiveEnabled ? currentExecutionRequests(this.store, agentId, threadId ?? null, this.options.maxGuidanceContexts ?? 20) : [];
       const externalSkills = executiveEnabled ? publicSkills(this.store, agentId, threadId ?? null, this.options.maxSkillContexts ?? 20) : [];
       const world = freeze(WorldStateSchema.parse({ id: cycle.worldId, agentId, cycleId: cycle.id,
         sequence: cycle.sequence, capturedAt: cycle.startedAt, ...(replaceExternalFacts ? { replacesExternalFacts: true } : {}),
+        ...(embodied ? { embodied: true } : {}),
         facts: [...(replaceExternalFacts ? [] : this.store.recentFacts(agentId, this.options.recentFactLimit, threadId)), ...incoming.map(fact => ({ ...fact, timestamp: fact.timestamp ?? cycle.startedAt, originCycleId: cycle.id }))],
         ...(executiveEnabled && externalCapabilities ? { externalCapabilities } : {}),
         ...(externalExecutionRequests.length ? { externalExecutionRequests } : {}),

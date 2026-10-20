@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+[ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) delegates embodied natural `act` intentions to a host-configured external Executive. Native exact-tool execution blocks unhandled physical intentions; chat cannot fabricate their completion. This remains an adapter boundary under ADR 0162.
+
 ## Selected procedure handoffs (ADR 0143)
 
 Native synchronous/background execution may enact a host-resolved current active method. The recorded contract captures its immutable version and exact procedure; adapters gain no library ownership or private cognitive access. `teaching-executor.ts` forwards recorded outcomes through a narrow host callback. The SDK performs independent retention validation and records feedback after persistence. One-time teaching, invocation and guidance bindings are not reusable method authority. No new inference task is introduced by exact procedure retention/use; adaptive planning remains required.

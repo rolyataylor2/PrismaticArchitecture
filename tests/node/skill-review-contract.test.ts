@@ -130,7 +130,9 @@ test('procedure review contracts are exclusive, carry no tools and cannot be ret
   assert.equal(OperationSchema.safeParse({ ...operation(), steps: [{ serverId: 'local', toolName: 'echo', argumentsJson: '{}' }] }).success, false);
   assert.equal(OperationSchema.safeParse({ ...operation(), skillInvocation: { skillId: 'other', version: 1 } }).success, false);
   assert.equal(retainedProcedure(operation()).skillReview, undefined);
-  assert.equal('skillReview' in operationalProposalSchema().shape.action.options[1].shape.operation.shape, false);
+  const variant = operationalProposalSchema().shape.action.options[1];
+  assert.ok('operation' in variant.shape);
+  assert.equal('skillReview' in variant.shape.operation.shape, false);
 });
 
 test('ordinary prescribed Self selection of unsupported review blocks without tools, approval or fabricated completion', async () => {
@@ -153,7 +155,7 @@ test('ordinary prescribed Self selection of unsupported review blocks without to
   const app = new Application(store, { reasoning: new Reasoning(), decisions: new Decisions(), embeddings: new MockEmbeddings() });
   try {
     const agent = app.createAgent(); const profile = defaultExecutiveProfile();
-    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, revision: 1, executionMode: 'background' }, 0);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: true, modules: { speaking: true, tools: true }, revision: 1, executionMode: 'background' }, 0);
     const selected = await app.message(agent.id, 'Review the prescribed candidate.', 'user', 'review');
     assert.equal(selected.execution!.status, 'blocked'); assert.equal(selected.execution!.operational!.attempts, 0);
     assert.match(selected.execution!.operational!.reason, /disabled/);

@@ -85,6 +85,10 @@ All active Parts receive the same immutable snapshot. Primitives do not particip
 
 Self selects; the Executive Layer assembles the selected actions into a bounded handoff for a task-focused external tool-use agent. It is an adapter, not a feature-complete tool-use agent execution layer. Operational planning, tool orchestration and recovery belong to the external agent within the selected intent, permissions and budgets. The current native execution path provides bounded integration and research support; it does not imply a goal of building a complete execution agent here. See [ADR 0162](docs/architecture/decisions/0162-executive-action-handoff-adapter.md).
 
+### Embodied intention boundary
+
+Embodied Agents use natural `act` intentions and a separately configured external Executive for mechanical realization. Bindings precede first experience; cognition receives no technical catalogs. See [ADR 0174](docs/architecture/decisions/0174-embodied-intent-handoff.md).
+
 The Executive is **disabled by default**: ordinary cognition can record choices without external execution. Enable it explicitly in **Executive → Runtime** when the experiment requires enactment. Simulation owns external truth and supplies experiences; Agent cognition supplies psychological meaning.
 
 Read the [canonical flow](docs/architecture/CANONICAL_AGENT_FLOW.md), [system overview](docs/architecture/SYSTEM_OVERVIEW.md), and [access invariants](docs/architecture/INVARIANTS.md). Architecture documents retain historical stages; current online responsibilities are established by [ADR 0133](docs/architecture/decisions/0133-parallel-assembled-part-cognition.md), [0136](docs/architecture/decisions/0136-experienced-and-prospective-worldstate.md), [0138](docs/architecture/decisions/0138-prediction-led-relevance-scaffolds.md), [0139](docs/architecture/decisions/0139-soft-disposition-activation-associations.md), and [0157](docs/architecture/decisions/0157-two-pass-self-and-affect-exploration.md).

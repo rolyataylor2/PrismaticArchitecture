@@ -23,9 +23,9 @@ export const ExecutionContractSchema = z.strictObject({
   continuation: GuidanceContinuationSchema.optional(),
   guidanceRejection: Text.optional(), remainderRejection: Text.optional(), remainder: RemainderAuthoritySchema.optional(),
   selectedSkill: SelectedSkillMethodSchema.optional(), skillRejection: Text.optional(),
-  successCriteria: z.enum(['selected_dialogue_emitted', 'selected_wait_acknowledged', 'operation_verified', 'selected_execution_stopped', 'selected_procedure_reviewed']),
+  successCriteria: z.enum(['selected_dialogue_emitted', 'selected_wait_acknowledged', 'operation_verified', 'selected_execution_stopped', 'selected_procedure_reviewed', 'external_action_verified']),
   authority: z.strictObject({
-    capabilities: z.array(z.enum(['chat_output', 'wait', 'tools', 'execution_control', 'procedure_review'])).min(1).max(2),
+    capabilities: z.array(z.enum(['chat_output', 'wait', 'tools', 'execution_control', 'procedure_review', 'external_action'])).min(1).max(2),
     tools: z.array(z.strictObject({ serverId: Id, toolName: Id })).max(100),
     allowEquivalentMethods: z.boolean(),
   }),
@@ -34,6 +34,18 @@ export const ExecutionContractSchema = z.strictObject({
   const dialogue = contract.commands.every(command => command.action.kind === 'say' || command.action.kind === 'ask');
   const wait = contract.commands.length === 1 && contract.commands[0]!.action.kind === 'wait';
   const action = contract.commands.length === 1 ? contract.commands[0]!.action : null;
+  if (action?.kind === 'act') {
+    if (contract.continuation || contract.guidanceRejection || contract.remainderRejection || contract.remainder || contract.selectedSkill || contract.skillRejection
+      || contract.authority.tools.length || !contract.authority.allowEquivalentMethods
+      || contract.successCriteria !== 'external_action_verified' || contract.authority.capabilities.length !== 1
+      || contract.authority.capabilities[0] !== 'external_action')
+      context.addIssue({ code: 'custom', message: 'Embodied intent grants only bounded external realization, without framework tools or supplemental bindings' });
+    const owners = new Set(contract.commands.map(command => command.partId));
+    if (contract.predictionReferences.some(reference => !owners.has(reference.partId))
+      || new Set(contract.predictionReferences.map(reference => reference.id)).size !== contract.predictionReferences.length)
+      context.addIssue({ code: 'custom', message: 'Prediction lineage must uniquely reference selected contributors' });
+    return;
+  }
   if (action?.kind === 'operate' && action.operation.skillReview) {
     if (contract.continuation || contract.guidanceRejection || contract.remainderRejection || contract.remainder || contract.selectedSkill || contract.skillRejection
       || contract.authority.tools.length || contract.authority.allowEquivalentMethods
@@ -132,8 +144,8 @@ export function compileExecutionContract(input: {
     predictionReferences: input.predictions.filter(prediction => prediction.agentId === input.agentId
       && prediction.status === 'open' && prediction.partId && owners.has(prediction.partId))
       .map(prediction => ({ id: prediction.id, version: prediction.version, partId: prediction.partId! })),
-    successCriteria: action?.kind === 'operate' ? action.operation.skillReview ? 'selected_procedure_reviewed' : action.operation.intervention ? 'selected_execution_stopped' : 'operation_verified' : dialogue ? 'selected_dialogue_emitted' : 'selected_wait_acknowledged',
-    authority: { capabilities: [action?.kind === 'operate' ? action.operation.skillReview ? 'procedure_review' : action.operation.intervention ? 'execution_control' : 'tools' : dialogue ? 'chat_output' : 'wait'], tools: input.guidanceRejection || input.skillRejection || remainderRejection ? [] : uniqueTools, allowEquivalentMethods: false },
+    successCriteria: action?.kind === 'act' ? 'external_action_verified' : action?.kind === 'operate' ? action.operation.skillReview ? 'selected_procedure_reviewed' : action.operation.intervention ? 'selected_execution_stopped' : 'operation_verified' : dialogue ? 'selected_dialogue_emitted' : 'selected_wait_acknowledged',
+    authority: { capabilities: [action?.kind === 'act' ? 'external_action' : action?.kind === 'operate' ? action.operation.skillReview ? 'procedure_review' : action.operation.intervention ? 'execution_control' : 'tools' : dialogue ? 'chat_output' : 'wait'], tools: input.guidanceRejection || input.skillRejection || remainderRejection ? [] : uniqueTools, allowEquivalentMethods: action?.kind === 'act' },
     limits: { ...Object.fromEntries(Object.entries(profile.limits).map(([key, value]) => [key,
       Math.min(value, input.selectedSkill?.limits[key as keyof typeof profile.limits] ?? value, input.remainder?.limits[key as keyof typeof profile.limits] ?? value)])), ...(input.continuation ? { maxGuidanceRequests: Math.min(profile.limits.maxGuidanceRequests,
       input.selectedSkill?.limits.maxGuidanceRequests ?? profile.limits.maxGuidanceRequests,
@@ -142,6 +154,6 @@ export function compileExecutionContract(input: {
 }
 /** Compatibility entry point for callers that only compile chat behavior. */
 export function compileChatExecutionContract(input: Parameters<typeof compileExecutionContract>[0]): ExecutionContract {
-  if (input.bids.some(bid => bid.action.kind === 'operate')) throw new Error('Chat contracts cannot select tools');
+  if (input.bids.some(bid => bid.action.kind === 'operate' || bid.action.kind === 'act')) throw new Error('Chat contracts cannot select external operations');
   return compileExecutionContract(input);
 }

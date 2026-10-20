@@ -1,3 +1,7 @@
+## Embodied intention boundary
+
+[ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) conditions Part/answer/revision prompts and request-specific schemas on host-bound embodied WorldState. These requests permit natural `act` intentions and omit operational bindings. Mechanical translation is an external Executive task, not an added cognitive inference task. Host validation independently enforces the boundary.
+
 ## Disposition activation input boundary
 
 ADR 0173 restricts disposition activation candidates to relevance definitions and frozen association signals. No interests, thresholds or interest settings reach the scorer. Host filtering derives thresholds without new inference. The factory prompt and editable task description reflect the boundary.
