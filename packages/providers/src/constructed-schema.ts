@@ -2,20 +2,28 @@ import { operationalProposalSchema } from './operational-proposal-schema.js';
 import { HypothesisAdjustmentSchema } from '../../core/src/cognition-coverage.js';
 import { z } from 'zod';
 import { constructedOutputs, PartFormationSchema, PartGenerationSchema, MemoryReflectionSchema, type ConstructedInput } from '../../core/src/constructed-domain.js';
-import { Id, DeliberationProposalSchema } from '../../core/src/domain.js';
+import { Id, DeliberationProposalSchema, PredictionDraftSchema, RelevanceScaffoldDraftSchema } from '../../core/src/domain.js';
 import { navigationSchema } from './navigation-schema.js';
 import { AffectProposalSchema } from '../../core/src/affect-domain.js';
 
+function groundedPredictionSchema(memoryIds: string[]) {
+  const references = memoryIds.length ? z.array(z.enum(memoryIds as [string, ...string[]])).max(100) : z.array(Id).max(0);
+  return PredictionDraftSchema.extend({ scaffolds: z.array(RelevanceScaffoldDraftSchema.extend({
+    relevantMemoryIds: references.describe('Only supplied recalled memory IDs also selected in formation.evidenceMemoryIds; empty when no memory was recalled. Never invent IDs.'),
+  })).max(4).optional() });
+}
+
 /** Historical references in continuity state do not grant current recall access. */
 export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unknown> {
-  if (input.task === 'cognition_coverage' && input.hypothesisLimit !== undefined) {
+  if (input.task === 'cognition_coverage') {
     const schema = constructedOutputs.cognition_coverage;
     const ids = [...new Set((input.predictions ?? []).filter(prediction => prediction.gapOrigin && prediction.status === 'open').map(prediction => prediction.id))];
-    const adjustments = ids.length ? z.array(HypothesisAdjustmentSchema.safeExtend({ predictionId: z.enum(ids as [string, ...string[]]) })).max(3).optional()
+    const prediction = groundedPredictionSchema([]);
+    const adjustments = ids.length ? z.array(HypothesisAdjustmentSchema.safeExtend({ predictionId: z.enum(ids as [string, ...string[]]), revision: prediction.nullable() })).max(3).optional()
       : z.array(HypothesisAdjustmentSchema).max(0).optional();
     const sufficient = schema.options[0].extend({ adjustments });
     if (input.hypothesisLimit === 0) return sufficient;
-    return z.union([sufficient, schema.options[1].extend({ adjustments, hypotheses: schema.options[1].shape.hypotheses.max(input.hypothesisLimit) })]);
+    return z.union([sufficient, schema.options[1].extend({ adjustments, hypotheses: z.array(schema.options[1].shape.hypotheses.element.extend({ prediction })).min(1).max(input.hypothesisLimit ?? 3) })]);
   }
   if (input.task === 'hypothesis_reflection' && input.world) return constructedOutputs.hypothesis_reflection.extend({ evaluation: constructedOutputs.hypothesis_reflection.shape.evaluation.extend({ evidenceWorldId: z.literal(input.world.id) }) });
   if (input.task === 'memory_synthesis') {
@@ -47,12 +55,19 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     proposal: proposal.nullable().describe('A complete recommendation if I advocate behavior now; otherwise null. Thought, localGoal and prediction conditionedAction are not selectable recommendations. Consider the current encounter and behavior already completed.'),
     affectProposals: z.array(AffectProposalSchema.extend({ supportingPredictionIds })).max(4).optional()
       .describe('Optional proposed attentional orientations, distinct from my experienced affect and action proposal. Include motivation, reason and expectedValue. Refer only to supplied predictions; an empty list is valid.'),
-    ...(input.predictions?.some(prediction => prediction.status === 'open') ? { prediction: z.null() } : {}),
+    prediction: input.predictions?.some(prediction => prediction.status === 'open') ? z.null() : groundedPredictionSchema(ids).nullable().optional(),
   }) });
   // Runtime commits a subjective episode and its gist together, or neither.
   // Preserve product field order in both mutually exclusive wire branches.
   return z.union([
     product.extend({ memoryReflection: z.null(), memoryGist: z.null() }),
     product.extend({ memoryReflection: MemoryReflectionSchema, memoryGist: PartGenerationSchema.shape.memoryGist.unwrap() }),
-  ]);
+  ]).superRefine((output, context) => {
+    const selected = new Set(output.formation.evidenceMemoryIds);
+    for (const [index, scaffold] of (output.cognition.prediction?.scaffolds ?? []).entries()) {
+      if (new Set(scaffold.relevantMemoryIds).size !== scaffold.relevantMemoryIds.length || scaffold.relevantMemoryIds.some(id => !selected.has(id)))
+        context.addIssue({ code: 'custom', path: ['cognition', 'prediction', 'scaffolds', index, 'relevantMemoryIds'],
+          message: 'Scaffold memory hints must be distinct and selected in the owning formation evidence' });
+    }
+  });
 }

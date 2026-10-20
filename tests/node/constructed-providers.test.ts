@@ -284,3 +284,59 @@ test('Twig cache boundaries preserve full prompt rendering and valid cross-secti
   const override = () => '{% set phrase = "researcher words" %}{# private_scope_context #}{{ phrase }}';
   assert.equal(renderTaskPromptMessages('agent', 'part_cognition', data, override), 'researcher words');
 });
+
+test('prediction scaffold hints require selected recall and remain scoped across requests', async () => {
+  const memory = (id: string) => MemorySchema.parse({ id, agentId: 'agent', version: 1, schemaVersion: 1,
+    partId: 'part', content: 'I felt heard.', gist: 'Feeling heard', context: [], ancestorIds: [], predictionId: null, createdCycle: 'past' });
+  const scaffold = { name: 'Response evidence', target: 'next exchange', cues: ['a response'], retrievalIntent: 'Recall responses',
+    relevantMemoryIds: [] as string[], supportEvidence: ['A reply'], contradictEvidence: ['Silence'], trackedDistinction: 'Contact', futureValue: 'Clarify contact' };
+  const draft = { expectation: 'A response follows.', capsule: { interpretation: 'Contact is open.', details: [], entities: [], activation: 2, spike: 0,
+    sourceIds: ['opaque_historical_provenance'] }, confidence: 0.5, horizon: 'next exchange', evaluateAfterCycle: null, scaffolds: [scaffold] };
+  for (const ids of [[], ['first_memory'], ['second_memory'], ['first_memory']]) {
+    const input: ConstructedInput = { task: 'part_cognition', agentId: 'agent', world, memories: ids.map(memory) };
+    const product = PartGenerationSchema.parse(await new MockReasoning().constructed(input));
+    const schema = constructedOutputSchema(input);
+    const response = (hints: string[], selected: string[] = ids) => ({ ...product, formation: { ...product.formation, evidenceMemoryIds: selected },
+      cognition: { ...product.cognition, prediction: { ...draft, scaffolds: [{ ...scaffold, relevantMemoryIds: hints }] } } });
+    assert.equal(schema.safeParse(response(ids)).success, true);
+    assert.equal(schema.safeParse(response(['invented_memory'])).success, false);
+    assert.equal(schema.safeParse(response(['opaque_historical_provenance'])).success, false);
+    if (ids.length) {
+      assert.equal(schema.safeParse(response(ids, [])).success, false, 'Supplied recall alone is insufficient without selected formation evidence');
+      assert.equal(schema.safeParse(response([ids[0]!, ids[0]!])).success, false);
+      assert.equal(schema.safeParse({ ...response(ids, []), formation: { ...product.formation, evidenceMemoryIds: [], counterevidenceMemoryIds: ids } }).success, false);
+    }
+    for (const wire of [z.toJSONSchema(schema), strictOutputSchema(z.toJSONSchema(schema))]) {
+      let checked = 0;
+      const visit = (node: any) => {
+        if (!node || typeof node !== 'object') return;
+        if (node.properties?.relevantMemoryIds) {
+          const field = node.properties.relevantMemoryIds;
+          if (ids.length) assert.deepEqual(field.items.enum ?? [field.items.const], ids);
+          else assert.equal(field.maxItems, 0);
+          checked++;
+        }
+        Object.values(node).forEach(visit);
+      };
+      visit(wire);
+      assert.ok(checked > 0);
+    }
+  }
+  const input: ConstructedInput = { task: 'cognition_coverage', agentId: 'agent', world };
+  const hypothesis = { prediction: draft, futureInference: { prediction: 'Response', retrieval: 'Contact', causal: 'Reply', action: 'Listen', compression: 'Contact' }, existingStructureInsufficient: 'No present account' };
+  const coverage = { operation: 'INVESTIGATE', gap: 'Will contact continue?', consequentialValue: 'Clarify contact', hypotheses: [hypothesis], reason: 'Uncertain' };
+  const pending = PredictionSchema.parse({ ...draft, id: 'gap_prediction', agentId: 'agent', version: 1, schemaVersion: 1,
+    partId: null, createdCycle: 'past', status: 'open', evaluation: null, memoryId: null,
+    gapOrigin: { threadId: null, gap: coverage.gap, consequentialValue: coverage.consequentialValue,
+      futureInference: hypothesis.futureInference, existingStructureInsufficient: hypothesis.existingStructureInsufficient } });
+  const adjustmentSchema = constructedOutputSchema({ ...input, predictions: [pending] });
+  const adjustment = { predictionId: pending.id, operation: 'revise', revision: draft, reason: 'Clarify evidence' };
+  assert.equal(adjustmentSchema.safeParse({ operation: 'SUFFICIENT', reason: 'Existing investigation', adjustments: [adjustment] }).success, true);
+  assert.equal(adjustmentSchema.safeParse({ operation: 'SUFFICIENT', reason: 'Existing investigation', adjustments: [{ ...adjustment,
+    revision: { ...draft, scaffolds: [{ ...scaffold, relevantMemoryIds: ['unrecalled_memory'] }] } }] }).success, false);
+  assert.equal(adjustmentSchema.safeParse({ operation: 'SUFFICIENT', reason: 'Existing investigation', adjustments: [{ ...adjustment, operation: 'expire' }] }).success, false,
+    'Extending the schema preserves the operation/revision invariant');
+  const schema = constructedOutputSchema(input);
+  assert.equal(schema.safeParse(coverage).success, true);
+  assert.equal(schema.safeParse({ ...coverage, hypotheses: [{ ...hypothesis, prediction: { ...draft, scaffolds: [{ ...scaffold, relevantMemoryIds: ['invented_memory'] }] } }] }).success, false);
+});

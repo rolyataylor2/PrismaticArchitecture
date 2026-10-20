@@ -1,0 +1,11 @@
+# Scoped scaffold-reference validation
+
+A live embodied Agent run in the neighboring Coupler returned a structurally valid prediction whose scaffold cited unavailable memory IDs. `Predictions.form` correctly rejected it; the provider schema had left this nested reference field unconstrained despite bounding formation references.
+
+Apply ADR 0138's existing evidence boundary in request-specific schemas: a Part's new scaffold can name only supplied recalled memory IDs, and its chosen references must also occur in the response's formation evidence. Gap coverage has no recalled memory authority and may not populate these hints, including coverage-authored revisions. Preserve abstention, optional predictions/scaffolds, the open-prediction guard and runtime checks. No placeholder memory, reference repair, forced hypothesis, new psychological mechanism or additional inference is introduced. Historical capsule source IDs remain opaque provenance and are outside this change.
+
+A JSON Schema enum can constrain the supplied set. The relationship to the response's separately selected formation evidence and duplicate checks remain local validation/runtime responsibilities, since they are cross-field conditions. Schema compliance does not prove autobiographical truth or useful learning. Provider/model routing and saved custom prompts remain unchanged.
+
+This follows the [official Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs) for enum/array constraints while retaining semantic validation. Tests must cover empty recall, valid selected evidence, omitted formation evidence, invented/historical IDs, duplicate hints, gap formation/revision, optional fields, provider wire schemas and request isolation. Configured observations remain distinct from deterministic fixtures.
+
+Validation: the 19 focused constructed-provider and prediction-scaffold tests pass, including gap revisions and the preserved operation/revision invariant. Both ordinary JSON Schema and the OpenAI strict wire transformation constrain scaffold references. These are deterministic contract checks using mock cognition and fixture transports, not evidence of humanlike learning or a configured-model recovery. A fresh embodied configured-model run remains necessary to assess the original live failure.
