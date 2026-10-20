@@ -87,7 +87,7 @@ Self selects; the Executive Layer assembles the selected actions into a bounded 
 
 ### Embodied intention boundary
 
-Embodied Agents use natural `act` intentions and a separately configured external Executive for mechanical realization. Bindings precede first experience; cognition receives no technical catalogs. See [ADR 0174](docs/architecture/decisions/0174-embodied-intent-handoff.md).
+Embodied Agents use natural `act` intentions for all external body behavior, including speech, questions and waiting, with a separately configured external Executive for mechanical realization. Bindings precede first experience; cognition receives no technical catalogs. See [ADR 0174](docs/architecture/decisions/0174-embodied-intent-handoff.md) and [0175](docs/architecture/decisions/0175-embodied-external-behavior.md).
 
 The Executive is **disabled by default**: ordinary cognition can record choices without external execution. Enable it explicitly in **Executive → Runtime** when the experiment requires enactment. Simulation owns external truth and supplies experiences; Agent cognition supplies psychological meaning.
 

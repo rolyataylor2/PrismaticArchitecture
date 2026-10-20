@@ -1,5 +1,7 @@
 ## Embodied intention boundary
 
+Every embodied external behavior, including speech and waiting, uses the natural-intention body path. Chat output alone cannot establish a world utterance. See [ADR 0175](decisions/0175-embodied-external-behavior.md).
+
 Host-bound embodied cognition receives no mechanical catalog, operational skill bindings or technical trace. It proposes natural intentions; Self selects; an external Executive translates under captured intent, constraints, order and budgets. This does not relax exact-tool authority for other Agents. See [ADR 0174](decisions/0174-embodied-intent-handoff.md).
 
 ## Interest-derived attention (ADR 0173)

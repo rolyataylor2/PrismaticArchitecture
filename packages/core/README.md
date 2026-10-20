@@ -1,5 +1,7 @@
 ## Embodied intention boundary
 
+[ADR 0175](../../docs/architecture/decisions/0175-embodied-external-behavior.md) requires natural `act` for every external body behavior, including speech/questions and waiting. Runtime and generation schemas reject chat-only Say/Ask/Wait in embodied mode; internal inquiry and general chat Agents retain their existing boundaries.
+
 [ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) adds host-bound embodied WorldState and natural `act` proposals. Runtime rejects mechanical proposals and revisions in this action space. Selected contracts delegate bounded external realization without framework MCP tool authority; general `operate` contracts remain exact.
 
 ## Disposition interest thresholds

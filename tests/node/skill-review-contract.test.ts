@@ -130,9 +130,13 @@ test('procedure review contracts are exclusive, carry no tools and cannot be ret
   assert.equal(OperationSchema.safeParse({ ...operation(), steps: [{ serverId: 'local', toolName: 'echo', argumentsJson: '{}' }] }).success, false);
   assert.equal(OperationSchema.safeParse({ ...operation(), skillInvocation: { skillId: 'other', version: 1 } }).success, false);
   assert.equal(retainedProcedure(operation()).skillReview, undefined);
-  const variant = operationalProposalSchema().shape.action.options[1];
-  assert.ok('operation' in variant.shape);
-  assert.equal('skillReview' in variant.shape.operation.shape, false);
+  const ordinary = { action: { kind: 'operate' as const, text: 'Run an explicit check', operation: {
+    successCriteria: 'Echo returns the supplied value', constraints: [],
+    steps: [{ serverId: 'local', toolName: 'echo', argumentsJson: '{"value":42}' }], verification: null,
+  } }, argument: 'No review context was supplied', identityFit: [], executionOrder: [] };
+  assert.equal(operationalProposalSchema().safeParse(ordinary).success, true);
+  assert.equal(operationalProposalSchema().safeParse({ ...ordinary, action: { ...ordinary.action,
+    operation: { ...ordinary.action.operation, skillReview: operation().skillReview } } }).success, false);
 });
 
 test('ordinary prescribed Self selection of unsupported review blocks without tools, approval or fabricated completion', async () => {

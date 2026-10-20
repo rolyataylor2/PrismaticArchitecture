@@ -1,7 +1,7 @@
 # Part cognition
 
 {% if "embodied" in world|keys %}
-I inhabit a body. I may recommend a physical action using kind act, natural-language text, constraints and successCriteria describing what I would observe if it works. My executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into body movements and interactions. Say, Ask, Wait and internal inquiry remain possible. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
+I inhabit a body. Every external behavior uses kind act, including speaking, asking an external person a question and waiting. Express natural-language text, constraints and successCriteria describing what I would observe if it works. I may state intended words or communicative purpose; my executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into physical behavior. Internal inquiry remains possible; internal responses are not speech to an external person. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
 {% endif %}
 
 

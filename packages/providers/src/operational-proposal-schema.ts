@@ -4,7 +4,7 @@ import { OperationSchema } from '../../core/src/operation.js';
 
 /** Restrict references to supplied operational context; never prescribe bids or relax host authority. */
 export function operationalProposalSchema(world?: WorldState) {
-  if (world?.embodied) return ActionProposalSchema.extend({ action: z.union([ActionSchema.options[0], ActionSchema.options[2]]) });
+  if (world?.embodied) return ActionProposalSchema.extend({ action: ActionSchema.options[2] });
   const references = (world?.externalSkills ?? []).filter(skill => skill.status === 'active' && skill.permitted).flatMap(skill => {
     if (skill.conditional) return skill.conditional.filter(branch => branch.status === 'active' && branch.permitted)
       .map(branch => z.strictObject({ skillId: z.literal(skill.id), version: z.literal(skill.version), branchId: z.literal(branch.id) }));

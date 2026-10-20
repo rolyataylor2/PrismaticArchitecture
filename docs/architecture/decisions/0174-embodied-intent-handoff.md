@@ -1,6 +1,7 @@
 # ADR 0174: embodied intentions cross an external Executive boundary
 
 Status: Accepted, 2026-10-19.
+Revision: [ADR 0175](0175-embodied-external-behavior.md) supersedes the availability of chat-only Say/Ask/Wait in embodied mode; all external body behavior uses natural `act`.
 Source: Researcher instruction that an NPC's bid must not know game mechanics; the Executive translates it.
 
 ## Decision

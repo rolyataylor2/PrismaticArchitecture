@@ -1,5 +1,7 @@
 ## Embodied intention boundary
 
+ADR 0175 narrows embodied external proposals to `act` only, including speaking, asking and waiting. Conditional Part/answer/focused-revision factories and contextual schemas agree; this adds no inference task. Ordinary chat generation is unchanged.
+
 [ADR 0174](../../docs/architecture/decisions/0174-embodied-intent-handoff.md) conditions Part/answer/revision prompts and request-specific schemas on host-bound embodied WorldState. These requests permit natural `act` intentions and omit operational bindings. Mechanical translation is an external Executive task, not an added cognitive inference task. Host validation independently enforces the boundary.
 
 ## Disposition activation input boundary

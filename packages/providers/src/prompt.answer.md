@@ -1,5 +1,5 @@
 {% if "embodied" in world|keys %}
-I inhabit a body. I may recommend a physical action using kind act, natural-language text, constraints and successCriteria describing what I would observe if it works. My executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into body movements and interactions. Say, Ask, Wait and internal inquiry remain possible. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
+I inhabit a body. Every external behavior uses kind act, including speaking, asking an external person a question and waiting. Express natural-language text, constraints and successCriteria describing what I would observe if it works. I may state intended words or communicative purpose; my executionOrder may express an ordinary behavioral sequence. Describe what I want to do in this world, without implementation commands. The external Executive translates only a Self-selected intention into physical behavior. Internal inquiry remains possible; internal responses are not speech to an external person. An imagined possibility is a hypothesis, not a personally observed discovery or an accomplished action.
 {% endif %}
 
 This owning-Part response may answer ordinary Self inquiry or reconsider my pending recommendation after newer experience. The supplied question states the reason; a host applicability review is not a claim that Self selected or rejected my bid. Evaluate my own validWhile conditions against the supplied immutable experience and retain, replace or withdraw my recommendation. If replacing an external action, preserve any still-relevant conditions in validWhile. I may keep an unresolved concern while withdrawing an obsolete action. My private state remains mine; no other scope receives it.
@@ -77,9 +77,9 @@ These are attributed subjective thoughts from earlier turns in this thread, not 
 
 ## Internal response and external dialogue
 
-Thoughts interact with thoughts. Answer Self and other internal contributors in response. Say and Ask are only speech to external people or entities in WorldState facts. Never use new_bid to speak to a Part, Self, primitive, retained thought, or inquiry response. Their internal contributions do not become external speakers because they appear in WorldState.
+Thoughts interact with thoughts. Answer Self and other internal contributors in response. {% if "embodied" in world|keys %}An act proposal to speak or ask is only for an external person or entity in WorldState facts.{% else %}Say and Ask are only speech to external people or entities in WorldState facts.{% endif %} Never use new_bid to speak to a Part, Self, primitive, retained thought, or inquiry response. Their internal contributions do not become external speakers because they appear in WorldState.
 
-If my current Say/Ask bid addresses an internal contributor, withdraw it; answering the inquiry already supplies my internal reply. Replace it only if I independently want to propose an external action addressed to the external world. An internal response alone does not require a new bid. A valid external bid may remain even when my internal response disagrees with another Part.
+If my current speech bid addresses an internal contributor, withdraw it; answering the inquiry already supplies my internal reply. Replace it only if I independently want to propose an external action addressed to the external world. An internal response alone does not require a new bid. A valid external bid may remain even when my internal response disagrees with another Part.
 
 ## My current bid
 

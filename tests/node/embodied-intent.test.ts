@@ -16,13 +16,14 @@ const natural = { kind: 'act' as const, text: 'Eat the apple', constraints: ['Le
 const operation = { kind: 'operate' as const, text: 'Eat the apple', operation: { successCriteria: 'A check', constraints: [], steps: [], verification: null } };
 class Reasoning extends MockReasoning {
   mechanical = false;
+  chat?: 'say' | 'ask' | 'wait';
   inputs: ConstructedInput[] = [];
   override async constructed(input: ConstructedInput) {
     this.inputs.push(input);
     const result = await super.constructed(input);
     if (input.task !== 'part_cognition') return result;
     const generated = PartGenerationSchema.parse(result);
-    generated.cognition.proposal = { action: this.mechanical ? operation : natural, argument: 'Prescribed intention fixture', identityFit: [], executionOrder: ['Approach the apple', 'Eat it'] };
+    generated.cognition.proposal = { action: this.chat ? { kind: this.chat, text: 'Chat-only fixture' } : this.mechanical ? operation : natural, argument: 'Prescribed intention fixture', identityFit: [], executionOrder: ['Approach the apple', 'Eat it'] };
     return generated;
   }
 }
@@ -44,12 +45,20 @@ test('embodied schemas, runtime validation and rendered factory prompts exclude 
   const proposal = { action: natural, argument: 'I am hungry', identityFit: [], executionOrder: [] };
   assert.equal(operationalProposalSchema(world).safeParse(proposal).success, true);
   assert.equal(operationalProposalSchema(world).safeParse({ ...proposal, action: operation }).success, false);
+  for (const kind of ['say', 'ask', 'wait'] as const) {
+    const chat = { ...proposal, action: { kind, text: 'Hello, or stay here briefly' } };
+    assert.equal(operationalProposalSchema(world).safeParse(chat).success, false);
+    assert.throws(() => validateActionSpace(world, chat), /bypass the body/);
+    assert.equal(operationalProposalSchema({} as WorldState).safeParse(chat).success, true);
+    assert.doesNotThrow(() => validateActionSpace({} as WorldState, chat));
+  }
   assert.throws(() => validateActionSpace(world, { ...proposal, action: operation }), /Executive-only/);
   assert.throws(() => validateActionSpace({} as WorldState, proposal), /host-bound/);
   const input = { task: 'part_cognition', agentId: 'agent', world: { id: 'w', cycleId: 'c', embodied: true, facts: [] },
     dispositions: [], workingParts: [], memories: [], predictions: [], dispositionBindings: [] };
   const prompt = renderTaskPrompt('agent', 'part_cognition', input);
   assert.match(prompt, /kind act/);
+  assert.match(prompt, /including speaking, asking an external person a question and waiting/);
   assert.doesNotMatch(prompt, /serverId|toolName|argumentsJson|skillInvocation|operation\.intervention/);
   assert.match(renderTaskPrompt('agent', 'part_cognition', { ...input, world: { id: 'w', cycleId: 'c', facts: [] } }), /serverId/);
 });
@@ -63,6 +72,21 @@ test('natural contracts preserve selected constraints and delegate no framework 
   assert.equal(ExecutionSchema.safeParse({ id: 'execution', agentId: 'agent', cycleId: 'cycle', action: natural,
     status: 'completed', facts: [] }).success, false);
   assert.equal(ExecutionContractSchema.safeParse({ ...contract, authority: { ...contract.authority, tools: [{ serverId: 'game', toolName: 'move' }] } }).success, false);
+});
+
+test('ordinary embodied cognition cannot emit chat-only speech, questions or waiting', async () => {
+  for (const kind of ['say', 'ask', 'wait'] as const) {
+    const { store, agent } = await fresh();
+    const reasoning = new Reasoning(); reasoning.chat = kind;
+    const app = new Application(store, { reasoning, decisions: new Decisions(), embeddings: new MockEmbeddings() }, undefined, undefined, undefined,
+      { [agent.id]: 'http://127.0.0.1:1/intent' });
+    try {
+      enableExecutive(app, agent.id);
+      await assert.rejects(app.message(agent.id, 'Someone is nearby.'), /bypass the body/);
+      assert.equal(store.executions(agent.id).length, 0);
+      assert.equal(store.eventsByType(agent.id, ['execution.intent_dispatch']).length, 0);
+    } finally { await app.close(); store.close(); }
+  }
 });
 
 test('the actual runtime sends only recorded selected intention and retains uncertain dispatch without replay', async t => {

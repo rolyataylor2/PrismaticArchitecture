@@ -1,5 +1,7 @@
 ## Embodied intention boundary
 
+[ADR 0175](decisions/0175-embodied-external-behavior.md) closes the chat bypass: embodied speaking, external questions and waiting use natural `act` intentions and physical realization, just like movement. Internal inquiry remains separate.
+
 [ADR 0174](decisions/0174-embodied-intent-handoff.md) separates host-bound embodied intention from mechanical realization. Parts receive embodied WorldState without execution catalogs; Self selects natural `act` proposals. A separately bound external Executive translates and validates mechanics under the immutable selected contract.
 
 ## Interest-derived attention (ADR 0173)

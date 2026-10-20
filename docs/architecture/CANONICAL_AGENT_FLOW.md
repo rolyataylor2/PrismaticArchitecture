@@ -1,5 +1,7 @@
 ## Embodied intention boundary
 
+[ADR 0175](decisions/0175-embodied-external-behavior.md) requires natural `act` for all embodied external behavior, including speech, external questions and waiting. Chat-only output cannot replace a physical world event.
+
 [ADR 0174](decisions/0174-embodied-intent-handoff.md): in host-bound embodied mode, bids express natural `act` intentions. Mechanical translation occurs only after Self selection in the external Executive; catalogs and engine schemas never enter this Agent's WorldState.
 
 ## Interest-derived attention (ADR 0173)
