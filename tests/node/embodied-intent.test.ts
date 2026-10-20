@@ -58,6 +58,9 @@ test('embodied schemas, runtime validation and rendered factory prompts exclude 
     dispositions: [], workingParts: [], memories: [], predictions: [], dispositionBindings: [] };
   const prompt = renderTaskPrompt('agent', 'part_cognition', input);
   assert.match(prompt, /kind act/);
+  assert.match(prompt, /validWhile is optional/);
+  assert.match(prompt, /absence would make my particular recommendation inappropriate/);
+  assert.match(prompt, /I may also abstain/);
   assert.match(prompt, /including speaking, asking an external person a question and waiting/);
   assert.doesNotMatch(prompt, /serverId|toolName|argumentsJson|skillInvocation|operation\.intervention/);
   assert.match(renderTaskPrompt('agent', 'part_cognition', { ...input, world: { id: 'w', cycleId: 'c', facts: [] } }), /serverId/);

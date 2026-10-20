@@ -24,7 +24,7 @@ export const prompts = {
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-relevance-only-v11', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-embodied-v34', text: loadFactoryPrompt('part_cognition') },
+  part_cognition: { version: 'part-cognition-conditions-v35', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
@@ -42,7 +42,7 @@ export const prompts = {
   prediction_outcome: { version: 'prediction-outcome-temporal-v3', text: loadFactoryPrompt('prediction_outcome') },
   prediction: { version: 'prediction-prediction-bound-v6', text: loadFactoryPrompt('prediction') },
   evaluation: { version: 'prediction-evaluation-temporal-v13', text: loadFactoryPrompt('evaluation') },
-  answer: { version: 'answer-embodied-v27', text: loadFactoryPrompt('answer') },
+  answer: { version: 'answer-conditions-v28', text: loadFactoryPrompt('answer') },
   deliberation: { version: 'deliberation-commitments-v1', text: loadFactoryPrompt('deliberation') },
   consolidation: { version: 'offline-consolidation-twig-v5', text: loadFactoryPrompt('consolidation') },
   reconsolidation: { version: 'memory-reconsolidation-twig-v3', text: loadFactoryPrompt('reconsolidation') },
