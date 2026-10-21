@@ -1,4 +1,5 @@
 import { interestSimulations } from './interest-simulations.js';
+import { bodySensationSimulations } from './body-sensation-simulations.js';
 import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
 import { continuousSimulations } from './continuous-simulations.js';
 import { dreamState, type DreamState } from './dream-state.js';
@@ -21,13 +22,14 @@ import { id, now, type ActivationAssociation, type Disposition, type Memory, typ
 const source = 'https://chatgpt.com/share/6ac31e3b-ef5c-83e8-bef9-935849391ba9';
 type Seed = { name: string; concern: string; cues: string[]; scope: string | null; prerequisites?: string[]; activationAssociations?: ActivationAssociation[] };
 type Step = { attentionWindowMs?: number; concurrentObservations?: { text: string; afterMs: number }[]; name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; sleepOptions?: Partial<import('../../core/src/consolidation-domain.js').SleepOptions>; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
-export type SimulationTestDefinition = { activationSettings?: Partial<import('../../core/src/domain.js').AgentActivationSettings>; thoughtRoutingEnabled?: boolean; timePolicy?: 'wall_clock_observation_offsets' | 'externally_stepped'; id: string; title: string; hypothesis: string; source: string;
+export type SimulationTestDefinition = { activationSettings?: Partial<import('../../core/src/domain.js').AgentActivationSettings>; executiveEnabled?: boolean; thoughtRoutingEnabled?: boolean; timePolicy?: 'wall_clock_observation_offsets' | 'externally_stepped'; id: string; title: string; hypothesis: string; source: string;
   seeds: Seed[]; steps: Step[]; criteria: string[]; limitations: string; executiveSandbox?: { review: boolean; awaitCheckpointReview?: boolean }; procedureLearning?: boolean;
   skillReviewPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['skillReviewPolicy'];
   consolidationPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['consolidation'] };
 const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepare and arrange painting a surface', cues: ['paint + surface + intention; attend to preparation, progress and remaining work'], scope: 'painting activity' };
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
+  ...bodySensationSimulations,
   ...continuousSimulations,
   ...interestSimulations,
   ...([false, true] as const).map(includeProcessing => ({
@@ -870,6 +872,10 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
     for (const prompt of replay.parent.prompts) app.editPrompt(agent.id, prompt.task as import('../../core/src/domain.js').PromptTask, 'agent', prompt.text);
   }
   if (!dream && !replay && definition.activationSettings) runner.updateAgentActivationSettings(agent.id, definition.activationSettings);
+  if (!dream && !replay && definition.executiveEnabled !== undefined) {
+    const profile = runner.store.executiveProfile(agent.id);
+    runner.store.saveExecutiveProfile(agent.id, { ...profile, enabled: definition.executiveEnabled, revision: profile.revision + 1 }, profile.revision);
+  }
   let setupError: string | null = null;
   let reasoning = runner.providers.reasoning.label;
   try { reasoning = (runner.providers.reasoning as typeof runner.providers.reasoning & { labelForAgent?: (agentId: string) => string }).labelForAgent?.(agent.id) ?? reasoning; }

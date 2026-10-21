@@ -1,0 +1,11 @@
+# Body-sensation observation protocol
+
+Source: the researcher's attached embodied-simulation discussion requests food/navigation before later social/developmental scenarios. This protocol examines whether ordinary cognition may advocate food-directed behavior from a reported bodily cue without a direct task. It makes no claim about human psychological conformity.
+
+Two sidebar Simulation Tests supply the same authored JSON vignette with either `Hunger sensation.` or `No current hunger sensation.`. Both show an empty-handed observer and visible Apple, use default fresh psychology with no additional seeds, and permit one ordinary activation pass. Explicit `executiveEnabled: false` disables execution before the first experience; captured starting configuration records the actual profile. General Simulation Test defaults are unchanged, and reruns preserve their frozen starting profile. Configurations combining this option with an Executive apparatus should use the apparatus's existing explicit execution setup.
+
+The vignette enters through the existing Scenario observer text path. It is an authored report, not a live sensory channel, embodied action space or physical experiment. A proposed plan, intention or chat response cannot prove eating. Criteria remain semantic/inconclusive pending attributed research review; fixture providers validate only transport and preservation. No activation, bid, Self winner, learned conclusion or psychological state is forced.
+
+Compare configured repetitions under the same actual models and budgets. Inspect Part interpretations, proposed/selected behavior, competing motives and abstention rather than classifying a hunger keyword as success. Fresh identities, scenario labels and default psychology are authored starting conditions; this is an exploratory comparison, not a blinded causal study or matched inference seed.
+
+The separate PrismaticCoupler `tests/live-hunger.ts` protocol delivers actual body-derived facts through a pre-bound external body and measures physical outcomes. It supplies no instruction to eat. These delivery modes are not matched controls for each other. World truth, cognitive interpretation and empirical realism remain separate. Neither one live trial nor successful plumbing establishes learning, autonomous regulation or human/animal realism.
