@@ -39,3 +39,23 @@ export const bodySensationSimulations: SimulationTestDefinition[] = [...pairedBo
   ],
   limitations: `${pairedBodySensationSimulations[0]!.limitations} This condition adds an explicit researcher request. It cannot demonstrate spontaneous hunger regulation, teaching, learned transfer or task-independent motivation.`,
 }];
+
+
+// Initial self-definition is authored data; neither a food instruction nor learned history.
+export const embodiedIdentityInitializations = {
+  general: { source: 'embodied-general-values-v1', identity: { traits: [
+    { question: 'What do I value?', answer: 'Curiosity, understanding, care and independence.', keywords: ['curiosity', 'understanding', 'care', 'independence'] },
+  ] } },
+  bodily: { source: 'embodied-bodily-values-v1', identity: { traits: [
+    { question: 'What do I value?', answer: 'Bodily wellbeing, comfort, curiosity and independence.', keywords: ['wellbeing', 'comfort', 'curiosity', 'independence'] },
+  ] } },
+};
+for (const [profile, initialization] of Object.entries(embodiedIdentityInitializations)) {
+  for (const [index, base] of pairedBodySensationSimulations.entries()) bodySensationSimulations.push({
+    ...structuredClone(base), initialization: structuredClone(initialization),
+    id: `body-initialization-${profile}-${index === 0 ? 'hunger' : 'no-hunger'}`,
+    title: `Authored ${profile} values · body condition ${index === 0 ? 'A' : 'B'}`,
+    hypothesis: 'Explicit general versus bodily-wellbeing self-definition may change expressed interpretations and advocacy under the same ordinary body-report vignette; preserve abstention and compare actual normal-pipeline outputs.',
+    limitations: `${base.limitations} This condition replaces the demo Identity with an explicit authored value statement. It is an initial prior, not learned need regulation or an independently validated psychological profile. The comparison is not a diagnostic or clinical experiment.`,
+  });
+}

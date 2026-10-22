@@ -14,9 +14,9 @@ test('paired bodily-report vignettes run ordinary isolated cognition with no for
   try {
     const source = app.createAgent('Preserved source');
     const before = structuredClone(store.events(source.id));
-    const definitions = simulationTests.filter(definition => definition.id.startsWith('body-sensation-'));
-    assert.equal(definitions.length, 3);
-    const paired = definitions.filter(definition => definition.id !== 'body-sensation-assigned-bite');
+    const definitions = simulationTests.filter(definition => definition.id.startsWith('body-sensation-') || definition.id.startsWith('body-initialization-'));
+    assert.equal(definitions.length, 7);
+    const paired = definitions.filter(definition => ['body-sensation-hunger', 'body-sensation-no-hunger'].includes(definition.id));
     const stimuli = paired.map(definition => JSON.parse(definition.steps[0]!.text!));
     const assigned = definitions.find(definition => definition.id === 'body-sensation-assigned-bite')!;
     assert.ok(assigned.steps[0]!.text!.startsWith(paired[0]!.steps[0]!.text!));
@@ -37,6 +37,7 @@ test('paired bodily-report vignettes run ordinary isolated cognition with no for
       assert.notEqual(run.agentId, source.id);
       assert.equal(run.startingConfiguration?.executiveProfile.enabled, false);
       assert.equal(run.stages.length, 1);
+      if (definition.initialization) assert.deepEqual(run.startingConfiguration!.identity.traits.map(t => t.answer), definition.initialization.identity.traits.map(t => t.answer));
       assert.ok(run.prompts.some(prompt => prompt.task === 'part_cognition'));
       assert.ok(run.measures.every(measure => measure.outcome === 'inconclusive'));
     }

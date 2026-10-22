@@ -1,3 +1,4 @@
+import { AgentInitializationSchema, type AgentInitialization } from './agent-initialization.js';
 import { interestDisposition, interestTime, defaultInterestSettings } from '../../core/src/disposition-interest.js';
 import { generativeModels, modelProvider, vendorModel } from '../../core/src/generative-models.js';
 import { generativeProvider } from '../../providers/src/generative.js';
@@ -330,14 +331,16 @@ export class Application {
   resetPrompt(agentId: string, task: PromptTask, scope: 'agent' | 'global') { return resetPrompt(this.store, agentId, task, scope); }
   resetAllPrompts() { return resetAllPrompts(this.store); }
   /** The historical profile seeds offline research Parts; online cognition always constructs instances. */
-  createAgent(name = 'Demo Agent', architecture: 'constructed' | 'persistent' = 'constructed') {
+  createAgent(name = 'Demo Agent', architecture: 'constructed' | 'persistent' = 'constructed', initialization?: AgentInitialization) {
+    const authored = initialization === undefined ? null : AgentInitializationSchema.parse(initialization);
+    const identity = authored?.identity ?? demoIdentity;
     const agentId = id('agent');
-    const change: Change = { origin: 'seed', reason: 'Instantiate inspectable demo preset', sourceIds: ['demo-v1'] };
+    const change: Change = { origin: 'seed', reason: authored ? 'Instantiate researcher-authored Identity' : 'Instantiate inspectable demo preset', sourceIds: [authored?.source ?? 'demo-v1'] };
     this.inspection.atomic(() => {
       this.store.save('agent', { id: agentId, agentId, version: 1, schemaVersion: 1, name, architecture, createdAt: now() }, 0, change);
       this.store.saveAgentActivationSettings(agentId, { vectorSearchEnabled: false, memoryRecallLimit: null });
-      this.store.save('identity', { ...structuredClone(demoIdentity), traits: demoIdentity.traits.map(trait => ({ ...structuredClone(trait), id: id('trait'), createdAt: now() })), id: agentId, agentId, version: 1, schemaVersion: 2 }, 0, change);
-      if (architecture === 'persistent') for (const draft of demoParts) this.runtime.mutations.create(agentId, structuredClone(draft), change);
+      this.store.save('identity', { ...structuredClone(identity), traits: identity.traits.map(trait => ({ ...structuredClone(trait), id: id('trait'), createdAt: now() })), id: agentId, agentId, version: 1, schemaVersion: 2 }, 0, change);
+      if (architecture === 'persistent' && !authored) for (const draft of demoParts) this.runtime.mutations.create(agentId, structuredClone(draft), change);
     });
     return this.store.get('agent', agentId);
   }

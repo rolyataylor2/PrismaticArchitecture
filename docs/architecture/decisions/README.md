@@ -116,3 +116,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 - [0172 — Gemini, Qwen and OpenRouter generation](0172-multivendor-generative-providers.md)
 
 - [0173 — Disposition interest thresholds](0173-disposition-interest-thresholds.md)
+
+ADR 0177 adds explicit source-attributed SDK and Simulation Test Identity initialization, preserving demo defaults, captured reruns and cognitive authority.

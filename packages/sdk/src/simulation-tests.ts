@@ -1,3 +1,4 @@
+import type { AgentInitialization } from './agent-initialization.js';
 import { interestSimulations } from './interest-simulations.js';
 import { bodySensationSimulations } from './body-sensation-simulations.js';
 import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
@@ -22,7 +23,7 @@ import { id, now, type ActivationAssociation, type Disposition, type Memory, typ
 const source = 'https://chatgpt.com/share/6ac31e3b-ef5c-83e8-bef9-935849391ba9';
 type Seed = { name: string; concern: string; cues: string[]; scope: string | null; prerequisites?: string[]; activationAssociations?: ActivationAssociation[] };
 type Step = { attentionWindowMs?: number; concurrentObservations?: { text: string; afterMs: number }[]; name: string; phase: 'control' | 'training' | 'probe'; text?: string; sleep?: boolean; sleepOptions?: Partial<import('../../core/src/consolidation-domain.js').SleepOptions>; executiveCheckpoint?: boolean; settleExecutive?: boolean; consolidateProcedures?: boolean };
-export type SimulationTestDefinition = { activationSettings?: Partial<import('../../core/src/domain.js').AgentActivationSettings>; executiveEnabled?: boolean; thoughtRoutingEnabled?: boolean; timePolicy?: 'wall_clock_observation_offsets' | 'externally_stepped'; id: string; title: string; hypothesis: string; source: string;
+export type SimulationTestDefinition = { initialization?: AgentInitialization; activationSettings?: Partial<import('../../core/src/domain.js').AgentActivationSettings>; executiveEnabled?: boolean; thoughtRoutingEnabled?: boolean; timePolicy?: 'wall_clock_observation_offsets' | 'externally_stepped'; id: string; title: string; hypothesis: string; source: string;
   seeds: Seed[]; steps: Step[]; criteria: string[]; limitations: string; executiveSandbox?: { review: boolean; awaitCheckpointReview?: boolean }; procedureLearning?: boolean;
   skillReviewPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['skillReviewPolicy'];
   consolidationPolicy?: import('../../core/src/executive-profile.js').ExecutiveProfile['consolidation'] };
@@ -844,7 +845,7 @@ function launchSimulation(app: Application, definition: SimulationTestDefinition
   const sourceBefore = dream ? structuredClone(dreamState(app.store, sourceAgentId)) : undefined;
   const targetId = dream ? dream.keepChanges ? sourceAgentId : id('agent') : null;
   const identifierMap = dream && !dream.keepChanges ? app.store.branchAgent(sourceAgentId, targetId!) : {};
-  const agent = dream ? app.store.get('agent', targetId!) : runner.createAgent(`Simulation · ${definition.title}`);
+  const agent = dream ? app.store.get('agent', targetId!) : runner.createAgent(`Simulation · ${definition.title}`, 'constructed', definition.initialization);
   if (mode === 'configured' && !dream) {
     const settings = app.store.agentProviderSettings(sourceAgentId);
     if (settings) app.store.saveAgentProviderSettings(agent.id, settings);
