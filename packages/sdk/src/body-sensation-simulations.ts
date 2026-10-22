@@ -1,7 +1,7 @@
 import type { SimulationTestDefinition } from './simulation-tests.js';
 
 // Authored observation vignettes only; physical realization is tested by the independent coupler.
-export const bodySensationSimulations: SimulationTestDefinition[] = ['Hunger sensation.', 'No current hunger sensation.'].map((signal, index) => ({
+const pairedBodySensationSimulations: SimulationTestDefinition[] = ['Hunger sensation.', 'No current hunger sensation.'].map((signal, index) => ({
   id: `body-sensation-${index === 0 ? 'hunger' : 'no-hunger'}`,
   title: `Reported body sensation · condition ${index === 0 ? 'A' : 'B'}`,
   source: 'Researcher attached embodied-simulation discussion: food/navigation as the first scenario; authored comparison protocol 2026-10-21.',
@@ -23,3 +23,19 @@ export const bodySensationSimulations: SimulationTestDefinition[] = ['Hunger sen
   ],
   limitations: 'This is a researcher-authored JSON vignette delivered by the existing Scenario observer text path, not a live sensor, embodied binding or physical simulator. Default starting psychology and scenario labels are authored; no hunger-specific disposition, activation, bid or winner is forced. Executive remains disconnected. A proposal or chat response cannot establish eating. The separate Coupler live-body observation supplies actual body-derived facts and measures physical effects. These delivery modes are not matched controls for each other. Mock/mixed providers establish plumbing only; configured repetitions and independent references are required before causal, learning or human-psychology claims.',
 }));
+
+
+export const bodySensationSimulations: SimulationTestDefinition[] = [...pairedBodySensationSimulations, {
+  ...pairedBodySensationSimulations[0]!,
+  id: 'body-sensation-assigned-bite',
+  title: 'Reported hunger · assigned one-bite comparison',
+  hypothesis: 'An explicit ordinary request may elicit a food-directed recommendation when an otherwise identical unprompted hunger report does not; this separates assigned-task advocacy from spontaneous regulation.',
+  steps: [{ name: 'Authored body report and request', phase: 'probe',
+    text: `${pairedBodySensationSimulations[0]!.steps[0]!.text}\nResearcher-authored request for this comparison: Please approach the apple, take one bite, and do nothing else.` }],
+  criteria: [
+    'Inspect actual interpretations, proposals and selections in response to the explicit request; a prediction about my future action is not a selectable proposal or an executed action.',
+    'Compare with body-sensation-hunger using the same actual models and budgets; preserve abstention and competing motives.',
+    'A recommendation, selected intention or chat utterance does not establish food consumption; physical verification belongs to the separate Coupler probe.',
+  ],
+  limitations: `${pairedBodySensationSimulations[0]!.limitations} This condition adds an explicit researcher request. It cannot demonstrate spontaneous hunger regulation, teaching, learned transfer or task-independent motivation.`,
+}];

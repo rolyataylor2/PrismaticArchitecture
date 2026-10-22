@@ -15,8 +15,11 @@ test('paired bodily-report vignettes run ordinary isolated cognition with no for
     const source = app.createAgent('Preserved source');
     const before = structuredClone(store.events(source.id));
     const definitions = simulationTests.filter(definition => definition.id.startsWith('body-sensation-'));
-    assert.equal(definitions.length, 2);
-    const stimuli = definitions.map(definition => JSON.parse(definition.steps[0]!.text!));
+    assert.equal(definitions.length, 3);
+    const paired = definitions.filter(definition => definition.id !== 'body-sensation-assigned-bite');
+    const stimuli = paired.map(definition => JSON.parse(definition.steps[0]!.text!));
+    const assigned = definitions.find(definition => definition.id === 'body-sensation-assigned-bite')!;
+    assert.ok(assigned.steps[0]!.text!.startsWith(paired[0]!.steps[0]!.text!));
     assert.notDeepEqual(stimuli[0].currentSensations, stimuli[1].currentSensations);
     delete stimuli[0].currentSensations; delete stimuli[1].currentSensations;
     assert.deepEqual(stimuli[0], stimuli[1]);
