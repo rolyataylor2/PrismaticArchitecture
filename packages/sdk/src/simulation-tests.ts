@@ -1,6 +1,7 @@
 import type { AgentInitialization } from './agent-initialization.js';
 import { interestSimulations } from './interest-simulations.js';
 import { bodySensationSimulations } from './body-sensation-simulations.js';
+import { needDevelopmentSimulations } from './need-development-simulations.js';
 import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
 import { continuousSimulations } from './continuous-simulations.js';
 import { dreamState, type DreamState } from './dream-state.js';
@@ -31,6 +32,7 @@ const paint: Seed = { name: 'Painting a surface', concern: 'Notice how to prepar
 const social: Seed = { name: 'Social gathering', concern: 'Notice shared gatherings and their expectations', cues: ['people gathering with food or an upcoming invitation'], scope: 'social gathering' };
 export const simulationTests: SimulationTestDefinition[] = [
   ...bodySensationSimulations,
+  ...needDevelopmentSimulations,
   ...continuousSimulations,
   ...interestSimulations,
   ...([false, true] as const).map(includeProcessing => ({
