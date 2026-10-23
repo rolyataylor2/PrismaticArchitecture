@@ -1,3 +1,9 @@
+# Embodiment provider contract increment — ADR 0178
+
+- [x] Encode the existing bid-disposition/new-bid relation in provider output schemas without changing decisions or repairing responses.
+- [x] Verify valid/invalid products, actual prescribed adapter boundaries and pinned coupled integration.
+- [ ] Resolve broader regression failures; retain baseline comparisons and exact evidence in `docs/development/observations/2026-10-22-bid-revision-wire.md`. This increment does not complete the full coupled-world objective.
+
 # Active continuous cognition thread — ADR 0165
 
 Full source scope and requirement audit: `docs/development/CONTINUOUS_COGNITION_AUDIT.md`.

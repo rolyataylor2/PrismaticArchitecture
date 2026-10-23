@@ -172,7 +172,7 @@ test('ordinary Self inquiry can revise an intuitive proposal with deliberative r
     else if (schemaText.includes('"NO_CHANGE"')) { task = 'experiential_formation'; result = { operation: 'NO_CHANGE', reason: 'Explicit transport fixture abstention' }; }
     else if (!schemaText.includes('"response"') && schemaText.includes('"target_parts"')) {
       task = 'deliberation'; result = { why_deliberate: 'Explicit inquiry fixture uncertainty', primary_c: 'curiosity', secondary_c: null, missing_information: 'How the constraints interact', question: 'Consider the interacting constraints more carefully.', target_parts: [store.list('part')[0]!.id] };
-    } else if (Object.keys(request.text.format.schema.properties.result.properties).join(',') === 'text') {
+    } else if (Object.keys(request.text.format.schema.properties.result.properties ?? {}).join(',') === 'text') {
       task = 'speech'; result = { text: 'Reconsidered response.' };
     } else {
       task = 'answer'; result = { response: 'After reconsideration I recommend a different response.', bid_disposition: 'replace',

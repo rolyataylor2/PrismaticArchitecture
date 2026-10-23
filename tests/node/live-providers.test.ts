@@ -76,7 +76,8 @@ test('primitive provider wire schemas forbid strategies and internal inquiries o
       const body = JSON.parse(init!.body as string);
       const openai = Provider === OpenAIProvider;
       const schema = openai ? body.text.format.schema.properties.result : body.format;
-      const bid = answering ? schema.properties.new_bid.anyOf[0] : schema.properties.proposal;
+      const branch = answering ? schema.anyOf.find((entry: any) => entry.properties.bid_disposition.const === 'replace') : schema;
+      const bid = answering ? branch.properties.new_bid : branch.properties.proposal;
       assert.equal(bid.type, 'object');
       assert.equal(bid.properties.executionOrder.maxItems, 0);
       assert.equal('target_parts' in bid.properties, false);

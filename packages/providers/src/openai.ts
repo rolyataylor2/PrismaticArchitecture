@@ -1,3 +1,4 @@
+import { bidRevisionWireSchema } from './bid-revision-wire.js';
 import { ProcedureConsolidationSchema } from '../../core/src/procedure-consolidation.js';
 import { createHash } from 'node:crypto';
 import { constructedOutputSchema } from './constructed-schema.js';
@@ -100,7 +101,7 @@ export class OpenAIProvider implements ReasoningProvider {
           input,
           ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
           text: { format: { type: 'json_schema', name: 'cognitive_product', strict: true,
-            schema: strictOutputSchema(z.toJSONSchema(z.strictObject({ result: schema }))) } },
+            schema: strictOutputSchema(z.toJSONSchema(z.strictObject({ result: bidRevisionWireSchema(schema) }))) } },
         }),
       });
       if (!response.ok) throw new InfrastructureError('provider', `${this.vendor} HTTP ${response.status}`, { diagnostics: { httpStatus: response.status, retryable: response.status === 429 || response.status >= 500 } });

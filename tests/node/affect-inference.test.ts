@@ -137,7 +137,11 @@ test('OpenAI, xAI and Ollama separately dispatch restricted inquiry and owning-P
     assert.match(prompt(requests[1]!), /Task: focused_bid_revision/);
     assert.match(prompt(requests[1]!), /"id":"world"/);
     const schema = vendor === 'ollama' ? requests[1]!.format : requests[1]!.text.format.schema.properties.result;
-    assert.deepEqual(Object.keys(schema.properties).sort(), ['bid_disposition', 'new_bid', 'response']);
+    assert.equal(schema.anyOf.length, 3);
+    for (const branch of schema.anyOf) {
+      assert.deepEqual(Object.keys(branch.properties).sort(), ['bid_disposition', 'new_bid', 'response']);
+      if (branch.properties.bid_disposition.const !== 'replace') assert.equal(branch.properties.new_bid.type, 'null');
+    }
   }
 });
 

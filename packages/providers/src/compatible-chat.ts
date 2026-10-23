@@ -1,3 +1,4 @@
+import { bidRevisionWireSchema } from './bid-revision-wire.js';
 import { z } from 'zod';
 import { InfrastructureError } from '../../core/src/contracts.js';
 import { OpenAIProvider, strictOutputSchema, decodeOutput, type UsageObserver } from './openai.js';
@@ -25,7 +26,7 @@ export class CompatibleChatProvider extends OpenAIProvider {
   }
   protected override async request<T>(schema: z.ZodType<T>, prompt: string | string[], maxOutputTokens = 4096,
     context?: { agentId: string; cycleId: string | null; task: string }): Promise<T> {
-    const wireSchema = strictOutputSchema(z.toJSONSchema(z.strictObject({ result: schema })));
+    const wireSchema = strictOutputSchema(z.toJSONSchema(z.strictObject({ result: bidRevisionWireSchema(schema) })));
     const endpoint = this.chatService === 'gemini' ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
       : this.chatService === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : `${this.qwenBaseUrl}/chat/completions`;
     try {

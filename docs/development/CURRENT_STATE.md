@@ -1,3 +1,7 @@
+## Embodiment provider wire correlation — 2026-10-22
+
+ADR 0178 encodes the existing retain/replace/withdraw relation in provider generation schemas, preserving original runtime validation and natural embodied bids. Focused provider/affect/routing checks pass 58/58; type checking, isolated build and dependency lint pass; seven pinned Coupler integration cases pass. Full regression is nonpassing, with browser and mock-runtime baseline failures under separate comparison. Exact terminal evidence and limitations are retained in [the observation](observations/2026-10-22-bid-revision-wire.md). No live behavior or psychology improvement is claimed. The coupled-world goal remains active, including sensory semantics, autonomous regulation and broader development/evaluation work.
+
 ## Continuous cognition final integration — 2026-10-14
 
 ADR 0165 implements the supplied asynchronous-cognition discussion through one production runtime. Completion remains pending the terminal regression and delivery gates in [CONTINUOUS_COGNITION_AUDIT.md](CONTINUOUS_COGNITION_AUDIT.md), which maps the complete source scope to implementation and tests.
