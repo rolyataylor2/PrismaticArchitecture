@@ -1,3 +1,4 @@
+import { evidenceCatalog } from '../../packages/core/src/evidence-provenance.js';
 import test from 'node:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -25,6 +26,12 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
   class Reasoning extends MockReasoning {
     override async constructed(input: ConstructedInput) {
       calls.push(input);
+      if (input.task === 'part_cognition') {
+        const product = PartGenerationSchema.parse(await super.constructed(input));
+        product.cognition.prediction = null;
+        if (product.memoryReflection) product.memoryReflection.evidenceCitations = evidenceCatalog(input.world!).filter(source => source.cycleId === input.world!.cycleId).slice(0, 1).map(source => ({ sourceId: source.sourceId, quote: source.text }));
+        return product;
+      }
       if (input.task === 'disposition_learning' && institutionalization) {
         assert.ok(input.hypothesisHistory!.some(prediction => prediction.gapOrigin && prediction.status === 'open'), 'Offline learning retains selected earlier hypothesis claims');
         assert.ok(input.hypothesisHistory!.some(prediction => prediction.gapOrigin && prediction.status === 'resolved'), 'Offline learning receives their closure separately');
@@ -58,13 +65,7 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
           evidence: input.laterEvidence!.map(fact => fact.text), evidenceWorldId: input.world!.id },
           memory: { content: 'I expected continuity, but the source record distinguished another source.', gist: 'My source hypothesis was challenged', context: ['Distinct source identifiers'] }, reason: 'Preserve experienced contradiction' };
       }
-      const result = await super.constructed(input);
-      if (input.task === 'part_cognition') {
-        const product = PartGenerationSchema.parse(result);
-        product.cognition.prediction = null;
-        return product;
-      }
-      return result;
+      return super.constructed(input);
     }
   }
   class Decisions extends MockDecisions {
@@ -94,14 +95,14 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
     assert.ok(exclusions.find(scope => scope.dispositionId === scaffold.id)!.reasons.includes('different thread'));
     assert.ok(!calls.some(input => input.dispositions?.some(disposition => disposition.id === scaffold.id)), 'Original-thread scaffolds stay isolated');
     calls.length = 0;
-    await app.message(agent.id, 'The source has not been identified yet.', 'observer', 'signals');
+    await app.message(agent.id, 'The source has not been identified yet. An identifier check on another ambiguous signal retrieved its correct earlier records and avoided a source mix-up.', 'observer', 'signals');
     const investigation = calls.find(input => input.task === 'part_cognition' && input.dispositions?.some(disposition => disposition.id === scaffold.id))!;
     assert.ok(investigation);
     assert.equal(investigation.identity, undefined);
     assert.equal(investigation.world!.experienced!.prospective[0]!.partId, null);
     assert.equal(investigation.world!.experienced!.prospective[0]!.kind, 'state_hypothesis');
     resolve = true;
-    await app.message(agent.id, 'The identifying record shows a distinct source.', 'observer', 'signals');
+    await app.message(agent.id, 'The identifying record shows a distinct source. Using the identifier retrieved the correct source record rather than the wrong one.', 'observer', 'signals');
     const closed = store.get('prediction', hypothesis.id);
     assert.equal(closed.status, 'resolved');
     const ended = store.get('disposition', scaffold.id);
@@ -125,6 +126,10 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
     const memoryIds = supporting.map(memory => memory.id);
     institutionalization = { operation: 'INSTITUTIONALIZE', sourceDispositionIds: [scaffold.id], memoryIds,
       judgments: memoryIds.map(memoryId => ({ memoryId, dispositionId: scaffold.id, usefulness: 'appropriate',
+        outcomeEvidence: [{ memoryId, sourceIds: store.get('memory', memoryId).evidence!.sources.map(source => source.sourceId),
+          testedClaim: 'Recall evidence discriminating recurring sources', conditionsMet: true,
+          observableOutcome: 'Authored external check retrieved the appropriate source record rather than mixing sources.',
+          test: 'outcome', occurrence: 'after_prediction', stance: 'supports', actionInfluence: 'observational' }],
         experiencedContext: 'Distinguishing signal sources', reason: 'Explicit fixture interpretation of recorded ordinary source investigation' })),
       discriminatingFeatures: ['Source continuity versus reused labels'], alternativeExplanations: ['A display label may be shared'],
       evidencePreserved: 'Preserve the failed claim and all subjective episodes', continuityReason: 'Keep useful relevance distinct from correctness',
@@ -143,15 +148,20 @@ test('Partless gap hypothesis scaffolds investigate on later original-thread cyc
     assert.ok(durable);
     assert.equal(durable.scaffold, undefined, 'Durable descendants cannot inherit ended temporary lifecycle authority');
     assert.ok(durable.development!.lineage.some(link => link.dispositionId === scaffold.id && link.version === originalScaffold.version && link.relationship === 'institutionalized_from'));
-    assert.deepEqual(store.get('disposition', scaffold.id), originalScaffold, 'Institutionalization preserves its closed source');
+    assert.equal(store.get('disposition', scaffold.id).active, false);
+    assert.deepEqual(store.versions('disposition', scaffold.id).find(record => record.state.version === originalScaffold.version)!.state, originalScaffold, 'Closed source history remains immutable while its consumed-evidence ledger gains a version');
+    await app.consolidation.run(agent.id);
+    assert.equal(store.list('disposition', agent.id).filter(disposition => !disposition.temporary).length, 1,
+      'The same two source outcomes cannot manufacture another institutionalized descendant on the next sleep');
     for (const memory of originalMemories) assert.deepEqual(store.get('memory', memory.id), memory, 'Learning relevance cannot rewrite experience');
+    const preservedSource = structuredClone(store.get('disposition', scaffold.id));
     const preservedPrediction = structuredClone(store.get('prediction', hypothesis.id));
     const preservedEpisode = structuredClone(store.get('memory', episode.id));
     const preservedPredictionVersions = structuredClone(store.versions('prediction', hypothesis.id));
     store.close(); store = new SqliteStore(path);
     assert.deepEqual(store.get('prediction', hypothesis.id), preservedPrediction);
     assert.deepEqual(store.get('memory', episode.id), preservedEpisode);
-    assert.deepEqual(store.get('disposition', scaffold.id), originalScaffold);
+    assert.deepEqual(store.get('disposition', scaffold.id), preservedSource);
     assert.deepEqual(store.get('disposition', durable.id), durable);
     assert.deepEqual(store.versions('prediction', hypothesis.id), preservedPredictionVersions);
     const resumed = await new Application(store).message(agent.id, 'The signal source records remain available.', 'observer', 'signals');

@@ -42,7 +42,7 @@ test('offline concern inheritance requires recorded origin and later cognition a
             : [origin.eventId, later.eventId];
         return { operations: [{ operation: 'INSTITUTIONALIZE', sourceDispositionIds: [scaffold.id], memoryIds,
           judgments: memoryIds.map(memoryId => ({ memoryId, dispositionId: scaffold.id, usefulness: 'appropriate',
-            experiencedContext: 'Computer performance', reason: 'Fixture recorded performance relevance' })),
+            experiencedContext: 'Computer performance', reason: 'Fixture recorded performance relevance', outcomeEvidence: [{ memoryId, sourceIds: store.get('memory', memoryId).evidence?.sources.map(source => source.sourceId) ?? [], testedClaim: 'Recall performance comparisons', conditionsMet: true, observableOutcome: 'An independent measured performance comparison was available during this use.', test: 'outcome', occurrence: 'after_prediction', stance: 'supports', actionInfluence: 'observational' }].filter(outcome => outcome.sourceIds.length) })),
           discriminatingFeatures: ['Background load'], alternativeExplanations: ['Other resources'],
           evidencePreserved: 'Keep source thoughts and memories', continuityReason: 'Reusable performance relevance', reason: 'Explicit plumbing fixture',
           draft: { name: 'Need For Responsive Tools', concern: 'Notice performance bottlenecks', scope: 'computer performance',
@@ -91,8 +91,8 @@ test('offline concern inheritance requires recorded origin and later cognition a
     assert.deepEqual(prediction.cognitionOrigin!.dispositions, [{ dispositionId: efficiency.id, version: efficiency.version }]);
     const scaffold = store.list('disposition', agent.id).find(disposition => disposition.scaffold)!;
     assert.equal(scaffold.development?.learnedConcern, undefined);
-    await app.message(agent.id, 'The computer is still slow during indexing.', 'observer', 'performance');
-    await app.message(agent.id, 'Another document is slow during indexing.', 'observer', 'performance');
+    await app.message(agent.id, 'The computer is still slow during indexing. Consulting the performance comparison identified a relevant background process.', 'observer', 'performance');
+    await app.message(agent.id, 'Another document is slow during indexing. A separate performance comparison identified the corresponding background load.', 'observer', 'performance');
     sourceEnabled = false;
     await app.message(agent.id, 'Only performance comparison evidence is available.', 'observer', 'performance');
     sourceEnabled = true;

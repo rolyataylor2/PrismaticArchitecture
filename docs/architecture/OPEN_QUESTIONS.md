@@ -83,3 +83,7 @@ ADR 0123 adds independent JEV subjective-memory recall and selectable memory-bas
 ## Sleep historical evidence selection (ADR 0180)
 
 The initial policy uses bounded linked/recent same-thread subjective memory candidates and skips unchanged prediction/source fingerprints. Review budgets are experimentally adjustable. Whether this selection retrieves sufficiently old useful comparisons, and how alternative selection policies affect inference cost and learning quality, remain empirical questions. Historical support alone does not bypass existing ended-investigation/repeated-usefulness gates; no new retrospective evidence-count promotion threshold is established. No new trace store, metacognitive controller or extra activation pass is implied.
+
+## Independent evidence calibration (ADR 0181)
+
+The provenance and novelty boundaries are specified by ADR 0181. Empirical questions remain about contradiction retrieval under bounded search, recognizing differently worded reports of the same event, semantic condition/outcome classification, action-influenced causation and comparative-cost evidence. Configured-model comparisons must measure these limits; deterministic provenance gates do not establish psychological truth.

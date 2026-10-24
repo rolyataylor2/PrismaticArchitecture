@@ -5,15 +5,17 @@ import { SqliteStore } from '../../packages/storage/src/sqlite.js';
 import { Inspection } from '../../packages/core/src/inspection.js';
 import { ReconciliationOperationSchema } from '../../packages/core/src/disposition-reconciliation.js';
 import { commitReconciliation } from '../../packages/core/src/reconciliation-commit.js';
+import { MockDecisions, MockReasoning, MockEmbeddings } from '../../packages/providers/src/mock.js';
 import { api } from '../../packages/sdk/src/api.js';
 
 test('split, merge and archive retain lineage and subjective evidence transactionally', async () => {
   const store = new SqliteStore(':memory:');
   try {
-    const app = new Application(store); const agent = app.createAgent();
+    class Decisions extends MockDecisions { override async judge(input: Parameters<MockDecisions['judge']>[0]) { return input.task === 'disposition_activation' ? input.candidates.map(candidate => ({ partId: candidate.id, score: 4 })) : super.judge(input); } }
+    const app = new Application(store, { decisions: new Decisions(), reasoning: new MockReasoning(), embeddings: new MockEmbeddings() }); const agent = app.createAgent();
     for (const description of ['wet slope and stream', 'moist valley water', 'dry slope no water', 'dry basin no water'])
       await app.message(agent.id, description, 'observer', 'life');
-    const memories = store.list('memory', agent.id);
+    let memories = store.list('memory', agent.id);
     const memoryIds = memories.map(memory => memory.id);
     const episodes = memories.map(memory => ({ memoryId: memory.id, cycleId: memory.createdCycle, context: memory.context }));
     store.save('disposition', { id: 'terrain-parent', agentId: agent.id, version: 1, schemaVersion: 1,
@@ -24,7 +26,7 @@ test('split, merge and archive retain lineage and subjective evidence transactio
     const draft = (scope: string) => ({ name: 'Terrain concern', concern: 'Recall terrain searches', scope,
       activationCues: [{ text: scope, memoryIds }], contextCues: [], internalStateCues: [],
       retrievalIntent: 'Recall contextual searches', prerequisites: [], confidence: 'Tentative' });
-    const common = { memoryIds, discriminatingFeatures: ['wet versus dry'], alternativeExplanations: ['Changing water availability'],
+    const common = { confidenceEffect: 'refine', memoryIds, discriminatingFeatures: ['wet versus dry'], alternativeExplanations: ['Changing water availability'],
       evidencePreserved: 'Every earlier subjective episode', continuityReason: 'Preserved sources and versions', reason: 'Explicit fixture proposal' };
     const split = ReconciliationOperationSchema.parse({ ...common, operation: 'SPLIT', sourceDispositionIds: [parent.id],
       judgments: memories.map((memory, index) => ({ memoryId: memory.id, dispositionId: parent.id,
@@ -38,32 +40,36 @@ test('split, merge and archive retain lineage and subjective evidence transactio
       assert.deepEqual(child.development!.cueEvidence?.[0]?.memoryIds, memoryIds);
       assert.deepEqual(child.development!.lineage, [{ dispositionId: parent.id, version: parent.version, relationship: 'split_from' }]);
     }
-    const assess = ReconciliationOperationSchema.parse({ ...common, operation: 'ASSESS_HYPOTHESIS', sourceDispositionIds: [children[0]!.id],
+    const assess = ReconciliationOperationSchema.parse({ ...common, operation: 'ASSESS_HYPOTHESIS', confidenceEffect: 'strengthen', sourceDispositionIds: [children[0]!.id],
       status: 'established', confidence: 'Repeated later appropriate retrieval supports this distinction',
       judgments: memories.map(memory => ({ memoryId: memory.id, dispositionId: children[0]!.id,
         usefulness: 'appropriate', experiencedContext: 'terrain', reason: 'Fixture appropriate retrieval' })) });
     assert.deepEqual(commitReconciliation(store, new Inspection(store), agent.id, [assess], memories, { episodes, coactivations: [] }), []);
     const rejection = store.eventsByType(agent.id, ['disposition.reconciliation_rejected']).at(-1)!;
-    if (rejection.type === 'disposition.reconciliation_rejected') assert.match(rejection.payload.reason, /after hypothesis creation/);
+    if (rejection.type === 'disposition.reconciliation_rejected') assert.match(rejection.payload.reason, /new independent observable outcome/);
     const laterMemories = [];
     await new Promise(resolve => setTimeout(resolve, 2));
-    for (let index = 0; index < 2; index++) {
-      const cycle = store.startCycle(agent.id, 'life'); store.saveCycle({ ...cycle, status: 'completed' });
-      const memory = { ...memories[0]!, id: `prospective-${index}`, version: 1, createdCycle: cycle.id, ancestorIds: [],
-        predictionId: null, content: 'Another experienced terrain search', gist: 'Later terrain search' };
-      store.save('memory', memory, 0, { origin: 'seed', reason: 'Explicit prospective evidence fixture', sourceIds: [] });
-      laterMemories.push(memory);
+    for (let index = 0; index < 3; index++) {
+      const result = await app.message(agent.id, `A fresh wet terrain search ${index} confirmed water while dry terrain remained empty; checking the earlier context selected the matching record.`, 'observer', 'life');
+      const memory = store.list('memory', agent.id).find(memory => memory.createdCycle === result.cycle.id && memory.partId
+        && store.get('part', memory.partId).instance?.dispositionBindings?.some(binding => binding.dispositionId === children[0]!.id))!;
+      assert.ok(memory); laterMemories.push(memory);
     }
+    memories = memories.map(memory => store.get('memory', memory.id));
+    for (let index = 0; index < laterMemories.length; index++) laterMemories[index] = store.get('memory', laterMemories[index]!.id);
     if (assess.operation === 'ASSESS_HYPOTHESIS') {
       const laterAssessment = { ...assess, memoryIds: laterMemories.map(memory => memory.id),
-        judgments: laterMemories.map(memory => ({ ...assess.judgments[0]!, memoryId: memory.id })) };
+        judgments: laterMemories.map(memory => ({ ...assess.judgments[0]!, memoryId: memory.id, outcomeEvidence: [{ memoryId: memory.id, sourceIds: memory.evidence!.sources.map(source => source.sourceId), testedClaim: 'Recall contextual terrain searches', conditionsMet: true, observableOutcome: 'The independently supplied fresh check matched the relevant context.', test: 'outcome' as const, occurrence: 'after_prediction' as const, stance: 'supports' as const, actionInfluence: 'observational' as const }] })) };
       commitReconciliation(store, new Inspection(store), agent.id, [laterAssessment], laterMemories,
-        { episodes: laterMemories.map(memory => ({ memoryId: memory.id, cycleId: memory.createdCycle, context: memory.context })), coactivations: [] });
+        { episodes: laterMemories.map(memory => ({ memoryId: memory.id, cycleId: memory.createdCycle, context: memory.context })), coactivations: laterMemories.map(memory => ({ cycleId: memory.createdCycle, dispositionIds: [children[0]!.id], recalledMemoryIds: { [children[0]!.id]: [memory.id] }, experiencedMemoryIds: { [children[0]!.id]: [memory.id] } })) });
       assert.equal(store.get('disposition', children[0]!.id).development!.status, 'established');
       assert.deepEqual(store.get('disposition', children[0]!.id).cues, children[0]!.cues);
     }
-    const coactivations = episodes.slice(0, 3).map(episode => ({ cycleId: episode.cycleId,
-      dispositionIds: children.map(child => child.id), recalledMemoryIds: Object.fromEntries(children.map(child => [child.id, memoryIds])) }));
+    const coactivations = laterMemories.map(memory => {
+      const thoughts = store.eventsByType(agent.id, ['part.thought'], [memory.createdCycle]);
+      return { cycleId: memory.createdCycle, dispositionIds: children.map(child => child.id),
+        recalledMemoryIds: Object.fromEntries(children.map(child => [child.id, thoughts.flatMap(event => event.type === 'part.thought' && event.payload.partSnapshot.instance?.dispositionBindings?.some(binding => binding.dispositionId === child.id) ? event.payload.recalledMemoryIds ?? [] : [])])) };
+    });
     const merge = ReconciliationOperationSchema.parse({ ...common, operation: 'MERGE', sourceDispositionIds: children.map(child => child.id),
       judgments: children.flatMap(child => memories.map(memory => ({ memoryId: memory.id, dispositionId: child.id,
         usefulness: 'appropriate', experiencedContext: 'terrain', reason: 'Recorded overlap fixture' }))), draft: draft('terrain search') });

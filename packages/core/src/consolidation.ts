@@ -1,5 +1,5 @@
 import { captureSynthesisScopes, synthesizeScope } from './sleep-synthesis.js';
-import { selectSleepPredictionReviews, reviewSleepPrediction } from './sleep-prediction-review.js';
+import { selectSleepPredictionReviews, searchSleepPredictionEvidence, reviewSleepPrediction } from './sleep-prediction-review.js';
 import { SleepOptionsSchema, type SleepOptions } from './consolidation-domain.js';
 import { ConstructedCognition } from './constructed.js';
 import { freeze, id, now, type Memory } from './domain.js';
@@ -52,9 +52,11 @@ export class Consolidation {
           }
           this.store.saveConsolidation(run);
         }
-        for (const [index, review] of run.predictionReviews.entries()) {
+        for (const [index, candidate] of run.predictionReviews.entries()) {
+          let review = candidate;
           if (review.status !== 'pending') continue;
           try {
+            review = await searchSleepPredictionEvidence(this.store, this.constructed, review, settings.maxPredictionMemories);
             run.predictionReviews[index] = await reviewSleepPrediction(this.store, this.constructed, agentId, review, completed => {
               run.predictionReviews![index] = completed;
               this.store.saveConsolidation(run);

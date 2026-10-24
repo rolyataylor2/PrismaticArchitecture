@@ -92,12 +92,21 @@ export type PartDraft = z.infer<typeof PartDraftSchema>;
 export const PartPatchSchema = PartDraftSchema.omit({ provenance: true, lineage: true }).partial()
   .refine(patch => Object.keys(patch).length > 0, 'An explicit change is required');
 export type PartPatch = z.infer<typeof PartPatchSchema>;
+export const EvidenceCitationSchema = z.strictObject({ sourceId: Id, quote: Text });
+export const MemoryVersionRefSchema = z.strictObject({ memoryId: Id, version: z.number().int().positive() });
+export const ExperienceSourceSchema = z.strictObject({ sourceId: Id, experienceId: Id, cycleId: Id,
+  firstRecordedAt: Text, timestamp: z.iso.datetime().nullable().optional(), referenceId: Id.nullable().optional(), kind: z.enum(['says', 'observes', 'does']), source: Text, quote: Text });
+export const MemoryEvidenceSchema = z.strictObject({ sources: z.array(ExperienceSourceSchema).max(100),
+  parents: z.array(MemoryVersionRefSchema).max(200), dispositionIds: z.array(Id).max(100) });
+export const PredictionEvidenceOriginSchema = z.strictObject({ formedAt: Text, sequence: z.number().int().positive(),
+  knownExperienceIds: z.array(Id).max(10000), sourceIds: z.array(Id).max(10000), memories: z.array(MemoryVersionRefSchema).max(10000) });
 export const MemorySchema = z.strictObject({
   ...Version, partId: Id.nullable(), content: Text, gist: Text, context: z.array(Text), deleted: z.boolean().optional(),
   synthesis: z.strictObject({ dispositionId: Id, dispositionVersion: z.number().int().positive(), runId: Id, policy: SynthesisPolicySchema.optional(),
     detailDecisions: z.array(z.strictObject({ memoryId: Id, retainedMeaning: Text, omittedDetails: z.array(Text).max(30), reason: Text })).optional(),
     sources: z.array(z.strictObject({ memoryId: Id, version: z.number().int().positive() })).min(2), reason: Text }).optional(),
   ancestorIds: z.array(Id), predictionId: Id.nullable(), createdCycle: Id,
+  evidence: MemoryEvidenceSchema.optional(),
   selfAffectAtFormation: z.array(z.strictObject({ partId: Id, affect: z.string().max(4000) })).optional(),
   encoding: z.strictObject({ interpretation: Text, affect: z.string().max(4000),
     perceivedDetails: z.array(Text).max(30), prediction: Text.nullable(), outcome: Text.nullable() }).optional(),
@@ -111,7 +120,7 @@ export function memoryWithoutFormationAffect(memory: Memory): Memory {
 }
 /** Ordinary recall preserves subjective content; detailed traces require deliberate recollection. */
 export function ordinaryMemory(memory: Memory): Memory {
-  const ordinary = memoryWithoutFormationAffect(memory);
+  const { evidence: _sourceDetails, ...ordinary } = memoryWithoutFormationAffect(memory);
   return ordinary.encoding ? { ...ordinary, encoding: { ...ordinary.encoding, perceivedDetails: [] } } : ordinary;
 }
 /** Formation attribution is separate from explicit recall access. */
@@ -141,6 +150,8 @@ export type PredictionOutcome = z.infer<typeof PredictionOutcomeSchema>;
 export const EvaluationSchema = z.strictObject({
   assessment: z.enum(['confirmed', 'partly_confirmed', 'contradicted', 'ambiguous', 'invalidated', 'external_circumstances', 'not_testable', 'self_influenced', 'interrupted']),
   interpretation: Text, causalAttribution: Text, evidence: z.array(Text), evidenceWorldId: Id,
+  provenance: z.strictObject({ predictionVersion: z.number().int().positive(), sourceIds: z.array(Id),
+    experienceIds: z.array(Id), recordedAt: Text }).optional(),
 });
 export const DispositionVersionRefSchema = z.strictObject({ dispositionId: Id, version: z.number().int().positive() });
 export const PredictionCognitionOriginSchema = z.strictObject({ thoughtEventId: Id,
@@ -150,6 +161,7 @@ export const InheritedConcernDraftSchema = z.strictObject({ concern: Text, meani
 export const PredictionSchema = z.strictObject({
   ...Version, ...PredictionDraftSchema.shape, partId: Id.nullable(), createdCycle: Id,
   cognitionOrigin: PredictionCognitionOriginSchema.optional(),
+  evidenceOrigin: PredictionEvidenceOriginSchema.optional(),
   committedAfterSequence: z.number().int().positive().optional(),
   gapOrigin: z.strictObject({ threadId: Id.nullable(), gap: Text, consequentialValue: Text,
     futureInference: z.strictObject({ prediction: Text, retrieval: Text, causal: Text, action: Text, compression: Text }),
@@ -281,7 +293,7 @@ export const AffectDeliberationAnswerSchema = DeliberationAnswerSchema.safeExten
 export const PredictionUpdateSchema = z.strictObject({
   operation: z.enum(['continue', 'revise', 'resolve', 'abandon', 'expire', 'invalidate']),
   revision: PredictionDraftSchema.nullable(), evaluation: EvaluationSchema.nullable(),
-  memory: z.strictObject({ content: Text, gist: Text, context: z.array(Text) }).nullable(), mutation: PartPatchSchema.nullable(), reason: Text,
+  memory: z.strictObject({ content: Text, gist: Text, context: z.array(Text), evidenceCitations: z.array(EvidenceCitationSchema).max(100).optional() }).nullable(), mutation: PartPatchSchema.nullable(), reason: Text,
 });
 export type PredictionUpdate = z.infer<typeof PredictionUpdateSchema>;
 export const SpeechContextSchema = z.strictObject({
@@ -337,6 +349,8 @@ export const DispositionDraftSchema = z.strictObject({ name: Text, concern: Text
 /** Evidence is attributed experience, not an activation weight or world-truth assertion. */
 export const DispositionEvidenceSchema = z.strictObject({
   memoryId: Id, predictionId: Id.nullable(), cycleId: Id, threadId: Id.nullable(),
+  outcomeSources: z.array(z.strictObject({ memoryId: Id, version: z.number().int().positive(), sourceId: Id, experienceId: Id, firstRecordedAt: Text })).optional(),
+  confidenceEffect: z.enum(['strengthen', 'weaken', 'retain', 'refine']).optional(),
   dispositionVersion: z.number().int().positive().nullable(),
   relationship: z.enum(['supporting', 'contradictory', 'unclassified']),
   retrievalUsefulness: z.enum(['appropriate', 'misleading', 'unknown']),
@@ -352,6 +366,8 @@ export const DispositionDevelopmentSchema = z.strictObject({
     memoryIds: z.array(Id).min(1).max(100) })).max(90).optional(),
   status: z.enum(['provisional', 'established', 'dormant', 'archived']),
   confidence: Text,
+  usedExperienceIds: z.array(Id).max(10000).optional(),
+  evidenceBoundaryAt: z.iso.datetime().optional(),
   lineage: z.array(z.strictObject({ dispositionId: Id, version: z.number().int().positive(),
     relationship: z.enum(['specialized_from', 'generalized_from', 'split_from', 'merged_from', 'reconciled_to', 'institutionalized_from']) })).max(100),
   previousVersion: z.number().int().positive().nullable(),
@@ -383,7 +399,7 @@ export function freeze<T>(value: T): T {
 /** Learned psychology is ordinary context; its audit citations are not. */
 export function ordinaryDisposition(disposition: Disposition): Disposition {
   const { suppressedMemoryIds: _retrievalExclusions, longTermInterest: _long, shortTermInterest: _short, interestUpdatedAt: _clock, ...ordinary } = disposition;
-  if (!disposition.development?.concernInheritance) return ordinary;
-  const { concernInheritance: _audit, ...development } = disposition.development;
+  if (!disposition.development) return ordinary;
+  const { concernInheritance: _audit, usedExperienceIds: _evidenceLedger, evidenceBoundaryAt: _evidenceBoundary, ...development } = disposition.development;
   return { ...ordinary, development };
 }

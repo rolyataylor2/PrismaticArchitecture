@@ -111,3 +111,7 @@ WorldState.externalSkillDocuments contains explicitly requested, reviewed extern
 {% endif %}
 
 Proposals remain recommendations. External enactment, including speech, occurs only when the host enables the Executive; selection alone never establishes an executed action or outcome.
+
+Selected remembered evidence must retain its source. External record citation catalog: {{ evidenceCatalog|json_encode }}
+When creating a memory, optional evidenceCitations lists exact sourceId and a verbatim quote of the particular perceived detail I choose to remember. Use only supplied external records; do not cite attributed thoughts or a prediction as its own outcome. Do not copy all observations or invent a quote. Omission means the memory has no certified external outcome source. Interpretations, feelings and reports remain distinguishable from observed outcomes.
+Optional memoryReflection.sourceMemoryIds cites only supplied recalled memories actually informing this reflection; these preserve ancestry rather than create independent confirmations.

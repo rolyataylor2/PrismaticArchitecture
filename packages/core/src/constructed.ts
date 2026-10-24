@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { SleepPredictionReview } from './sleep-prediction-domain.js';
 import { SleepPredictionChronologySchema } from './sleep-prediction-domain.js';
 import { SynthesisPolicySchema } from './sleep-policy.js';
+import { captureMemoryEvidence, memoryEvidenceLineage } from './evidence-provenance.js';
 import { predictionTrajectories, PredictionTrajectorySchema } from './prediction-lineage.js';
 import { CoverageProductSchema } from './cognition-coverage.js';
 import { commitReconciliation } from './reconciliation-commit.js';
@@ -96,7 +97,7 @@ export class ConstructedCognition {
     if (input.learningTraces && task !== 'disposition_learning') throw new InfrastructureError(task, 'Learning traces are offline-only evidence');
     if (input.predictionReviews && !['disposition_learning', 'memory_reinterpretation'].includes(task)) throw new InfrastructureError(task, 'Sleep prediction evidence is offline learning input only');
     if (input.predictionReviewContext && task !== 'sleep_prediction_review') throw new InfrastructureError(task, 'Sleep evidence chronology is reserved for offline prediction review');
-    if (task === 'sleep_prediction_review' && (input.world || input.workingParts || input.identity || input.dispositionBindings || input.memory || input.question || input.predictions?.length !== 1))
+    if (task === 'sleep_prediction_review' && (input.world || input.workingParts || input.identity || input.dispositions || input.dispositionBindings || input.memory || input.question || input.predictions?.length !== 1))
       throw new InfrastructureError(task, 'Sleep review requires one prediction and selected subjective memories, never raw worlds or private state');
     if (task === 'experiential_formation' && (input.workingParts || input.identity || input.dispositionBindings || input.memory || input.question))
       throw new InfrastructureError(task, 'Experiential formation receives committed subjective memories and relevance structures only');
@@ -147,9 +148,10 @@ export class ConstructedCognition {
     if (inferenceSource) this.inferenceSources.set(result.data, inferenceSource);
     return result.data as z.infer<typeof constructedOutputs[T]>;
   }
-  private async judge(input: JudgmentInput) {
+  private async judge(input: JudgmentInput, offline = false) {
     if (!input.candidates.length) return [];
     const thresholds = input.task === 'disposition_activation' ? Object.fromEntries(input.candidates.map(candidate => [candidate.id, (candidate.context as { disposition: Disposition }).disposition.threshold])) : undefined;
+    const inspectionCycleId = offline ? null : input.world.cycleId;
     input = { ...input, candidates: input.candidates.map(candidate => {
       const context = candidate.context as { disposition?: Disposition };
       return context.disposition ? { ...candidate, context: { ...context, disposition: input.task === 'disposition_activation' ? activationDisposition(context.disposition) : ordinaryDisposition(context.disposition) } } : candidate;
@@ -157,13 +159,13 @@ export class ConstructedCognition {
     if (!this.decisions.judge) throw new InfrastructureError(input.task, 'Decision provider does not support constructed judgments');
     const judgeBatch = async (candidates: JudgmentInput['candidates']): Promise<z.infer<typeof ActivationScoreSchema>[]> => {
       const batch = freeze({ ...input, candidates });
-      const started = this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment_started', batch);
+      const started = this.inspection.emit(input.agentId, inspectionCycleId, 'construction.judgment_started', batch);
       let result: z.infer<typeof ActivationScoreSchema>[];
       try {
         const raw = await this.decisions.judge!(batch);
         const parsed = ActivationScoreSchema.array().safeParse(raw);
         if (!parsed.success) {
-          this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+          this.inspection.emit(input.agentId, inspectionCycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
             contract: 'ActivationScoreSchema[]', status: 'rejected', result: null,
             issues: parsed.error.issues.slice(0, 40).map(issue => ({ path: issue.path.join('.'), code: issue.code })) });
           throw parsed.error;
@@ -178,13 +180,13 @@ export class ConstructedCognition {
       const expected = new Set(batch.candidates.map(candidate => candidate.id));
       if (result.length !== expected.size || new Set(result.map(score => score.partId)).size !== expected.size
         || result.some(score => !expected.has(score.partId))) {
-        this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+        this.inspection.emit(input.agentId, inspectionCycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
           contract: 'independent candidate coverage', status: 'rejected', result: null, issues: [{ path: 'candidates', code: 'each_supplied_id_exactly_once' }] });
         throw new InfrastructureError(input.task, 'Every supplied candidate must be scored exactly once');
       }
-      this.inspection.emit(input.agentId, input.world.cycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
+      this.inspection.emit(input.agentId, inspectionCycleId, 'runtime.validation', { inputEventId: started.id, task: input.task,
         contract: 'ActivationScoreSchema[] + independent candidate coverage', status: 'accepted', result, issues: [] });
-      this.inspection.emit(input.agentId, input.world.cycleId, 'construction.judgment', { input: batch, scores: result, ...(thresholds ? { thresholds } : {}) });
+      this.inspection.emit(input.agentId, inspectionCycleId, 'construction.judgment', { input: batch, scores: result, ...(thresholds ? { thresholds } : {}) });
       return result;
     };
     const scores: z.infer<typeof ActivationScoreSchema>[] = [];
@@ -192,6 +194,20 @@ export class ConstructedCognition {
       scores.push(...await judgeBatch(input.candidates.slice(offset, offset + 100)));
     }
     return scores;
+  }
+  /** Existing accessibility scorer, queried offline without disposition-owned relevance or an experience. */
+  async searchPredictionEvidence(prediction: Prediction, memories: Memory[]) {
+    const queryWorld: WorldState = freeze({ id: `sleep_query_${prediction.id}`, cycleId: prediction.createdCycle,
+      agentId: prediction.agentId, sequence: prediction.evidenceOrigin?.sequence ?? 1, capturedAt: now(), facts: [], thoughtHistory: [] });
+    const modes = ['support', 'contradict', 'undetermined'] as const;
+    const candidates = modes.flatMap(mode => memories.map(memory => ({ id: `${mode}:${memory.id}`,
+      question: `How relevant is this episode to testing the prediction's conditions and outcomes for ${mode} evidence? Score independently 0–4; agreement or emotional congruence is not relevance.`,
+      context: { memory: memoryWithoutFormationAffect(memory), sleepEvidenceQuery: { mode,
+        expectation: prediction.expectation, conditions: prediction.conditions ?? [], kind: prediction.kind ?? null,
+        horizon: prediction.horizon, queryOnly: true } } })));
+    const scores = await this.judge({ task: 'memory_accessibility', agentId: prediction.agentId, world: queryWorld, candidates }, true);
+    return modes.flatMap(mode => memories.map(memory => ({ mode, memoryId: memory.id,
+      score: scores.find(score => score.partId === `${mode}:${memory.id}`)!.score })));
   }
   private retire(part: Part, world: WorldState, reason: string) {
     const current = this.store.get('part', part.id);
@@ -332,7 +348,7 @@ export class ConstructedCognition {
           this.store.save('memory', { ...memory, referencingPartIds: [...new Set([...(memory.referencingPartIds ?? (memory.partId ? [memory.partId] : [])), part.id])], version: memory.version + 1 }, memory.version,
             { origin: 'organic_cognition', reason: 'Assembled Part references its selected subjective evidence', sourceIds: [part.id, world.id] });
         }
-        this.commitReflection(part, world, product);
+        this.commitReflection(part, world, product, selected);
         return part;
       });
       onCompleted?.({ world, ...(threadId ? { threadId } : {}), memories: freeze([...selected]),
@@ -400,12 +416,17 @@ export class ConstructedCognition {
       parts, generatedCognition, recalledMemoryIds, dispositions: activeBindings.map(binding => binding.disposition),
       dispositionBindings: activeBindings.map(binding => ({ entityId: binding.entityId, dispositionId: binding.disposition.id })) };
   }
-  private commitReflection(part: Part, world: WorldState, product: z.infer<typeof PartGenerationSchema>) {
+  private commitReflection(part: Part, world: WorldState, product: z.infer<typeof PartGenerationSchema>, selected: Memory[]) {
     const reflection = product.memoryReflection;
     if (!reflection) return;
+    const parentIds = reflection.sourceMemoryIds ?? [];
+    if (new Set(parentIds).size !== parentIds.length || parentIds.some(memoryId => !selected.some(memory => memory.id === memoryId)))
+      throw new MutationValidationError('Reflection ancestry must cite supplied recalled memories');
     const memory = MemorySchema.parse({ id: id('memory'), agentId: world.agentId, version: 1, schemaVersion: 1,
       partId: part.id, content: reflection.content, gist: product.memoryGist, context: reflection.context,
       ancestorIds: [world.id], predictionId: null, createdCycle: world.cycleId, referencingPartIds: [part.id],
+      evidence: captureMemoryEvidence(this.store, world, reflection.evidenceCitations ?? [], selected.filter(memory => parentIds.includes(memory.id)),
+        part.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? []),
       ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
       encoding: { interpretation: reflection.interpretation, affect: reflection.affect, perceivedDetails: reflection.perceivedDetails,
         prediction: null, outcome: null } });
@@ -471,7 +492,7 @@ export class ConstructedCognition {
         ? [{ partId: event.payload.partId, dispositionIds: event.payload.partSnapshot.instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? [],
           interpretation: event.payload.output.interpretation, thought: event.payload.output.thought, proposal: event.payload.output.proposal }] : []),
     }));
-    const observations = { episodes: memories.map(memory => ({ memoryId: memory.id, cycleId: memory.createdCycle, context: memory.context })),
+    const observations = { episodes: memories.map(memory => { const lineage = memoryEvidenceLineage(this.store, memory); return { memoryId: memory.id, cycleId: memory.createdCycle, context: memory.context, experienceIds: [...lineage.experienceIds, ...lineage.legacyExperienceIds.filter(root => !root.startsWith('untraced:'))] }; }),
       coactivations: cycles.map(cycle => ({ cycleId: cycle.id,
         dispositionIds: learningTraces.find(trace => trace.cycleId === cycle.id)!.activations.filter(activation => activation.active).map(activation => activation.dispositionId),
         experiencedMemoryIds: Object.fromEntries(learningTraces.find(trace => trace.cycleId === cycle.id)!.activations.filter(activation => activation.active).map(activation => [activation.dispositionId,
@@ -505,7 +526,13 @@ export class ConstructedCognition {
         const original = memories.find(memory => memory.id === revision.memoryId)!;
         if (current.version !== original.version) throw new MutationValidationError('Memory reinterpretation evidence changed during inference');
         if (current.content === revision.content && current.gist === revision.gist) continue;
-        const next = MemorySchema.parse({ ...current, version: current.version + 1, content: revision.content, gist: revision.gist });
+        const addedParents = revision.supportingMemoryIds.filter(memoryId => memoryId !== current.id).map(memoryId => {
+          const source = memories.find(memory => memory.id === memoryId)!; return { memoryId, version: source.version };
+        });
+        const next = MemorySchema.parse({ ...current, version: current.version + 1, content: revision.content, gist: revision.gist,
+          ...(current.evidence || addedParents.length ? { evidence: { sources: current.evidence?.sources ?? [],
+            parents: [...new Map([{ memoryId: current.id, version: current.version }, ...addedParents].map(source => [`${source.memoryId}:${source.version}`, source])).values()],
+            dispositionIds: current.evidence?.dispositionIds ?? [] } } : {}) });
         this.store.save('memory', next, current.version, { origin: 'consolidation', reason: `${revision.reason} Continuity: ${revision.continuity}`, sourceIds: revision.supportingMemoryIds });
         this.inspection.emit(agentId, null, 'memory.reconsolidated', next);
       }

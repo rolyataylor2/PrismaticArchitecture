@@ -375,3 +375,7 @@ Four `need-development-` Simulation Tests compare an explicit bodily-continuity 
 ## Sleep prediction review and cognitive strategy experiments
 
 The consolidation API accepts `reviewPredictions` (default true), `maxPredictionReviews` (0–100, default 12) and `maxPredictionMemories` (1–100, default 40). These experimental limits bound offline inference; zero reviews defers work without declaring hypotheses false. Saved sleep options/results expose exact source versions and evidence relationships. Four registered `cognitive-strategy-*` Simulation Tests compare historical support/challenge, no feedback and disabled review using ordinary experiences and an explicitly authored effort concern. Fixtures leave semantic outcomes inconclusive and preserve source Agents; they do not force strategy predictions or learning.
+
+## Independent prediction evidence (ADR 0181)
+
+Sleep reconciles supporting, contradictory and undetermined remembered outcomes through the existing memory-accessibility scorer. Verified selected external excerpts retain original experience identity and exact memory ancestry. Historical interpretations can refine hypotheses; prospective validation and positive institutional confidence require new, appropriately timed independent outcomes. Revisions reset the claim boundary, replay cannot earn repeated credit, and action-influenced outcomes retain causal qualifications. Missing legacy provenance remains unknown. See [ADR 0181](../../docs/architecture/decisions/0181-independent-contradiction-aware-prediction-evidence.md).

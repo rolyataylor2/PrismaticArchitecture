@@ -59,8 +59,10 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     const reviewPredictions = checkbox('Review open predictions against recorded memories'); reviewPredictions.checked = priorPolicy?.reviewPredictions ?? true;
     const reviewLimit = input('Prediction reviews per sleep (0–100)', priorPolicy?.maxPredictionReviews ?? 12); reviewLimit.min = '0'; reviewLimit.max = '100';
     const memoryLimit = input('Memory candidates per prediction (1–100)', priorPolicy?.maxPredictionMemories ?? 40); memoryLimit.max = '100';
+    const searchLimit = input('Historical memories searched per prediction (1–1000)', priorPolicy?.maxPredictionSearchMemories ?? 200); searchLimit.max = '1000';
     form.append(el('p', 'Experimental defaults: 12 prediction reviews and 40 memory candidates each. Higher limits review more recorded evidence at greater inference cost; zero reviews defers work. Unchanged evidence is skipped. Historical support is distinct from forecasting success and does not by itself crystallize a disposition.', 'rd-caption'));
-    reviewPredictions.onchange = () => { reviewLimit.disabled = memoryLimit.disabled = !reviewPredictions.checked; };
+    form.append(el('p', 'Historical search defaults to 200 candidates, sampled across time without disposition preference. Independent support, contradiction and undetermined queries share the selected-memory budget. Larger searches cost more; omitted history remains an explicit limitation. Rewriting or repeatedly recalling one experience does not make more independent evidence.', 'rd-caption'));
+    reviewPredictions.onchange = () => { reviewLimit.disabled = memoryLimit.disabled = searchLimit.disabled = !reviewPredictions.checked; };
     reviewPredictions.onchange(new Event('change'));
     const replace = checkbox("Replace source memories in this disposition’s routine recall"); replace.disabled = true;
     const policyLabel = document.createElement('label'); policyLabel.textContent = 'Memory detail policy';
@@ -88,7 +90,7 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
       }
       busy = true; submit.disabled = true; render(); status.textContent = 'Sleep cycle in progress…';
       void options.api<ConsolidationRun>(`agents/${agentId}/consolidate`, 'POST', { fromCycle: start, toCycle: end, synthesizeMemories: synthesize.checked, replaceSourceMemories: replace.checked, detailPolicy: policy.value, synthesisInstructions: instructions.value,
-        reviewPredictions: reviewPredictions.checked, maxPredictionReviews: Number(reviewLimit.value), maxPredictionMemories: Number(memoryLimit.value) })
+        reviewPredictions: reviewPredictions.checked, maxPredictionReviews: Number(reviewLimit.value), maxPredictionMemories: Number(memoryLimit.value), maxPredictionSearchMemories: Number(searchLimit.value) })
         .then(async cycle => { selectedId = cycle.id; if (host.isConnected) await refresh(); dialog.close(); })
         .catch(async error => {
           status.textContent = error instanceof Error ? error.message : String(error);
@@ -149,11 +151,14 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
         const row = el('blockquote');
         row.append(el('strong', review.result?.relationship.replaceAll('_', ' ') ?? review.status),
           el('p', review.expectation ?? (prediction?.version === review.predictionVersion ? prediction.expectation : `Preserved prediction version ${review.predictionVersion}`)), el('p', review.reason));
+        if (review.lineage) row.append(el('p', `${review.newExperienceIds?.length ?? 0} newly reviewed experiences · ${review.reusedExperienceIds?.length ?? 0} reused experiences · ${review.independentOutcomeExperienceIds?.length ?? 0} new independent outcome tests`, 'rd-caption'));
+        if (review.search) row.append(el('p', `Search: ${review.search.candidateCount} of ${review.search.eligibleCount} available memories considered; ${review.search.omittedCount} omitted. Supporting, contrary and undetermined relevance were queried independently.`, 'rd-caption'));
         if (review.result) {
+          if (review.result.coverage) row.append(el('p', `Coverage: ${review.result.coverage.supportingMemoryIds.length} supporting · ${review.result.coverage.contradictingMemoryIds.length} contrary · ${review.result.coverage.undeterminedMemoryIds.length} undetermined`, 'rd-caption'), el('p', review.result.coverage.assessment));
           row.append(el('p', `Causal interpretation: ${review.result.causalAttribution}`), el('p', `Limits: ${review.result.limitations}`, 'rd-caption'));
           for (const source of review.result.evidence) {
             const memory = snapshot.memories.find(memory => memory.id === source.memoryId && memory.version === source.memoryVersion);
-            row.append(el('p', `${source.occurrence.replaceAll('_', ' ')} · ${source.basis} · ${memory?.gist ?? 'Historical source version; inspect record'}: ${source.explanation}`, 'rd-caption'));
+            row.append(el('p', `${source.occurrence.replaceAll('_', ' ')} · ${source.basis} · ${source.stance} · ${source.test} · ${source.actionInfluence.replaceAll('_', ' ')} · ${memory?.gist ?? 'Historical source version; inspect record'}: ${source.explanation}`, 'rd-caption'));
             action(row, `Read source memory · version ${source.memoryVersion}`, () => {
               void options.api<{ versions: { state: Memory }[] }>(`memories/${source.memoryId}`).then(record => {
                 if (!host.isConnected) return;

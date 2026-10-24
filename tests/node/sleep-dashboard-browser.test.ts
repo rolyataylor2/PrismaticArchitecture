@@ -14,6 +14,7 @@ import { createResearchServer } from '../../apps/server/src/server.js';
 class BrowserSynthesis extends MockReasoning {
   override async constructed(input: ConstructedInput): Promise<unknown> {
     if (input.task === 'sleep_prediction_review' && input.memories?.length) return { relationship: 'unverifiable',
+      coverage: { supportingMemoryIds: [], contradictingMemoryIds: [], undeterminedMemoryIds: input.memories.map(memory => memory.id), assessment: 'Browser fixture leaves all outcome tests undetermined.' },
       evidence: [{ memoryId: input.memories[0]!.id, memoryVersion: input.memories[0]!.version, occurrence: 'unknown', basis: 'reported', explanation: 'Authored source-link fixture; occurrence remains uncertain.' }],
       interpretation: 'I have not established whether this advice tests my expectation.', causalAttribution: 'Not established by this fixture.', limitations: 'Browser plumbing is not cognitive evidence.' };
     if (input.task === 'memory_synthesis' && (input.memories?.length ?? 0) >= 2) return { reason: 'Authored browser synthesis fixture', synthesis: {
@@ -73,6 +74,8 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     assert.equal(await dialog.getByLabel('Review open predictions against recorded memories').isChecked(), true);
     assert.equal(await dialog.getByLabel('Prediction reviews per sleep (0–100)').inputValue(), '12');
     assert.equal(await dialog.getByLabel('Memory candidates per prediction (1–100)').inputValue(), '40');
+    assert.equal(await dialog.getByLabel('Historical memories searched per prediction (1–1000)').inputValue(), '200');
+    await dialog.getByLabel('Historical memories searched per prediction (1–1000)').fill('80');
     await dialog.getByLabel('Prediction reviews per sleep (0–100)').fill('4');
     await dialog.getByLabel('Memory candidates per prediction (1–100)').fill('16');
     const detailPolicy = dialog.getByLabel('Memory detail policy');
@@ -107,6 +110,7 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await panel.getByRole('heading', { name: 'Disposition memory synthesis', exact: true }).waitFor();
     const synthesisRun = store.consolidations(agent.id).at(-1)!;
     assert.equal(synthesisRun.options?.synthesizeMemories, true); assert.equal(synthesisRun.options?.replaceSourceMemories, true);
+    assert.equal(synthesisRun.options?.maxPredictionSearchMemories, 80);
     assert.equal(synthesisRun.options?.maxPredictionReviews, 4); assert.equal(synthesisRun.options?.maxPredictionMemories, 16);
     assert.equal(synthesisRun.options?.detailPolicy, 'trace_belief_changes');
     assert.equal(synthesisRun.options?.synthesisInstructions, 'Keep what changed my belief; omit irrelevant personal details.');
@@ -117,9 +121,10 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await panel.getByText('What was retained or left out', { exact: true }).click();
     assert.ok((await panel.innerText()).includes('Left out for this perspective: Incidental wording'));
     assert.ok((await panel.innerText()).includes('Remember Helpful Advice'));
-    await panel.getByRole('button', { name: 'Read source memory · version 1', exact: true }).first().click();
+    const citedVersion = synthesisRun.predictionReviews![0]!.result!.evidence[0]!.memoryVersion;
+    await panel.getByRole('button', { name: `Read source memory · version ${citedVersion}`, exact: true }).first().click();
     const sourceDialog = page.getByRole('dialog', { name: 'Prediction source memory', exact: true });
-    await sourceDialog.getByText('Recorded source version 1', { exact: true }).waitFor();
+    await sourceDialog.getByText(`Recorded source version ${citedVersion}`, { exact: true }).waitFor();
     await sourceDialog.getByRole('button', { name: 'Close', exact: true }).click();
     const evidence = JSON.stringify(store.consolidations(agent.id));
     await panel.getByRole('button', { name: 'Original sleep record', exact: true }).click();

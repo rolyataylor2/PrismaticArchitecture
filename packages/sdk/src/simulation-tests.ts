@@ -17,6 +17,7 @@ import { gauntletSimulations } from './gauntlet-simulations.js';
 import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
 import { predictionScaffoldSimulations } from './prediction-scaffold-simulations.js';
 import { cognitiveStrategySimulations } from './cognitive-strategy-simulations.js';
+import { independentEvidenceSimulations } from './independent-evidence-simulations.js';
 import { Application } from './application.js';
 import { conversationStarters } from './conversation-starters.js';
 import { fileURLToPath } from 'node:url';
@@ -250,6 +251,7 @@ export const simulationTests: SimulationTestDefinition[] = [
   })),
   ...predictionScaffoldSimulations,
   ...cognitiveStrategySimulations,
+  ...independentEvidenceSimulations,
   ...affectSimulations,
   ...concernInheritanceSimulations,
   ...gauntletSimulations,

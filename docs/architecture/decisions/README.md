@@ -124,3 +124,5 @@ ADR 0177 adds explicit source-attributed SDK and Simulation Test Identity initia
 - [0179 — Memory-inferred Part beliefs](0179-memory-inferred-part-beliefs.md)
 
 - [0180 — Sleep prediction evidence reconciliation](0180-sleep-prediction-evidence-reconciliation.md)
+
+- [0181 — Independent, contradiction-aware prediction evidence](0181-independent-contradiction-aware-prediction-evidence.md)

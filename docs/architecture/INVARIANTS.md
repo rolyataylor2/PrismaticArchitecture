@@ -394,3 +394,7 @@ Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.m
 ## Historical prediction evidence (ADR 0180)
 
 Sleep prediction review uses recorded subjective memories, never routine raw-world archive replay or invented private state. Retrospective support is distinct from prospective success; the write time of a later report cannot establish when its reported event occurred. Counterfactual benefits remain hypotheses. Review does not bypass ordinary usefulness, lifecycle or institutionalization gates. Cognitive-strategy predictions use ordinary dispositions without privileged metacognitive authority. See [ADR 0180](decisions/0180-sleep-prediction-evidence-reconciliation.md).
+
+## Independent prediction evidence (ADR 0181)
+
+Prediction evidence is grouped by underlying experience, not memory count or reinterpretation. Historical sources cannot become prospective through rewriting or recollection. Sleep searches for contrary and indeterminate outcomes independently of a disposition’s relevance preferences. New evidential confidence requires new independent outcome evidence; subjective conviction remains distinct. See [ADR 0181](decisions/0181-independent-contradiction-aware-prediction-evidence.md).

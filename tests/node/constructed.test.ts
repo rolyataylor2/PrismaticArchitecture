@@ -115,7 +115,7 @@ test('failed prediction episodes support higher-order formation and conservative
       assert.equal(prediction.evaluation!.assessment, 'contradicted');
       const existing = input.dispositions![0]!;
       const memoryIds = input.memories!.map(memory => memory.id);
-      return { operations: [{ operation: 'SPECIALIZE', sourceDispositionIds: [existing.id], memoryIds,
+      return { operations: [{ operation: 'SPECIALIZE', confidenceEffect: 'refine', sourceDispositionIds: [existing.id], memoryIds,
         judgments: memoryIds.map(memoryId => ({ memoryId, dispositionId: existing.id, usefulness: 'appropriate',
           experiencedContext: 'Negotiation', reason: 'Relevant recalled disagreement' })),
         discriminatingFeatures: ['Acknowledged prior contribution'], alternativeExplanations: ['Scheduling concern remains'],
@@ -487,7 +487,7 @@ test('consolidation versions a durable sensitivity from sufficient nonprediction
       if (input.task === 'disposition_learning') {
         const existing = input.dispositions![0]!;
         const memoryIds = input.memories!.map(memory => memory.id);
-        return { operations: [{ operation: 'SPECIALIZE', sourceDispositionIds: [existing.id], memoryIds,
+        return { operations: [{ operation: 'SPECIALIZE', confidenceEffect: 'refine', sourceDispositionIds: [existing.id], memoryIds,
           judgments: memoryIds.map(memoryId => ({ memoryId, dispositionId: existing.id, usefulness: 'appropriate',
             experiencedContext: 'Friendly dog', reason: 'A lived pleasant encounter' })),
           discriminatingFeatures: ['Friendly play'], alternativeExplanations: [], evidencePreserved: 'Prior dog experiences',

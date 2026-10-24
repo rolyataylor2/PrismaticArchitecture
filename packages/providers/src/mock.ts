@@ -1,4 +1,5 @@
 import type { ConstructedInput, PartFormationSchema } from '../../core/src/constructed-domain.js';
+import { evidenceCatalog } from '../../core/src/evidence-provenance.js';
 import type { z } from 'zod';
 import { scoreSelf } from '../../core/src/self-scoring.js';
 import { scoreAffect } from '../../core/src/affect-scoring.js';
@@ -186,7 +187,7 @@ export class MockReasoning implements ReasoningProvider {
         concern: disposition?.concern ?? current };
       return this.generatePart(input, construction);
     }
-    if (input.task === 'sleep_prediction_review') return { relationship: 'unverifiable', evidence: [], interpretation: 'I have no established test in this deterministic fixture.', causalAttribution: 'Not established.', limitations: 'Mock evidence plumbing; not an observation of cognitive learning.' };
+    if (input.task === 'sleep_prediction_review') return { relationship: 'unverifiable', evidence: [], coverage: { supportingMemoryIds: [], contradictingMemoryIds: [], undeterminedMemoryIds: (input.memories ?? []).map(memory => memory.id), assessment: 'Deterministic fixture does not establish outcome evidence.' }, interpretation: 'I have no established test in this deterministic fixture.', causalAttribution: 'Not established.', limitations: 'Mock evidence plumbing; not an observation of cognitive learning.' };
     if (input.task === 'hypothesis_reflection') return { operation: 'resolve', evaluation: {
       assessment: input.outcome === 'correct' ? 'confirmed' : 'contradicted',
       interpretation: 'Fixture records the bounded outcome without interpreting psychological meaning.',
@@ -225,6 +226,7 @@ export class MockReasoning implements ReasoningProvider {
     const current = world.facts.filter(fact => fact.originCycleId === world.cycleId).map(fact => fact.text).join(' ') || world.facts.at(-1)?.text || 'No current observation';
     return { formation: construction,
       memoryReflection: { content: `I experienced ${current}. ${construction.interpretation}. I remain uncertain about what this means.`,
+        evidenceCitations: evidenceCatalog(world).filter(source => source.cycleId === world.cycleId).slice(0, 1).map(source => ({ sourceId: source.sourceId, quote: source.text })),
         context: [current], interpretation: construction.interpretation, affect: construction.affect, perceivedDetails: [current] },
       memoryGist: current,
       cognition: await this.cognize(context) };

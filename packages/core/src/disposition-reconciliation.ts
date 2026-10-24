@@ -4,8 +4,15 @@ import { ProvisionalRelevanceSchema } from './experiential-formation.js';
 
 export const RetrievalJudgmentSchema = z.strictObject({ memoryId: Id, dispositionId: Id,
   usefulness: z.enum(['appropriate', 'misleading', 'unknown']), experiencedContext: Text,
-  reason: Text });
+  reason: Text,
+  outcomeEvidence: z.array(z.strictObject({ memoryId: Id, sourceIds: z.array(Id).min(1).max(100),
+    testedClaim: Text, conditionsMet: z.boolean(), observableOutcome: Text,
+    test: z.enum(['outcome', 'interpretation', 'report', 'counterfactual', 'untested']).optional(),
+    occurrence: z.enum(['before_prediction', 'after_prediction', 'unknown']).optional(),
+    stance: z.enum(['supports', 'contradicts', 'undetermined']).optional(),
+    actionInfluence: z.enum(['observational', 'action_conditioned', 'self_influenced', 'unknown']) })).max(100).optional() });
 const StructuralEvidence = {
+  confidenceEffect: z.enum(['strengthen', 'weaken', 'retain', 'refine']).optional(),
   sourceDispositionIds: z.array(Id).min(1).max(12),
   memoryIds: z.array(Id).min(1).max(100),
   judgments: z.array(RetrievalJudgmentSchema).min(1).max(100),
@@ -40,7 +47,7 @@ export const ReconciliationPolicySchema = z.strictObject({
 });
 
 export type ReconciliationObservations = {
-  episodes: { memoryId: string; cycleId: string; context: string[] }[];
+  episodes: { memoryId: string; cycleId: string; context: string[]; experienceIds?: string[] }[];
   coactivations: { cycleId: string; dispositionIds: string[]; recalledMemoryIds: Record<string, string[]>; experiencedMemoryIds?: Record<string, string[]> }[];
 };
 
@@ -51,7 +58,7 @@ export function validateReconciliationEvidence(operation: ReconciliationOperatio
   policy = ReconciliationPolicySchema.parse({})) {
   if (operation.operation === 'NO_CHANGE' || operation.operation === 'INSUFFICIENT_EVIDENCE') return;
   const episodes = observations.episodes.filter(episode => operation.memoryIds.includes(episode.memoryId));
-  const count = new Set(episodes.map(episode => episode.cycleId)).size;
+  const count = new Set(episodes.flatMap(episode => episode.experienceIds ?? [episode.cycleId])).size;
   if (episodes.length !== operation.memoryIds.length) throw new ReconciliationRejectedError('Missing recorded reconciliation episodes');
   if (operation.operation === 'INSTITUTIONALIZE') {
     const appropriate = operation.judgments.filter(judgment => judgment.usefulness === 'appropriate');
@@ -62,7 +69,7 @@ export function validateReconciliationEvidence(operation: ReconciliationOperatio
         record.dispositionIds.includes(source) && [...(record.recalledMemoryIds[source] ?? []), ...(record.experiencedMemoryIds?.[source] ?? [])].includes(judgment.memoryId)))))
       throw new ReconciliationRejectedError('Institutionalization requires repeated recorded ordinary-use evidence, not prediction correctness alone');
   }
-  if (operation.operation === 'ASSESS_HYPOTHESIS' && (count < policy.specializationEpisodes
+  if (operation.operation === 'ASSESS_HYPOTHESIS' && operation.confidenceEffect !== 'weaken' && (count < policy.specializationEpisodes
     || (operation.status === 'established' && operation.judgments.some(judgment => judgment.usefulness !== 'appropriate'))))
     throw new ReconciliationRejectedError('Hypothesis assessment requires repeated retrieval evidence; establishment requires appropriate recall');
   if (operation.operation === 'SPECIALIZE' && count < policy.specializationEpisodes) throw new ReconciliationRejectedError('Specialization requires repeated experience');
@@ -75,7 +82,7 @@ export function validateReconciliationEvidence(operation: ReconciliationOperatio
   if (operation.operation === 'SPLIT') {
     for (const usefulness of ['appropriate', 'misleading']) {
       const ids = new Set(operation.judgments.filter(judgment => judgment.usefulness === usefulness).map(judgment => judgment.memoryId));
-      if (new Set(episodes.filter(episode => ids.has(episode.memoryId)).map(episode => episode.cycleId)).size < policy.splitEpisodesPerCluster)
+      if (new Set(episodes.filter(episode => ids.has(episode.memoryId)).flatMap(episode => episode.experienceIds ?? [episode.cycleId])).size < policy.splitEpisodesPerCluster)
         throw new ReconciliationRejectedError('Split requires repeated appropriate and misleading retrieval clusters');
     }
     if (!operation.discriminatingFeatures.length) throw new ReconciliationRejectedError('Split requires an experienced contextual distinction');

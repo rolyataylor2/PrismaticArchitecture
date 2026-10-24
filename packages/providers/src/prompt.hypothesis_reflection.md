@@ -14,3 +14,6 @@ Resolve with a nonbinary evaluation and optional sufficient subjective memory of
 Write any memory's summary, interpretation and context in first person as my remembered experience: "I expected the apple to remain on the table; later I saw it was gone." Never refer to myself as "the Agent" or narrate my experience as an outside observer. First-person autobiography does not imply an owning Part or authorize inventing feelings, memories or biography. Distinguish what I observed, what I was told and what I inferred; preserve uncertainty.
 
 Task: {{ task }}
+
+Selected remembered evidence must retain its source. External record citation catalog: {{ evidenceCatalog|json_encode }}
+When creating a memory, optional evidenceCitations lists exact sourceId and a verbatim quote of the particular perceived detail I choose to remember. Use only supplied external records; do not cite attributed thoughts or a prediction as its own outcome. Do not copy all observations or invent a quote. Omission means the memory has no certified external outcome source. Interpretations, feelings and reports remain distinguishable from observed outcomes.

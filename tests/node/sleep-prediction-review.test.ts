@@ -12,6 +12,7 @@ import { validateSleepPredictionEvidence, selectSleepPredictionReviews } from '.
 import { SleepPredictionEvidenceSchema, SleepPredictionPolicySchema, type SleepPredictionEvidence } from '../../packages/core/src/sleep-prediction-domain.js';
 import { previewPrompt } from '../../packages/sdk/src/prompt-preview.js';
 import { prompts } from '../../packages/providers/src/prompts.js';
+import { evidenceCatalog } from '../../packages/core/src/evidence-provenance.js';
 
 class Fixture extends MockReasoning {
   inputs: ConstructedInput[] = [];
@@ -22,12 +23,20 @@ class Fixture extends MockReasoning {
     if (input.task === 'sleep_prediction_review' && this.failReview) throw new Error('Explicit sleep review provider outage');
     if (input.task === 'part_cognition') return { ...await super.constructed(input) as object,
       memoryReflection: { content: 'I was told that recalling a location had helped earlier.', context: ['Attributed report, not my recovered observation.'],
+        evidenceCitations: evidenceCatalog(input.world!).filter(source => source.cycleId === input.world!.cycleId).slice(0, 1).map(source => ({ sourceId: source.sourceId, quote: source.text })),
         interpretation: 'I might try recalling useful locations.', affect: '', perceivedDetails: [] }, memoryGist: 'I heard about useful location recall.' };
-    if (input.task === 'sleep_prediction_review') return { relationship: this.relationship,
-      evidence: [{ memoryId: input.memories![0]!.id, memoryVersion: input.memories![0]!.version,
+    if (input.task === 'sleep_prediction_review') {
+      const memory = ['validated', 'invalidated'].includes(this.relationship) ? input.memories!.slice().sort((a,b) => (b.evidence?.sources[0]?.firstRecordedAt ?? '').localeCompare(a.evidence?.sources[0]?.firstRecordedAt ?? ''))[0]! : input.memories![0]!;
+      return { relationship: this.relationship,
+      coverage: { supportingMemoryIds: this.relationship === 'invalidated' ? [] : input.memories!.map(memory => memory.id),
+        contradictingMemoryIds: this.relationship === 'invalidated' ? input.memories!.map(memory => memory.id) : [], undeterminedMemoryIds: [], assessment: 'Explicit deterministic coverage fixture, not a semantic conclusion.' },
+      evidence: [{ memoryId: memory.id, memoryVersion: memory.version,
+        testedClaim: input.predictions![0]!.expectation, stance: this.relationship === 'invalidated' ? 'contradicts' : 'supports', test: 'outcome', conditions: 'met', actionInfluence: 'observational',
+        outcomeSourceIds: memory.evidence?.sources.map(source => source.sourceId) ?? [],
         occurrence: ['validated', 'invalidated'].includes(this.relationship) ? 'after_prediction' : 'before_prediction',
         basis: ['validated', 'invalidated'].includes(this.relationship) ? 'experienced' : 'reported', explanation: 'Explicit deterministic evidence fixture, not an inferred cognitive benefit.' }],
       interpretation: 'I have historical support, not a successful forecast.', causalAttribution: 'The reported comparison is uncertain.', limitations: 'I have not tested the strategy prospectively.' };
+    }
     return super.constructed(input);
   }
 }
@@ -64,13 +73,13 @@ test('sleep reviews historical subjective evidence, persists citations, skips un
     await assert.rejects(app.runtime.constructed.infer('sleep_prediction_review', { ...reviewContext, world: store.world(cycle.worldId) }), /cannot receive WorldState/);
     await assert.rejects(app.runtime.constructed.infer('sleep_prediction_review', { ...reviewContext, identity: store.get('identity', agent.id) }), /never raw worlds or private state/);
     const preview = previewPrompt(store, agent.id, 'sleep_prediction_review', prompts.sleep_prediction_review.text);
-    assert.ok(preview.text.includes('recording order is not necessarily event occurrence'));
+    assert.ok(preview.text.includes('Original exposure, versioned ancestry'));
     assert.equal(reasoning.inputs.find(input => input.task === 'disposition_learning')?.predictionReviews?.[0]?.result?.relationship, 'retrospectively_supported');
     const second = await app.consolidation.run(agent.id);
     assert.equal(second.predictionReviews?.[0]?.status, 'unchanged');
     assert.equal(reasoning.inputs.filter(input => input.task === 'sleep_prediction_review').length, 1);
     await app.message(agent.id, 'An unrelated conversation supplies no resource evidence.', 'observer', 'other');
-    const bounded = selectSleepPredictionReviews(store, agent.id, [cycle.id], SleepPredictionPolicySchema.parse({ maxPredictionMemories: 1 }));
+    const bounded = selectSleepPredictionReviews(store, agent.id, [cycle.id], SleepPredictionPolicySchema.parse({ maxPredictionMemories: 1, maxPredictionSearchMemories: 1 }));
     assert.ok(bounded.every(review => review.sourceMemories.length <= 1));
     assert.ok(bounded.every(review => review.sourceMemories.every(source => store.cycle(store.get('memory', source.memoryId).createdCycle).threadId === 'resources')));
     store.save('prediction', { ...prediction, version: 2, expectation: 'Revised recall strategy requires another review.' }, 1,
@@ -92,7 +101,7 @@ test('sleep reviews historical subjective evidence, persists citations, skips un
         scaffold: { createdCycle: cycle.id, threadId: 'resources', hypothesisVersion: 1, relevance, endedCycle: null, endReason: null } },
       0, { origin: 'seed', reason: 'Temporary lifecycle fixture', sourceIds: [subject.id] });
       await app.message(agent.id, `Later test experience for ${relationship}.`, 'observer', 'resources');
-      const closed = await app.consolidation.run(agent.id);
+      const closed = await app.consolidation.run(agent.id, store.cycles(agent.id).at(-1)!.sequence);
       assert.equal(closed.status, 'completed');
       assert.equal(store.get('prediction', subject.id).status, relationship === 'obsolete' ? 'invalidated' : 'resolved');
       assert.equal(store.get('disposition', `scope-${relationship}`).active, false);

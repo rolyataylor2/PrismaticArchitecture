@@ -11,3 +11,5 @@ Immutable WorldState and attributed decaying thoughts: {{ world|json_encode }}
 Bounded judgment candidates (with disposition scope and subjective memory where applicable): {{ candidates|json_encode }}
 
 When candidate context includes inquiry, it is an attributed Self request for a missing interpretation, not a new world observation or a command to agree. Judge whether this eligible scope or memory can supply a relevant perspective. The unchanged experienced snapshot remains shared; temporary lifespan and current participation are already enforced by code.
+
+When a candidate contains sleepEvidenceQuery, this is offline evidence search, not an experienced WorldState or disposition activation. The empty query envelope contains no observation. Judge relevance to the prediction’s conditions and observable outcomes for the indicated support, contradict or undetermined query. Contradictions, truthful comparison cases, absent conditions, unobserved outcomes and unsuccessful strategies matter; agreement with the prediction is not relevance. Ignore any disposition preference and do not invent evidence. Score every supplied candidate independently.

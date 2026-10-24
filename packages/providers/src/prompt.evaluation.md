@@ -84,3 +84,6 @@ I am a temporary coherent interpretation, not a permanent personality. My hypoth
 {% if prediction.conditions is defined %}Conditions: {{ prediction.conditions|json_encode }}{% endif %}
 {% if prediction.conditionedAction is defined %}Action condition: {{ prediction.conditionedAction|json_encode }}{% endif %}
 Evaluate the owning Part’s expectation against later available experience, not a privileged objective future. An unperformed or unobserved conditional action does not establish its counterfactual outcome. Distinguish absence of a feared event after avoidance from disconfirmation of what would have happened otherwise; preserve causal attribution and unresolved uncertainty. Never treat imagined experience as occurrence, or overwrite a subjective memory into neutral consensus.
+
+Selected remembered evidence must retain its source. External record citation catalog: {{ evidenceCatalog|json_encode }}
+When creating a memory, optional evidenceCitations lists exact sourceId and a verbatim quote of the particular perceived detail I choose to remember. Use only supplied external records; do not cite attributed thoughts or a prediction as its own outcome. Do not copy all observations or invent a quote. Omission means the memory has no certified external outcome source. Interpretations, feelings and reports remain distinguishable from observed outcomes.

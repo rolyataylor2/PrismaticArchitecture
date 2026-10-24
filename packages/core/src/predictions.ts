@@ -1,4 +1,5 @@
 import { thoughtDispositionVersions } from './prediction-lineage.js';
+import { captureMemoryEvidence, predictionEvidenceOrigin, evidenceCatalog } from './evidence-provenance.js';
 import type { z } from 'zod';
 import {
   id, now, DispositionSchema, MemorySchema, PredictionDraftSchema, PredictionSchema, PredictionUpdateSchema,
@@ -47,6 +48,8 @@ export class Predictions {
     return this.commitFormation(prediction, world);
   }
   private commitFormation(prediction: Prediction, world: WorldState): Prediction {
+    prediction = { ...prediction, evidenceOrigin: predictionEvidenceOrigin(this.store, world,
+      prediction.partId ? this.store.get('part', prediction.partId).instance?.evidenceMemoryIds ?? [] : []) };
     const threadId = this.store.cycle(world.cycleId).threadId;
     const frontier = Math.max(world.sequence, ...this.store.cycles(world.agentId)
       .filter(cycle => cycle.threadId === threadId && cycle.status !== 'failed').map(cycle => cycle.sequence));
@@ -75,8 +78,11 @@ export class Predictions {
       }
   }
   encode(partId: string, world: WorldState, draft: NonNullable<PredictionUpdate['memory']>, predictionId: string | null = null, ancestorIds = [world.id]): Memory {
-    const memory = MemorySchema.parse({ ...draft, id: id('memory'), agentId: world.agentId, partId,
+    const { evidenceCitations, ...episode } = draft;
+    const memory = MemorySchema.parse({ ...episode, id: id('memory'), agentId: world.agentId, partId,
       version: 1, schemaVersion: 1, ancestorIds, predictionId, createdCycle: world.cycleId,
+      evidence: captureMemoryEvidence(this.store, world, evidenceCitations ?? [], [],
+        this.store.get('part', partId).instance?.dispositionBindings?.map(binding => binding.dispositionId) ?? []),
       ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
       ...(this.store.get('part', partId).instance ? { encoding: {
         interpretation: this.store.get('part', partId).instance!.interpretation,
@@ -92,7 +98,9 @@ export class Predictions {
     return memory;
   }
   private encodeGap(prediction: Prediction, world: WorldState, draft: NonNullable<PredictionUpdate['memory']>): Memory {
-    const memory = MemorySchema.parse({ ...draft, id: id('memory'), agentId: world.agentId, partId: null,
+    const { evidenceCitations, ...episode } = draft;
+    const memory = MemorySchema.parse({ ...episode, id: id('memory'), agentId: world.agentId, partId: null,
+      evidence: captureMemoryEvidence(this.store, world, evidenceCitations ?? [], []),
       referencingPartIds: [], version: 1, schemaVersion: 1, ancestorIds: this.outcomeAncestors(prediction, world),
       predictionId: prediction.id, createdCycle: world.cycleId,
       ...(world.experienced ? { selfAffectAtFormation: world.experienced.posture.map(({ partId, affect }) => ({ partId, affect })) } : {}),
@@ -137,8 +145,19 @@ export class Predictions {
       const memory = validated.memory ? prediction.partId
         ? this.encode(prediction.partId, world, validated.memory, prediction.id, this.outcomeAncestors(prediction, world))
         : this.encodeGap(prediction, world, validated.memory) : null;
+      const sequenceById = new Map(this.store.cycles(world.agentId).map(cycle => [cycle.id, cycle.sequence]));
+      const evidenceFrontier = prediction.committedAfterSequence ?? prediction.evidenceOrigin?.sequence ?? this.store.cycle(prediction.createdCycle).sequence;
+      const outcomeSources = evidenceCatalog(world).filter(source => (sequenceById.get(source.cycleId) ?? 0) > evidenceFrontier
+        && (!prediction.evidenceOrigin || !source.timestamp || source.timestamp >= prediction.evidenceOrigin.formedAt));
       const next = PredictionSchema.parse({ ...prediction, ...(validated.revision ?? {}), version: prediction.version + 1,
-        status: statuses[validated.operation], evaluation: validated.evaluation ?? prediction.evaluation, memoryId: memory?.id ?? prediction.memoryId });
+        ...(validated.operation === 'revise' ? { evidenceOrigin: predictionEvidenceOrigin(this.store, world,
+          prediction.partId ? this.store.get('part', prediction.partId).instance?.evidenceMemoryIds ?? [] : []),
+          committedAfterSequence: Math.max(world.sequence, prediction.committedAfterSequence ?? 0,
+            ...this.store.cycles(world.agentId).filter(cycle => cycle.status !== 'failed' && cycle.threadId === this.store.cycle(world.cycleId).threadId).map(cycle => cycle.sequence)) } : {}),
+        status: statuses[validated.operation], evaluation: validated.operation === 'revise' ? null : validated.evaluation ? { ...validated.evaluation,
+          provenance: { predictionVersion: prediction.version, sourceIds: outcomeSources.map(source => source.sourceId),
+            experienceIds: [...new Set(outcomeSources.map(source => source.experienceId))], recordedAt: now() } } : prediction.evaluation,
+        memoryId: validated.operation === 'revise' ? null : memory?.id ?? prediction.memoryId });
       this.store.save('prediction', next, prediction.version, { origin: 'prediction_evaluation', reason: validated.reason, sourceIds: [world.id] });
       if (next.status !== 'open' || validated.operation === 'revise') {
         for (const current of this.store.list('disposition', world.agentId).filter(disposition => disposition.temporary

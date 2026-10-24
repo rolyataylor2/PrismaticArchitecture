@@ -249,3 +249,7 @@ ADR [0168](decisions/0168-retire-legacy-prediction-attention.md) removes legacy 
 ## Sleep prediction evidence reconciliation (ADR 0180)
 
 [ADR 0180](decisions/0180-sleep-prediction-evidence-reconciliation.md) defines the requested extension: ordinary predictions may test cognitive strategies, while sleep reviews bounded recorded subjective evidence and distinguishes retrospective support/challenge from prospective validation. No special metacognitive subsystem, memory trace store, primitive inference or additional activation pass is introduced. Existing ended-investigation and repeated-usefulness gates remain. The [work audit](../development/METACOGNITIVE_LEARNING_AUDIT.md) records implementation, validation and empirical limits.
+
+## Independent sleep evidence (ADR 0181)
+
+[ADR 0181](decisions/0181-independent-contradiction-aware-prediction-evidence.md) refines sleep review with selected source provenance, experience-level deduplication, contradiction-aware ordinary memory search and novelty/outcome gates. Self, primitive responsibilities and online activation remain unchanged.

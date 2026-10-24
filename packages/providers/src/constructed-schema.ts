@@ -5,6 +5,7 @@ import { constructedOutputs, PartFormationSchema, PartGenerationSchema, MemoryRe
 import { Id, DeliberationProposalSchema, PredictionDraftSchema, RelevanceScaffoldDraftSchema } from '../../core/src/domain.js';
 import { navigationSchema } from './navigation-schema.js';
 import { AffectProposalSchema } from '../../core/src/affect-domain.js';
+import { evidenceCatalog } from '../../core/src/evidence-provenance.js';
 
 function groundedPredictionSchema(memoryIds: string[]) {
   const references = memoryIds.length ? z.array(z.enum(memoryIds as [string, ...string[]])).max(100) : z.array(Id).max(0);
@@ -53,6 +54,9 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     : z.array(Id).max(0);
   const alternatives = [action, ...(inquiry ? [inquiry] : []), ...(navigation ? [navigation] : [])];
   const proposal = alternatives.length === 1 ? action : z.union([alternatives[0]!, alternatives[1]!, ...alternatives.slice(2)]);
+  const sourceIds = input.world ? evidenceCatalog(input.world).map(source => source.sourceId) : [];
+  const citations = MemoryReflectionSchema.shape.evidenceCitations.unwrap().element.extend({ sourceId: sourceIds.length ? z.enum(sourceIds as [string, ...string[]]) : Id }).array().max(sourceIds.length ? 100 : 0).optional();
+  const reflection = MemoryReflectionSchema.extend({ evidenceCitations: citations, sourceMemoryIds: references.optional() });
   const product = PartGenerationSchema.extend({ formation: PartFormationSchema.extend({
     beliefs: PartFormationSchema.shape.beliefs.max(ids.length ? 30 : 0).describe('Inferences from supplied recalled memories that fill gaps in current direct evidence. Direct observations are interpretation, not beliefs. Empty when no memory was recalled; withdraw contradicted carried claims.'),
     evidenceMemoryIds: references, counterevidenceMemoryIds: references,
@@ -69,7 +73,7 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
   // Preserve product field order in both mutually exclusive wire branches.
   return z.union([
     product.extend({ memoryReflection: z.null(), memoryGist: z.null() }),
-    product.extend({ memoryReflection: MemoryReflectionSchema, memoryGist: PartGenerationSchema.shape.memoryGist.unwrap() }),
+    product.extend({ memoryReflection: reflection, memoryGist: PartGenerationSchema.shape.memoryGist.unwrap() }),
   ]).superRefine((output, context) => {
     const selected = new Set(output.formation.evidenceMemoryIds);
     for (const [index, scaffold] of (output.cognition.prediction?.scaffolds ?? []).entries()) {

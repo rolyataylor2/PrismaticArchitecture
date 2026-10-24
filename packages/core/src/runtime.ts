@@ -423,7 +423,8 @@ export class CognitiveRuntime {
           if (prediction.gapOrigin.threadId !== (threadId ?? null)) continue;
           if (!this.decisions.checkHypothesis) throw new InfrastructureError('hypothesis_outcome', 'Decision provider lacks gap hypothesis checks');
           const createdSequence = prediction.committedAfterSequence ?? cycleSequences.get(prediction.createdCycle) ?? world.sequence;
-          const laterEvidence = world.facts.filter(fact => fact.originCycleId && (cycleSequences.get(fact.originCycleId) ?? 0) > createdSequence);
+          const laterEvidence = world.facts.filter(fact => fact.originCycleId && (cycleSequences.get(fact.originCycleId) ?? 0) > createdSequence
+          && (!prediction.evidenceOrigin || !fact.timestamp || fact.timestamp >= prediction.evidenceOrigin.formedAt));
           if (!laterEvidence.length) continue;
           const factual = freeze({ ...factualWorld(world), facts: laterEvidence });
           const outcome = PredictionOutcomeSchema.parse(await this.decisions.checkHypothesis(freeze({ world: factual, prediction, laterEvidence })));
@@ -443,7 +444,8 @@ export class CognitiveRuntime {
         // Evidence can resolve early; the owning Part decides whether the horizon/evidence permits evaluation.
         const activation = results.find(r => r.partId === part.id) ?? { partId: part.id, similarity: 0, reasons: ['prediction_evidence'], score: 0, previous: 0, delta: 0, active: false };
         const createdSequence = prediction.committedAfterSequence ?? cycleSequences.get(prediction.createdCycle) ?? world.sequence;
-        const laterEvidence = world.facts.filter(fact => fact.originCycleId && (cycleSequences.get(fact.originCycleId) ?? 0) > createdSequence);
+        const laterEvidence = world.facts.filter(fact => fact.originCycleId && (cycleSequences.get(fact.originCycleId) ?? 0) > createdSequence
+          && (!prediction.evidenceOrigin || !fact.timestamp || fact.timestamp >= prediction.evidenceOrigin.formedAt));
         if (!laterEvidence.length) continue;
         const owner = this.store.get('part', part.id);
         const evidenceWorld = freeze({ ...factualWorld(world), facts: laterEvidence });
