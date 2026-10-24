@@ -391,3 +391,6 @@ Prediction correctness never manufactures motivation. Only offline institutional
 [ADR 0160](decisions/0160-disposition-memory-synthesis.md) adds optional disposition-scoped sleep synthesis. New subjective memories preserve source-version lineage; separately enabled retrieval replacement affects only that disposition, preserving original records and other scopes. Inputs are captured before sleep writes; activation selects review, not a required conclusion.
 
 Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
+## Historical prediction evidence (ADR 0180)
+
+Sleep prediction review uses recorded subjective memories, never routine raw-world archive replay or invented private state. Retrospective support is distinct from prospective success; the write time of a later report cannot establish when its reported event occurred. Counterfactual benefits remain hypotheses. Review does not bypass ordinary usefulness, lifecycle or institutionalization gates. Cognitive-strategy predictions use ordinary dispositions without privileged metacognitive authority. See [ADR 0180](decisions/0180-sleep-prediction-evidence-reconciliation.md).

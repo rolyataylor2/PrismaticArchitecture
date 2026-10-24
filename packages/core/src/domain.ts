@@ -18,7 +18,7 @@ export const Origin = z.enum(['seed', 'organic_cognition', 'prediction_evaluatio
 export type Origin = z.infer<typeof Origin>;
 export const AgentActivationSettingsSchema = z.strictObject({ dispositionInterests: DispositionInterestSettingsSchema.default(DispositionInterestSettingsSchema.parse({})), vectorSearchEnabled: z.boolean(), memorySearchEnabled: z.boolean().default(false), memoryRelevanceThreshold: z.number().min(0).max(1).default(0.5), memoryRecallLimit: z.number().int().positive().max(10000).nullable().default(12), reevaluateAfterDeliberation: z.boolean().default(false), primitivesFirst: z.boolean().default(false), includeProcessingDispositions: z.boolean().default(false), maxConcurrentThoughts: z.number().int().min(1).max(64).default(4), maxQueuedThoughts: z.number().int().min(0).max(10000).default(100), activationPassLimit: z.number().int().min(1).max(10000).nullable().default(1) });
 export type AgentActivationSettings = z.infer<typeof AgentActivationSettingsSchema>;
-export const PromptTaskSchema = z.enum(['thought_resources', 'bid_applicability', 'executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
+export const PromptTaskSchema = z.enum(['thought_resources', 'bid_applicability', 'executive_skill_consolidation', 'simulation_evaluation', 'memory_relevance', 'activation', 'cognition', 'prediction', 'prediction_gate', 'prediction_outcome', 'evaluation', 'arbitration', 'affect_selection', 'affect_inquiry', 'focused_bid_revision', 'deliberation', 'answer', 'consolidation', 'reconsolidation', 'formation', 'replay', 'identity_clarification', 'identity_answers', 'researcher_authoring', 'speech', 'memory_accessibility', 'disposition_activation', 'part_cognition', 'cognition_coverage', 'hypothesis_reflection', 'hypothesis_outcome', 'sleep_prediction_review', 'experiential_formation', 'disposition_learning', 'memory_reinterpretation', 'memory_synthesis', 'effortful_recall']);
 export type PromptTask = z.infer<typeof PromptTaskSchema>;
 export const PromptOverrideSchema = z.strictObject({
   scope: z.enum(['global', 'agent']), agentId: z.string().nullable(), task: PromptTaskSchema, text: z.string().min(1).max(32768).refine(value => Boolean(value.trim()), 'Prompt cannot be empty'),
@@ -124,12 +124,12 @@ export const CapsuleSchema = z.strictObject({
 /** A proposed relevance relationship, not learned truth or autobiographical evidence. */
 export const RelevanceScaffoldDraftSchema = z.strictObject({
   name: Text, target: Text, cues: z.array(Text).min(1).max(12),
-  retrievalIntent: Text, relevantMemoryIds: z.array(Id).max(100),
+  retrievalIntent: Text.describe('What supplied subjective memories would help investigate this distinction, including contextually useful cognitive strategies.'), relevantMemoryIds: z.array(Id).max(100),
   supportEvidence: z.array(Text).min(1).max(12), contradictEvidence: z.array(Text).min(1).max(12),
   trackedDistinction: Text, futureValue: Text,
 });
 export const PredictionDraftSchema = z.strictObject({
-  expectation: Text.describe('A testable adjustable proposition about an unresolved state, hidden cause, continuity, current interpretation or future event, grounded in selected experienced context.'), capsule: CapsuleSchema, confidence: z.number().min(0).max(1),
+  expectation: Text.describe('A testable adjustable proposition about an unresolved state, hidden cause, continuity, interpretation, future event or conditional cognitive strategy such as attention, encoding, recall or reflection, grounded in selected experienced context.'), capsule: CapsuleSchema, confidence: z.number().min(0).max(1),
   scaffolds: z.array(RelevanceScaffoldDraftSchema).max(4).optional(),
   horizon: Text, evaluateAfterCycle: z.number().int().nonnegative().nullable(),
   kind: z.enum(['trajectory', 'action_conditioned', 'state_hypothesis']).optional(),

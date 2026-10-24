@@ -11,21 +11,22 @@ function loadFactoryPrompt(name: string): string {
   return readFileSync(new URL(`./prompt.${name}.md`, import.meta.url), 'utf8');
 }
 export const prompts = {
+  sleep_prediction_review: { version: 'sleep-prediction-review-v1', text: loadFactoryPrompt('sleep_prediction_review') },
   thought_resources: { version: 'thought-resources-v2', text: loadFactoryPrompt('thought_resources') },
   bid_applicability: { version: 'bid-applicability-v1', text: loadFactoryPrompt('bid_applicability') },
   executive_skill_consolidation: { version: 'executive-skill-consolidation-v3', text: loadFactoryPrompt('executive_skill_consolidation') },
   simulation_evaluation: { version: 'simulation-evaluation-v4', text: loadFactoryPrompt('simulation_evaluation') },
   hypothesis_outcome: { version: 'hypothesis-outcome-temporal-v3', text: loadFactoryPrompt('hypothesis_outcome') },
   hypothesis_reflection: { version: 'hypothesis-reflection-temporal-v2', text: loadFactoryPrompt('hypothesis_reflection') },
-  cognition_coverage: { version: 'cognition-coverage-prediction-bound-v4', text: loadFactoryPrompt('cognition_coverage') },
+  cognition_coverage: { version: 'cognition-coverage-cognitive-strategies-v5', text: loadFactoryPrompt('cognition_coverage') },
   memory_synthesis: { version: 'memory-synthesis-v2', text: loadFactoryPrompt('memory_synthesis') },
-  memory_reinterpretation: { version: 'memory-reinterpretation-v1', text: loadFactoryPrompt('memory_reinterpretation') },
+  memory_reinterpretation: { version: 'memory-reinterpretation-sleep-evidence-v2', text: loadFactoryPrompt('memory_reinterpretation') },
   experiential_formation: { version: 'experience-evidence-attachment-v3', text: loadFactoryPrompt('experiential_formation') },
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
-  memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
+  memory_accessibility: { version: 'memory-accessibility-cognitive-strategies-v6', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-relevance-only-v11', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-memory-inferred-beliefs-v1', text: loadFactoryPrompt('part_cognition') },
-  disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
+  part_cognition: { version: 'part-cognition-cognitive-strategies-v2', text: loadFactoryPrompt('part_cognition') },
+  disposition_learning: { version: 'disposition-sleep-evidence-v10', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
   memory_relevance: { version: 'memory-relevance-twig-v2', text: loadFactoryPrompt('memory_relevance') },
@@ -40,7 +41,7 @@ export const prompts = {
   cognition: { version: 'cognition-embodied-v5', text: loadFactoryPrompt('cognition') },
   prediction_gate: { version: 'prediction-gate-twig-v3', text: loadFactoryPrompt('prediction_gate') },
   prediction_outcome: { version: 'prediction-outcome-temporal-v3', text: loadFactoryPrompt('prediction_outcome') },
-  prediction: { version: 'prediction-prediction-bound-v6', text: loadFactoryPrompt('prediction') },
+  prediction: { version: 'prediction-cognitive-strategies-v7', text: loadFactoryPrompt('prediction') },
   evaluation: { version: 'prediction-evaluation-temporal-v13', text: loadFactoryPrompt('evaluation') },
   answer: { version: 'answer-conditions-v28', text: loadFactoryPrompt('answer') },
   deliberation: { version: 'deliberation-commitments-v1', text: loadFactoryPrompt('deliberation') },
@@ -50,10 +51,11 @@ export const prompts = {
   replay: { version: 'rare-ancestor-replay-twig-v3', text: loadFactoryPrompt('replay') },
 } as const;
 
-export const constructedPromptTasks = ["thought_resources", "bid_applicability", "cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "memory_synthesis", "effortful_recall"] as const;
+export const constructedPromptTasks = ["sleep_prediction_review", "thought_resources", "bid_applicability", "cognition_coverage", "hypothesis_reflection", "memory_accessibility", "disposition_activation", "part_cognition", "experiential_formation", "disposition_learning", "memory_reinterpretation", "memory_synthesis", "effortful_recall"] as const;
 
 export type PromptResolver = (agentId: string, task: PromptTask) => string | undefined;
 export const promptCatalog: { task: PromptTask; title: string; category: string; version: string; original: string }[] = [
+  { task: 'sleep_prediction_review', title: 'Slp · Historical prediction evidence', category: 'Slp', version: prompts.sleep_prediction_review.version, original: prompts.sleep_prediction_review.text },
   { task: 'thought_resources', title: 'Cog · Thought resource assessment', category: 'Cog', version: prompts.thought_resources.version, original: prompts.thought_resources.text },
   { task: 'bid_applicability', title: 'Exec · External proposal conditions', category: 'Exec', version: prompts.bid_applicability.version, original: prompts.bid_applicability.text },
   { task: 'simulation_evaluation', title: 'Researcher · Simulation evaluation', category: 'Researcher', version: prompts.simulation_evaluation.version, original: prompts.simulation_evaluation.text },
@@ -94,7 +96,7 @@ export function resolvePrompt(agentId: string, task: PromptTask, resolver?: Prom
 
 export function renderTaskPrompt(agentId: string, task: PromptTask, data: object, resolver?: PromptResolver): string {
   if (task === 'answer') data = { currentAffectProposals: [], selectedFocus: null, ...data };
-  if ((constructedPromptTasks as readonly string[]).includes(task)) data = { task, world: null, identity: null, dispositions: [], dispositionBindings: [], memories: [], workingParts: [], predictions: [], coverageProducts: [], hypothesisLimit: 3, hypothesis: null, hypothesisHistory: [], predictionTrajectories: [], outcome: null, laterEvidence: [], memory: null, question: null, candidates: [], ...data };
+  if ((constructedPromptTasks as readonly string[]).includes(task)) data = { task, world: null, identity: null, dispositions: [], dispositionBindings: [], memories: [], workingParts: [], predictions: [], coverageProducts: [], hypothesisLimit: 3, hypothesis: null, hypothesisHistory: [], predictionTrajectories: [], predictionReviews: [], predictionReviewContext: null, outcome: null, laterEvidence: [], memory: null, question: null, candidates: [], ...data };
   // Legacy owning-Part snapshots have implicit full conviction. Never add Part state to world-blind contexts.
   const owningPart = (data as { part?: { beliefConfidence?: number; instance?: unknown } }).part;
   if (owningPart) data = { dispositions: [], effortfulRecollections: [], ...data, part: { ...owningPart, instance: owningPart.instance ?? null, beliefConfidence: owningPart.beliefConfidence ?? 1 } };

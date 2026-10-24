@@ -1,4 +1,5 @@
 import { captureSynthesisScopes, synthesizeScope } from './sleep-synthesis.js';
+import { selectSleepPredictionReviews, reviewSleepPrediction } from './sleep-prediction-review.js';
 import { SleepOptionsSchema, type SleepOptions } from './consolidation-domain.js';
 import { ConstructedCognition } from './constructed.js';
 import { freeze, id, now, type Memory } from './domain.js';
@@ -27,7 +28,7 @@ export class Consolidation {
     try {
       if (this.store.get('agent', agentId).architecture !== 'persistent') {
         if (!this.constructed) throw new InfrastructureError('consolidation', 'Constructed consolidation is unavailable');
-        const memories = this.store.list('memory', agentId).filter(memory => selectedIds.has(memory.createdCycle));
+        const memories = this.store.list('memory', agentId).filter(memory => !memory.deleted && selectedIds.has(memory.createdCycle));
         const predictions = this.store.list('prediction', agentId).filter(prediction => selectedIds.has(prediction.createdCycle)
           || (prediction.memoryId && memories.some(memory => memory.id === prediction.memoryId)));
         run.selections = [...new Set(memories.flatMap(memory => memory.partId ? [memory.partId] : []))].map(partId => ({ partId,
@@ -36,6 +37,8 @@ export class Consolidation {
           thoughtCycles: [], repeatedReferents: [], coactivated: [] }));
         for (const selection of run.selections) this.inspection.emit(agentId, null, 'consolidation.replay_selected', selection);
         const scopes = settings.synthesizeMemories ? captureSynthesisScopes(this.store, agentId, cycles.map(cycle => cycle.id)) : [];
+        run.predictionReviews = selectSleepPredictionReviews(this.store, agentId, cycles.map(cycle => cycle.id), settings);
+        this.store.saveConsolidation(run);
         run.synthesisReviews = scopes.map(scope => ({ dispositionId: scope.disposition.id, dispositionName: scope.disposition.name,
           dispositionVersion: scope.disposition.version, sourceMemoryIds: scope.memories.map(memory => memory.id), predictionIds: scope.predictions.map(prediction => prediction.id),
           cycleIds: scope.cycleIds, status: 'pending', memoryId: null, replacedMemoryIds: [], reason: 'Awaiting review' }));
@@ -49,8 +52,27 @@ export class Consolidation {
           }
           this.store.saveConsolidation(run);
         }
+        for (const [index, review] of run.predictionReviews.entries()) {
+          if (review.status !== 'pending') continue;
+          try {
+            run.predictionReviews[index] = await reviewSleepPrediction(this.store, this.constructed, agentId, review, completed => {
+              run.predictionReviews![index] = completed;
+              this.store.saveConsolidation(run);
+            });
+          } catch (error) {
+            run.predictionReviews[index] = { ...review, status: 'failed', reason: error instanceof Error ? error.message : String(error) };
+            this.store.saveConsolidation(run);
+            throw error;
+          }
+          this.store.saveConsolidation(run);
+        }
         const before = new Set(this.store.list('disposition', agentId).map(disposition => disposition.id));
-        const result = await this.constructed.learn(agentId, memories, predictions, cycles.map(cycle => cycle.id));
+        const reviewMemoryIds = new Set(run.predictionReviews.flatMap(review => review.result?.evidence.map(reference => reference.memoryId) ?? []));
+        const learningMemories = [...new Map([...memories, ...this.store.list('memory', agentId).filter(memory => !memory.deleted && reviewMemoryIds.has(memory.id))].map(memory => [memory.id, memory])).values()];
+        const reviewPredictionIds = new Set(run.predictionReviews.filter(review => review.result).map(review => review.predictionId));
+        const learningPredictions = [...new Map([...predictions.map(prediction => this.store.get('prediction', prediction.id)),
+          ...this.store.list('prediction', agentId).filter(prediction => reviewPredictionIds.has(prediction.id))].map(prediction => [prediction.id, prediction])).values()];
+        const result = await this.constructed.learn(agentId, learningMemories, learningPredictions, cycles.map(cycle => cycle.id), run.predictionReviews);
         run = { ...run, status: 'completed', constructedLearning: {
           dispositionIds: this.store.list('disposition', agentId).filter(disposition => !before.has(disposition.id)).map(disposition => disposition.id),
           revisedMemoryIds: result.revisions.map(revision => revision.memoryId), reason: result.reason,

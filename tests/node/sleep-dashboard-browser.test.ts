@@ -13,6 +13,9 @@ import { createResearchServer } from '../../apps/server/src/server.js';
 // Authored products exercise rendered provenance and omission judgments, not psychological validity.
 class BrowserSynthesis extends MockReasoning {
   override async constructed(input: ConstructedInput): Promise<unknown> {
+    if (input.task === 'sleep_prediction_review' && input.memories?.length) return { relationship: 'unverifiable',
+      evidence: [{ memoryId: input.memories[0]!.id, memoryVersion: input.memories[0]!.version, occurrence: 'unknown', basis: 'reported', explanation: 'Authored source-link fixture; occurrence remains uncertain.' }],
+      interpretation: 'I have not established whether this advice tests my expectation.', causalAttribution: 'Not established by this fixture.', limitations: 'Browser plumbing is not cognitive evidence.' };
     if (input.task === 'memory_synthesis' && (input.memories?.length ?? 0) >= 2) return { reason: 'Authored browser synthesis fixture', synthesis: {
       sourceMemoryIds: input.memories!.map(memory => memory.id), replaceSourceMemoryIds: input.memories!.map(memory => memory.id),
       content: 'I used to assume helpful advice settled uncertainty; now I preserve its limits.', gist: 'Qualified remembered advice', context: ['advice'],
@@ -23,8 +26,13 @@ class BrowserSynthesis extends MockReasoning {
   }
 }
 const executable = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+class BrowserDecisions extends MockDecisions {
+  override async judge(input: Parameters<MockDecisions['judge']>[0]) {
+    return input.task === 'disposition_activation' ? input.candidates.map(candidate => ({ partId: candidate.id, score: 4 })) : super.judge(input);
+  }
+}
 test('Agent Operations induces ordinary sleep and inspects preserved history on desktop and mobile', { skip: !existsSync(executable) }, async () => {
-  const store = new SqliteStore(':memory:'); const app = new Application(store, { reasoning: new BrowserSynthesis(), decisions: new MockDecisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent('Sleep dashboard source');
+  const store = new SqliteStore(':memory:'); const app = new Application(store, { reasoning: new BrowserSynthesis(), decisions: new BrowserDecisions(), embeddings: new MockEmbeddings() }); const agent = app.createAgent('Sleep dashboard source');
   const server = createResearchServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ executablePath: executable, headless: true });
   try {
@@ -62,6 +70,11 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     assert.equal(store.consolidations(agent.id).length, 0, 'Backdrop dismissal leaves no sleep run');
     await panel.getByRole('button', { name: 'Induce sleep cycle', exact: true }).click();
     const synthesis = dialog.getByLabel('Create consolidated memories per disposition');
+    assert.equal(await dialog.getByLabel('Review open predictions against recorded memories').isChecked(), true);
+    assert.equal(await dialog.getByLabel('Prediction reviews per sleep (0–100)').inputValue(), '12');
+    assert.equal(await dialog.getByLabel('Memory candidates per prediction (1–100)').inputValue(), '40');
+    await dialog.getByLabel('Prediction reviews per sleep (0–100)').fill('4');
+    await dialog.getByLabel('Memory candidates per prediction (1–100)').fill('16');
     const detailPolicy = dialog.getByLabel('Memory detail policy');
     const guidance = dialog.getByLabel('Additional synthesis guidance (optional)');
     assert.equal(await detailPolicy.inputValue(), 'preserve_details'); assert.equal(await detailPolicy.isDisabled(), true);
@@ -94,6 +107,7 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await panel.getByRole('heading', { name: 'Disposition memory synthesis', exact: true }).waitFor();
     const synthesisRun = store.consolidations(agent.id).at(-1)!;
     assert.equal(synthesisRun.options?.synthesizeMemories, true); assert.equal(synthesisRun.options?.replaceSourceMemories, true);
+    assert.equal(synthesisRun.options?.maxPredictionReviews, 4); assert.equal(synthesisRun.options?.maxPredictionMemories, 16);
     assert.equal(synthesisRun.options?.detailPolicy, 'trace_belief_changes');
     assert.equal(synthesisRun.options?.synthesisInstructions, 'Keep what changed my belief; omit irrelevant personal details.');
     await panel.getByText('Detail policy: Emphasize how beliefs changed', { exact: true }).waitFor();
@@ -103,6 +117,10 @@ test('Agent Operations induces ordinary sleep and inspects preserved history on 
     await panel.getByText('What was retained or left out', { exact: true }).click();
     assert.ok((await panel.innerText()).includes('Left out for this perspective: Incidental wording'));
     assert.ok((await panel.innerText()).includes('Remember Helpful Advice'));
+    await panel.getByRole('button', { name: 'Read source memory · version 1', exact: true }).first().click();
+    const sourceDialog = page.getByRole('dialog', { name: 'Prediction source memory', exact: true });
+    await sourceDialog.getByText('Recorded source version 1', { exact: true }).waitFor();
+    await sourceDialog.getByRole('button', { name: 'Close', exact: true }).click();
     const evidence = JSON.stringify(store.consolidations(agent.id));
     await panel.getByRole('button', { name: 'Original sleep record', exact: true }).click();
     const original = page.getByRole('dialog', { name: 'Original sleep record', exact: true });

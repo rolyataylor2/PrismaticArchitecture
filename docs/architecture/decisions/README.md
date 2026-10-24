@@ -122,3 +122,5 @@ ADR 0177 adds explicit source-attributed SDK and Simulation Test Identity initia
 - [0178 — Correlated bid revision output schemas](0178-correlated-bid-revision-wire.md)
 
 - [0179 — Memory-inferred Part beliefs](0179-memory-inferred-part-beliefs.md)
+
+- [0180 — Sleep prediction evidence reconciliation](0180-sleep-prediction-evidence-reconciliation.md)

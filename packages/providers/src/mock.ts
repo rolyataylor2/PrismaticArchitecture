@@ -186,6 +186,7 @@ export class MockReasoning implements ReasoningProvider {
         concern: disposition?.concern ?? current };
       return this.generatePart(input, construction);
     }
+    if (input.task === 'sleep_prediction_review') return { relationship: 'unverifiable', evidence: [], interpretation: 'I have no established test in this deterministic fixture.', causalAttribution: 'Not established.', limitations: 'Mock evidence plumbing; not an observation of cognitive learning.' };
     if (input.task === 'hypothesis_reflection') return { operation: 'resolve', evaluation: {
       assessment: input.outcome === 'correct' ? 'confirmed' : 'contradicted',
       interpretation: 'Fixture records the bounded outcome without interpreting psychological meaning.',

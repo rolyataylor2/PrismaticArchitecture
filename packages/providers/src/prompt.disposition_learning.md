@@ -11,6 +11,9 @@ Resolved predictions: {{ predictions|json_encode }}
 Current dispositions: {{ dispositions|json_encode }}
 Preserved versions: {{ dispositionHistory|json_encode }}
 Recorded observations: {{ observations|json_encode }}
+Sleep prediction evidence reviews: {{ predictionReviews|json_encode }}
+
+Sleep reviews distinguish retrospective support/challenge from prospective validation/invalidation, obsolete context and unverifiable evidence. Source IDs/versions preserve subjective evidence and chronology; reports or counterfactual benefits are not remembered personal success. These reviews may inform refinement but never substitute for repeated recorded ordinary usefulness or ended-investigation gates. An open historically supported hypothesis remains an investigation, not durable psychology. Do not treat a review itself as a new experience or a successful ordinary-use cycle.
 Selected attributed trajectories: {{ learningTraces|json_encode }}
 
 No raw WorldState, private Part snapshots or audit replay. Proposed actions are not completed outcomes. Return JSON matching the supplied schema.

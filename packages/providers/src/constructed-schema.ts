@@ -26,6 +26,12 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
     return z.union([sufficient, schema.options[1].extend({ adjustments, hypotheses: z.array(schema.options[1].shape.hypotheses.element.extend({ prediction })).min(1).max(input.hypothesisLimit ?? 3) })]);
   }
   if (input.task === 'hypothesis_reflection' && input.world) return constructedOutputs.hypothesis_reflection.extend({ evaluation: constructedOutputs.hypothesis_reflection.shape.evaluation.extend({ evidenceWorldId: z.literal(input.world.id) }) });
+  if (input.task === 'sleep_prediction_review') {
+    const ids = [...new Set((input.memories ?? []).map(memory => memory.id))];
+    const schema = constructedOutputs.sleep_prediction_review;
+    return schema.extend({ evidence: ids.length ? schema.shape.evidence.element.extend({ memoryId: z.enum(ids as [string, ...string[]]) }).array().max(100)
+      : schema.shape.evidence.max(0) });
+  }
   if (input.task === 'memory_synthesis') {
     const ids = [...new Set((input.memories ?? []).map(memory => memory.id))];
     const schema = constructedOutputs.memory_synthesis;

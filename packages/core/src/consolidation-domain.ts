@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SleepPredictionPolicySchema, type SleepPredictionReview } from './sleep-prediction-domain.js';
 import { SynthesisPolicySchema } from './sleep-policy.js';
 import { Id, MemorySchema, PartDraftSchema, PartPatchSchema, Text, type Activation, type Memory, type Part, type Prediction } from './domain.js';
 
@@ -20,7 +21,7 @@ export type ConsolidationContext = {
   population: { id: string; name: string; mode: Part['mode']; triggers: string[] }[];
 };
 export const ReplayResultSchema = z.strictObject({ reason: Text, revision: MemorySchema.pick({ content: true, gist: true }).nullable() });
-export const SleepOptionsSchema = z.strictObject({ ...SynthesisPolicySchema.shape, synthesizeMemories: z.boolean().default(false),
+export const SleepOptionsSchema = z.strictObject({ ...SynthesisPolicySchema.shape, ...SleepPredictionPolicySchema.shape, synthesizeMemories: z.boolean().default(false),
   replaceSourceMemories: z.boolean().default(false) }).refine(options => !options.replaceSourceMemories || options.synthesizeMemories,
   'Source replacement requires memory synthesis');
 export type SleepOptions = z.infer<typeof SleepOptionsSchema>;
@@ -34,5 +35,6 @@ export type ConsolidationRun = {
   changes: { partId: string; proposal: DevelopmentProposal; accepted: boolean; explanation: string; beforeVersion: number; afterVersion: number; createdPartId: string | null }[];
   constructedLearning?: { dispositionIds: string[]; revisedMemoryIds: string[]; reason: string };
   options?: SleepOptions; synthesisReviews?: SleepSynthesisReview[];
+  predictionReviews?: SleepPredictionReview[];
   error: string | null;
 };

@@ -63,6 +63,8 @@ For a quick software walkthrough, `npm run demo` creates **Development demo**, d
 
 ## Architecture overview
 
+Ordinary predictions can also test cognitive strategies such as recalling prior encounters before searching. During sleep, bounded reviews compare open predictions with recorded subjective memories and distinguish historical support/challenge from prospective evidence. Review does not invent missing encounters or automatically promote temporary dispositions; existing usefulness and lifecycle gates still apply. See [ADR 0180](docs/architecture/decisions/0180-sleep-prediction-evidence-reconciliation.md) and the four `cognitive-strategy-*` Simulation Tests.
+
 <p align="center">
   <img src="docs/prismatic-cognitive-cycle-banner.png" width="700" alt="Prism artwork showing one experience interpreted through multiple colored perspectives and brought together">
 </p>

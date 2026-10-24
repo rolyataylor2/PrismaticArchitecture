@@ -16,6 +16,7 @@ import { startSimulationAssessment, simulationAssessmentAvailable, type Simulati
 import { gauntletSimulations } from './gauntlet-simulations.js';
 import { concernInheritanceSimulations } from './concern-inheritance-simulations.js';
 import { predictionScaffoldSimulations } from './prediction-scaffold-simulations.js';
+import { cognitiveStrategySimulations } from './cognitive-strategy-simulations.js';
 import { Application } from './application.js';
 import { conversationStarters } from './conversation-starters.js';
 import { fileURLToPath } from 'node:url';
@@ -248,6 +249,7 @@ export const simulationTests: SimulationTestDefinition[] = [
     limitations: 'Researcher-authored attention and links are explicit starting conditions, not learned discoveries. Compare both catalog entries using the same configured providers. Mocks use literal overlap and validate plumbing only, so quoted-cue semantics remain inconclusive. Outcomes require semantic review; infrastructure failure is separate. No automatic Hebbian learning or human psychology validation is claimed.',
   })),
   ...predictionScaffoldSimulations,
+  ...cognitiveStrategySimulations,
   ...affectSimulations,
   ...concernInheritanceSimulations,
   ...gauntletSimulations,

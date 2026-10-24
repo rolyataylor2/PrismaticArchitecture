@@ -246,3 +246,6 @@ Offline institutionalization may inherit an expressed concern and its meaning fr
 Terminology: [ADR 0161](decisions/0161-temporary-prediction-bound-dispositions.md) names ADR 0138’s temporary relevance scaffolds **Temporary Prediction-Bound Dispositions**; existing serialized field names remain compatible.
 
 ADR [0168](decisions/0168-retire-legacy-prediction-attention.md) removes legacy prediction `attention` scopes. Predictions propose temporary relevance only through persisted, versioned prediction-bound dispositions (`scaffolds`); no old-Agent migration is provided.
+## Sleep prediction evidence reconciliation (ADR 0180)
+
+[ADR 0180](decisions/0180-sleep-prediction-evidence-reconciliation.md) defines the requested extension: ordinary predictions may test cognitive strategies, while sleep reviews bounded recorded subjective evidence and distinguishes retrospective support/challenge from prospective validation. No special metacognitive subsystem, memory trace store, primitive inference or additional activation pass is introduced. Existing ended-investigation and repeated-usefulness gates remain. The [work audit](../development/METACOGNITIVE_LEARNING_AUDIT.md) records implementation, validation and empirical limits.

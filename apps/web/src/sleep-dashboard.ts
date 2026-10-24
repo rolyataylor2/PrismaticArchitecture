@@ -1,5 +1,6 @@
 import type { AgentSnapshot } from '../../../packages/sdk/src/api.js';
 import type { ConsolidationRun } from '../../../packages/core/src/consolidation-domain.js';
+import type { Memory } from '../../../packages/core/src/domain.js';
 
 const detailPolicies = {
   preserve_details: 'Keep meaningful details and belief history',
@@ -54,6 +55,13 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
       label.append(field, el('span', text)); form.append(label); return field;
     };
     const synthesize = checkbox('Create consolidated memories per disposition');
+    const priorPolicy = snapshot.consolidations.at(-1)?.options;
+    const reviewPredictions = checkbox('Review open predictions against recorded memories'); reviewPredictions.checked = priorPolicy?.reviewPredictions ?? true;
+    const reviewLimit = input('Prediction reviews per sleep (0–100)', priorPolicy?.maxPredictionReviews ?? 12); reviewLimit.min = '0'; reviewLimit.max = '100';
+    const memoryLimit = input('Memory candidates per prediction (1–100)', priorPolicy?.maxPredictionMemories ?? 40); memoryLimit.max = '100';
+    form.append(el('p', 'Experimental defaults: 12 prediction reviews and 40 memory candidates each. Higher limits review more recorded evidence at greater inference cost; zero reviews defers work. Unchanged evidence is skipped. Historical support is distinct from forecasting success and does not by itself crystallize a disposition.', 'rd-caption'));
+    reviewPredictions.onchange = () => { reviewLimit.disabled = memoryLimit.disabled = !reviewPredictions.checked; };
+    reviewPredictions.onchange(new Event('change'));
     const replace = checkbox("Replace source memories in this disposition’s routine recall"); replace.disabled = true;
     const policyLabel = document.createElement('label'); policyLabel.textContent = 'Memory detail policy';
     const policy = document.createElement('select'); policy.disabled = true;
@@ -79,7 +87,8 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
         status.textContent = 'Choose an ordered range containing a completed cognitive cycle.'; return;
       }
       busy = true; submit.disabled = true; render(); status.textContent = 'Sleep cycle in progress…';
-      void options.api<ConsolidationRun>(`agents/${agentId}/consolidate`, 'POST', { fromCycle: start, toCycle: end, synthesizeMemories: synthesize.checked, replaceSourceMemories: replace.checked, detailPolicy: policy.value, synthesisInstructions: instructions.value })
+      void options.api<ConsolidationRun>(`agents/${agentId}/consolidate`, 'POST', { fromCycle: start, toCycle: end, synthesizeMemories: synthesize.checked, replaceSourceMemories: replace.checked, detailPolicy: policy.value, synthesisInstructions: instructions.value,
+        reviewPredictions: reviewPredictions.checked, maxPredictionReviews: Number(reviewLimit.value), maxPredictionMemories: Number(memoryLimit.value) })
         .then(async cycle => { selectedId = cycle.id; if (host.isConnected) await refresh(); dialog.close(); })
         .catch(async error => {
           status.textContent = error instanceof Error ? error.message : String(error);
@@ -133,6 +142,35 @@ export function sleepDashboard(root: HTMLElement, options: Options): void {
     detail.append(el('h3', 'Sleep cycle evidence'), el('p', `${new Date(selected.startedAt).toLocaleString()} · ${selected.status} · cognitive cycles ${selected.fromCycle}–${selected.toCycle}`), el('p', `Provider: ${selected.provider}`, 'rd-caption'));
     if (selected.error) detail.append(el('p', selected.error, 'rd-caution'));
     if (selected.status === 'running') detail.append(el('p', 'The saved record is in progress. Refresh to inspect later evidence. This status alone does not establish that a worker is still running.', 'rd-caution'));
+    if (selected.predictionReviews) {
+      detail.append(el('h4', 'Prediction evidence reconciliation'), el('p', 'Recorded subjective evidence; historical support is not prospective success or proof of useful cognition.', 'rd-caption'));
+      for (const review of selected.predictionReviews) {
+        const prediction = snapshot.predictions.find(prediction => prediction.id === review.predictionId);
+        const row = el('blockquote');
+        row.append(el('strong', review.result?.relationship.replaceAll('_', ' ') ?? review.status),
+          el('p', review.expectation ?? (prediction?.version === review.predictionVersion ? prediction.expectation : `Preserved prediction version ${review.predictionVersion}`)), el('p', review.reason));
+        if (review.result) {
+          row.append(el('p', `Causal interpretation: ${review.result.causalAttribution}`), el('p', `Limits: ${review.result.limitations}`, 'rd-caption'));
+          for (const source of review.result.evidence) {
+            const memory = snapshot.memories.find(memory => memory.id === source.memoryId && memory.version === source.memoryVersion);
+            row.append(el('p', `${source.occurrence.replaceAll('_', ' ')} · ${source.basis} · ${memory?.gist ?? 'Historical source version; inspect record'}: ${source.explanation}`, 'rd-caption'));
+            action(row, `Read source memory · version ${source.memoryVersion}`, () => {
+              void options.api<{ versions: { state: Memory }[] }>(`memories/${source.memoryId}`).then(record => {
+                if (!host.isConnected) return;
+                const saved = record.versions.find(version => version.state.version === source.memoryVersion)?.state;
+                const dialog = options.createDialog(); dialog.className = 'rd-dialog'; dialog.setAttribute('aria-label', 'Prediction source memory');
+                dialog.append(el('h2', saved?.gist ?? 'Source memory unavailable'), el('p', `Recorded source version ${source.memoryVersion}`, 'rd-caption'), el('p', saved?.content ?? 'The cited version could not be loaded.'));
+                if (saved?.context.length) dialog.append(el('p', saved.context.join(' · '), 'rd-caption'));
+                action(dialog, 'Close', () => dialog.close()); dialog.addEventListener('close', () => dialog.remove(), { once: true });
+                document.body.append(dialog); dialog.showModal();
+              }).catch(options.fail);
+            });
+          }
+        }
+        action(row, 'Inspect prediction evidence', () => raw('Prediction evidence and source versions', { review, prediction })); detail.append(row);
+      }
+      if (!selected.predictionReviews.length) detail.append(el('p', 'No open predictions selected for this period.', 'rd-empty'));
+    }
     if (selected.options?.synthesizeMemories) {
       detail.append(el('h4', 'Disposition memory synthesis'), el('p', selected.options.replaceSourceMemories
         ? 'Synthesis enabled with disposition-specific source replacement.' : 'Synthesis enabled; source recall retained.', 'rd-caption'));

@@ -5,6 +5,8 @@ import { thoughtModelEvidence } from './thought-model-evidence.js';
 import { ThoughtRoutingSettingsSchema } from '../../core/src/thought-resources.js';
 import { dreamConsole } from './dream-console.js';
 import { SynthesisPolicySchema } from '../../core/src/sleep-policy.js';
+import { SleepPredictionPolicySchema } from '../../core/src/sleep-prediction-domain.js';
+import { SleepOptionsSchema } from '../../core/src/consolidation-domain.js';
 import { analyzeAffect, AffectAnalysisFilterSchema } from './affect-analysis.js';
 import { analyzeSimulation } from './simulation-analysis.js';
 import { simulationReport } from './simulation-report.js';
@@ -417,8 +419,9 @@ export async function api(app: Application, method: string, path: string, body: 
     }
     if (method === 'POST' && action === 'consolidate') {
       const input = z.strictObject({ fromCycle: z.number().int().positive().optional(), toCycle: z.number().int().positive().optional(),
-        synthesizeMemories: z.boolean().optional(), replaceSourceMemories: z.boolean().optional(), ...SynthesisPolicySchema.partial().shape }).parse(body);
-      return app.consolidate(entityId, input.fromCycle, input.toCycle, { synthesizeMemories: input.synthesizeMemories ?? false, replaceSourceMemories: input.replaceSourceMemories ?? false, detailPolicy: input.detailPolicy ?? 'preserve_details', synthesisInstructions: input.synthesisInstructions ?? '' });
+        synthesizeMemories: z.boolean().optional(), replaceSourceMemories: z.boolean().optional(), ...SynthesisPolicySchema.partial().shape, ...SleepPredictionPolicySchema.partial().shape }).parse(body);
+      const { fromCycle, toCycle, ...sleepOptions } = input;
+      return app.consolidate(entityId, fromCycle, toCycle, SleepOptionsSchema.parse(sleepOptions));
     }
     if (method === 'POST' && action === 'parts') return app.runtime.mutations.create(entityId, PartDraftSchema.parse(body),
       { origin: 'researcher_edit', reason: 'Researcher created a Part', sourceIds: [] });
