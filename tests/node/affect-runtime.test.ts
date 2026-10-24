@@ -74,6 +74,9 @@ test('ordinary runtime preserves baseline and original affect, revises against t
   const store = new SqliteStore(':memory:');
   try {
     const { app, reasoning, decisions } = application(store); const agent = app.createAgent();
+    // This fixture explicitly tests cognition with external execution disconnected.
+    const profile = store.executiveProfile(agent.id);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: false, revision: profile.revision + 1 }, profile.revision);
     const result = await app.message(agent.id, 'Consider what matters.', 'host', 'runtime-affect');
     assert.equal(reasoning.focused.length, 1);
     assert.equal(reasoning.focused[0]!.world, reasoning.snapshots[0]!.world);
@@ -209,6 +212,9 @@ test('navigation ends voluntary focus and preserves source period and current-wo
   const store = new SqliteStore(':memory:');
   try {
     const { app, reasoning, decisions } = application(store); const agent = app.createAgent();
+    // This fixture explicitly tests cognition with external execution disconnected.
+    const profile = store.executiveProfile(agent.id);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: false, revision: profile.revision + 1 }, profile.revision);
     await app.message(agent.id, 'Begin an exploratory focus.', 'host', 'navigation');
     const first = affectCycles(store, agent.id)[0]!;
     reasoning.offer = false; reasoning.navigate = true; reasoning.revision = 'retain'; decisions.affectMode = 'no_change';
@@ -310,6 +316,9 @@ test('behavioral Self can select another perspective instead of the owner of its
   const store = new SqliteStore(':memory:');
   try {
     const { app, decisions, reasoning } = application(store); const agent = app.createAgent();
+    // This fixture explicitly tests cognition with external execution disconnected.
+    const profile = store.executiveProfile(agent.id);
+    store.saveExecutiveProfile(agent.id, { ...profile, enabled: false, revision: profile.revision + 1 }, profile.revision);
     for (const name of ['Boundary concern', 'Care concern']) store.save('disposition', {
       id: `reject-focus-${name}`, agentId: agent.id, version: 1, schemaVersion: 1, name, concern: `Explicit authored ${name}`,
       cues: ['A relationship concern'], scope: name, prerequisites: [], threshold: 2, memoryIds: [], sourcePredictionId: null, temporary: false, active: true,

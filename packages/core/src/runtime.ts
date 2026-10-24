@@ -806,8 +806,9 @@ export class CognitiveRuntime {
           this.inspection.emit(agentId, cycle.id, 'self.affect_cycle', AffectCycleSchema.parse({ cycleId: cycle.id,
             threadId: threadId ?? null, sequence: affectState.sequence, focusBefore: affectState.focusBefore, focusAfter: finalFocus, usedFocus,
             decisions: affectDecisions, baselinePredictionIds,
-            originated: [...(affectState.activeFocus ? cyclePredictions.filter(prediction => !prediction.gapOrigin).map(prediction => ({ predictionId: prediction.id, periodId: affectState.activeFocus!.periodId, stage: 'part_cognition' })) : []),
-              ...(usedFocus ? cyclePredictions.filter(prediction => prediction.gapOrigin).map(prediction => ({ predictionId: prediction.id, periodId: usedFocus!.periodId, stage: 'coverage' })) : [])],
+            originated: cyclePredictions.flatMap(prediction => this.store.eventsByType(agentId, ['self.affect_prediction_origin'])
+              .flatMap(event => event.type === 'self.affect_prediction_origin' && event.payload.predictionId === prediction.id
+                ? [{ predictionId: prediction.id, periodId: event.payload.periodId, stage: event.payload.stage }] : [])),
             selectedBidIds: navigation ? [navigation.id] : selected?.map(bid => bid.id) ?? [], navigationStateId: navigation?.stateId ?? null }));
         }
         this.store.saveCycle(cycle);

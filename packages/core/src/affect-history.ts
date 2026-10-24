@@ -9,6 +9,17 @@ export function affectCycles(store: Store, agentId: string): AffectCycle[] {
     event.type === 'self.affect_cycle' && event.cycleId && completed.has(event.cycleId) ? [AffectCycleSchema.parse(event.payload)] : []);
 }
 
+/** Explicit creation-time attribution supersedes legacy end-of-pass summaries; raw history stays intact. */
+export function affectPredictionOrigins(store: Store, agentId: string, records: AffectCycle[] = affectCycles(store, agentId)) {
+  const cycles = new Set(records.map(record => record.cycleId));
+  const explicit = store.eventsByType(agentId, ['self.affect_prediction_origin']).flatMap(event =>
+    event.type === 'self.affect_prediction_origin' && event.cycleId
+      ? [{ predictionId: event.payload.predictionId, periodId: event.payload.periodId, stage: event.payload.stage, cycleId: event.cycleId }] : []);
+  const attributed = new Set(explicit.map(origin => origin.predictionId));
+  return [...explicit.filter(origin => cycles.has(origin.cycleId)), ...records.flatMap(record => record.originated.filter(origin => !attributed.has(origin.predictionId))
+    .map(origin => ({ ...origin, cycleId: record.cycleId })))];
+}
+
 /** Completed cognition in one thread alone advances voluntary-focus lifetime. */
 export function priorAffect(store: Store, current: Cycle) {
   const prior = store.cycles(current.agentId).filter(cycle => cycle.status === 'completed' && cycle.kind !== 'attention_monitor'
@@ -27,10 +38,10 @@ export function priorAffect(store: Store, current: Cycle) {
   const entry = related.flatMap(record => record.decisions).find(decision => decision.resultingFocus?.periodId === periodId
     && ['started', 'switched'].includes(decision.boundary));
   const entryRecord = entry ? related.find(record => record.cycleId === entry.cycleId) : undefined;
-  const originated = records.flatMap(record => record.originated.filter(origin => origin.periodId === periodId).map(origin => origin.predictionId));
+  const originated = affectPredictionOrigins(store, current.agentId, records).filter(origin => origin.periodId === periodId).map(origin => origin.predictionId);
   return { sequence, focusBefore, activeFocus,
-    feedback: periodId ? affectFeedback({ periodId, completedCycles: related.filter(record => record.usedFocus?.periodId === periodId
-      || (record.focusBefore?.periodId === periodId && record.sequence <= record.focusBefore.expiresAfterSequence)).length,
+    feedback: periodId ? affectFeedback({ periodId, completedCycles: new Set(related.filter(record => record.usedFocus?.periodId === periodId
+      || (record.focusBefore?.periodId === periodId && record.sequence <= record.focusBefore.expiresAfterSequence)).map(record => record.cycleId)).size,
       baselinePredictionIds: entryRecord?.baselinePredictionIds ?? [], originatedPredictionIds: originated,
       predictions: store.list('prediction', current.agentId) }) : null };
 }
@@ -56,8 +67,8 @@ export function currentAffect(store: Store, current: Cycle, rootWorldId?: string
   const origins = store.eventsByType(current.agentId, ['self.affect_prediction_origin']).flatMap(event =>
     event.type === 'self.affect_prediction_origin' && event.payload.periodId === periodId ? [event.payload.predictionId] : []);
   const committedCycles = new Set(records.map(record => record.cycleId));
-  const legacyOrigins = affectCycles(store, current.agentId).filter(record => !committedCycles.has(record.cycleId))
-    .flatMap(record => record.originated.filter(origin => origin.periodId === periodId).map(origin => origin.predictionId));
+  const legacyOrigins = affectPredictionOrigins(store, current.agentId, affectCycles(store, current.agentId).filter(record => !committedCycles.has(record.cycleId)))
+    .filter(origin => origin.periodId === periodId).map(origin => origin.predictionId);
   return { sequence, focusBefore, activeFocus, rootWorldId: root,
     shouldReconsider: last.rootWorldId !== root || !last.offersConsidered,
     feedback: periodId ? affectFeedback({ periodId,

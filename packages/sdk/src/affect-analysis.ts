@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Store, CognitiveEvent, EventPayloads } from '../../core/src/contracts.js';
 import type { SelectedAffect } from '../../core/src/affect-domain.js';
-import { affectCycles } from '../../core/src/affect-history.js';
+import { affectCycles, affectPredictionOrigins } from '../../core/src/affect-history.js';
 import { affectFeedback } from '../../core/src/affect.js';
 
 type TimelineKind = 'part.affect_proposals' | 'self.affect_decision' | 'self.affect_baseline' | 'part.focused_bid_revision' | 'self.choice' | 'self.experienced_transition';
@@ -23,6 +23,7 @@ export function analyzeAffect(store: Store, agentId: string, supplied: AffectAna
   const events = store.eventsByType(agentId, ['part.affect_proposals', 'self.affect_decision', 'self.affect_baseline',
     'part.focused_bid_revision', 'part.bid_created', 'self.choice', 'self.experienced_transition']);
   const predictions = store.list('prediction', agentId);
+  const predictionOrigins = affectPredictionOrigins(store, agentId, records);
   const fitsTime = (at: string) => (!filter.from || Date.parse(at) >= Date.parse(filter.from))
     && (!filter.to || Date.parse(at) <= Date.parse(filter.to));
   const fitsThread = (thread: string | null) => filter.threadId === undefined || thread === filter.threadId;
@@ -40,8 +41,7 @@ export function analyzeAffect(store: Store, agentId: string, supplied: AffectAna
     const entryRecord = records.find(record => record.cycleId === entry?.cycleId);
     const exposed = records.filter(record => record.usedFocus?.periodId === focus.periodId
       || (record.focusBefore?.periodId === focus.periodId && record.sequence <= record.focusBefore.expiresAfterSequence));
-    const origins = records.flatMap(record => record.originated.filter(origin => origin.periodId === focus.periodId)
-      .map(origin => ({ ...origin, cycleId: record.cycleId })));
+    const origins = predictionOrigins.filter(origin => origin.periodId === focus.periodId);
     const revisions = events.flatMap(event => event.type === 'part.focused_bid_revision' && event.payload.focusId === focus.periodId
       && event.cycleId && committed.has(event.cycleId) ? [{ ...eventRef(event), ...event.payload }] : []);
     const boundaries: { cycleId: string; at: string; kind: 'switched' | 'expired' | 'navigation' }[] = [];
@@ -55,9 +55,9 @@ export function analyzeAffect(store: Store, agentId: string, supplied: AffectAna
     const startAt = cycleMap.get(focus.startedCycleId)!.startedAt;
     const windowCycles = exposed.filter(record => fitsCycle(record.cycleId));
     const originatedPredictionIds = origins.map(origin => origin.predictionId);
-    const feedback = affectFeedback({ periodId: focus.periodId, completedCycles: exposed.length,
+    const feedback = affectFeedback({ periodId: focus.periodId, completedCycles: new Set(exposed.map(record => record.cycleId)).size,
       baselinePredictionIds: entryRecord?.baselinePredictionIds ?? [], originatedPredictionIds, predictions });
-    const windowFeedback = affectFeedback({ periodId: focus.periodId, completedCycles: windowCycles.length,
+    const windowFeedback = affectFeedback({ periodId: focus.periodId, completedCycles: new Set(windowCycles.map(record => record.cycleId)).size,
       baselinePredictionIds: entryRecord && fitsCycle(entryRecord.cycleId) ? entryRecord.baselinePredictionIds : [],
       originatedPredictionIds: origins.filter(origin => fitsCycle(origin.cycleId)).map(origin => origin.predictionId), predictions });
     const behavior = exposed.flatMap(record => events.flatMap(event => event.type === 'self.choice' && event.cycleId === record.cycleId
