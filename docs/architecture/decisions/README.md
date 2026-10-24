@@ -120,3 +120,5 @@ ADR 0134 records explicit researcher component authoring, editable smart drafts,
 ADR 0177 adds explicit source-attributed SDK and Simulation Test Identity initialization, preserving demo defaults, captured reruns and cognitive authority.
 
 - [0178 — Correlated bid revision output schemas](0178-correlated-bid-revision-wire.md)
+
+- [0179 — Memory-inferred Part beliefs](0179-memory-inferred-part-beliefs.md)

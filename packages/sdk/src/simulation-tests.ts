@@ -2,6 +2,7 @@ import type { AgentInitialization } from './agent-initialization.js';
 import { interestSimulations } from './interest-simulations.js';
 import { bodySensationSimulations } from './body-sensation-simulations.js';
 import { needDevelopmentSimulations } from './need-development-simulations.js';
+import { beliefFormationSimulations } from './belief-formation-simulations.js';
 import { recoverySensationSimulations } from './recovery-sensation-simulations.js';
 import { attentionWindow, type AttentionWindowEvidence } from './attention-window.js';
 import { continuousSimulations } from './continuous-simulations.js';
@@ -35,6 +36,7 @@ export const simulationTests: SimulationTestDefinition[] = [
   ...bodySensationSimulations,
   ...needDevelopmentSimulations,
   ...recoverySensationSimulations,
+  ...beliefFormationSimulations,
   ...continuousSimulations,
   ...interestSimulations,
   ...([false, true] as const).map(includeProcessing => ({

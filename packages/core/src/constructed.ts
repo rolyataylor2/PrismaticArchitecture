@@ -351,11 +351,14 @@ export class ConstructedCognition {
         ...(recruitment ? { question: recruitment.question } : {}),
         dispositions: assembly.disposition ? [assembly.disposition] : [],
         dispositionBindings: assembly.disposition ? [{ entityId: assembly.entityId, dispositionId: assembly.disposition.id }] : [],
-        workingParts: assembly.current ? [assembly.current] : [],
+        // Beliefs are inferred afresh from recalled memory, not inherited as generation evidence.
+        workingParts: assembly.current ? [{ ...assembly.current, beliefs: [] }] : [],
         predictions: openPredictions.filter(prediction => prediction.partId === assembly.current?.id),
         ...(!assembly.disposition ? { identity: { ...identity, traits: identity.traits.filter(trait => trait.role === 'self_definition') } } : {}),
       });
       const available = new Set(selected.map(memory => memory.id));
+      if (!selected.length && (product.formation.beliefs.length || product.cognition.beliefs?.length))
+        throw new InfrastructureError('part_cognition', 'Belief inference requires a currently recalled past memory; direct observations belong in interpretation');
       if ([...product.formation.evidenceMemoryIds, ...product.formation.counterevidenceMemoryIds].some(memoryId => !available.has(memoryId)))
         throw new InfrastructureError('part_cognition', 'Formation cited an unavailable memory');
       if (product.cognition.prediction && openPredictions.some(prediction => prediction.partId === assembly.current?.id))

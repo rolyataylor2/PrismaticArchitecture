@@ -48,8 +48,10 @@ export function constructedOutputSchema(input: ConstructedInput): z.ZodType<unkn
   const alternatives = [action, ...(inquiry ? [inquiry] : []), ...(navigation ? [navigation] : [])];
   const proposal = alternatives.length === 1 ? action : z.union([alternatives[0]!, alternatives[1]!, ...alternatives.slice(2)]);
   const product = PartGenerationSchema.extend({ formation: PartFormationSchema.extend({
+    beliefs: PartFormationSchema.shape.beliefs.max(ids.length ? 30 : 0).describe('Inferences from supplied recalled memories that fill gaps in current direct evidence. Direct observations are interpretation, not beliefs. Empty when no memory was recalled; withdraw contradicted carried claims.'),
     evidenceMemoryIds: references, counterevidenceMemoryIds: references,
   }), cognition: PartGenerationSchema.shape.cognition.extend({
+    beliefs: PartGenerationSchema.shape.cognition.shape.beliefs.unwrap().max(ids.length ? 100 : 0).optional().describe('Optional reconsidered memory-based inferences where direct evidence is missing; [] withdraws beliefs. With no recalled memory only [] or omission is valid.'),
     interpretation: PartGenerationSchema.shape.cognition.shape.interpretation.describe('My interpretation of the current encounter, including relevant newly supplied details. Earlier state and memories frame this interpretation; they are not new observations.'),
     evidenceSummary: PartGenerationSchema.shape.cognition.shape.evidenceSummary.describe('Express relevant details of the current encounter for world-blind Self. Distinguish earlier context, recalled episodes and imagined futures from newly supplied records.'),
     proposal: proposal.nullable().describe('A complete recommendation if I advocate behavior now; otherwise null. Thought, localGoal and prediction conditionedAction are not selectable recommendations. Consider the current encounter and behavior already completed.'),

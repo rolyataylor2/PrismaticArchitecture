@@ -1,3 +1,7 @@
+## Memory-inferred Part beliefs (ADR 0179)
+
+[ADR 0179](decisions/0179-memory-inferred-part-beliefs.md) reserves assembled Part beliefs for inferences from recalled memories when current direct evidence is missing. Observations remain perception/interpretation; contradictory direct evidence permits withdrawal and an empty belief list. With no recalled memory, formation and cognition must return no beliefs. Scope continuity, subjective interpretation and historical versions remain intact.
+
 ## Embodied intention boundary
 
 Every embodied external behavior, including speech and waiting, uses the natural-intention body path. Chat output alone cannot establish a world utterance. See [ADR 0175](decisions/0175-embodied-external-behavior.md).

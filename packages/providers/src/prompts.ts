@@ -24,7 +24,7 @@ export const prompts = {
   researcher_authoring: { version: 'researcher-authoring-v1', text: loadFactoryPrompt('researcher_authoring') },
   memory_accessibility: { version: 'memory-accessibility-inquiry-v5', text: loadFactoryPrompt('memory_accessibility') },
   disposition_activation: { version: 'disposition-activation-relevance-only-v11', text: loadFactoryPrompt('disposition_activation') },
-  part_cognition: { version: 'part-cognition-conditions-v35', text: loadFactoryPrompt('part_cognition') },
+  part_cognition: { version: 'part-cognition-memory-inferred-beliefs-v1', text: loadFactoryPrompt('part_cognition') },
   disposition_learning: { version: 'disposition-rejection-continuation-v9', text: loadFactoryPrompt('disposition_learning') },
   effortful_recall: { version: 'effortful_recall-twig-v1', text: loadFactoryPrompt('effortful_recall') },
 
@@ -62,7 +62,7 @@ export const promptCatalog: { task: PromptTask; title: string; category: string;
   { task: 'hypothesis_outcome', title: 'Mem · Gap hypothesis outcome check', category: 'Mem', version: prompts.hypothesis_outcome.version, original: prompts.hypothesis_outcome.text },
   { task: 'hypothesis_reflection', title: 'Mem · Gap hypothesis subjective reflection', category: 'Mem', version: prompts.hypothesis_reflection.version, original: prompts.hypothesis_reflection.text },
   { task: 'cognition_coverage', title: 'Cog · Consequential coverage and hypotheses', category: 'Cog', version: prompts.cognition_coverage.version, original: prompts.cognition_coverage.text },
-  { task: 'part_cognition', title: 'Cog · Part formation → reflection → cognition', category: 'Cog', version: prompts.part_cognition.version, original: prompts.part_cognition.text },
+  { task: 'part_cognition', title: 'Cog · Formation → memory-inferred beliefs → cognition', category: 'Cog', version: prompts.part_cognition.version, original: prompts.part_cognition.text },
   { task: 'experiential_formation', title: 'Mem · Experience evidence attachment', category: 'Mem', version: prompts.experiential_formation.version, original: prompts.experiential_formation.text },
   { task: 'disposition_learning', title: 'Slp · Disposition learning', category: 'Slp', version: prompts.disposition_learning.version, original: prompts.disposition_learning.text },
   { task: 'memory_synthesis', title: 'Slp · Disposition memory synthesis', category: 'Slp', version: prompts.memory_synthesis.version, original: prompts.memory_synthesis.text },

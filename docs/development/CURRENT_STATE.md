@@ -1,3 +1,7 @@
+## Memory-inferred beliefs — 2026-10-24
+
+ADR 0179 narrows assembled beliefs to recalled-memory gap inferences. Prior belief lists are excluded from re-formation; no-memory outputs are constrained by provider schemas and rejected by runtime before commit. Eight-cycle room evidence, lifecycle distinctions and paired Simulation Tests are documented in [the audit](MEMORY_INFERRED_BELIEFS.md). Focused regression passed 83/83 and TypeScript checking passed. Configured semantic observations and autonomous food search remain unverified; the prior trial is unchanged.
+
 ## Embodiment provider wire correlation — 2026-10-22
 
 ADR 0178 encodes the existing retain/replace/withdraw relation in provider generation schemas, preserving original runtime validation and natural embodied bids. Focused provider/affect/routing checks pass 58/58; type checking, isolated build and dependency lint pass; seven pinned Coupler integration cases pass. Full regression is nonpassing, with browser and mock-runtime baseline failures under separate comparison. Exact terminal evidence and limitations are retained in [the observation](observations/2026-10-22-bid-revision-wire.md). No live behavior or psychology improvement is claimed. The coupled-world goal remains active, including sensory semantics, autonomous regulation and broader development/evaluation work.

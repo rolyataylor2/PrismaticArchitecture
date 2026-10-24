@@ -180,7 +180,7 @@ export class MockReasoning implements ReasoningProvider {
       const selfDefinition = input.identity?.traits.map(trait => trait.answer).join('; ') || 'I am present in this situation.';
       const construction = { name: disposition ? disposition.name.split(/\s+/).slice(0, 5).join(' ') : 'self',
         interpretation: disposition?.concern ?? `I am considering ${current}`,
-        mission: disposition?.concern ?? selfDefinition, beliefs: disposition ? [] : [current],
+        mission: disposition?.concern ?? selfDefinition, beliefs: [],
         strategies: disposition ? [] : ['Use remembered experience and ask when uncertain.'], triggers: disposition?.cues ?? [current], affect: '',
         evidenceMemoryIds: (input.memories ?? []).map(memory => memory.id), counterevidenceMemoryIds: [],
         concern: disposition?.concern ?? current };
