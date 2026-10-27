@@ -126,3 +126,5 @@ ADR 0177 adds explicit source-attributed SDK and Simulation Test Identity initia
 - [0180 — Sleep prediction evidence reconciliation](0180-sleep-prediction-evidence-reconciliation.md)
 
 - [0181 — Independent, contradiction-aware prediction evidence](0181-independent-contradiction-aware-prediction-evidence.md)
+
+- [0183 — Embodied session process boundary](0183-embodied-session-process-boundary.md)

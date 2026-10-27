@@ -224,12 +224,20 @@ export class MockReasoning implements ReasoningProvider {
       dispositions: input.dispositions ?? [], availableContributors: (input.workingParts ?? []).map(part => ({ partId: part.id, name: part.name })),
     });
     const current = world.facts.filter(fact => fact.originCycleId === world.cycleId).map(fact => fact.text).join(' ') || world.facts.at(-1)?.text || 'No current observation';
+    const cognition = await this.cognize(context);
+    // Mock fixtures obey the same embodied action language as real providers.
+    if (world.embodied && cognition.proposal?.action && ['say', 'ask', 'wait'].includes(cognition.proposal.action.kind)) {
+      const action = cognition.proposal.action;
+      cognition.proposal = { ...cognition.proposal, action: { kind: 'act',
+        text: action.kind === 'wait' ? action.text : `Say aloud: ${action.text}`,
+        successCriteria: action.kind === 'wait' ? 'I have remained inactive for a moment.' : 'I have said the intended words aloud.', constraints: [] } };
+    }
     return { formation: construction,
       memoryReflection: { content: `I experienced ${current}. ${construction.interpretation}. I remain uncertain about what this means.`,
         evidenceCitations: evidenceCatalog(world).filter(source => source.cycleId === world.cycleId).slice(0, 1).map(source => ({ sourceId: source.sourceId, quote: source.text })),
         context: [current], interpretation: construction.interpretation, affect: construction.affect, perceivedDetails: [current] },
       memoryGist: current,
-      cognition: await this.cognize(context) };
+      cognition };
   }
 
   async cognize(context: PartContext): Promise<Cognition> {
